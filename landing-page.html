@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AssuraPay — Payments that only move when trust is verified</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root{
+  --indigo-deep:#1B2A4A;
+  --ink:#10182C;
+  --brass:#C9973E;
+  --verified:#4C9A6A;
+  --paper:#F1EEE6;
+  --slate:#5B6478;
+  --hairline: rgba(27,42,74,0.14);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:'Inter',sans-serif;
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+.mono{font-family:'IBM Plex Mono',monospace;}
+h1,h2,h3{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-0.01em;}
+a{color:inherit;text-decoration:none;}
+.wrap{max-width:1180px;margin:0 auto;padding:0 32px;}
+:focus-visible{outline:2px solid var(--brass);outline-offset:3px;}
+
+/* subtle adire-inspired dot texture */
+.texture{
+  background-image: radial-gradient(var(--hairline) 1px, transparent 1px);
+  background-size: 18px 18px;
+}
+
+/* NAVBAR */
+header.nav{
+  position:sticky;top:0;z-index:50;
+  background:rgba(241,238,230,0.88);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--hairline);
+}
+.nav-inner{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:18px 32px;max-width:1180px;margin:0 auto;
+}
+.brand{display:flex;align-items:center;gap:10px;font-family:'Fraunces',serif;font-weight:700;font-size:20px;color:var(--ink);}
+.seal-mark{
+  width:30px;height:30px;border-radius:50%;
+  background:var(--indigo-deep);
+  position:relative;flex:none;
+  border:1.5px solid var(--brass);
+}
+.seal-mark::after{
+  content:'';position:absolute;inset:6px;border-radius:50%;
+  border:1px dashed var(--brass);
+}
+.nav-links{display:flex;gap:36px;font-size:14.5px;color:var(--slate);}
+.nav-links a:hover{color:var(--ink);}
+.nav-cta{
+  font-size:14px;font-weight:600;background:var(--indigo-deep);color:var(--paper);
+  padding:10px 20px;border-radius:3px;border:1px solid var(--indigo-deep);
+  transition:background .18s ease;
+}
+.nav-cta:hover{background:var(--ink);}
+@media (max-width:860px){ .nav-links{display:none;} }
+
+/* HERO */
+.hero{
+  padding:88px 0 64px;
+  position:relative;
+  overflow:hidden;
+}
+.hero-grid{
+  display:grid;grid-template-columns:1.05fr 0.95fr;gap:56px;align-items:center;
+}
+@media (max-width:940px){ .hero-grid{grid-template-columns:1fr;} }
+.eyebrow{
+  font-family:'IBM Plex Mono',monospace;font-size:12.5px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--brass);font-weight:600;
+  display:flex;align-items:center;gap:10px;margin-bottom:22px;
+}
+.eyebrow::before{content:'';width:24px;height:1px;background:var(--brass);}
+.hero h1{
+  font-size:clamp(34px,4.6vw,56px);line-height:1.06;color:var(--ink);
+  margin-bottom:22px;
+}
+.hero h1 em{font-style:italic;color:var(--indigo-deep);}
+.hero p.lead{font-size:18px;color:var(--slate);max-width:520px;margin-bottom:32px;}
+.hero-actions{display:flex;gap:14px;flex-wrap:wrap;}
+.btn-primary{
+  background:var(--indigo-deep);color:var(--paper);padding:14px 26px;border-radius:3px;
+  font-weight:600;font-size:15px;border:1px solid var(--indigo-deep);transition:transform .15s ease, background .15s ease;
+  display:inline-block;
+}
+.btn-primary:hover{background:var(--ink);transform:translateY(-1px);}
+.btn-secondary{
+  padding:14px 26px;border-radius:3px;font-weight:600;font-size:15px;
+  border:1px solid var(--indigo-deep);color:var(--indigo-deep);transition:background .15s ease;
+}
+.btn-secondary:hover{background:rgba(27,42,74,0.06);}
+
+/* Ledger slip visual */
+.slip{
+  background:#fff;border:1px solid var(--hairline);border-radius:4px;
+  box-shadow:0 30px 60px -25px rgba(16,24,44,0.35);
+  padding:30px 28px 26px;position:relative;
+  font-family:'IBM Plex Mono',monospace;
+}
+.slip::before{
+  content:'';position:absolute;left:-1px;right:-1px;top:-1px;height:6px;
+  background-image: repeating-linear-gradient(90deg, transparent 0 6px, var(--paper) 6px 14px);
+  background-color:#fff; border-top-left-radius:4px;border-top-right-radius:4px;
+}
+.slip-row{display:flex;justify-content:space-between;font-size:12.5px;color:var(--slate);padding:7px 0;border-bottom:1px dashed var(--hairline);}
+.slip-row:last-of-type{border-bottom:none;}
+.slip-row span:last-child{color:var(--ink);font-weight:600;}
+.slip-head{font-family:'Fraunces',serif;font-size:15px;font-weight:600;color:var(--ink);margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;}
+.slip-status{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--slate);border:1px solid var(--hairline);border-radius:20px;padding:3px 10px;}
+
+.stamp{
+  position:absolute; right:20px; bottom:18px; width:94px;height:94px;
+  border-radius:50%; border:2.5px solid var(--verified);
+  display:flex;align-items:center;justify-content:center;text-align:center;
+  transform:rotate(-14deg) scale(0.5); opacity:0;
+  animation: stampIn 0.6s cubic-bezier(.2,.9,.3,1.3) 1.1s forwards;
+}
+.stamp span{font-family:'Fraunces',serif;font-weight:700;font-size:12px;color:var(--verified);letter-spacing:.04em;line-height:1.15;}
+@keyframes stampIn{
+  0%{transform:rotate(-14deg) scale(0.5);opacity:0;}
+  60%{transform:rotate(-14deg) scale(1.08);opacity:1;}
+  100%{transform:rotate(-14deg) scale(1);opacity:1;}
+}
+@media (prefers-reduced-motion: reduce){ .stamp{animation:none;opacity:1;transform:rotate(-14deg) scale(1);} }
+
+/* TRUST STRIP */
+.trust-strip{border-top:1px solid var(--hairline);border-bottom:1px solid var(--hairline);padding:22px 0;}
+.trust-strip .wrap{display:flex;gap:44px;flex-wrap:wrap;align-items:center;justify-content:space-between;}
+.trust-item{font-size:13px;color:var(--slate);display:flex;align-items:center;gap:8px;}
+.trust-item strong{color:var(--ink);font-family:'IBM Plex Mono',monospace;font-weight:600;}
+
+/* SECTIONS */
+section{padding:96px 0;}
+.section-head{max-width:640px;margin-bottom:56px;}
+.section-head .eyebrow{margin-bottom:16px;}
+.section-head h2{font-size:clamp(28px,3.4vw,40px);color:var(--ink);margin-bottom:14px;}
+.section-head p{color:var(--slate);font-size:16.5px;}
+
+/* FLOW */
+.flow{display:grid;grid-template-columns:repeat(5,1fr);gap:0;position:relative;}
+@media (max-width:940px){ .flow{grid-template-columns:1fr;gap:28px;} }
+.flow-step{position:relative;padding:0 18px 0 0;}
+.flow-step .num{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--brass);font-weight:600;margin-bottom:14px;}
+.flow-step h3{font-size:17px;margin-bottom:8px;color:var(--ink);}
+.flow-step p{font-size:13.8px;color:var(--slate);}
+.flow-step:not(:last-child)::after{
+  content:'→';position:absolute;right:-6px;top:2px;color:var(--brass);font-size:16px;
+}
+@media (max-width:940px){ .flow-step:not(:last-child)::after{content:'↓';right:auto;left:0;top:auto;bottom:-24px;} }
+
+/* ENGINES */
+.engine-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--hairline);border:1px solid var(--hairline);}
+@media (max-width:940px){ .engine-grid{grid-template-columns:repeat(2,1fr);} }
+@media (max-width:560px){ .engine-grid{grid-template-columns:1fr;} }
+.engine-cell{background:var(--paper);padding:26px 22px;transition:background .15s ease;}
+.engine-cell:hover{background:#fff;}
+.engine-cell .idx{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--brass);margin-bottom:10px;}
+.engine-cell h4{font-family:'Fraunces',serif;font-size:16px;font-weight:600;margin-bottom:6px;color:var(--ink);}
+.engine-cell p{font-size:12.8px;color:var(--slate);line-height:1.45;}
+
+/* CONSTRAINT BANNER */
+.constraint{background:var(--indigo-deep);color:var(--paper);border-radius:6px;padding:44px 40px;display:grid;grid-template-columns:auto 1fr;gap:28px;align-items:center;}
+@media (max-width:700px){ .constraint{grid-template-columns:1fr;} }
+.constraint .seal-mark{width:54px;height:54px;background:transparent;border:2px solid var(--brass);}
+.constraint .seal-mark::after{inset:9px;}
+.constraint h3{color:#fff;font-size:22px;margin-bottom:8px;}
+.constraint p{color:rgba(241,238,230,0.78);font-size:14.5px;max-width:640px;}
+
+/* USE CASES */
+.usecases{display:grid;grid-template-columns:repeat(4,1fr);gap:22px;}
+@media (max-width:940px){ .usecases{grid-template-columns:repeat(2,1fr);} }
+@media (max-width:560px){ .usecases{grid-template-columns:1fr;} }
+.usecase{border:1px solid var(--hairline);border-radius:6px;padding:26px 22px;background:#fff;}
+.usecase h4{font-size:16px;margin-bottom:10px;color:var(--ink);}
+.usecase p{font-size:13.5px;color:var(--slate);}
+
+/* FAQ */
+.faq-list{max-width:760px;}
+.faq-item{border-bottom:1px solid var(--hairline);}
+.faq-q{
+  width:100%;text-align:left;background:none;border:none;cursor:pointer;
+  padding:22px 0;display:flex;justify-content:space-between;align-items:center;
+  font-family:'Fraunces',serif;font-size:17px;font-weight:600;color:var(--ink);gap:20px;
+}
+.faq-q .plus{font-family:'IBM Plex Mono',monospace;color:var(--brass);font-size:20px;transition:transform .2s ease;flex:none;}
+.faq-item[open] .plus{transform:rotate(45deg);}
+.faq-a{padding-bottom:22px;color:var(--slate);font-size:14.8px;max-width:640px;}
+
+/* CTA */
+.cta-section{text-align:center;}
+.cta-section h2{font-size:clamp(30px,4vw,44px);margin-bottom:16px;}
+.cta-section p{color:var(--slate);max-width:480px;margin:0 auto 30px;}
+
+/* FOOTER */
+footer{border-top:1px solid var(--hairline);padding:56px 0 32px;}
+.footer-grid{display:grid;grid-template-columns:1.4fr repeat(3,1fr);gap:40px;margin-bottom:44px;}
+@media (max-width:760px){ .footer-grid{grid-template-columns:1fr 1fr;} }
+.footer-brand p{color:var(--slate);font-size:13.5px;margin-top:14px;max-width:260px;}
+.footer-col h5{font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--brass);margin-bottom:16px;}
+.footer-col a{display:block;font-size:13.8px;color:var(--slate);margin-bottom:11px;}
+.footer-col a:hover{color:var(--ink);}
+.footer-bottom{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;border-top:1px solid var(--hairline);padding-top:24px;font-size:12.5px;color:var(--slate);}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="nav-inner">
+    <div class="brand"><span class="seal-mark"></span>AssuraPay</div>
+    <nav class="nav-links">
+      <a href="#how">How it works</a>
+      <a href="#engines">Engines</a>
+      <a href="#usecases">Use cases</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+    <a href="#cta" class="nav-cta">Request access</a>
+  </div>
+</header>
+
+<section class="hero texture">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="eyebrow">Non-custodial payment assurance</div>
+      <h1>Payments that only move <em>when trust is verified.</em></h1>
+      <p class="lead">AssuraPay sits between payer and payee on the rails you already use — Paystack, Flutterwave, your bank — and releases funds only when the agreed condition is met. AssuraPay never holds your money.</p>
+      <div class="hero-actions">
+        <a href="#cta" class="btn-primary">Request access</a>
+        <a href="#how" class="btn-secondary">See how it works</a>
+      </div>
+    </div>
+    <div class="slip">
+      <div class="slip-head">Assurance Slip <span class="slip-status">Verified</span></div>
+      <div class="slip-row"><span>Reference</span><span>AP-2026-08421</span></div>
+      <div class="slip-row"><span>Payer</span><span>Adaeze Trading Co.</span></div>
+      <div class="slip-row"><span>Payee</span><span>Lagos Steel Supply Ltd.</span></div>
+      <div class="slip-row"><span>Amount</span><span>₦4,250,000.00</span></div>
+      <div class="slip-row"><span>Condition</span><span>Goods received &amp; signed</span></div>
+      <div class="slip-row"><span>Custodian</span><span>Partner Bank Escrow</span></div>
+      <div class="slip-row"><span>Status</span><span>Release instructed</span></div>
+      <div class="stamp"><span>ASSURED</span></div>
+    </div>
+  </div>
+</section>
+
+<div class="trust-strip">
+  <div class="wrap">
+    <div class="trust-item"><strong>0</strong>&nbsp;funds held by AssuraPay, ever</div>
+    <div class="trust-item"><strong>12</strong>&nbsp;domain engines behind every release</div>
+    <div class="trust-item"><strong>NGN</strong>&nbsp;first, multi-currency ready</div>
+    <div class="trust-item"><strong>100%</strong>&nbsp;append-only audit trail</div>
+  </div>
+</div>
+
+<section id="how">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">How it works</div>
+      <h2>Five steps, one custodian, zero custody for AssuraPay</h2>
+      <p>The money never leaves a licensed rail. AssuraPay only decides — verifiably — when it's allowed to move.</p>
+    </div>
+    <div class="flow">
+      <div class="flow-step"><div class="num">01</div><h3>Create</h3><p>Payer or payee defines the amount and the condition that must be met before release.</p></div>
+      <div class="flow-step"><div class="num">02</div><h3>Fund</h3><p>Payer funds through Paystack, Flutterwave, or bank transfer into a licensed custodian account.</p></div>
+      <div class="flow-step"><div class="num">03</div><h3>Verify</h3><p>The condition is checked — document, dual sign-off, or attested delivery event.</p></div>
+      <div class="flow-step"><div class="num">04</div><h3>Instruct</h3><p>AssuraPay issues a signed release instruction to the custodian. It never touches the funds.</p></div>
+      <div class="flow-step"><div class="num">05</div><h3>Settle</h3><p>Custodian pays out. Every step is logged to an append-only, tamper-evident audit trail.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="engines" class="texture">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">The assurance engine</div>
+      <h2>Twelve domain engines, one canonical record</h2>
+      <p>Every engine reads and writes to a single AssuranceRequest — no side ledgers, no ambiguity about what happened and when.</p>
+    </div>
+    <div class="engine-grid">
+      <div class="engine-cell"><div class="idx">01</div><h4>Escrow Orchestration</h4><p>Owns the release lifecycle state machine end to end.</p></div>
+      <div class="engine-cell"><div class="idx">02</div><h4>Condition Verification</h4><p>Checks documents, sign-offs, and oracle attestations against the stated condition.</p></div>
+      <div class="engine-cell"><div class="idx">03</div><h4>Payment Rail Router</h4><p>Directs each transaction to the correct PSP or bank integration.</p></div>
+      <div class="engine-cell"><div class="idx">04</div><h4>Multi-Party Split</h4><p>Computes split disbursement across payees and fee recipients.</p></div>
+      <div class="engine-cell"><div class="idx">05</div><h4>Dispute Trigger</h4><p>Freezes pending releases the moment a dispute is raised.</p></div>
+      <div class="engine-cell"><div class="idx">06</div><h4>Compliance &amp; AML Screening</h4><p>Runs sanctions and AML checks before any release instruction.</p></div>
+      <div class="engine-cell"><div class="idx">07</div><h4>Audit Trail &amp; Attestation</h4><p>Append-only, hash-chained record of every state change.</p></div>
+      <div class="engine-cell"><div class="idx">08</div><h4>Risk Scoring</h4><p>Flags high-risk counterparties and transactions for review.</p></div>
+      <div class="engine-cell"><div class="idx">09</div><h4>Settlement Reconciliation</h4><p>Matches custodian settlement confirmations against instructions.</p></div>
+      <div class="engine-cell"><div class="idx">10</div><h4>Notification &amp; Webhook</h4><p>Real-time updates to every party at every state change.</p></div>
+      <div class="engine-cell"><div class="idx">11</div><h4>Identity &amp; KYC/KYB</h4><p>Tiered onboarding verification for individuals and businesses.</p></div>
+      <div class="engine-cell"><div class="idx">12</div><h4>Currency &amp; FX Conversion</h4><p>Resolves rates and conversion instructions for cross-border legs.</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="constraint">
+      <span class="seal-mark"></span>
+      <div>
+        <h3>AssuraPay never holds your money — by design, not just policy.</h3>
+        <p>Funds sit with a licensed custodian — a bank or PSP — from the moment they're sent to the moment they're released. AssuraPay issues signed release instructions only. There is no pooled account, no wallet, and no code path where AssuraPay takes custody.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="usecases">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">Built for</div>
+      <h2>Wherever payment and trust are supposed to move together</h2>
+    </div>
+    <div class="usecases">
+      <div class="usecase"><h4>B2B trade</h4><p>SME buyers and sellers release payment only once goods are confirmed received — no pre-funding risk on either side.</p></div>
+      <div class="usecase"><h4>Marketplaces</h4><p>Embed assurance into checkout without becoming a payment institution yourself.</p></div>
+      <div class="usecase"><h4>Public-sector procurement</h4><p>Disburse against verified milestones with a full, auditable trail for oversight.</p></div>
+      <div class="usecase"><h4>Diaspora-linked trade</h4><p>Cross-border buyers and sellers transact on a shared, verifiable condition — not personal trust alone.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="faq" class="texture">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">Questions</div>
+      <h2>Frequently asked</h2>
+    </div>
+    <div class="faq-list">
+      <details class="faq-item">
+        <summary class="faq-q">Does AssuraPay ever hold my money?<span class="plus">+</span></summary>
+        <div class="faq-a">No. Funds are always held by a licensed custodian — a partner bank or PSP such as Paystack or Flutterwave. AssuraPay issues release instructions; it has no pooled account and no signing authority over customer funds.</div>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-q">Which payment rails does AssuraPay support?<span class="plus">+</span></summary>
+        <div class="faq-a">Paystack, Flutterwave, and manual bank transfer at launch, routed through a pluggable rail adapter so more banks and processors can be added without changing how assurance requests work.</div>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-q">How is a release condition verified?<span class="plus">+</span></summary>
+        <div class="faq-a">Three ways: document upload with reviewer sign-off, dual approval from both parties, or an oracle/webhook attestation from a trusted source such as a logistics provider. AI assists with document pre-checks but never auto-approves a release above your configured threshold.</div>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-q">What happens if we disagree on whether the condition was met?<span class="plus">+</span></summary>
+        <div class="faq-a">Either party can raise a dispute, which immediately freezes any pending release instruction. The case routes to a named arbitration process with a full evidence trail — funds stay with the custodian until resolved.</div>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-q">Can AssuraPay handle split payments to multiple recipients?<span class="plus">+</span></summary>
+        <div class="faq-a">Yes. A single release event can disburse to multiple parties in one instruction — for example, seller payment plus platform fee plus referral share.</div>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-q">Is AssuraPay available outside Nigeria?<span class="plus">+</span></summary>
+        <div class="faq-a">AssuraPay launches NGN-first. Cross-border and multi-currency support is on the roadmap once the FX Conversion Engine and correspondent banking partnerships are in place.</div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<section id="cta" class="cta-section">
+  <div class="wrap">
+    <h2>Bring assurance to your next payment.</h2>
+    <p>Talk to us about piloting AssuraPay on your B2B trade, marketplace, or procurement flow.</p>
+    <a href="#" class="btn-primary">Request access</a>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="brand"><span class="seal-mark"></span>AssuraPay</div>
+        <p>Non-custodial payment assurance infrastructure for African B2B trade, public-sector procurement, and marketplace commerce. A Zenith AI Automation Agency product.</p>
+      </div>
+      <div class="footer-col">
+        <h5>Product</h5>
+        <a href="#how">How it works</a>
+        <a href="#engines">Engines</a>
+        <a href="#usecases">Use cases</a>
+      </div>
+      <div class="footer-col">
+        <h5>Company</h5>
+        <a href="#">About Zenith AI</a>
+        <a href="#">Partnerships</a>
+        <a href="#">Careers</a>
+      </div>
+      <div class="footer-col">
+        <h5>Resources</h5>
+        <a href="#faq">FAQ</a>
+        <a href="#">Documentation</a>
+        <a href="#">Compliance</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 AssuraPay — Zenith AI Automation Agency. All rights reserved.</span>
+      <span class="mono">AssuraPay never holds customer funds.</span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,45 @@
+{
+  "name": "assurapay",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Non-custodial payment assurance infrastructure for African B2B trade, public-sector procurement, and marketplace commerce.",
+  "author": "Zenith AI Automation Agency",
+  "license": "UNLICENSED",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "next": "^14.2.0",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0",
+    "framer-motion": "^11.0.0",
+    "zod": "^3.23.0",
+    "@paystack/inline-js": "^2.20.0",
+    "flutterwave-node-v3": "^1.1.10"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0",
+    "tailwindcss": "^3.4.0",
+    "eslint": "^8.57.0",
+    "eslint-config-next": "^14.2.0",
+    "@types/node": "^20.14.0",
+    "@types/react": "^18.3.0"
+  },
+  "engines": {
+    "node": ">=18.18.0"
+  },
+  "keywords": [
+    "escrow",
+    "payment-assurance",
+    "non-custodial",
+    "fintech",
+    "africa",
+    "b2b-payments",
+    "public-sector",
+    "zenith-ai"
+  ]
+}

@@ -1,0 +1,132 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 900" font-family="IBM Plex Mono, Menlo, monospace">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#C9973E"/>
+    </marker>
+    <marker id="arrowInk" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1B2A4A"/>
+    </marker>
+  </defs>
+
+  <rect width="1280" height="900" fill="#F1EEE6"/>
+
+  <text x="640" y="50" text-anchor="middle" font-size="26" fill="#10182C" font-weight="700">AssuraPay — System Architecture</text>
+  <text x="640" y="76" text-anchor="middle" font-size="14" fill="#5B6478">Non-custodial payment assurance orchestration</text>
+
+  <!-- Payer -->
+  <rect x="60" y="130" width="220" height="70" rx="8" fill="#1B2A4A"/>
+  <text x="170" y="172" text-anchor="middle" font-size="16" fill="#F1EEE6" font-weight="600">PAYER</text>
+
+  <!-- Payee -->
+  <rect x="1000" y="130" width="220" height="70" rx="8" fill="#1B2A4A"/>
+  <text x="1110" y="172" text-anchor="middle" font-size="16" fill="#F1EEE6" font-weight="600">PAYEE</text>
+
+  <!-- Custodian -->
+  <rect x="440" y="130" width="400" height="80" rx="8" fill="none" stroke="#C9973E" stroke-width="2"/>
+  <text x="640" y="160" text-anchor="middle" font-size="15" fill="#10182C" font-weight="700">LICENSED CUSTODIAN / PSP</text>
+  <text x="640" y="182" text-anchor="middle" font-size="12" fill="#5B6478">Paystack · Flutterwave · Partner Bank Escrow</text>
+  <text x="640" y="200" text-anchor="middle" font-size="11" fill="#4C9A6A" font-weight="600">holds funds — AssuraPay never does</text>
+
+  <!-- arrows payer->custodian, custodian->payee -->
+  <line x1="280" y1="165" x2="438" y2="165" stroke="#1B2A4A" stroke-width="2" marker-end="url(#arrowInk)"/>
+  <text x="358" y="155" text-anchor="middle" font-size="11" fill="#5B6478">funds (external rail)</text>
+
+  <line x1="842" y1="165" x2="998" y2="165" stroke="#1B2A4A" stroke-width="2" marker-end="url(#arrowInk)"/>
+  <text x="920" y="155" text-anchor="middle" font-size="11" fill="#5B6478">settlement</text>
+
+  <!-- connector down to core -->
+  <line x1="640" y1="210" x2="640" y2="260" stroke="#C9973E" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="700" y="238" font-size="11" fill="#5B6478">funding confirmed (webhook)</text>
+
+  <!-- Core box -->
+  <rect x="120" y="260" width="1040" height="430" rx="10" fill="#1B2A4A"/>
+  <text x="640" y="292" text-anchor="middle" font-size="18" fill="#F1EEE6" font-weight="700">ASSURAPAY CORE — 12 DOMAIN ENGINES</text>
+  <text x="640" y="312" text-anchor="middle" font-size="12" fill="#C9973E">orchestrating the AssuranceRequest canonical object</text>
+
+  <!-- Engine grid: 4 cols x 3 rows -->
+  <!-- helper generated manually -->
+  <!-- Row 1 -->
+  <g font-size="11.5" fill="#1B2A4A">
+    <rect x="150" y="335" width="230" height="60" rx="6" fill="#F1EEE6"/>
+    <text x="265" y="358" text-anchor="middle" font-weight="700">Escrow</text>
+    <text x="265" y="374" text-anchor="middle">Orchestration Engine</text>
+
+    <rect x="400" y="335" width="230" height="60" rx="6" fill="#F1EEE6"/>
+    <text x="515" y="358" text-anchor="middle" font-weight="700">Condition</text>
+    <text x="515" y="374" text-anchor="middle">Verification Engine</text>
+
+    <rect x="650" y="335" width="230" height="60" rx="6" fill="#F1EEE6"/>
+    <text x="765" y="358" text-anchor="middle" font-weight="700">Payment Rail</text>
+    <text x="765" y="374" text-anchor="middle">Router Engine</text>
+
+    <rect x="900" y="335" width="230" height="60" rx="6" fill="#F1EEE6"/>
+    <text x="1015" y="358" text-anchor="middle" font-weight="700">Multi-Party</text>
+    <text x="1015" y="374" text-anchor="middle">Split Engine</text>
+
+    <!-- Row 2 -->
+    <rect x="150" y="410" width="230" height="60" rx="6" fill="#F1EEE6"/>
+    <text x="265" y="433" text-anchor="middle" font-weight="700">Dispute</text>
+    <text x="265" y="449" text-anchor="middle">Trigger Engine</text>
+
+    <rect x="400" y="410" width="230" height="60" rx="6" fill="#F1EEE6"/>
+    <text x="515" y="433" text-anchor="middle" font-weight="700">Compliance &amp; AML</text>
+    <text x="515" y="449" text-anchor="middle">Screening Engine</text>
+
+    <rect x="650" y="410" width="230" height="60" rx="6" fill="#F1EEE6"/>
+    <text x="765" y="433" text-anchor="middle" font-weight="700">Audit Trail &amp;</text>
+    <text x="765" y="449" text-anchor="middle">Attestation Engine</text>
+
+    <rect x="900" y="410" width="230" height="60" rx="6" fill="#F1EEE6"/>
+    <text x="1015" y="433" text-anchor="middle" font-weight="700">Risk Scoring</text>
+    <text x="1015" y="449" text-anchor="middle">Engine</text>
+
+    <!-- Row 3 -->
+    <rect x="150" y="485" width="230" height="60" rx="6" fill="#F1EEE6"/>
+    <text x="265" y="508" text-anchor="middle" font-weight="700">Settlement</text>
+    <text x="265" y="524" text-anchor="middle">Reconciliation Engine</text>
+
+    <rect x="400" y="485" width="230" height="60" rx="6" fill="#F1EEE6"/>
+    <text x="515" y="508" text-anchor="middle" font-weight="700">Notification &amp;</text>
+    <text x="515" y="524" text-anchor="middle">Webhook Engine</text>
+
+    <rect x="650" y="485" width="230" height="60" rx="6" fill="#F1EEE6"/>
+    <text x="765" y="508" text-anchor="middle" font-weight="700">Identity &amp;</text>
+    <text x="765" y="524" text-anchor="middle">KYC/KYB Engine</text>
+
+    <rect x="900" y="485" width="230" height="60" rx="6" fill="#F1EEE6"/>
+    <text x="1015" y="508" text-anchor="middle" font-weight="700">Currency &amp; FX</text>
+    <text x="1015" y="524" text-anchor="middle">Conversion Engine</text>
+  </g>
+
+  <!-- Canonical object bar -->
+  <rect x="150" y="565" width="980" height="50" rx="6" fill="#C9973E"/>
+  <text x="640" y="596" text-anchor="middle" font-size="14" fill="#10182C" font-weight="700">AssuranceRequest — canonical object (shared by all engines)</text>
+
+  <!-- integration adapters -->
+  <text x="150" y="645" font-size="12" fill="#F1EEE6" font-weight="700">INTEGRATION ADAPTERS</text>
+  <rect x="150" y="655" width="230" height="34" rx="6" fill="none" stroke="#F1EEE6"/>
+  <text x="265" y="676" text-anchor="middle" font-size="11" fill="#F1EEE6">Paystack / Flutterwave / Bank API</text>
+
+  <rect x="400" y="655" width="230" height="34" rx="6" fill="none" stroke="#F1EEE6"/>
+  <text x="515" y="676" text-anchor="middle" font-size="11" fill="#F1EEE6">Oracle / Attestation Sources</text>
+
+  <rect x="650" y="655" width="230" height="34" rx="6" fill="none" stroke="#F1EEE6"/>
+  <text x="765" y="676" text-anchor="middle" font-size="11" fill="#F1EEE6">Public API + Webhooks</text>
+
+  <rect x="900" y="655" width="230" height="34" rx="6" fill="none" stroke="#F1EEE6"/>
+  <text x="1015" y="676" text-anchor="middle" font-size="11" fill="#F1EEE6">Embeddable Widget SDK</text>
+
+  <!-- arrow back up to custodian: release instruction -->
+  <line x1="900" y1="290" x2="842" y2="180" stroke="#C9973E" stroke-width="2" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+  <text x="905" y="245" font-size="11" fill="#5B6478">release instruction</text>
+
+  <!-- Data store -->
+  <rect x="440" y="740" width="400" height="90" rx="8" fill="none" stroke="#1B2A4A" stroke-width="2"/>
+  <text x="640" y="768" text-anchor="middle" font-size="14" fill="#10182C" font-weight="700">Postgres (Supabase)</text>
+  <text x="640" y="788" text-anchor="middle" font-size="11" fill="#5B6478">AssuranceRequest · Parties · Conditions</text>
+  <text x="640" y="805" text-anchor="middle" font-size="11" fill="#5B6478">Append-only, hash-chained Audit Log</text>
+
+  <line x1="640" y1="700" x2="640" y2="738" stroke="#1B2A4A" stroke-width="2" marker-end="url(#arrowInk)"/>
+
+  <text x="640" y="865" text-anchor="middle" font-size="11" fill="#5B6478">Zenith AI Automation Agency — AssuraPay v0.1 Architecture</text>
+</svg>
