@@ -1,0 +1,1 @@
+import {errorResponse,intelligence,requestContext} from '../../../../lib/trust-app';export async function POST(r:Request){try{return Response.json(intelligence.versions.registerExecuted(requestContext(r),await r.json()),{status:201})}catch(e){return errorResponse(e)}}

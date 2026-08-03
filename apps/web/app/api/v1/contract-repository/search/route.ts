@@ -1,0 +1,1 @@
+import {errorResponse,intelligence,requestContext} from '../../../../../lib/trust-app';export async function POST(r:Request){try{const b=await r.json();return Response.json(intelligence.repository.search(requestContext(r),b.query,b.allowedClassifications))}catch(e){return errorResponse(e)}}

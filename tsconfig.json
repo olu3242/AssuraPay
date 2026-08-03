@@ -25,6 +25,7 @@
       "@assurapay/legal": ["packages/legal/src/index.ts"]
       ,"@assurapay/governance-core": ["packages/governance-core/src/index.ts"]
       ,"@assurapay/agreement-creation": ["packages/agreement-creation/src/index.ts"]
+      ,"@assurapay/agreement-intelligence": ["packages/agreement-intelligence/src/index.ts"]
     },
     "plugins": [{ "name": "next" }],
     "types": ["node", "vitest/globals"]
