@@ -5,6 +5,7 @@
   "description": "Execution assurance and conditional payment platform foundation for AssuraPay.",
   "author": "Zenith AI Automation Agency",
   "license": "UNLICENSED",
+  "packageManager": "pnpm@11.3.0",
   "workspaces": [
     "apps/*",
     "packages/*"
@@ -108,13 +109,14 @@
     "certify:batch14": "npm run certify && npm run test:integration && npm run test:e2e && npm run build"
   },
   "dependencies": {
+    "framer-motion": "^11.11.9",
     "next": "^14.2.15",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "framer-motion": "^11.11.9",
     "zod": "^3.23.0"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "2.1.4",
     "@types/node": "^20.14.0",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.1",
