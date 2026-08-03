@@ -17,6 +17,11 @@
 | Negotiation (13) | Implemented | Participant-governed immutable proposal rounds |
 | Approval Workflow (14) | Implemented | Version-pinned policies, authority, segregation and invalidation |
 | Digital Execution (15) | Implemented | Exact-document packages, verified callbacks and execution certificates |
+| AI Contract Analysis (16) | Implemented | Governed gateway and source-grounded immutable analysis runs |
+| Contract Risk (17) | Implemented | Deterministic versioned risk assessments and validation |
+| Contract Version (18) | Implemented | Immutable executed, amended and superseded versions |
+| Contract Repository (19) | Implemented | Secure-store contract, classification-filtered search and legal hold |
+| Agreement Intelligence (20) | Implemented | Human-reviewed source-grounded published structured versions |
 | Audit and evidence ledger | Foundation only | Integrity-chained audit adapter and append-only PostgreSQL contract |
 | Configuration engine | Contract only | Environment configuration and seed snapshot |
 | Contract lifecycle | Implemented | Domain service and API routes |
