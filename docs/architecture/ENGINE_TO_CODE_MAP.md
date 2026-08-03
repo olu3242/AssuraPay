@@ -22,6 +22,11 @@
 | Contract Version (18) | Implemented | Immutable executed, amended and superseded versions |
 | Contract Repository (19) | Implemented | Secure-store contract, classification-filtered search and legal hold |
 | Agreement Intelligence (20) | Implemented | Human-reviewed source-grounded published structured versions |
+| Performance Blueprint (21) | Implemented | Published operational aggregate derived from Agreement Intelligence |
+| Scope Definition (22) | Implemented | Grounded included/excluded scope, assumptions and constraints |
+| Deliverables (23) | Implemented | Measurable owned and evidenced deliverable definitions |
+| Milestone Planning (24) | Implemented | Planned dependency graph, value allocation and critical path |
+| Definition of Done (25) | Implemented | Blueprint-level measurable completion contracts |
 | Audit and evidence ledger | Foundation only | Integrity-chained audit adapter and append-only PostgreSQL contract |
 | Configuration engine | Contract only | Environment configuration and seed snapshot |
 | Contract lifecycle | Implemented | Domain service and API routes |
