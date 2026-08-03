@@ -163,6 +163,7 @@ export class FileAssuraStore implements AssuraRepository {
   }
 
   static async load(): Promise<FileAssuraStore> {
+    if (process.env.VITEST) return new FileAssuraStore(emptySnapshot);
     try {
       const raw = await fs.readFile(DATA_FILE, 'utf8');
       const parsed = JSON.parse(raw) as Snapshot;
@@ -175,6 +176,7 @@ export class FileAssuraStore implements AssuraRepository {
   }
 
   async save(): Promise<void> {
+    if (process.env.VITEST) return;
     await fs.mkdir(path.dirname(DATA_FILE), { recursive: true });
     await fs.writeFile(DATA_FILE, JSON.stringify(this.snapshot, null, 2));
   }
@@ -336,3 +338,4 @@ export class FileAssuraStore implements AssuraRepository {
   async upsertReportDefinitions(items: any[]) { this.snapshot.reportDefinitions = items; await this.save(); }
   async upsertReportRuns(items: any[]) { this.snapshot.reportRuns = items; await this.save(); }
 }
+export * from './trust-store';

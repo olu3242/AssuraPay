@@ -6,18 +6,18 @@ AssuraPay is an Execution Assurance and Conditional Payment Platform. The engine
 
 ## Wave 1 — Trust Foundation (01–10)
 
-| # | Engine | Primary responsibility |
-|---|---|---|
-| 01 | Identity & Digital Trust | Authentication, MFA, SSO, device trust, sessions, identity assurance |
-| 02 | Organization & Multi-Tenant | Personal and organization workspaces, hierarchy, membership, tenant isolation |
-| 03 | Roles, Permissions & Governance | RBAC, ABAC, record/field access, delegation, authority, segregation of duties |
-| 04 | Party Verification | KYC/KYB, company, director, tax, licence, insurance, beneficiary verification |
-| 05 | Legal Governance | Terms, privacy, consent, jurisdiction, legal holds, signature policy packs |
-| 06 | Third-Party Risk | Vendor, cyber, financial, AML, ESG and resilience risk |
-| 07 | Compliance Foundation | Configurable privacy, AML, sanctions, quality and internal-policy controls |
-| 08 | Audit & Evidence Ledger | Append-only decisions, approvals, signatures, evidence and financial audit |
-| 09 | Notification & Communication | Email, SMS, WhatsApp, push, in-app, webhooks and delivery evidence |
-| 10 | Enterprise Configuration | Profiles, inheritance, object/field controls, workflows, rules and policy packs |
+| # | Engine | Primary responsibility | Status |
+|---|---|---|---|
+| 01 | Identity & Digital Trust | Authentication, MFA, SSO, device trust, sessions, identity assurance | Conditionally implemented |
+| 02 | Organization & Multi-Tenant | Personal and organization workspaces, hierarchy, membership, tenant isolation | Conditionally implemented |
+| 03 | Roles, Permissions & Governance | RBAC, ABAC, record/field access, delegation, authority, segregation of duties | Conditionally implemented |
+| 04 | Party Verification | KYC/KYB, company, director, tax, licence, insurance, beneficiary verification | Conditionally implemented |
+| 05 | Legal Governance | Terms, privacy, consent, jurisdiction, legal holds, signature policy packs | Conditionally implemented |
+| 06 | Third-Party Risk | Vendor, cyber, financial, AML, ESG and resilience risk | Deferred |
+| 07 | Compliance Foundation | Configurable privacy, AML, sanctions, quality and internal-policy controls | Deferred |
+| 08 | Audit & Evidence Ledger | Append-only decisions, approvals, signatures, evidence and financial audit | Foundation only |
+| 09 | Notification & Communication | Email, SMS, WhatsApp, push, in-app, webhooks and delivery evidence | Deferred |
+| 10 | Enterprise Configuration | Profiles, inheritance, object/field controls, workflows, rules and policy packs | Deferred |
 
 ## Wave 2 — Agreement Intelligence (11–20)
 
@@ -97,3 +97,5 @@ AssuraPay is an Execution Assurance and Conditional Payment Platform. The engine
 ## Engine completion contract
 
 Every engine must own its aggregate roots, invariants, schema, APIs, events, permissions, configuration hooks, audit evidence, KPIs, tests, observability and certification. A folder, interface or dashboard alone is not an implemented engine.
+
+“Conditionally implemented” means bounded domain behavior, migrations, APIs, UI routes, deterministic adapters, and tests exist, while live PostgreSQL RLS and production provider/persistence certification remain outstanding.

@@ -1,0 +1,1 @@
+import { trust, requestContext, errorResponse } from '../../../../../../../lib/trust-app'; export async function POST(request: Request, { params }: { params: { id: string } }) { try { const context = requestContext(request); return Response.json(trust.legal.acceptPolicy(context, params.id, await request.json()), { status: 201 }); } catch (error) { return errorResponse(error); } }

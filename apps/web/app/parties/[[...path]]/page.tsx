@@ -1,0 +1,1 @@
+import { TrustConsole } from '../../components/trust-console'; export default function PartiesPage({ params }: { params: { path?: string[] } }) { const section = params.path?.includes('verification') ? 'verification' : 'parties'; return <TrustConsole section={section} permissions={['party.read','party.verify']} />; }

@@ -1,0 +1,1 @@
+import { TrustConsole } from '../../components/trust-console'; export default function SettingsPage({ params }: { params: { section?: string[] } }) { return <TrustConsole section={params.section?.at(-1) ?? 'profile'} permissions={['audit.read']} />; }

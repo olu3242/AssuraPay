@@ -451,3 +451,4 @@ export type LedgerEntry = {
   referenceId: string;
   createdAt: string;
 };
+export * from './trust';

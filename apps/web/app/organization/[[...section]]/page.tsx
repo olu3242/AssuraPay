@@ -1,0 +1,1 @@
+import { TrustConsole } from '../../components/trust-console'; export default function OrganizationPage({ params }: { params: { section?: string[] } }) { return <TrustConsole section={params.section?.at(-1) ?? 'organization'} permissions={['organization.read','role.administer','permission.read','delegation.read']} />; }

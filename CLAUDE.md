@@ -48,3 +48,7 @@ Present the product through four platform pillars — Execution Assurance, Settl
 This repo follows the standard Zenith AI package pattern: landing page +
 README + package.json + CLAUDE.md + PRD + BRD + architecture + diagram +
 AI strategy + GTM + data schema, all production-grade, no stubs.
+
+## Trust foundation boundaries
+
+Keep Engines 01–05 in their bounded workspace packages. Authentication never implies authorization; workspace context requires active membership; authorization denies by default; verification results and published legal policy versions are immutable; sensitive values must be tokenized or masked. Do not extend `AssuraPayService` with new trust-engine logic.
