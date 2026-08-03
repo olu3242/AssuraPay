@@ -72,7 +72,14 @@
     "certify:change-control": "vitest run packages/completion-assurance/src/completion-assurance.test.ts --testNamePattern=38",
     "certify:acceptance-decision": "vitest run packages/completion-assurance/src/completion-assurance.test.ts --testNamePattern=39",
     "certify:completion-certification": "vitest run packages/completion-assurance/src/completion-assurance.test.ts --testNamePattern=40",
-    "certify:batch8": "npm run certify && npm run test:integration && npm run test:e2e && npm run build"
+    "certify:batch8": "npm run certify && npm run test:integration && npm run test:e2e && npm run build",
+    "certify:payment-eligibility": "vitest run packages/settlement-assurance/src/settlement-assurance.test.ts --testNamePattern=41",
+    "certify:financial-entitlement": "vitest run packages/settlement-assurance/src/settlement-assurance.test.ts --testNamePattern=42",
+    "certify:invoice-claim": "vitest run packages/settlement-assurance/src/settlement-assurance.test.ts --testNamePattern=43",
+    "certify:escrow-funding": "vitest run packages/settlement-assurance/src/settlement-assurance.test.ts --testNamePattern=44",
+    "certify:conditional-release": "vitest run packages/settlement-assurance/src/settlement-assurance.test.ts --testNamePattern=45",
+    "certify:non-custody": "vitest run packages/settlement-assurance/src/settlement-assurance.non-custody.test.ts",
+    "certify:batch9": "npm run certify && npm run test:integration && npm run test:e2e && npm run build"
   },
   "dependencies": {
     "next": "^14.2.15",

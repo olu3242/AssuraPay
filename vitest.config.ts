@@ -23,6 +23,7 @@ export default defineConfig({
       '@assurapay/performance-readiness': path.resolve(__dirname, 'packages/performance-readiness/src/index.ts'),
       '@assurapay/execution-orchestration': path.resolve(__dirname, 'packages/execution-orchestration/src/index.ts'),
       '@assurapay/completion-assurance': path.resolve(__dirname, 'packages/completion-assurance/src/index.ts'),
+      '@assurapay/settlement-assurance': path.resolve(__dirname, 'packages/settlement-assurance/src/index.ts'),
     },
   },
 });

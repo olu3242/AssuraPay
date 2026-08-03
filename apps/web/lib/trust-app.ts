@@ -52,6 +52,14 @@ import {
   InspectionEngine,
   IssueRiskCorrectiveActionEngine,
 } from '@assurapay/completion-assurance';
+import {
+  ConditionalReleaseOrchestrationEngine,
+  EscrowFundingAssuranceEngine,
+  FinancialEntitlementEngine,
+  InvoiceClaimEngine,
+  PaymentEligibilityEngine,
+  deterministicCustodyGateway,
+} from '@assurapay/settlement-assurance';
 const globalTrust = globalThis as typeof globalThis & {
   assurapayTrustStore?: InMemoryTrustStore;
 };
@@ -112,6 +120,13 @@ export const completion = {
   changes: new ChangeControlEngine(trustStore),
   acceptance: new AcceptanceDecisionEngine(trustStore),
   certification: new CompletionCertificationEngine(trustStore),
+};
+export const settlement = {
+  eligibility: new PaymentEligibilityEngine(trustStore),
+  entitlement: new FinancialEntitlementEngine(trustStore),
+  invoices: new InvoiceClaimEngine(trustStore),
+  funding: new EscrowFundingAssuranceEngine(trustStore, deterministicCustodyGateway),
+  release: new ConditionalReleaseOrchestrationEngine(trustStore),
 };
 export function requestContext(request: Request): RequestContext {
   const actorUserId = request.headers.get('x-assurapay-user-id');

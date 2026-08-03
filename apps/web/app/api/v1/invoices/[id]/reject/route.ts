@@ -1,0 +1,1 @@
+import {errorResponse,requestContext,settlement} from '../../../../../../lib/trust-app';export async function POST(r:Request,{params}:{params:{id:string}}){try{const b=await r.json();return Response.json(settlement.invoices.reject(requestContext(r),{id:params.id,reason:b.reason}))}catch(e){return errorResponse(e)}}

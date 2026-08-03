@@ -30,6 +30,7 @@
       ,"@assurapay/performance-readiness": ["packages/performance-readiness/src/index.ts"]
       ,"@assurapay/execution-orchestration": ["packages/execution-orchestration/src/index.ts"]
       ,"@assurapay/completion-assurance": ["packages/completion-assurance/src/index.ts"]
+      ,"@assurapay/settlement-assurance": ["packages/settlement-assurance/src/index.ts"]
     },
     "plugins": [{ "name": "next" }],
     "types": ["node", "vitest/globals"]
