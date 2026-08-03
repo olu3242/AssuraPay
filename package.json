@@ -98,7 +98,12 @@
     "certify:portfolio-analytics": "vitest run packages/enterprise-analytics/src/enterprise-analytics.test.ts --testNamePattern=58",
     "certify:renewal-relationship-intelligence": "vitest run packages/enterprise-analytics/src/enterprise-analytics.test.ts --testNamePattern=59",
     "certify:ai-decision-support": "vitest run packages/enterprise-analytics/src/enterprise-analytics.test.ts --testNamePattern=60",
-    "certify:batch12": "npm run certify && npm run test:integration && npm run test:e2e && npm run build"
+    "certify:batch12": "npm run certify && npm run test:integration && npm run test:e2e && npm run build",
+    "certify:agent-runtime": "vitest run packages/agent-runtime/src/agent-runtime.test.ts",
+    "certify:agent-integration": "vitest run packages/agent-runtime/src/agent-runtime.integration.test.ts",
+    "certify:agent-governance": "vitest run packages/agent-runtime/src/agent-runtime.security.test.ts",
+    "certify:agent-load": "vitest run packages/agent-runtime/src/agent-runtime.performance.test.ts",
+    "certify:batch13": "npm run certify && npm run test:integration && npm run test:e2e && npm run build"
   },
   "dependencies": {
     "next": "^14.2.15",

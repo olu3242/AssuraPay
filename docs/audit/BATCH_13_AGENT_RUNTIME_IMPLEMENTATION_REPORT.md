@@ -1,0 +1,7 @@
+# Batch 13 Agent Runtime Implementation Report
+
+Engines 61–70 are implemented in `@assurapay/agent-runtime`. The runtime composes a versioned agent registry, deterministic capability declarations, checksum-pinned structured prompts, a governed provider gateway, immutable domain-reference context, explicit append-only memory, human approval artifacts, telemetry and a deny-by-default policy engine.
+
+The most important boundary is structural: capabilities marked as touching protected state can only use `PROPOSE`. Completion certificates, waivers, overrides, entitlements, release requests, payment instructions and settlement state remain owned by Engines 01–60. A deterministic capability gateway exposes named contracts rather than storage or arbitrary functions, and an approval is only a single-use authorization artifact bound to a proposal hash; it never performs the domain transition.
+
+Validation completed on 3 August 2026: TypeScript typecheck passed; ESLint passed; 53 test files and 123 tests passed in the full regression run; all five Batch 13 suites passed (7 focused tests), including integration, deterministic E2E, security/architecture and a 1,000-record load scenario; and the Next.js production build generated 93 static pages successfully. Initial lint/build failures were traced to stale mixed-package-manager workspace links and cleared by reinstalling the existing lockfile dependencies without changing application behavior.
