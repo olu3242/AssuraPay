@@ -24,13 +24,19 @@
     "db:reset": "node scripts/reset-db.js",
     "db:migrate": "node scripts/run-migrations.js",
     "db:seed": "node scripts/seed-data.js",
-    "certify": "npm run lint && npm run typecheck && npm run test"
-    ,"certify:identity": "vitest run packages/identity"
-    ,"certify:tenancy": "vitest run packages/organizations packages/database/src/trust-migrations.integration.test.ts"
-    ,"certify:authorization": "vitest run packages/permissions"
-    ,"certify:party-verification": "vitest run packages/parties"
-    ,"certify:legal": "vitest run packages/legal"
-    ,"certify:batch1": "npm run certify && npm run test:integration && npm run test:e2e && npm run build"
+    "certify": "npm run lint && npm run typecheck && npm run test",
+    "certify:identity": "vitest run packages/identity",
+    "certify:tenancy": "vitest run packages/organizations packages/database/src/trust-migrations.integration.test.ts",
+    "certify:authorization": "vitest run packages/permissions",
+    "certify:party-verification": "vitest run packages/parties",
+    "certify:legal": "vitest run packages/legal",
+    "certify:batch1": "npm run certify && npm run test:integration && npm run test:e2e && npm run build",
+    "certify:execution": "vitest run packages/governance-core/src/governance-core.test.ts --testNamePattern=06",
+    "certify:milestones": "vitest run packages/governance-core/src/governance-core.test.ts --testNamePattern=07",
+    "certify:dod": "vitest run packages/governance-core/src/governance-core.test.ts --testNamePattern=08",
+    "certify:certification": "vitest run packages/governance-core/src/governance-core.test.ts --testNamePattern=09",
+    "certify:payment-triggers": "vitest run packages/governance-core/src/governance-core.test.ts --testNamePattern=10",
+    "certify:batch2-governance": "npm run certify && npm run test:integration && npm run test:e2e && npm run build"
   },
   "dependencies": {
     "next": "^14.2.15",

@@ -23,6 +23,7 @@
       "@assurapay/permissions": ["packages/permissions/src/index.ts"],
       "@assurapay/parties": ["packages/parties/src/index.ts"],
       "@assurapay/legal": ["packages/legal/src/index.ts"]
+      ,"@assurapay/governance-core": ["packages/governance-core/src/index.ts"]
     },
     "plugins": [{ "name": "next" }],
     "types": ["node", "vitest/globals"]
