@@ -1,0 +1,1 @@
+import {errorResponse,readiness,requestContext} from '../../../../../../lib/trust-app';export async function POST(r:Request,{params}:{params:{id:string}}){try{return Response.json(readiness.paymentTriggers.evaluate(requestContext(r),params.id,await r.json()))}catch(e){return errorResponse(e)}}

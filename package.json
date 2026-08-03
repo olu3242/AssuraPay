@@ -54,7 +54,13 @@
     "certify:deliverables": "vitest run packages/performance-blueprint/src/performance-blueprint.test.ts --testNamePattern=23",
     "certify:milestone-planning": "vitest run packages/performance-blueprint/src/performance-blueprint.test.ts --testNamePattern=24",
     "certify:definition-of-done": "vitest run packages/performance-blueprint/src/performance-blueprint.test.ts --testNamePattern=25",
-    "certify:batch5": "npm run certify && npm run test:integration && npm run test:e2e && npm run build"
+    "certify:batch5": "npm run certify && npm run test:integration && npm run test:e2e && npm run build",
+    "certify:acceptance-criteria": "vitest run packages/performance-readiness/src/performance-readiness.test.ts --testNamePattern=26",
+    "certify:success-metrics": "vitest run packages/performance-readiness/src/performance-readiness.test.ts --testNamePattern=27",
+    "certify:dependency-intelligence": "vitest run packages/performance-readiness/src/performance-readiness.test.ts --testNamePattern=28",
+    "certify:payment-trigger": "vitest run packages/performance-readiness/src/performance-readiness.test.ts --testNamePattern=29",
+    "certify:performance-baseline": "vitest run packages/performance-readiness/src/performance-readiness.test.ts --testNamePattern=30",
+    "certify:batch6": "npm run certify && npm run test:integration && npm run test:e2e && npm run build"
   },
   "dependencies": {
     "next": "^14.2.15",

@@ -20,6 +20,7 @@ export default defineConfig({
       '@assurapay/agreement-creation': path.resolve(__dirname, 'packages/agreement-creation/src/index.ts'),
       '@assurapay/agreement-intelligence': path.resolve(__dirname, 'packages/agreement-intelligence/src/index.ts'),
       '@assurapay/performance-blueprint': path.resolve(__dirname, 'packages/performance-blueprint/src/index.ts'),
+      '@assurapay/performance-readiness': path.resolve(__dirname, 'packages/performance-readiness/src/index.ts'),
     },
   },
 });

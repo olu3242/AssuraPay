@@ -1,0 +1,1 @@
+import {errorResponse,readiness,requestContext} from '../../../../lib/trust-app';export async function POST(r:Request){try{return Response.json(readiness.dependencies.register(requestContext(r),await r.json()),{status:201})}catch(e){return errorResponse(e)}}

@@ -31,6 +31,13 @@ import {
   PerformanceBlueprintEngine,
   ScopeDefinitionEngine,
 } from '@assurapay/performance-blueprint';
+import {
+  AcceptanceCriteriaEngine,
+  DependencyIntelligenceEngine,
+  PaymentTriggerRuleEngine,
+  PerformanceBaselineEngine,
+  SuccessMetricsEngine,
+} from '@assurapay/performance-readiness';
 const globalTrust = globalThis as typeof globalThis & {
   assurapayTrustStore?: InMemoryTrustStore;
 };
@@ -70,6 +77,13 @@ export const blueprint = {
   deliverables: new DeliverablesEngine(trustStore),
   milestones: new MilestonePlanningEngine(trustStore),
   dod: new DefinitionOfDonePackageEngine(trustStore),
+};
+export const readiness = {
+  acceptanceCriteria: new AcceptanceCriteriaEngine(trustStore),
+  successMetrics: new SuccessMetricsEngine(trustStore),
+  dependencies: new DependencyIntelligenceEngine(trustStore),
+  paymentTriggers: new PaymentTriggerRuleEngine(trustStore),
+  baselines: new PerformanceBaselineEngine(trustStore),
 };
 export function requestContext(request: Request): RequestContext {
   const actorUserId = request.headers.get('x-assurapay-user-id');
