@@ -76,6 +76,14 @@ import {
   SettlementAssuranceIndexEngine,
   deterministicForecastGateway,
 } from '@assurapay/enterprise-intelligence';
+import {
+  AiDecisionSupportEngine,
+  FinancialPaymentIntelligenceEngine,
+  PortfolioAnalyticsEngine,
+  RenewalRelationshipIntelligenceEngine,
+  VendorCustomerPerformanceEngine,
+  deterministicFinancialForecastGateway,
+} from '@assurapay/enterprise-analytics';
 const globalTrust = globalThis as typeof globalThis & {
   assurapayTrustStore?: InMemoryTrustStore;
 };
@@ -157,6 +165,13 @@ export const enterprise = {
   kpis: new EnterpriseKpiEngine(trustStore),
   dashboards: new ExecutiveDashboardEngine(trustStore),
   forecasts: new PredictiveExecutionIntelligenceEngine(trustStore, deterministicForecastGateway),
+};
+export const analytics = {
+  financialForecasts: new FinancialPaymentIntelligenceEngine(trustStore, deterministicFinancialForecastGateway),
+  performance: new VendorCustomerPerformanceEngine(trustStore),
+  portfolio: new PortfolioAnalyticsEngine(trustStore),
+  renewal: new RenewalRelationshipIntelligenceEngine(trustStore),
+  aiDecisionSupport: new AiDecisionSupportEngine(trustStore),
 };
 export function requestContext(request: Request): RequestContext {
   const actorUserId = request.headers.get('x-assurapay-user-id');

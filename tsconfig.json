@@ -33,6 +33,7 @@
       ,"@assurapay/settlement-assurance": ["packages/settlement-assurance/src/index.ts"]
       ,"@assurapay/settlement-execution": ["packages/settlement-execution/src/index.ts"]
       ,"@assurapay/enterprise-intelligence": ["packages/enterprise-intelligence/src/index.ts"]
+      ,"@assurapay/enterprise-analytics": ["packages/enterprise-analytics/src/index.ts"]
     },
     "plugins": [{ "name": "next" }],
     "types": ["node", "vitest/globals"]

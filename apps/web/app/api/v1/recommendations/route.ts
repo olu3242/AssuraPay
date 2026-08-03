@@ -1,0 +1,1 @@
+import {analytics,errorResponse,requestContext} from '../../../../lib/trust-app';export async function POST(r:Request){try{return Response.json(analytics.aiDecisionSupport.recommend(requestContext(r),await r.json()),{status:201})}catch(e){return errorResponse(e)}}

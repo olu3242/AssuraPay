@@ -92,7 +92,13 @@
     "certify:enterprise-kpi": "vitest run packages/enterprise-intelligence/src/enterprise-intelligence.test.ts --testNamePattern=53",
     "certify:executive-dashboard": "vitest run packages/enterprise-intelligence/src/enterprise-intelligence.test.ts --testNamePattern=54",
     "certify:predictive-execution": "vitest run packages/enterprise-intelligence/src/enterprise-intelligence.test.ts --testNamePattern=55",
-    "certify:batch11": "npm run certify && npm run test:integration && npm run test:e2e && npm run build"
+    "certify:batch11": "npm run certify && npm run test:integration && npm run test:e2e && npm run build",
+    "certify:financial-payment-intelligence": "vitest run packages/enterprise-analytics/src/enterprise-analytics.test.ts --testNamePattern=56",
+    "certify:vendor-customer-performance": "vitest run packages/enterprise-analytics/src/enterprise-analytics.test.ts --testNamePattern=57",
+    "certify:portfolio-analytics": "vitest run packages/enterprise-analytics/src/enterprise-analytics.test.ts --testNamePattern=58",
+    "certify:renewal-relationship-intelligence": "vitest run packages/enterprise-analytics/src/enterprise-analytics.test.ts --testNamePattern=59",
+    "certify:ai-decision-support": "vitest run packages/enterprise-analytics/src/enterprise-analytics.test.ts --testNamePattern=60",
+    "certify:batch12": "npm run certify && npm run test:integration && npm run test:e2e && npm run build"
   },
   "dependencies": {
     "next": "^14.2.15",
