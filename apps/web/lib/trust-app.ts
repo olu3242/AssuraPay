@@ -23,7 +23,22 @@ import {
   NegotiationEngine,
   deterministicSignatureProvider,
 } from '@assurapay/agreement-creation';
-import {AgreementIntelligenceEngine,ContractAnalysisEngine,ContractRepositoryEngine,ContractRiskEngine,ContractVersionEngine,deterministicAnalysisGateway,inMemorySecureStore} from '@assurapay/agreement-intelligence';
+import {
+  AgreementIntelligenceEngine,
+  ContractAnalysisEngine,
+  ContractRepositoryEngine,
+  ContractRiskEngine,
+  ContractVersionEngine,
+  deterministicAnalysisGateway,
+  inMemorySecureStore,
+} from '@assurapay/agreement-intelligence';
+import {
+  BlueprintDefinitionOfDoneEngine,
+  DeliverablesEngine,
+  MilestonePlanningEngine,
+  PerformanceBlueprintEngine,
+  ScopeDefinitionEngine,
+} from '@assurapay/performance-blueprint';
 const globalTrust = globalThis as typeof globalThis & {
   assurapayTrustStore?: InMemoryTrustStore;
 };
@@ -56,7 +71,23 @@ export const agreements = {
     process.env.SIGNATURE_WEBHOOK_SECRET ?? 'development-signature-secret',
   ),
 };
-export const intelligence={analysis:new ContractAnalysisEngine(trustStore,deterministicAnalysisGateway),risk:new ContractRiskEngine(trustStore),versions:new ContractVersionEngine(trustStore),repository:new ContractRepositoryEngine(trustStore,inMemorySecureStore),structured:new AgreementIntelligenceEngine(trustStore)};
+export const intelligence = {
+  analysis: new ContractAnalysisEngine(
+    trustStore,
+    deterministicAnalysisGateway,
+  ),
+  risk: new ContractRiskEngine(trustStore),
+  versions: new ContractVersionEngine(trustStore),
+  repository: new ContractRepositoryEngine(trustStore, inMemorySecureStore),
+  structured: new AgreementIntelligenceEngine(trustStore),
+};
+export const planning = {
+  blueprints: new PerformanceBlueprintEngine(trustStore),
+  scope: new ScopeDefinitionEngine(trustStore),
+  deliverables: new DeliverablesEngine(trustStore),
+  milestones: new MilestonePlanningEngine(trustStore),
+  dod: new BlueprintDefinitionOfDoneEngine(trustStore),
+};
 export function requestContext(request: Request): RequestContext {
   const actorUserId = request.headers.get('x-assurapay-user-id');
   const sessionId = request.headers.get('x-assurapay-session-id');
