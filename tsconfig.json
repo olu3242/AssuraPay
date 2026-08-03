@@ -54,7 +54,10 @@
       "@assurapay/enterprise-analytics": [
         "packages/enterprise-analytics/src/index.ts"
       ],
-      "@assurapay/agent-runtime": ["packages/agent-runtime/src/index.ts"]
+      "@assurapay/agent-runtime": ["packages/agent-runtime/src/index.ts"],
+      "@assurapay/workflow-intelligence": [
+        "packages/workflow-intelligence/src/index.ts"
+      ]
     },
     "plugins": [{ "name": "next" }],
     "types": ["node", "vitest/globals"]
