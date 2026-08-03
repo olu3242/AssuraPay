@@ -47,6 +47,11 @@
 | Invoice & Claim Management (43) | Implemented | Duplicate-number rejection, exact-amount auto-matching, approval gated on matched status |
 | Escrow & Funding Assurance (44) | Implemented | External custody references only; funding confirms exclusively through the provider's own gateway — non-custodial by construction |
 | Conditional Release Orchestration (45) | Implemented | Full/partial/staged release requests gated on eligibility, invoice approval and fund reservation; never authorizes or moves funds |
+| Financial Approval & Authority (46) | Implemented | `packages/settlement-execution`, threshold-driven dual approval with enforced segregation of duties |
+| Payment Execution & Treasury Integration (47) | Implemented | Idempotent provider instructions; status only ever reflects what the provider gateway reports |
+| Reconciliation & Financial Ledger (48) | Implemented | Append-only ledger entries and provider-statement matching with amount-mismatch exceptions |
+| Dispute, Claim & Appeal Resolution (49) | Implemented | Raising a dispute freezes the release request; the hold only lifts on close |
+| Final Settlement & Financial Closure (50) | Implemented | Closure requires a zero outstanding balance and no open disputes; one closure certificate per account |
 | Audit and evidence ledger | Foundation only | Integrity-chained audit adapter and append-only PostgreSQL contract |
 | Configuration engine | Contract only | Environment configuration and seed snapshot |
 | Contract lifecycle | Implemented | Domain service and API routes |
