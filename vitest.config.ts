@@ -24,6 +24,7 @@ export default defineConfig({
       '@assurapay/execution-orchestration': path.resolve(__dirname, 'packages/execution-orchestration/src/index.ts'),
       '@assurapay/completion-assurance': path.resolve(__dirname, 'packages/completion-assurance/src/index.ts'),
       '@assurapay/settlement-assurance': path.resolve(__dirname, 'packages/settlement-assurance/src/index.ts'),
+      '@assurapay/settlement-execution': path.resolve(__dirname, 'packages/settlement-execution/src/index.ts'),
     },
   },
 });

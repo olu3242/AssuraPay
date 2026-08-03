@@ -60,6 +60,14 @@ import {
   PaymentEligibilityEngine,
   deterministicCustodyGateway,
 } from '@assurapay/settlement-assurance';
+import {
+  DisputeResolutionEngine,
+  FinalSettlementEngine,
+  FinancialApprovalAuthorityEngine,
+  PaymentExecutionEngine,
+  ReconciliationLedgerEngine,
+  deterministicPaymentGateway,
+} from '@assurapay/settlement-execution';
 const globalTrust = globalThis as typeof globalThis & {
   assurapayTrustStore?: InMemoryTrustStore;
 };
@@ -127,6 +135,13 @@ export const settlement = {
   invoices: new InvoiceClaimEngine(trustStore),
   funding: new EscrowFundingAssuranceEngine(trustStore, deterministicCustodyGateway),
   release: new ConditionalReleaseOrchestrationEngine(trustStore),
+};
+export const treasury = {
+  approvals: new FinancialApprovalAuthorityEngine(trustStore),
+  payments: new PaymentExecutionEngine(trustStore, deterministicPaymentGateway),
+  ledger: new ReconciliationLedgerEngine(trustStore),
+  disputes: new DisputeResolutionEngine(trustStore),
+  closure: new FinalSettlementEngine(trustStore),
 };
 export function requestContext(request: Request): RequestContext {
   const actorUserId = request.headers.get('x-assurapay-user-id');

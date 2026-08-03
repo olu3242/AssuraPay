@@ -1,0 +1,1 @@
+import {errorResponse,requestContext,treasury} from '../../../../../../lib/trust-app';export async function POST(r:Request,{params}:{params:{id:string}}){try{const b=await r.json();return Response.json(treasury.disputes.submitPosition(requestContext(r),{disputeId:params.id,partyId:b.partyId,position:b.position}),{status:201})}catch(e){return errorResponse(e)}}

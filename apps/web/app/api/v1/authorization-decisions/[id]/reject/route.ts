@@ -1,0 +1,1 @@
+import {errorResponse,requestContext,treasury} from '../../../../../../lib/trust-app';export async function POST(r:Request,{params}:{params:{id:string}}){try{const b=await r.json();return Response.json(treasury.approvals.reject(requestContext(r),{id:params.id,rationale:b.rationale}))}catch(e){return errorResponse(e)}}

@@ -1,0 +1,1 @@
+import {errorResponse,requestContext,treasury} from '../../../../lib/trust-app';export async function POST(r:Request){try{const b=await r.json();return Response.json(treasury.closure.issueCertificate(requestContext(r),b.finalSettlementAccountId),{status:201})}catch(e){return errorResponse(e)}}
