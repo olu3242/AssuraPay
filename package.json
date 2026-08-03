@@ -66,7 +66,13 @@
     "certify:evidence-management": "vitest run packages/execution-orchestration/src/execution-orchestration.test.ts --testNamePattern=33",
     "certify:validation-acceptance-testing": "vitest run packages/execution-orchestration/src/execution-orchestration.test.ts --testNamePattern=34",
     "certify:quality-assurance": "vitest run packages/execution-orchestration/src/execution-orchestration.test.ts --testNamePattern=35",
-    "certify:batch7": "npm run certify && npm run test:integration && npm run test:e2e && npm run build"
+    "certify:batch7": "npm run certify && npm run test:integration && npm run test:e2e && npm run build",
+    "certify:inspection": "vitest run packages/completion-assurance/src/completion-assurance.test.ts --testNamePattern=36",
+    "certify:issue-risk-capa": "vitest run packages/completion-assurance/src/completion-assurance.test.ts --testNamePattern=37",
+    "certify:change-control": "vitest run packages/completion-assurance/src/completion-assurance.test.ts --testNamePattern=38",
+    "certify:acceptance-decision": "vitest run packages/completion-assurance/src/completion-assurance.test.ts --testNamePattern=39",
+    "certify:completion-certification": "vitest run packages/completion-assurance/src/completion-assurance.test.ts --testNamePattern=40",
+    "certify:batch8": "npm run certify && npm run test:integration && npm run test:e2e && npm run build"
   },
   "dependencies": {
     "next": "^14.2.15",

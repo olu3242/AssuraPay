@@ -45,6 +45,13 @@ import {
   QualityAssuranceEngine,
   ValidationAcceptanceTestingEngine,
 } from '@assurapay/execution-orchestration';
+import {
+  AcceptanceDecisionEngine,
+  ChangeControlEngine,
+  CompletionCertificationEngine,
+  InspectionEngine,
+  IssueRiskCorrectiveActionEngine,
+} from '@assurapay/completion-assurance';
 const globalTrust = globalThis as typeof globalThis & {
   assurapayTrustStore?: InMemoryTrustStore;
 };
@@ -98,6 +105,13 @@ export const orchestration = {
   evidence: new EvidenceManagementEngine(trustStore),
   validation: new ValidationAcceptanceTestingEngine(trustStore),
   quality: new QualityAssuranceEngine(trustStore),
+};
+export const completion = {
+  inspections: new InspectionEngine(trustStore),
+  issues: new IssueRiskCorrectiveActionEngine(trustStore),
+  changes: new ChangeControlEngine(trustStore),
+  acceptance: new AcceptanceDecisionEngine(trustStore),
+  certification: new CompletionCertificationEngine(trustStore),
 };
 export function requestContext(request: Request): RequestContext {
   const actorUserId = request.headers.get('x-assurapay-user-id');

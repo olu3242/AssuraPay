@@ -1,0 +1,6 @@
+{
+  "name": "@assurapay/completion-assurance",
+  "version": "0.1.0",
+  "private": true,
+  "main": "src/index.ts"
+}

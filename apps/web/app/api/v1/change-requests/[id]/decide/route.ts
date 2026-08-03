@@ -1,0 +1,1 @@
+import {completion,errorResponse,requestContext} from '../../../../../../lib/trust-app';export async function POST(r:Request,{params}:{params:{id:string}}){try{const b=await r.json();return Response.json(completion.changes.decide(requestContext(r),{changeRequestId:params.id,decision:b.decision,rationale:b.rationale}))}catch(e){return errorResponse(e)}}
