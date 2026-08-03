@@ -1,0 +1,3 @@
+# Performance Blueprint Security
+
+Every record is workspace-scoped and backed by RLS contracts. Scope items and deliverables are draftable only against a `DRAFT` blueprint and become immutable on confirmation; milestones cannot schedule against unconfirmed deliverables. A blueprint cannot activate without a published, deliverable-gated Definition of Done package behind every milestone, so no execution or payment path can be reached without a governed completion definition. Milestone dependency edges are checked for cycles before acceptance, and value allocation across a blueprint's milestones is bounded at 100%. Activating a blueprint immutably supersedes the prior active blueprint for the same contract; no code path mutates history in place.
