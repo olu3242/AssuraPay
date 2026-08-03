@@ -1,0 +1,1 @@
+import {blueprint,errorResponse,requestContext} from '../../../../../lib/trust-app';export async function POST(r:Request){try{const b=await r.json();return Response.json(blueprint.milestones.criticalPath(requestContext(r),b.blueprintId))}catch(e){return errorResponse(e)}}

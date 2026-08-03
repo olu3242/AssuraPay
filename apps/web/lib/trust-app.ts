@@ -24,6 +24,13 @@ import {
   deterministicSignatureProvider,
 } from '@assurapay/agreement-creation';
 import {AgreementIntelligenceEngine,ContractAnalysisEngine,ContractRepositoryEngine,ContractRiskEngine,ContractVersionEngine,deterministicAnalysisGateway,inMemorySecureStore} from '@assurapay/agreement-intelligence';
+import {
+  DefinitionOfDonePackageEngine,
+  DeliverablesEngine,
+  MilestonePlanningEngine,
+  PerformanceBlueprintEngine,
+  ScopeDefinitionEngine,
+} from '@assurapay/performance-blueprint';
 const globalTrust = globalThis as typeof globalThis & {
   assurapayTrustStore?: InMemoryTrustStore;
 };
@@ -57,6 +64,13 @@ export const agreements = {
   ),
 };
 export const intelligence={analysis:new ContractAnalysisEngine(trustStore,deterministicAnalysisGateway),risk:new ContractRiskEngine(trustStore),versions:new ContractVersionEngine(trustStore),repository:new ContractRepositoryEngine(trustStore,inMemorySecureStore),structured:new AgreementIntelligenceEngine(trustStore)};
+export const blueprint = {
+  plan: new PerformanceBlueprintEngine(trustStore),
+  scope: new ScopeDefinitionEngine(trustStore),
+  deliverables: new DeliverablesEngine(trustStore),
+  milestones: new MilestonePlanningEngine(trustStore),
+  dod: new DefinitionOfDonePackageEngine(trustStore),
+};
 export function requestContext(request: Request): RequestContext {
   const actorUserId = request.headers.get('x-assurapay-user-id');
   const sessionId = request.headers.get('x-assurapay-session-id');

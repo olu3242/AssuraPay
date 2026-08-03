@@ -48,7 +48,13 @@
     "certify:contract-version": "vitest run packages/agreement-intelligence/src/agreement-intelligence.test.ts --testNamePattern=18",
     "certify:contract-repository": "vitest run packages/agreement-intelligence/src/agreement-intelligence.test.ts --testNamePattern=19",
     "certify:agreement-intelligence": "vitest run packages/agreement-intelligence/src/agreement-intelligence.test.ts --testNamePattern=20",
-    "certify:batch4": "npm run certify && npm run test:integration && npm run test:e2e && npm run build"
+    "certify:batch4": "npm run certify && npm run test:integration && npm run test:e2e && npm run build",
+    "certify:performance-blueprint": "vitest run packages/performance-blueprint/src/performance-blueprint.test.ts --testNamePattern=21",
+    "certify:scope-definition": "vitest run packages/performance-blueprint/src/performance-blueprint.test.ts --testNamePattern=22",
+    "certify:deliverables": "vitest run packages/performance-blueprint/src/performance-blueprint.test.ts --testNamePattern=23",
+    "certify:milestone-planning": "vitest run packages/performance-blueprint/src/performance-blueprint.test.ts --testNamePattern=24",
+    "certify:definition-of-done": "vitest run packages/performance-blueprint/src/performance-blueprint.test.ts --testNamePattern=25",
+    "certify:batch5": "npm run certify && npm run test:integration && npm run test:e2e && npm run build"
   },
   "dependencies": {
     "next": "^14.2.15",
