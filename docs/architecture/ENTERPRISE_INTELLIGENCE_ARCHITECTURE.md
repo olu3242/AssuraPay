@@ -1,0 +1,11 @@
+# Enterprise Intelligence Architecture
+
+`@assurapay/enterprise-intelligence` opens Wave 6 (Enterprise Intelligence, Engines 51–60) and is structurally different from every prior wave: it is a **read-model and scoring layer**, not a new set of domain state machines. None of its five engines write to or read from another package's store directly — every factor, gate result, hold flag and signal is supplied by the caller (`apps/web/lib/trust-app.ts`), which already holds the relevant upstream engines. This mirrors `CLAUDE.md`'s note that `AssuranceCase` may be used only as a cross-engine read model, extended here to a whole wave of composed indices.
+
+Execution Assurance Index (51) and Settlement Assurance Index (52) share one shape: a weighted average of caller-supplied 0–100 factors, with an **override** that forces the score to zero — a failed mandatory gate for Engine 51, an active dispute hold for Engine 52. The override is never soft; a single failed gate or open hold zeroes the composite regardless of how strong every other factor is, so a dashboard built on these indices can never mask a hard blocker behind a good average.
+
+Enterprise KPI (53) is a generic, configurable KPI framework — `kind`, `targetValue` and `direction` define what "on track" means, and every recorded value is scored against that definition at write time rather than computed lazily at read time. Executive Dashboard (54) composes a snapshot of externally supplied widgets and **filters by role before persisting** — a role only ever sees, and a stored snapshot only ever contains, widgets it was explicitly granted; there is no server-side "hide in the UI only" gap.
+
+Predictive Execution Intelligence (55) follows the exact AI-governance shape already established for Engine 16 (AI Contract Analysis, `packages/agreement-intelligence`): a forecast can only be produced through a `ForecastGateway` — model id, model version and confidence are always retained — and every forecast starts `NOT_REVIEWED`; nothing in this package can auto-accept or act on a forecast. A human must explicitly review it.
+
+The in-memory `TrustPersistence` adapter and `deterministicForecastGateway` certify orchestration only. Live PostgreSQL RLS and a production `ForecastGateway` backed by a governed model remain deployment gates, consistent with prior batches.

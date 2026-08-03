@@ -52,6 +52,11 @@
 | Reconciliation & Financial Ledger (48) | Implemented | Append-only ledger entries and provider-statement matching with amount-mismatch exceptions |
 | Dispute, Claim & Appeal Resolution (49) | Implemented | Raising a dispute freezes the release request; the hold only lifts on close |
 | Final Settlement & Financial Closure (50) | Implemented | Closure requires a zero outstanding balance and no open disputes; one closure certificate per account |
+| Execution Assurance Index (51) | Implemented | `packages/enterprise-intelligence`, weighted composite score forced to zero by any failed mandatory gate |
+| Settlement Assurance Index (52) | Implemented | Weighted composite score forced to zero by an active dispute hold |
+| Enterprise KPI (53) | Implemented | Configurable portfolio/execution/evidence/risk/payment/settlement KPI definitions and on-track value recording |
+| Executive Dashboard (54) | Implemented | Role-filtered widget snapshots — a role only ever sees widgets it is explicitly allowed |
+| Predictive Execution Intelligence (55) | Implemented | Governed forecast gateway; every forecast starts unreviewed and cannot auto-decide anything |
 | Audit and evidence ledger | Foundation only | Integrity-chained audit adapter and append-only PostgreSQL contract |
 | Configuration engine | Contract only | Environment configuration and seed snapshot |
 | Contract lifecycle | Implemented | Domain service and API routes |
