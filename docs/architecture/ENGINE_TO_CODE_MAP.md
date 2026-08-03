@@ -37,6 +37,11 @@
 | Evidence Management (33) | Implemented | Deliverable-scoped mandatory requirements, chain-of-custody evidence packages and verification |
 | Validation & Acceptance Testing (34) | Implemented | Manual/automated tests, conditional-pass notes, retest-on-prior-failure and criterion-level pass aggregation |
 | Quality Assurance (35) | Implemented | Root-caused defect rework lifecycle and a quality gate blocked by any open critical defect |
+| Inspection & Field Verification (36) | Implemented | `packages/completion-assurance`, checklist-covered inspections; reinspection requires a prior failure |
+| Issue, Risk & Corrective Action (37) | Implemented | Escalation, CAPA and verified resolution; blocker query for open high/critical severity |
+| Change Control (38) | Implemented | Draft/submit/decide/implement lifecycle for scope, schedule, cost, criteria, evidence and payment-trigger changes |
+| Acceptance & Decision (39) | Implemented | Full/partial/conditional/provisional/rejected/deferred decisions, latest decision supersedes the prior |
+| Completion Certification (40) | Implemented | Certificate issuance gated on quality, inspection, blocking issues and an active accepted decision |
 | Audit and evidence ledger | Foundation only | Integrity-chained audit adapter and append-only PostgreSQL contract |
 | Configuration engine | Contract only | Environment configuration and seed snapshot |
 | Contract lifecycle | Implemented | Domain service and API routes |
