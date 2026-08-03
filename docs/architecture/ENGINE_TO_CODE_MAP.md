@@ -27,6 +27,11 @@
 | Deliverables (23) | Implemented | Quantity, quality, acceptance criteria and evidence requirements bound to included scope |
 | Milestone Planning (24) | Implemented | Confirmed-deliverable scheduling, dependency DAG, cycle detection, critical path and bounded value allocation |
 | Definition of Done (25) | Implemented | Deliverable-gated criteria, evidence, quality/compliance/risk/payment gates, versioned and published |
+| Acceptance Criteria (26) | Implemented | `packages/performance-readiness`, measurable tolerance rules, test methods and retest configuration |
+| Success Metrics (27) | Implemented | Milestone KPI/SLA/quality/timeliness/outcome/cost metrics with confirmed-weight allocation capped at 100% |
+| Dependency Intelligence (28) | Implemented | Internal/external/vendor/customer/regulatory/funding dependencies with blocking-dependency queries |
+| Payment Trigger (29) | Implemented | Contractual eligibility rules with deliverable/DoD/acceptance references and pure eligibility evaluation |
+| Performance Baseline (30) | Implemented | One immutable planned baseline per milestone with append-only schedule/cost/scope variance records |
 | Audit and evidence ledger | Foundation only | Integrity-chained audit adapter and append-only PostgreSQL contract |
 | Configuration engine | Contract only | Environment configuration and seed snapshot |
 | Contract lifecycle | Implemented | Domain service and API routes |

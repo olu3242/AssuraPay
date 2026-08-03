@@ -1,0 +1,3 @@
+# Performance Readiness Security
+
+Every record is workspace-scoped and backed by RLS contracts. Acceptance criteria and success metrics are draft-only until confirmed and become immutable afterward; a metric cannot be confirmed if doing so would push a milestone's confirmed weight allocation past 100%. Payment-trigger rules cannot activate or evaluate outside `ACTIVE` status, and `evaluate` is a pure read — it returns eligibility and named blockers only, and no code path in this package authorizes, holds or moves funds. A performance baseline can be set at most once per milestone and is never overwritten; every measurement against it is a separate, append-only variance record, preserving a complete planned-versus-actual audit trail.
