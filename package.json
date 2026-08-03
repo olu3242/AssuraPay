@@ -86,7 +86,13 @@
     "certify:dispute-resolution": "vitest run packages/settlement-execution/src/settlement-execution.test.ts --testNamePattern=49",
     "certify:final-settlement": "vitest run packages/settlement-execution/src/settlement-execution.test.ts --testNamePattern=50",
     "certify:non-custody-execution": "vitest run packages/settlement-execution/src/settlement-execution.non-custody.test.ts",
-    "certify:batch10": "npm run certify && npm run test:integration && npm run test:e2e && npm run build"
+    "certify:batch10": "npm run certify && npm run test:integration && npm run test:e2e && npm run build",
+    "certify:execution-assurance-index": "vitest run packages/enterprise-intelligence/src/enterprise-intelligence.test.ts --testNamePattern=51",
+    "certify:settlement-assurance-index": "vitest run packages/enterprise-intelligence/src/enterprise-intelligence.test.ts --testNamePattern=52",
+    "certify:enterprise-kpi": "vitest run packages/enterprise-intelligence/src/enterprise-intelligence.test.ts --testNamePattern=53",
+    "certify:executive-dashboard": "vitest run packages/enterprise-intelligence/src/enterprise-intelligence.test.ts --testNamePattern=54",
+    "certify:predictive-execution": "vitest run packages/enterprise-intelligence/src/enterprise-intelligence.test.ts --testNamePattern=55",
+    "certify:batch11": "npm run certify && npm run test:integration && npm run test:e2e && npm run build"
   },
   "dependencies": {
     "next": "^14.2.15",

@@ -1,0 +1,1 @@
+import {enterprise,errorResponse,requestContext} from '../../../../../../lib/trust-app';export async function POST(r:Request,{params}:{params:{id:string}}){try{return Response.json(enterprise.kpis.retire(requestContext(r),params.id))}catch(e){return errorResponse(e)}}

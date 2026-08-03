@@ -68,6 +68,14 @@ import {
   ReconciliationLedgerEngine,
   deterministicPaymentGateway,
 } from '@assurapay/settlement-execution';
+import {
+  EnterpriseKpiEngine,
+  ExecutionAssuranceIndexEngine,
+  ExecutiveDashboardEngine,
+  PredictiveExecutionIntelligenceEngine,
+  SettlementAssuranceIndexEngine,
+  deterministicForecastGateway,
+} from '@assurapay/enterprise-intelligence';
 const globalTrust = globalThis as typeof globalThis & {
   assurapayTrustStore?: InMemoryTrustStore;
 };
@@ -142,6 +150,13 @@ export const treasury = {
   ledger: new ReconciliationLedgerEngine(trustStore),
   disputes: new DisputeResolutionEngine(trustStore),
   closure: new FinalSettlementEngine(trustStore),
+};
+export const enterprise = {
+  executionIndex: new ExecutionAssuranceIndexEngine(trustStore),
+  settlementIndex: new SettlementAssuranceIndexEngine(trustStore),
+  kpis: new EnterpriseKpiEngine(trustStore),
+  dashboards: new ExecutiveDashboardEngine(trustStore),
+  forecasts: new PredictiveExecutionIntelligenceEngine(trustStore, deterministicForecastGateway),
 };
 export function requestContext(request: Request): RequestContext {
   const actorUserId = request.headers.get('x-assurapay-user-id');

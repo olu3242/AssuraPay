@@ -1,0 +1,1 @@
+import {enterprise,errorResponse,requestContext} from '../../../../lib/trust-app';export async function POST(r:Request){try{return Response.json(enterprise.dashboards.compose(requestContext(r),await r.json()),{status:201})}catch(e){return errorResponse(e)}}

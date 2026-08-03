@@ -1,0 +1,1 @@
+import {enterprise,errorResponse,requestContext} from '../../../../../../lib/trust-app';export async function POST(r:Request,{params}:{params:{id:string}}){try{const b=await r.json();return Response.json(enterprise.forecasts.review(requestContext(r),{id:params.id,decision:b.decision}))}catch(e){return errorResponse(e)}}
