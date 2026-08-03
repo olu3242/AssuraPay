@@ -1,0 +1,2 @@
+import {errorResponse,governance,requestContext} from '../../../../../../lib/trust-app';
+export async function POST(request:Request,{params}:{params:{id:string}}){try{const body=await request.json();return Response.json(governance.certifications.decide(requestContext(request),params.id,body.decision,body.rationale,body.evidenceReferences??[]),{status:201});}catch(error){return errorResponse(error)}}
