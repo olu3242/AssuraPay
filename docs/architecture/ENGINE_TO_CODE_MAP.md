@@ -42,6 +42,11 @@
 | Change Control (38) | Implemented | Draft/submit/decide/implement lifecycle for scope, schedule, cost, criteria, evidence and payment-trigger changes |
 | Acceptance & Decision (39) | Implemented | Full/partial/conditional/provisional/rejected/deferred decisions, latest decision supersedes the prior |
 | Completion Certification (40) | Implemented | Certificate issuance gated on quality, inspection, blocking issues and an active accepted decision |
+| Payment Eligibility (41) | Implemented | `packages/settlement-assurance`, confirms a certified milestone satisfies its payment trigger |
+| Financial Entitlement (42) | Implemented | Gross earned, variations, retention, tax and penalty into an immutable-on-confirm net payable, integer minor units only |
+| Invoice & Claim Management (43) | Implemented | Duplicate-number rejection, exact-amount auto-matching, approval gated on matched status |
+| Escrow & Funding Assurance (44) | Implemented | External custody references only; funding confirms exclusively through the provider's own gateway — non-custodial by construction |
+| Conditional Release Orchestration (45) | Implemented | Full/partial/staged release requests gated on eligibility, invoice approval and fund reservation; never authorizes or moves funds |
 | Audit and evidence ledger | Foundation only | Integrity-chained audit adapter and append-only PostgreSQL contract |
 | Configuration engine | Contract only | Environment configuration and seed snapshot |
 | Contract lifecycle | Implemented | Domain service and API routes |
