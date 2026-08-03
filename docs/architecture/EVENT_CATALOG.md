@@ -15,3 +15,5 @@ The execution-assurance foundation surfaces the following domain events through 
 - AcceptanceGranted
 - CompletionCertificateIssued
 - PaymentEligibilityConfirmed
+
+Trust events use a versioned outbox and include `IdentityRegistered`, `IdentityActivated`, `AuthenticationSucceeded`, `AuthenticationFailed`, `SessionCreated`, `SessionRevoked`, `WorkspaceCreated`, `OrganizationWorkspaceCreated`, `PermissionSetAssigned`, `PermissionDenied`, `SegregationOfDutiesViolationDetected`, `PartyCreated`, `VerificationCompleted`, `VerificationFailed`, `BeneficiaryAccountAdded`, `LegalPolicyPublished`, `PolicyAccepted`, and `LegalHoldPlaced`.

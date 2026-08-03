@@ -56,6 +56,8 @@ npm install
 npm run certify
 ```
 
+Trust Foundation Engines 01–05 live in bounded `identity`, `organizations`, `permissions`, `parties`, and `legal` workspaces. Run `npm run certify:batch1` for deterministic validation. Production certification additionally requires a live PostgreSQL/Supabase RLS test target and durable provider-backed persistence.
+
 ## License
 
 Proprietary — Zenith AI Automation Agency. All rights reserved.
