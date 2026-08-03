@@ -22,18 +22,39 @@
       "@assurapay/organizations": ["packages/organizations/src/index.ts"],
       "@assurapay/permissions": ["packages/permissions/src/index.ts"],
       "@assurapay/parties": ["packages/parties/src/index.ts"],
-      "@assurapay/legal": ["packages/legal/src/index.ts"]
-      ,"@assurapay/governance-core": ["packages/governance-core/src/index.ts"]
-      ,"@assurapay/agreement-creation": ["packages/agreement-creation/src/index.ts"]
-      ,"@assurapay/agreement-intelligence": ["packages/agreement-intelligence/src/index.ts"]
-      ,"@assurapay/performance-blueprint": ["packages/performance-blueprint/src/index.ts"]
-      ,"@assurapay/performance-readiness": ["packages/performance-readiness/src/index.ts"]
-      ,"@assurapay/execution-orchestration": ["packages/execution-orchestration/src/index.ts"]
-      ,"@assurapay/completion-assurance": ["packages/completion-assurance/src/index.ts"]
-      ,"@assurapay/settlement-assurance": ["packages/settlement-assurance/src/index.ts"]
-      ,"@assurapay/settlement-execution": ["packages/settlement-execution/src/index.ts"]
-      ,"@assurapay/enterprise-intelligence": ["packages/enterprise-intelligence/src/index.ts"]
-      ,"@assurapay/enterprise-analytics": ["packages/enterprise-analytics/src/index.ts"]
+      "@assurapay/legal": ["packages/legal/src/index.ts"],
+      "@assurapay/governance-core": ["packages/governance-core/src/index.ts"],
+      "@assurapay/agreement-creation": [
+        "packages/agreement-creation/src/index.ts"
+      ],
+      "@assurapay/agreement-intelligence": [
+        "packages/agreement-intelligence/src/index.ts"
+      ],
+      "@assurapay/performance-blueprint": [
+        "packages/performance-blueprint/src/index.ts"
+      ],
+      "@assurapay/performance-readiness": [
+        "packages/performance-readiness/src/index.ts"
+      ],
+      "@assurapay/execution-orchestration": [
+        "packages/execution-orchestration/src/index.ts"
+      ],
+      "@assurapay/completion-assurance": [
+        "packages/completion-assurance/src/index.ts"
+      ],
+      "@assurapay/settlement-assurance": [
+        "packages/settlement-assurance/src/index.ts"
+      ],
+      "@assurapay/settlement-execution": [
+        "packages/settlement-execution/src/index.ts"
+      ],
+      "@assurapay/enterprise-intelligence": [
+        "packages/enterprise-intelligence/src/index.ts"
+      ],
+      "@assurapay/enterprise-analytics": [
+        "packages/enterprise-analytics/src/index.ts"
+      ],
+      "@assurapay/agent-runtime": ["packages/agent-runtime/src/index.ts"]
     },
     "plugins": [{ "name": "next" }],
     "types": ["node", "vitest/globals"]

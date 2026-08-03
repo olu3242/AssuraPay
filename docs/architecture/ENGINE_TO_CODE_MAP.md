@@ -62,6 +62,16 @@
 | Portfolio Analytics (58) | Implemented | At-risk/blocked/unpaid/disputed/retained/concentration snapshots with a per-scope trend |
 | Renewal & Relationship Intelligence (59) | Implemented | Renewal readiness assessments with a required rationale and recommended action |
 | AI Decision Support & Continuous Improvement (60) | Implemented | Model registry, evaluation, auto-raised drift on failed evaluation, feedback and never-auto-executed recommendations |
+| Agent Runtime (61) | Implemented | `packages/agent-runtime` governed lifecycle, retry, cancellation, telemetry and immutable result artifacts |
+| Capability Registry (62) | Implemented | Declared permission, deterministic contract, AI allowance, approval and protected-state boundaries |
+| Agent Registry (63) | Implemented | Versioned Atlas/Blueprint/DoD/Evidence/Validation/Risk/Settlement/Analytics/Advisor/Coordinator identities and allowlists |
+| Prompt Registry v2 (64) | Implemented | Validated versioning, structured-output contracts, tests, publication and rollback |
+| AI Gateway v2 (65) | Implemented | Provider fallback, retry, rate/cost/model limits and usage metadata |
+| Context Engine (66) | Implemented | Immutable tenant/user/permission and domain-reference context snapshots |
+| Execution Memory (67) | Implemented | Append-only conversation, reasoning metadata, tool and result history |
+| Human Approval (68) | Implemented | Human-only, proposal-bound, one-time approval/waiver/override/certification decisions |
+| Agent Telemetry (69) | Implemented | Latency, cost, provider, errors, quality, hallucination and approval metrics |
+| Agent Governance (70) | Implemented | Deny-by-default RBAC and prompt/capability/model/approval policies with audit |
 | Audit and evidence ledger | Foundation only | Integrity-chained audit adapter and append-only PostgreSQL contract |
 | Configuration engine | Contract only | Environment configuration and seed snapshot |
 | Contract lifecycle | Implemented | Domain service and API routes |
