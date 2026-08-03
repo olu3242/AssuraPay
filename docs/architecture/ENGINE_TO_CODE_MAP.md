@@ -57,6 +57,11 @@
 | Enterprise KPI (53) | Implemented | Configurable portfolio/execution/evidence/risk/payment/settlement KPI definitions and on-track value recording |
 | Executive Dashboard (54) | Implemented | Role-filtered widget snapshots — a role only ever sees widgets it is explicitly allowed |
 | Predictive Execution Intelligence (55) | Implemented | Governed forecast gateway; every forecast starts unreviewed and cannot auto-decide anything |
+| Financial & Payment Intelligence (56) | Implemented | `packages/enterprise-analytics`, governed funding/release/payment/leakage/reconciliation forecasts |
+| Vendor & Customer Performance (57) | Implemented | Two-sided scorecards, averaged metrics, full history per party |
+| Portfolio Analytics (58) | Implemented | At-risk/blocked/unpaid/disputed/retained/concentration snapshots with a per-scope trend |
+| Renewal & Relationship Intelligence (59) | Implemented | Renewal readiness assessments with a required rationale and recommended action |
+| AI Decision Support & Continuous Improvement (60) | Implemented | Model registry, evaluation, auto-raised drift on failed evaluation, feedback and never-auto-executed recommendations |
 | Audit and evidence ledger | Foundation only | Integrity-chained audit adapter and append-only PostgreSQL contract |
 | Configuration engine | Contract only | Environment configuration and seed snapshot |
 | Contract lifecycle | Implemented | Domain service and API routes |

@@ -1,0 +1,5 @@
+# Enterprise Analytics Security
+
+Every record is workspace-scoped and backed by RLS contracts. Financial forecasts follow the same governed-gateway shape as every other AI-touching engine in the catalog: production only through `FinancialForecastGateway`, confidence validated on every call, and every forecast starts unreviewed. Vendor and customer scorecards validate the reporting period and every metric before computing an overall score, so a malformed period or an out-of-range metric can never silently corrupt a relationship's performance history. Portfolio snapshots reject negative counts and amounts and an out-of-range concentration percentage outright.
+
+Engine 60 is the platform's AI-governance backstop: a failed evaluation automatically raises a drift alert, so a degrading model can never go unflagged simply because nobody remembered to check. A recommendation is never auto-executed — it is created `PENDING` and requires an explicit human `decideRecommendation` call to accept or dismiss; nothing in this package, or any engine that depends on it, can treat a pending recommendation as a decision.
