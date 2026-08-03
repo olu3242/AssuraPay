@@ -38,6 +38,13 @@ import {
   PerformanceBaselineEngine,
   SuccessMetricsEngine,
 } from '@assurapay/performance-readiness';
+import {
+  EvidenceManagementEngine,
+  ExecutionOrchestrationEngine,
+  ProgressMeasurementEngine,
+  QualityAssuranceEngine,
+  ValidationAcceptanceTestingEngine,
+} from '@assurapay/execution-orchestration';
 const globalTrust = globalThis as typeof globalThis & {
   assurapayTrustStore?: InMemoryTrustStore;
 };
@@ -84,6 +91,13 @@ export const readiness = {
   dependencies: new DependencyIntelligenceEngine(trustStore),
   paymentTriggers: new PaymentTriggerRuleEngine(trustStore),
   baselines: new PerformanceBaselineEngine(trustStore),
+};
+export const orchestration = {
+  workspaces: new ExecutionOrchestrationEngine(trustStore),
+  progress: new ProgressMeasurementEngine(trustStore),
+  evidence: new EvidenceManagementEngine(trustStore),
+  validation: new ValidationAcceptanceTestingEngine(trustStore),
+  quality: new QualityAssuranceEngine(trustStore),
 };
 export function requestContext(request: Request): RequestContext {
   const actorUserId = request.headers.get('x-assurapay-user-id');

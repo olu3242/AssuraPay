@@ -1,0 +1,1 @@
+import {errorResponse,orchestration,requestContext} from '../../../../../../lib/trust-app';export async function POST(r:Request,{params}:{params:{id:string}}){try{const b=await r.json();return Response.json(orchestration.workspaces.transitionWorkItem(requestContext(r),{id:params.id,to:b.to}))}catch(e){return errorResponse(e)}}

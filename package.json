@@ -60,7 +60,13 @@
     "certify:dependency-intelligence": "vitest run packages/performance-readiness/src/performance-readiness.test.ts --testNamePattern=28",
     "certify:payment-trigger": "vitest run packages/performance-readiness/src/performance-readiness.test.ts --testNamePattern=29",
     "certify:performance-baseline": "vitest run packages/performance-readiness/src/performance-readiness.test.ts --testNamePattern=30",
-    "certify:batch6": "npm run certify && npm run test:integration && npm run test:e2e && npm run build"
+    "certify:batch6": "npm run certify && npm run test:integration && npm run test:e2e && npm run build",
+    "certify:execution-orchestration": "vitest run packages/execution-orchestration/src/execution-orchestration.test.ts --testNamePattern=31",
+    "certify:progress-measurement": "vitest run packages/execution-orchestration/src/execution-orchestration.test.ts --testNamePattern=32",
+    "certify:evidence-management": "vitest run packages/execution-orchestration/src/execution-orchestration.test.ts --testNamePattern=33",
+    "certify:validation-acceptance-testing": "vitest run packages/execution-orchestration/src/execution-orchestration.test.ts --testNamePattern=34",
+    "certify:quality-assurance": "vitest run packages/execution-orchestration/src/execution-orchestration.test.ts --testNamePattern=35",
+    "certify:batch7": "npm run certify && npm run test:integration && npm run test:e2e && npm run build"
   },
   "dependencies": {
     "next": "^14.2.15",

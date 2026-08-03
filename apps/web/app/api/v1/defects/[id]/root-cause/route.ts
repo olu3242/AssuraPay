@@ -1,0 +1,1 @@
+import {errorResponse,orchestration,requestContext} from '../../../../../../lib/trust-app';export async function POST(r:Request,{params}:{params:{id:string}}){try{const b=await r.json();return Response.json(orchestration.quality.assignRootCause(requestContext(r),{id:params.id,rootCause:b.rootCause}))}catch(e){return errorResponse(e)}}

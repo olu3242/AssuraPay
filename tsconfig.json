@@ -28,6 +28,7 @@
       ,"@assurapay/agreement-intelligence": ["packages/agreement-intelligence/src/index.ts"]
       ,"@assurapay/performance-blueprint": ["packages/performance-blueprint/src/index.ts"]
       ,"@assurapay/performance-readiness": ["packages/performance-readiness/src/index.ts"]
+      ,"@assurapay/execution-orchestration": ["packages/execution-orchestration/src/index.ts"]
     },
     "plugins": [{ "name": "next" }],
     "types": ["node", "vitest/globals"]

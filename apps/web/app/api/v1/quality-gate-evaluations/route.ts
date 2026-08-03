@@ -1,0 +1,1 @@
+import {errorResponse,orchestration,requestContext} from '../../../../lib/trust-app';export async function POST(r:Request){try{const b=await r.json();return Response.json(orchestration.quality.evaluateGate(requestContext(r),b.workItemId),{status:201})}catch(e){return errorResponse(e)}}
