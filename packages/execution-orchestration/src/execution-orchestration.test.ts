@@ -78,7 +78,10 @@ describe('Engine 32 Progress Measurement', () => {
     e.record(c, { workItemId: 'wi', stage: 'ACCEPTED', percentComplete: 100 });
     expect(() =>
       e.record(c, { workItemId: 'wi', stage: 'FINANCIALLY_EARNED', percentComplete: 100 }),
-    ).toThrow('EARNED_VALUE_REQUIRED');
+    ).toThrow('EARNED_VALUE_MUST_BE_POSITIVE_INTEGER_MINOR_UNITS');
+    expect(() =>
+      e.record(c, { workItemId: 'wi', stage: 'FINANCIALLY_EARNED', percentComplete: 100, earnedValueAmountMinor: 100.5 }),
+    ).toThrow('EARNED_VALUE_MUST_BE_POSITIVE_INTEGER_MINOR_UNITS');
     const earned = e.record(c, {
       workItemId: 'wi',
       stage: 'FINANCIALLY_EARNED',

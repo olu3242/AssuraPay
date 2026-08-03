@@ -99,6 +99,18 @@ describe('Engine 58 Portfolio Analytics', () => {
         currency: 'NGN',
       }),
     ).toThrow('MUST_BE_BETWEEN_0_AND_100');
+    expect(() =>
+      e.snapshot(c, {
+        scopeId: 'portfolio',
+        atRiskCount: 1,
+        blockedCount: 0,
+        unpaidAmountMinor: 100.5,
+        disputedCount: 0,
+        retainedAmountMinor: 0,
+        concentrationTopPartyPercent: 10,
+        currency: 'NGN',
+      }),
+    ).toThrow('UNPAIDAMOUNTMINOR_MUST_BE_NON_NEGATIVE_INTEGER_MINOR_UNITS');
     e.snapshot(c, {
       scopeId: 'portfolio',
       atRiskCount: 2,
