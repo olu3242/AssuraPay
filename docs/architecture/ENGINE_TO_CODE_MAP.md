@@ -32,6 +32,11 @@
 | Dependency Intelligence (28) | Implemented | Internal/external/vendor/customer/regulatory/funding dependencies with blocking-dependency queries |
 | Payment Trigger (29) | Implemented | Contractual eligibility rules with deliverable/DoD/acceptance references and pure eligibility evaluation |
 | Performance Baseline (30) | Implemented | One immutable planned baseline per milestone with append-only schedule/cost/scope variance records |
+| Execution Orchestration (31) | Implemented | `packages/execution-orchestration`, one execution workspace per milestone with an assign/transition work-item lifecycle |
+| Progress Measurement (32) | Implemented | Declared/evidenced/validated/accepted/financially-earned progress ladder, no stage or percent regression |
+| Evidence Management (33) | Implemented | Deliverable-scoped mandatory requirements, chain-of-custody evidence packages and verification |
+| Validation & Acceptance Testing (34) | Implemented | Manual/automated tests, conditional-pass notes, retest-on-prior-failure and criterion-level pass aggregation |
+| Quality Assurance (35) | Implemented | Root-caused defect rework lifecycle and a quality gate blocked by any open critical defect |
 | Audit and evidence ledger | Foundation only | Integrity-chained audit adapter and append-only PostgreSQL contract |
 | Configuration engine | Contract only | Environment configuration and seed snapshot |
 | Contract lifecycle | Implemented | Domain service and API routes |
