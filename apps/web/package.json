@@ -6,5 +6,29 @@
     "dev": "next dev --hostname 0.0.0.0 --port 3000",
     "build": "next build",
     "start": "next start --hostname 0.0.0.0 --port 3000"
+  },
+  "dependencies": {
+    "@assurapay/agreement-creation": "workspace:*",
+    "@assurapay/agreement-intelligence": "workspace:*",
+    "@assurapay/completion-assurance": "workspace:*",
+    "@assurapay/database": "workspace:*",
+    "@assurapay/domain": "workspace:*",
+    "@assurapay/enterprise-analytics": "workspace:*",
+    "@assurapay/enterprise-intelligence": "workspace:*",
+    "@assurapay/execution-orchestration": "workspace:*",
+    "@assurapay/governance-core": "workspace:*",
+    "@assurapay/identity": "workspace:*",
+    "@assurapay/legal": "workspace:*",
+    "@assurapay/organizations": "workspace:*",
+    "@assurapay/parties": "workspace:*",
+    "@assurapay/performance-blueprint": "workspace:*",
+    "@assurapay/performance-readiness": "workspace:*",
+    "@assurapay/permissions": "workspace:*",
+    "@assurapay/settlement-assurance": "workspace:*",
+    "@assurapay/settlement-execution": "workspace:*",
+    "@assurapay/shared": "workspace:*",
+    "next": "^14.2.15",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   }
 }

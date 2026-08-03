@@ -4,7 +4,12 @@
   "private": true,
   "main": "src/index.ts",
   "dependencies": {
-    "@assurapay/shared": "*",
-    "@assurapay/database": "*"
+    "@assurapay/database": "workspace:*",
+    "@assurapay/identity": "workspace:*",
+    "@assurapay/legal": "workspace:*",
+    "@assurapay/organizations": "workspace:*",
+    "@assurapay/parties": "workspace:*",
+    "@assurapay/permissions": "workspace:*",
+    "@assurapay/shared": "workspace:*"
   }
 }

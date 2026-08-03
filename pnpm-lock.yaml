@@ -24,6 +24,9 @@ importers:
         specifier: ^3.23.0
         version: 3.25.76
     devDependencies:
+      '@eslint/eslintrc':
+        specifier: 2.1.4
+        version: 2.1.4
       '@types/node':
         specifier: ^20.14.0
         version: 20.19.43
@@ -48,6 +51,260 @@ importers:
       vitest:
         specifier: ^2.1.4
         version: 2.1.9(@types/node@20.19.43)
+
+  apps/web:
+    dependencies:
+      '@assurapay/agreement-creation':
+        specifier: workspace:*
+        version: link:../../packages/agreement-creation
+      '@assurapay/agreement-intelligence':
+        specifier: workspace:*
+        version: link:../../packages/agreement-intelligence
+      '@assurapay/completion-assurance':
+        specifier: workspace:*
+        version: link:../../packages/completion-assurance
+      '@assurapay/database':
+        specifier: workspace:*
+        version: link:../../packages/database
+      '@assurapay/domain':
+        specifier: workspace:*
+        version: link:../../packages/domain
+      '@assurapay/enterprise-analytics':
+        specifier: workspace:*
+        version: link:../../packages/enterprise-analytics
+      '@assurapay/enterprise-intelligence':
+        specifier: workspace:*
+        version: link:../../packages/enterprise-intelligence
+      '@assurapay/execution-orchestration':
+        specifier: workspace:*
+        version: link:../../packages/execution-orchestration
+      '@assurapay/governance-core':
+        specifier: workspace:*
+        version: link:../../packages/governance-core
+      '@assurapay/identity':
+        specifier: workspace:*
+        version: link:../../packages/identity
+      '@assurapay/legal':
+        specifier: workspace:*
+        version: link:../../packages/legal
+      '@assurapay/organizations':
+        specifier: workspace:*
+        version: link:../../packages/organizations
+      '@assurapay/parties':
+        specifier: workspace:*
+        version: link:../../packages/parties
+      '@assurapay/performance-blueprint':
+        specifier: workspace:*
+        version: link:../../packages/performance-blueprint
+      '@assurapay/performance-readiness':
+        specifier: workspace:*
+        version: link:../../packages/performance-readiness
+      '@assurapay/permissions':
+        specifier: workspace:*
+        version: link:../../packages/permissions
+      '@assurapay/settlement-assurance':
+        specifier: workspace:*
+        version: link:../../packages/settlement-assurance
+      '@assurapay/settlement-execution':
+        specifier: workspace:*
+        version: link:../../packages/settlement-execution
+      '@assurapay/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
+      next:
+        specifier: ^14.2.15
+        version: 14.2.35(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react:
+        specifier: ^18.3.1
+        version: 18.3.1
+      react-dom:
+        specifier: ^18.3.1
+        version: 18.3.1(react@18.3.1)
+
+  packages/agent-runtime:
+    dependencies:
+      '@assurapay/database':
+        specifier: workspace:*
+        version: link:../database
+      '@assurapay/shared':
+        specifier: workspace:*
+        version: link:../shared
+
+  packages/agreement-creation:
+    dependencies:
+      '@assurapay/database':
+        specifier: workspace:*
+        version: link:../database
+      '@assurapay/shared':
+        specifier: workspace:*
+        version: link:../shared
+
+  packages/agreement-intelligence:
+    dependencies:
+      '@assurapay/database':
+        specifier: workspace:*
+        version: link:../database
+      '@assurapay/shared':
+        specifier: workspace:*
+        version: link:../shared
+
+  packages/completion-assurance:
+    dependencies:
+      '@assurapay/database':
+        specifier: workspace:*
+        version: link:../database
+      '@assurapay/shared':
+        specifier: workspace:*
+        version: link:../shared
+
+  packages/database:
+    dependencies:
+      '@assurapay/shared':
+        specifier: workspace:*
+        version: link:../shared
+
+  packages/domain:
+    dependencies:
+      '@assurapay/database':
+        specifier: workspace:*
+        version: link:../database
+      '@assurapay/identity':
+        specifier: workspace:*
+        version: link:../identity
+      '@assurapay/legal':
+        specifier: workspace:*
+        version: link:../legal
+      '@assurapay/organizations':
+        specifier: workspace:*
+        version: link:../organizations
+      '@assurapay/parties':
+        specifier: workspace:*
+        version: link:../parties
+      '@assurapay/permissions':
+        specifier: workspace:*
+        version: link:../permissions
+      '@assurapay/shared':
+        specifier: workspace:*
+        version: link:../shared
+
+  packages/enterprise-analytics:
+    dependencies:
+      '@assurapay/database':
+        specifier: workspace:*
+        version: link:../database
+      '@assurapay/shared':
+        specifier: workspace:*
+        version: link:../shared
+
+  packages/enterprise-intelligence:
+    dependencies:
+      '@assurapay/database':
+        specifier: workspace:*
+        version: link:../database
+      '@assurapay/shared':
+        specifier: workspace:*
+        version: link:../shared
+
+  packages/execution-orchestration:
+    dependencies:
+      '@assurapay/database':
+        specifier: workspace:*
+        version: link:../database
+      '@assurapay/shared':
+        specifier: workspace:*
+        version: link:../shared
+
+  packages/governance-core:
+    dependencies:
+      '@assurapay/database':
+        specifier: workspace:*
+        version: link:../database
+      '@assurapay/shared':
+        specifier: workspace:*
+        version: link:../shared
+
+  packages/identity:
+    dependencies:
+      '@assurapay/database':
+        specifier: workspace:*
+        version: link:../database
+      '@assurapay/shared':
+        specifier: workspace:*
+        version: link:../shared
+
+  packages/legal:
+    dependencies:
+      '@assurapay/database':
+        specifier: workspace:*
+        version: link:../database
+      '@assurapay/shared':
+        specifier: workspace:*
+        version: link:../shared
+
+  packages/organizations:
+    dependencies:
+      '@assurapay/database':
+        specifier: workspace:*
+        version: link:../database
+      '@assurapay/shared':
+        specifier: workspace:*
+        version: link:../shared
+
+  packages/parties:
+    dependencies:
+      '@assurapay/database':
+        specifier: workspace:*
+        version: link:../database
+      '@assurapay/shared':
+        specifier: workspace:*
+        version: link:../shared
+
+  packages/performance-blueprint:
+    dependencies:
+      '@assurapay/database':
+        specifier: workspace:*
+        version: link:../database
+      '@assurapay/shared':
+        specifier: workspace:*
+        version: link:../shared
+
+  packages/performance-readiness:
+    dependencies:
+      '@assurapay/database':
+        specifier: workspace:*
+        version: link:../database
+      '@assurapay/shared':
+        specifier: workspace:*
+        version: link:../shared
+
+  packages/permissions:
+    dependencies:
+      '@assurapay/database':
+        specifier: workspace:*
+        version: link:../database
+      '@assurapay/shared':
+        specifier: workspace:*
+        version: link:../shared
+
+  packages/settlement-assurance:
+    dependencies:
+      '@assurapay/database':
+        specifier: workspace:*
+        version: link:../database
+      '@assurapay/shared':
+        specifier: workspace:*
+        version: link:../shared
+
+  packages/settlement-execution:
+    dependencies:
+      '@assurapay/database':
+        specifier: workspace:*
+        version: link:../database
+      '@assurapay/shared':
+        specifier: workspace:*
+        version: link:../shared
+
+  packages/shared: {}
 
 packages:
 
