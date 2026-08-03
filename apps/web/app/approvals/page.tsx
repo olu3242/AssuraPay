@@ -1,0 +1,1 @@
+export default function ApprovalsPage(){return <main className="shell"><p className="eyebrow">Human authority</p><h1>Approval queue</h1><p className="lead">Version-pinned routes enforce authority, step-up assurance and requester segregation.</p></main>}
