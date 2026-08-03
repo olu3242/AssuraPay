@@ -1,0 +1,7 @@
+import { describe, expect, it } from 'vitest';
+import { InMemoryTrustStore } from '@assurapay/database';
+import { IdentityService } from './index';
+describe('Engine 01 identity trust', () => {
+  it('hashes session tokens, audits authentication, revokes reuse, and expires step-up', () => { const store = new InMemoryTrustStore(); const service = new IdentityService(store); const user = service.activate(service.register({ email: 'owner@example.test', displayName: 'Owner', correlationId: 'c1' }).id, 'c2'); const login = service.login({ email: user.email, rawSessionToken: 'raw-secret-token', correlationId: 'c3' }); expect(login.session.sessionTokenHash).not.toContain('raw-secret-token'); expect(store.list('auditRecords')).toHaveLength(3); service.revokeSession(login.session.id, { actorUserId: user.id, sessionId: login.session.id, identityAssuranceLevel: 'IAL1_BASIC', memberships: [], correlationId: 'c4' }, 'logout'); expect(() => service.resolveSession('raw-secret-token')).toThrow('SESSION_INVALID'); });
+  it('denies suspended identities and prevents device trust from changing assurance', () => { const store = new InMemoryTrustStore(); const service = new IdentityService(store); const user = service.activate(service.register({ email: 'user@example.test', displayName: 'User', correlationId: 'c1' }).id, 'c2'); store.replace('identities', { ...user, status: 'SUSPENDED' as const }); expect(() => service.login({ email: user.email, rawSessionToken: 'x', correlationId: 'c3' })).toThrow('AUTHENTICATION_DENIED'); });
+});

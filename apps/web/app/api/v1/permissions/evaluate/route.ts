@@ -1,0 +1,1 @@
+import { trust, requestContext, errorResponse } from '../../../../../lib/trust-app'; export async function POST(request: Request) { try { const context = requestContext(request); const body = await request.json(); return Response.json(trust.permissions.evaluate(context, body.permissionKey, body.scopeId)); } catch (error) { return errorResponse(error); } }

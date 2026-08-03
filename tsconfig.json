@@ -17,7 +17,12 @@
     "paths": {
       "@assurapay/shared": ["packages/shared/src/index.ts"],
       "@assurapay/domain": ["packages/domain/src/index.ts"],
-      "@assurapay/database": ["packages/database/src/index.ts"]
+      "@assurapay/database": ["packages/database/src/index.ts"],
+      "@assurapay/identity": ["packages/identity/src/index.ts"],
+      "@assurapay/organizations": ["packages/organizations/src/index.ts"],
+      "@assurapay/permissions": ["packages/permissions/src/index.ts"],
+      "@assurapay/parties": ["packages/parties/src/index.ts"],
+      "@assurapay/legal": ["packages/legal/src/index.ts"]
     },
     "plugins": [{ "name": "next" }],
     "types": ["node", "vitest/globals"]

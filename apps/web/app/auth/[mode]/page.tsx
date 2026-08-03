@@ -1,0 +1,1 @@
+import { TrustConsole } from '../../components/trust-console'; export default function AuthPage({ params }: { params: { mode: string } }) { return <TrustConsole section={params.mode === 'register' ? 'profile' : 'security'} />; }

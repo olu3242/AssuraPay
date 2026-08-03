@@ -1,0 +1,1 @@
+import { TrustConsole } from '../../components/trust-console'; export default function LegalPage({ params }: { params: { section?: string[] } }) { const part = params.section?.at(-1) ?? 'legal'; return <TrustConsole section={part === 'policies' ? 'legal' : part} permissions={['legal.policy.read','legal.hold.read']} />; }
