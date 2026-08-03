@@ -1,0 +1,11 @@
+node_modules
+.next
+out
+coverage
+*.log
+*.tsbuildinfo
+.env
+.env.local
+.DS_Store
+.vscode
+apps/web/apps/

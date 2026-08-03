@@ -4,13 +4,14 @@ Working agreement for Claude / Claude Code sessions on this repository.
 
 ## Product one-liner
 
-Execution Assurance and Conditional Payment Platform: AssuraPay converts agreements into Performance Blueprints, proves milestone completion through Definition of Done, evidence, validation and acceptance, then orchestrates payment through licensed external custodians. AssuraPay never custodies funds.
+AssuraPay is an Execution Assurance Platform that transforms contractual obligations into governed, evidence-backed execution workflows and orchestrates settlement through certified Financial Providers without ever taking custody of funds.
 
 ## Hard constraints — never violate
 
 1. **No custody, ever.** No code path may hold, pool, or have signing authority
    over end-user funds. All money movement happens through the licensed
-   custodian/PSP's own APIs; AssuraPay only sends release/hold instructions.
+   certified Financial Provider's own APIs through a Provider Adapter;
+   AssuraPay only sends release/hold instructions.
 2. **Every release is certified-work-backed.** No unconditional "release now" path exists. Release requires a valid Completion Certificate, Payment Eligibility record, approved Financial Entitlement, funding confirmation, authority approval and no active hold.
 3. **Full audit trail.** Every state transition (created, funded-external,
    condition-verified, release-instructed, settled, disputed) is
@@ -26,6 +27,8 @@ The system is not centered on one mutable god object. The canonical chain is `Co
 
 See `docs/ENGINE_CATALOG.md` for the authoritative 60-engine catalog and `docs/ARCHITECTURE.md` for the six-wave dependency model.
 
+Present the product through four platform pillars — Execution Assurance, Settlement Assurance, Intelligence, and Trust — while retaining the engine catalog as the authoritative domain decomposition. Use `docs/product/EXECUTION_ASSURANCE_MATURITY_MODEL.md` to distinguish the validated prototype, enterprise MVP, and target platform.
+
 ## Build conventions
 
 - Next.js 14 (App Router) + TypeScript + Tailwind.
@@ -38,7 +41,7 @@ See `docs/ENGINE_CATALOG.md` for the authoritative 60-engine catalog and `docs/A
   Zenith AI builds.
 - Every PR touching money-movement logic must include/update tests for the
   non-custody constraint (i.e., assert no code path calls a "hold funds"
-  primitive that isn't the external PSP's own escrow/hold API).
+  primitive that isn't the external Financial Provider's own escrow/hold API).
 
 ## Deliverable pattern
 

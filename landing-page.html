@@ -236,7 +236,7 @@ footer{border-top:1px solid var(--hairline);padding:56px 0 32px;}
     <div>
       <div class="eyebrow">Non-custodial payment assurance</div>
       <h1>Payments that only move <em>when trust is verified.</em></h1>
-      <p class="lead">AssuraPay sits between payer and payee on the rails you already use — Paystack, Flutterwave, your bank — and releases funds only when the agreed condition is met. AssuraPay never holds your money.</p>
+      <p class="lead">AssuraPay sits between payer and payee on the financial rails they already use and releases funds only when the agreed condition is met. AssuraPay never holds your money.</p>
       <div class="hero-actions">
         <a href="#cta" class="btn-primary">Request access</a>
         <a href="#how" class="btn-secondary">See how it works</a>
@@ -249,7 +249,7 @@ footer{border-top:1px solid var(--hairline);padding:56px 0 32px;}
       <div class="slip-row"><span>Payee</span><span>Lagos Steel Supply Ltd.</span></div>
       <div class="slip-row"><span>Amount</span><span>₦4,250,000.00</span></div>
       <div class="slip-row"><span>Condition</span><span>Goods received &amp; signed</span></div>
-      <div class="slip-row"><span>Custodian</span><span>Partner Bank Escrow</span></div>
+      <div class="slip-row"><span>Custodian</span><span>Certified Financial Provider</span></div>
       <div class="slip-row"><span>Status</span><span>Release instructed</span></div>
       <div class="stamp"><span>ASSURED</span></div>
     </div>
@@ -274,7 +274,7 @@ footer{border-top:1px solid var(--hairline);padding:56px 0 32px;}
     </div>
     <div class="flow">
       <div class="flow-step"><div class="num">01</div><h3>Create</h3><p>Payer or payee defines the amount and the condition that must be met before release.</p></div>
-      <div class="flow-step"><div class="num">02</div><h3>Fund</h3><p>Payer funds through Paystack, Flutterwave, or bank transfer into a licensed custodian account.</p></div>
+      <div class="flow-step"><div class="num">02</div><h3>Fund</h3><p>Payer funds through a certified payment provider, licensed financial institution, or bank transfer into a licensed custodian account.</p></div>
       <div class="flow-step"><div class="num">03</div><h3>Verify</h3><p>The condition is checked — document, dual sign-off, or attested delivery event.</p></div>
       <div class="flow-step"><div class="num">04</div><h3>Instruct</h3><p>AssuraPay issues a signed release instruction to the custodian. It never touches the funds.</p></div>
       <div class="flow-step"><div class="num">05</div><h3>Settle</h3><p>Custodian pays out. Every step is logged to an append-only, tamper-evident audit trail.</p></div>
@@ -292,7 +292,7 @@ footer{border-top:1px solid var(--hairline);padding:56px 0 32px;}
     <div class="engine-grid">
       <div class="engine-cell"><div class="idx">01</div><h4>Escrow Orchestration</h4><p>Owns the release lifecycle state machine end to end.</p></div>
       <div class="engine-cell"><div class="idx">02</div><h4>Condition Verification</h4><p>Checks documents, sign-offs, and oracle attestations against the stated condition.</p></div>
-      <div class="engine-cell"><div class="idx">03</div><h4>Payment Rail Router</h4><p>Directs each transaction to the correct PSP or bank integration.</p></div>
+      <div class="engine-cell"><div class="idx">03</div><h4>Provider Routing Engine</h4><p>Selects the appropriate certified Financial Provider based on capabilities, tenant configuration, and policy.</p></div>
       <div class="engine-cell"><div class="idx">04</div><h4>Multi-Party Split</h4><p>Computes split disbursement across payees and fee recipients.</p></div>
       <div class="engine-cell"><div class="idx">05</div><h4>Dispute Trigger</h4><p>Freezes pending releases the moment a dispute is raised.</p></div>
       <div class="engine-cell"><div class="idx">06</div><h4>Compliance &amp; AML Screening</h4><p>Runs sanctions and AML checks before any release instruction.</p></div>
@@ -312,7 +312,7 @@ footer{border-top:1px solid var(--hairline);padding:56px 0 32px;}
       <span class="seal-mark"></span>
       <div>
         <h3>AssuraPay never holds your money — by design, not just policy.</h3>
-        <p>Funds sit with a licensed custodian — a bank or PSP — from the moment they're sent to the moment they're released. AssuraPay issues signed release instructions only. There is no pooled account, no wallet, and no code path where AssuraPay takes custody.</p>
+        <p>Funds sit with a licensed custodian or Financial Provider from the moment they're sent to the moment they're released. AssuraPay issues signed release instructions only. There is no pooled account, no wallet, and no code path where AssuraPay takes custody.</p>
       </div>
     </div>
   </div>
@@ -342,11 +342,11 @@ footer{border-top:1px solid var(--hairline);padding:56px 0 32px;}
     <div class="faq-list">
       <details class="faq-item">
         <summary class="faq-q">Does AssuraPay ever hold my money?<span class="plus">+</span></summary>
-        <div class="faq-a">No. Funds are always held by a licensed custodian — a partner bank or PSP such as Paystack or Flutterwave. AssuraPay issues release instructions; it has no pooled account and no signing authority over customer funds.</div>
+        <div class="faq-a">No. Funds are always held by a licensed custodian or certified Financial Provider. AssuraPay issues release instructions; it has no pooled account and no signing authority over customer funds.</div>
       </details>
       <details class="faq-item">
         <summary class="faq-q">Which payment rails does AssuraPay support?<span class="plus">+</span></summary>
-        <div class="faq-a">Paystack, Flutterwave, and manual bank transfer at launch, routed through a pluggable rail adapter so more banks and processors can be added without changing how assurance requests work.</div>
+        <div class="faq-a">Certified payment providers, licensed financial institutions, and manual bank transfers at launch, all connected through AssuraPay's Financial Provider Registry and pluggable adapter architecture. New providers can be certified and added without changing the execution assurance workflow.</div>
       </details>
       <details class="faq-item">
         <summary class="faq-q">How is a release condition verified?<span class="plus">+</span></summary>

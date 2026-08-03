@@ -16,13 +16,13 @@ without AssuraPay ever touching the money.
 - Channel: direct outreach + content (LinkedIn carousels, case studies)
   under the Zenith AI content engine; warm intros through Olu's existing
   Salesforce/automation consulting network.
-- Goal: 10–20 pilot transaction pairs live, PSP integration (Paystack)
-  proven end-to-end.
+- Goal: 10–20 pilot transaction pairs live through one or more certified
+  financial-provider integrations, proven end-to-end.
 
 ### Phase 2 — Marketplace embed (Months 3–9)
 - Target: 2–3 Nigerian marketplace platforms (agriculture, building
   materials, B2B wholesale) that want built-in buyer/seller trust without
-  becoming a PSP themselves.
+  becoming a payment provider themselves.
 - Offer: embeddable SDK/widget, revenue share or subscription pricing.
 - Goal: first white-label partner live in production.
 
@@ -44,8 +44,9 @@ without AssuraPay ever touching the money.
 - **Content-led GTM** (consistent with Zenith AI's existing model):
   LinkedIn/TikTok carousels explaining escrow-without-custody, case
   studies from pilot transactions, positioned as pre-sales material.
-- **Partnership channel**: PSPs (Paystack, Flutterwave) as distribution —
-  AssuraPay as a value-added layer on top of their existing merchant base.
+- **Partnership channel**: licensed payment providers, banks, and financial
+  institutions as strategic ecosystem partners — AssuraPay as a value-added
+  layer on top of their existing merchant base.
 - **Direct sales**: marketplace and public-sector segments need direct,
   relationship-led sales given transaction size and compliance sensitivity.
 
@@ -66,8 +67,9 @@ without AssuraPay ever touching the money.
 
 ## 6. Key Risks to GTM
 
-- PSP partnership dependency — mitigate by supporting manual bank-transfer
-  escrow account as a fallback rail from day one.
+- Financial-provider partnership dependency — mitigate through the Financial
+  Provider Registry, multiple certified Provider Adapters, and manual bank
+  transfer as a fallback rail from day one.
 - Public-sector sales cycles are long — Phase 1–2 commercial revenue must
   sustain the business independently of Phase 3 timing.
 - Trust-building for a new brand in a trust-sensitive category — early

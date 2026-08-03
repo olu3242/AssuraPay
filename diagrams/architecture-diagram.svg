@@ -23,8 +23,8 @@
 
   <!-- Custodian -->
   <rect x="440" y="130" width="400" height="80" rx="8" fill="none" stroke="#C9973E" stroke-width="2"/>
-  <text x="640" y="160" text-anchor="middle" font-size="15" fill="#10182C" font-weight="700">LICENSED CUSTODIAN / PSP</text>
-  <text x="640" y="182" text-anchor="middle" font-size="12" fill="#5B6478">Paystack · Flutterwave · Partner Bank Escrow</text>
+  <text x="640" y="160" text-anchor="middle" font-size="15" fill="#10182C" font-weight="700">FINANCIAL PROVIDER REGISTRY</text>
+  <text x="640" y="182" text-anchor="middle" font-size="12" fill="#5B6478">Certified Providers · Licensed Institutions · External Escrow</text>
   <text x="640" y="200" text-anchor="middle" font-size="11" fill="#4C9A6A" font-weight="600">holds funds — AssuraPay never does</text>
 
   <!-- arrows payer->custodian, custodian->payee -->
@@ -105,7 +105,7 @@
   <!-- integration adapters -->
   <text x="150" y="645" font-size="12" fill="#F1EEE6" font-weight="700">INTEGRATION ADAPTERS</text>
   <rect x="150" y="655" width="230" height="34" rx="6" fill="none" stroke="#F1EEE6"/>
-  <text x="265" y="676" text-anchor="middle" font-size="11" fill="#F1EEE6">Paystack / Flutterwave / Bank API</text>
+  <text x="265" y="676" text-anchor="middle" font-size="11" fill="#F1EEE6">Financial Provider Adapters</text>
 
   <rect x="400" y="655" width="230" height="34" rx="6" fill="none" stroke="#F1EEE6"/>
   <text x="515" y="676" text-anchor="middle" font-size="11" fill="#F1EEE6">Oracle / Attestation Sources</text>

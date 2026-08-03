@@ -2,7 +2,9 @@
 
 ## 1. Product boundary
 
-AssuraPay is an **Execution Assurance and Conditional Payment Platform**. It converts agreements into versioned execution plans, proves completion through evidence and acceptance, calculates financial entitlement, and instructs licensed custodians or payment providers to move funds.
+AssuraPay is an **Execution Assurance Platform** that transforms contractual obligations into governed, evidence-backed execution workflows and orchestrates settlement through certified Financial Providers without ever taking custody of funds.
+
+The product is presented through four platform pillars — Execution Assurance, Settlement Assurance, Intelligence, and Trust — while the 60-engine catalog remains the authoritative domain decomposition. Product maturity is governed by `docs/product/EXECUTION_ASSURANCE_MATURITY_MODEL.md`.
 
 AssuraPay remains structurally non-custodial:
 
@@ -10,7 +12,18 @@ AssuraPay remains structurally non-custodial:
 - It does not become the system of record for bank balances.
 - It stores provider references and its own append-only assurance ledger.
 - It sends governed release instructions only after configured conditions pass.
-- The external bank, PSP or regulated escrow partner remains the financial custodian.
+- The external certified Financial Provider or regulated escrow partner remains the financial custodian.
+
+### Financial-provider terminology
+
+- **Financial Provider** — Any licensed institution integrated with AssuraPay.
+- **Provider Adapter** — The technical connector to a Financial Provider.
+- **Financial Provider Registry** — The catalog of supported and certified providers and their capabilities.
+- **Provider Routing Engine** — Selects an appropriate provider based on capabilities, policy, jurisdiction, and tenant configuration.
+- **Provider Certification** — Confirms that an adapter is tested and approved for production use.
+- **Tenant Provider Configuration** — Lets each organization enable and prioritize the providers it uses.
+
+Product and architecture layers must refer to these capabilities rather than naming preferred vendors. Provider-specific names belong only in adapter implementation, certification, and tenant-configuration records.
 
 ## 2. Canonical assurance loop
 
@@ -114,6 +127,8 @@ Canonical event families include:
 ## 9. Financial boundary
 
 The platform maintains an append-only **settlement assurance ledger**, not a custodial wallet ledger. Provider balances and settlement status are reconciled from authenticated external callbacks and statements. A payment is not successful merely because an instruction was submitted.
+
+All external financial connectivity passes through Provider Adapters registered in the Financial Provider Registry. The Provider Routing Engine resolves eligible adapters from required capabilities and policy, then applies Tenant Provider Configuration without changing the execution assurance workflow.
 
 States must distinguish:
 

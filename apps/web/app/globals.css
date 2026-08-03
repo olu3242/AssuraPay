@@ -1,0 +1,249 @@
+:root {
+  color-scheme: dark;
+  font-family: Inter, Arial, sans-serif;
+}
+
+body {
+  margin: 0;
+  background: #07111f;
+  color: #f5f7fb;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 4rem;
+}
+
+nav {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(420px, 1.1fr);
+  gap: clamp(2rem, 5vw, 4.5rem);
+  align-items: center;
+  margin: 1rem 0 2rem;
+  padding: clamp(1.5rem, 4vw, 3rem);
+  overflow: hidden;
+  background: linear-gradient(135deg, rgba(33, 74, 111, 0.42), rgba(255, 255, 255, 0.04));
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 24px;
+}
+
+.hero__content {
+  position: relative;
+  z-index: 1;
+}
+
+.hero__eyebrow {
+  display: inline-block;
+  margin-bottom: 1rem;
+  color: #73e0bd;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.hero h1 {
+  max-width: 12ch;
+  margin: 0;
+  font-size: clamp(2.25rem, 5vw, 4.25rem);
+  line-height: 0.98;
+  letter-spacing: -0.055em;
+}
+
+.hero__content p {
+  max-width: 52ch;
+  margin: 1.5rem 0 0;
+  color: #c2cddd;
+  font-size: 1.05rem;
+  line-height: 1.7;
+}
+
+.hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 2rem;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  padding: 0 1.15rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+.button--primary {
+  background: #73e0bd;
+  color: #07111f;
+}
+
+.button--secondary {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.hero-carousel {
+  position: relative;
+  min-width: 0;
+}
+
+.hero-carousel__viewport {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: 18px;
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.38);
+}
+
+.hero-carousel__slide {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  transform: scale(1.03);
+  transition: opacity 700ms ease, transform 5s ease;
+  pointer-events: none;
+}
+
+.hero-carousel__slide.is-active {
+  z-index: 1;
+  opacity: 1;
+  transform: scale(1);
+}
+
+.hero-carousel__slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hero-carousel__slide::after {
+  position: absolute;
+  inset: 35% 0 0;
+  content: '';
+  background: linear-gradient(transparent, rgba(2, 9, 18, 0.88));
+}
+
+.hero-carousel figcaption {
+  position: absolute;
+  z-index: 1;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  left: 1.25rem;
+  display: grid;
+  gap: 0.25rem;
+}
+
+.hero-carousel figcaption span {
+  color: #73e0bd;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.hero-carousel figcaption strong {
+  max-width: 24ch;
+  font-size: clamp(1rem, 2vw, 1.35rem);
+}
+
+.hero-carousel__controls {
+  position: absolute;
+  z-index: 2;
+  right: 1rem;
+  bottom: -1.6rem;
+  display: flex;
+  gap: 0.45rem;
+}
+
+.hero-carousel__controls button {
+  width: 9px;
+  height: 9px;
+  padding: 0;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.35);
+  border: 0;
+  border-radius: 999px;
+  transition: width 200ms ease, background 200ms ease;
+}
+
+.hero-carousel__controls button.is-active {
+  width: 28px;
+  background: #73e0bd;
+}
+
+.hero-carousel__controls button:focus-visible,
+.button:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 3px;
+}
+
+.card {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 16px;
+  padding: 1rem 1.2rem;
+  margin-bottom: 1rem;
+}
+
+.grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+@media (max-width: 840px) {
+  .hero {
+    grid-template-columns: 1fr;
+  }
+
+  .hero h1 {
+    max-width: 14ch;
+  }
+}
+
+@media (max-width: 520px) {
+  main {
+    padding-right: 1rem;
+    padding-left: 1rem;
+  }
+
+  .hero {
+    padding: 1.25rem;
+    border-radius: 18px;
+  }
+
+  .hero-carousel__viewport {
+    aspect-ratio: 1 / 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-carousel__slide,
+  .hero-carousel__controls button {
+    transition: none;
+  }
+}

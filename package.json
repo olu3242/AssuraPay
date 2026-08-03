@@ -2,32 +2,46 @@
   "name": "assurapay",
   "version": "0.1.0",
   "private": true,
-  "description": "Non-custodial payment assurance infrastructure for African B2B trade, public-sector procurement, and marketplace commerce.",
+  "description": "Execution assurance and conditional payment platform foundation for AssuraPay.",
   "author": "Zenith AI Automation Agency",
   "license": "UNLICENSED",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "dev": "npm --workspace apps/web run dev",
+    "build": "npm --workspace apps/web run build",
+    "start": "npm --workspace apps/web run start",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "test:unit": "vitest run",
+    "test:integration": "vitest run --testNamePattern=integration",
+    "test:e2e": "vitest run --testNamePattern=e2e",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "db:reset": "node scripts/reset-db.js",
+    "db:migrate": "node scripts/run-migrations.js",
+    "db:seed": "node scripts/seed-data.js",
+    "certify": "npm run lint && npm run typecheck && npm run test"
   },
   "dependencies": {
-    "next": "^14.2.0",
-    "react": "^18.3.0",
-    "react-dom": "^18.3.0",
-    "framer-motion": "^11.0.0",
-    "zod": "^3.23.0",
-    "@paystack/inline-js": "^2.20.0",
-    "flutterwave-node-v3": "^1.1.10"
+    "next": "^14.2.15",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "framer-motion": "^11.11.9",
+    "zod": "^3.23.0"
   },
   "devDependencies": {
-    "typescript": "^5.5.0",
-    "tailwindcss": "^3.4.0",
-    "eslint": "^8.57.0",
-    "eslint-config-next": "^14.2.0",
     "@types/node": "^20.14.0",
-    "@types/react": "^18.3.0"
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.1",
+    "eslint": "^8.57.0",
+    "eslint-config-next": "^14.2.15",
+    "prettier": "^3.3.3",
+    "typescript": "^5.5.4",
+    "vitest": "^2.1.4"
   },
   "engines": {
     "node": ">=18.18.0"
