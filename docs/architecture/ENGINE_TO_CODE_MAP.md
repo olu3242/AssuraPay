@@ -72,6 +72,16 @@
 | Human Approval (68) | Implemented | Human-only, proposal-bound, one-time approval/waiver/override/certification decisions |
 | Agent Telemetry (69) | Implemented | Latency, cost, provider, errors, quality, hallucination and approval metrics |
 | Agent Governance (70) | Implemented | Deny-by-default RBAC and prompt/capability/model/approval policies with audit |
+| Workflow Intelligence (71) | Implemented | `packages/workflow-intelligence` canonical graph observation, progress, stalls and health indicators |
+| Dependency Intelligence (72) | Implemented | Typed DAG validation, cycle rejection, blocked work and downstream impact |
+| Bottleneck Detection (73) | Implemented | Severity-ranked delay, approval, evidence and validation recommendations |
+| SLA Intelligence (74) | Implemented | Contract/milestone/review/approval/settlement deadlines and breach probability |
+| Exception Management (75) | Implemented | Immutable, proposed remediation paths for execution exceptions |
+| Escalation Intelligence (76) | Implemented | Role-aware escalation recommendations with no notification side effect |
+| Predictive Risk Intelligence (77) | Implemented | Governed, explainable and unreviewed execution/approval/settlement predictions |
+| Schedule Optimization (78) | Implemented | Dependency-safe proposed sequencing, acceleration and workload balancing |
+| Resource Intelligence (79) | Implemented | Utilization, approval throughput, bottleneck and reallocation analysis |
+| Execution Health (80) | Implemented | Weighted agreement KPI over milestones, DoD, evidence, validation, approvals, settlement and risk |
 | Audit and evidence ledger | Foundation only | Integrity-chained audit adapter and append-only PostgreSQL contract |
 | Configuration engine | Contract only | Environment configuration and seed snapshot |
 | Contract lifecycle | Implemented | Domain service and API routes |

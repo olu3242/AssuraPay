@@ -27,6 +27,7 @@
     "@assurapay/settlement-assurance": "workspace:*",
     "@assurapay/settlement-execution": "workspace:*",
     "@assurapay/shared": "workspace:*",
+    "@assurapay/workflow-intelligence": "workspace:*",
     "next": "^14.2.15",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
