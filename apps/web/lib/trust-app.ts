@@ -23,7 +23,15 @@ import {
   NegotiationEngine,
   deterministicSignatureProvider,
 } from '@assurapay/agreement-creation';
-import {AgreementIntelligenceEngine,ContractAnalysisEngine,ContractRepositoryEngine,ContractRiskEngine,ContractVersionEngine,deterministicAnalysisGateway,inMemorySecureStore} from '@assurapay/agreement-intelligence';
+import {
+  AgreementIntelligenceEngine,
+  ContractAnalysisEngine,
+  ContractRepositoryEngine,
+  ContractRiskEngine,
+  ContractVersionEngine,
+  deterministicAnalysisGateway,
+  inMemorySecureStore,
+} from '@assurapay/agreement-intelligence';
 import {
   DefinitionOfDonePackageEngine,
   DeliverablesEngine,
@@ -84,6 +92,19 @@ import {
   VendorCustomerPerformanceEngine,
   deterministicFinancialForecastGateway,
 } from '@assurapay/enterprise-analytics';
+import {
+  BottleneckDetectionEngine,
+  DependencyIntelligenceEngine as WorkflowDependencyIntelligenceEngine,
+  EscalationIntelligenceEngine,
+  ExceptionManagementEngine,
+  ExecutionHealthEngine,
+  PredictiveRiskIntelligenceEngine,
+  ResourceIntelligenceEngine,
+  ScheduleOptimizationEngine,
+  SlaIntelligenceEngine,
+  WorkflowIntelligenceEngine,
+  deterministicRiskPredictionGateway,
+} from '@assurapay/workflow-intelligence';
 const globalTrust = globalThis as typeof globalThis & {
   assurapayTrustStore?: InMemoryTrustStore;
 };
@@ -116,7 +137,16 @@ export const agreements = {
     process.env.SIGNATURE_WEBHOOK_SECRET ?? 'development-signature-secret',
   ),
 };
-export const intelligence={analysis:new ContractAnalysisEngine(trustStore,deterministicAnalysisGateway),risk:new ContractRiskEngine(trustStore),versions:new ContractVersionEngine(trustStore),repository:new ContractRepositoryEngine(trustStore,inMemorySecureStore),structured:new AgreementIntelligenceEngine(trustStore)};
+export const intelligence = {
+  analysis: new ContractAnalysisEngine(
+    trustStore,
+    deterministicAnalysisGateway,
+  ),
+  risk: new ContractRiskEngine(trustStore),
+  versions: new ContractVersionEngine(trustStore),
+  repository: new ContractRepositoryEngine(trustStore, inMemorySecureStore),
+  structured: new AgreementIntelligenceEngine(trustStore),
+};
 export const blueprint = {
   plan: new PerformanceBlueprintEngine(trustStore),
   scope: new ScopeDefinitionEngine(trustStore),
@@ -149,7 +179,10 @@ export const settlement = {
   eligibility: new PaymentEligibilityEngine(trustStore),
   entitlement: new FinancialEntitlementEngine(trustStore),
   invoices: new InvoiceClaimEngine(trustStore),
-  funding: new EscrowFundingAssuranceEngine(trustStore, deterministicCustodyGateway),
+  funding: new EscrowFundingAssuranceEngine(
+    trustStore,
+    deterministicCustodyGateway,
+  ),
   release: new ConditionalReleaseOrchestrationEngine(trustStore),
 };
 export const treasury = {
@@ -164,14 +197,34 @@ export const enterprise = {
   settlementIndex: new SettlementAssuranceIndexEngine(trustStore),
   kpis: new EnterpriseKpiEngine(trustStore),
   dashboards: new ExecutiveDashboardEngine(trustStore),
-  forecasts: new PredictiveExecutionIntelligenceEngine(trustStore, deterministicForecastGateway),
+  forecasts: new PredictiveExecutionIntelligenceEngine(
+    trustStore,
+    deterministicForecastGateway,
+  ),
 };
 export const analytics = {
-  financialForecasts: new FinancialPaymentIntelligenceEngine(trustStore, deterministicFinancialForecastGateway),
+  financialForecasts: new FinancialPaymentIntelligenceEngine(
+    trustStore,
+    deterministicFinancialForecastGateway,
+  ),
   performance: new VendorCustomerPerformanceEngine(trustStore),
   portfolio: new PortfolioAnalyticsEngine(trustStore),
   renewal: new RenewalRelationshipIntelligenceEngine(trustStore),
   aiDecisionSupport: new AiDecisionSupportEngine(trustStore),
+};
+export const workflowIntelligence = {
+  workflow: new WorkflowIntelligenceEngine(trustStore),
+  dependencies: new WorkflowDependencyIntelligenceEngine(),
+  bottlenecks: new BottleneckDetectionEngine(),
+  sla: new SlaIntelligenceEngine(),
+  exceptions: new ExceptionManagementEngine(trustStore),
+  escalations: new EscalationIntelligenceEngine(),
+  risks: new PredictiveRiskIntelligenceEngine(
+    deterministicRiskPredictionGateway,
+  ),
+  schedules: new ScheduleOptimizationEngine(),
+  resources: new ResourceIntelligenceEngine(),
+  health: new ExecutionHealthEngine(trustStore),
 };
 export function requestContext(request: Request): RequestContext {
   const actorUserId = request.headers.get('x-assurapay-user-id');

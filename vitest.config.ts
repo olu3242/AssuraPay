@@ -88,6 +88,10 @@ export default defineConfig({
         __dirname,
         'packages/agent-runtime/src/index.ts',
       ),
+      '@assurapay/workflow-intelligence': path.resolve(
+        __dirname,
+        'packages/workflow-intelligence/src/index.ts',
+      ),
     },
   },
 });
