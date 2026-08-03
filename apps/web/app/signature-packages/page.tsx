@@ -1,0 +1,1 @@
+export default function SignaturesPage(){return <main className="shell"><p className="eyebrow">Digital execution</p><h1>Signature packages</h1><p className="lead">Provider callbacks are authenticated, idempotent and bound to the approved document hash.</p></main>}

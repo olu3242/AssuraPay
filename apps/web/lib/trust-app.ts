@@ -15,6 +15,14 @@ import {
   MilestoneEngine,
   PaymentTriggerEngine,
 } from '@assurapay/governance-core';
+import {
+  ApprovalWorkflowEngine,
+  ClauseIntelligenceEngine,
+  ContractAuthoringEngine,
+  DigitalExecutionEngine,
+  NegotiationEngine,
+  deterministicSignatureProvider,
+} from '@assurapay/agreement-creation';
 const globalTrust = globalThis as typeof globalThis & {
   assurapayTrustStore?: InMemoryTrustStore;
 };
@@ -35,6 +43,17 @@ export const governance = {
   dod: new DefinitionOfDoneEngine(trustStore),
   certifications: new CertificationEngine(trustStore),
   paymentTriggers: new PaymentTriggerEngine(trustStore),
+};
+export const agreements = {
+  authoring: new ContractAuthoringEngine(trustStore),
+  clauses: new ClauseIntelligenceEngine(trustStore),
+  negotiations: new NegotiationEngine(trustStore),
+  approvals: new ApprovalWorkflowEngine(trustStore),
+  execution: new DigitalExecutionEngine(
+    trustStore,
+    deterministicSignatureProvider,
+    process.env.SIGNATURE_WEBHOOK_SECRET ?? 'development-signature-secret',
+  ),
 };
 export function requestContext(request: Request): RequestContext {
   const actorUserId = request.headers.get('x-assurapay-user-id');

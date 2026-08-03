@@ -36,7 +36,13 @@
     "certify:dod": "vitest run packages/governance-core/src/governance-core.test.ts --testNamePattern=08",
     "certify:certification": "vitest run packages/governance-core/src/governance-core.test.ts --testNamePattern=09",
     "certify:payment-triggers": "vitest run packages/governance-core/src/governance-core.test.ts --testNamePattern=10",
-    "certify:batch2-governance": "npm run certify && npm run test:integration && npm run test:e2e && npm run build"
+    "certify:batch2-governance": "npm run certify && npm run test:integration && npm run test:e2e && npm run build",
+    "certify:authoring": "vitest run packages/agreement-creation/src/agreement-creation.test.ts --testNamePattern=11",
+    "certify:clauses": "vitest run packages/agreement-creation/src/agreement-creation.test.ts --testNamePattern=12",
+    "certify:negotiation": "vitest run packages/agreement-creation/src/agreement-creation.test.ts --testNamePattern=13",
+    "certify:approvals": "vitest run packages/agreement-creation/src/agreement-creation.test.ts --testNamePattern=14",
+    "certify:digital-execution": "vitest run packages/agreement-creation/src/agreement-creation.test.ts --testNamePattern=15",
+    "certify:batch3": "npm run certify && npm run test:integration && npm run test:e2e && npm run build"
   },
   "dependencies": {
     "next": "^14.2.15",

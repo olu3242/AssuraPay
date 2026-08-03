@@ -12,6 +12,11 @@
 | Definition of Done (08) | Implemented | Immutable DoD versions/evaluations and DoD APIs in `packages/governance-core` |
 | Certification (09) | Implemented | Human decisions/digital records and certification APIs in `packages/governance-core` |
 | Payment Trigger (10) | Implemented | Governed authorization proposals and non-custodial orchestration contract in `packages/governance-core` |
+| Contract Authoring (11) | Implemented | `packages/agreement-creation`, authoring APIs and agreement migration |
+| Clause Intelligence (12) | Implemented | Published clause baselines, instances and explicit deviations |
+| Negotiation (13) | Implemented | Participant-governed immutable proposal rounds |
+| Approval Workflow (14) | Implemented | Version-pinned policies, authority, segregation and invalidation |
+| Digital Execution (15) | Implemented | Exact-document packages, verified callbacks and execution certificates |
 | Audit and evidence ledger | Foundation only | Integrity-chained audit adapter and append-only PostgreSQL contract |
 | Configuration engine | Contract only | Environment configuration and seed snapshot |
 | Contract lifecycle | Implemented | Domain service and API routes |

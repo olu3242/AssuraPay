@@ -1,0 +1,1 @@
+export default function ClausesPage(){return <main className="shell"><p className="eyebrow">Clause intelligence</p><h1>Clauses and deviations</h1><p className="lead">Published baselines are immutable. Custom clauses and deviations remain explicit, reviewable records.</p></main>}

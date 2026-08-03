@@ -17,6 +17,7 @@ export default defineConfig({
       '@assurapay/parties': path.resolve(__dirname, 'packages/parties/src/index.ts'),
       '@assurapay/legal': path.resolve(__dirname, 'packages/legal/src/index.ts'),
       '@assurapay/governance-core': path.resolve(__dirname, 'packages/governance-core/src/index.ts'),
+      '@assurapay/agreement-creation': path.resolve(__dirname, 'packages/agreement-creation/src/index.ts'),
     },
   },
 });
