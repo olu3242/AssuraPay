@@ -289,6 +289,8 @@ importers:
         specifier: workspace:*
         version: link:../shared
 
+  packages/reos: {}
+
   packages/settlement-assurance:
     dependencies:
       '@assurapay/database':
@@ -311,6 +313,9 @@ importers:
 
   packages/workflow-intelligence:
     dependencies:
+      '@assurapay/database':
+        specifier: workspace:*
+        version: link:../database
       '@assurapay/shared':
         specifier: workspace:*
         version: link:../shared

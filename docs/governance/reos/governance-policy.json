@@ -1,0 +1,22 @@
+{
+  "baseline": [
+    "catalog/certification-numbering-collision:certify:certification",
+    "catalog/certification-numbering-collision:certify:dod",
+    "catalog/certification-numbering-collision:certify:execution",
+    "catalog/certification-numbering-collision:certify:milestones",
+    "catalog/certification-numbering-collision:certify:payment-triggers",
+    "catalog/status-divergence:engine:01",
+    "catalog/status-divergence:engine:02",
+    "catalog/status-divergence:engine:03",
+    "catalog/status-divergence:engine:04",
+    "catalog/status-divergence:engine:05",
+    "catalog/status-divergence:engine:08",
+    "catalog/unmapped-engine-package:packages/agent-runtime",
+    "catalog/unmapped-engine-package:packages/governance-core",
+    "catalog/unmapped-engine-package:packages/workflow-intelligence",
+    "runtime/duplicate-abstraction:DependencyIntelligenceEngine",
+    "runtime/unregistered-engine:runtime"
+  ],
+  "exemptRules": {},
+  "phase": 2
+}

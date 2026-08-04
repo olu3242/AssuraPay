@@ -1,0 +1,4925 @@
+{
+  "applications": [
+    {
+      "directory": "apps/web",
+      "framework": "next",
+      "name": "@assurapay/web",
+      "routes": 24,
+      "workspaceDependencies": [
+        "@assurapay/agreement-creation",
+        "@assurapay/agreement-intelligence",
+        "@assurapay/completion-assurance",
+        "@assurapay/database",
+        "@assurapay/domain",
+        "@assurapay/enterprise-analytics",
+        "@assurapay/enterprise-intelligence",
+        "@assurapay/execution-orchestration",
+        "@assurapay/governance-core",
+        "@assurapay/identity",
+        "@assurapay/legal",
+        "@assurapay/organizations",
+        "@assurapay/parties",
+        "@assurapay/performance-blueprint",
+        "@assurapay/performance-readiness",
+        "@assurapay/permissions",
+        "@assurapay/settlement-assurance",
+        "@assurapay/settlement-execution",
+        "@assurapay/shared",
+        "@assurapay/workflow-intelligence"
+      ]
+    }
+  ],
+  "architecture": {
+    "applicationCount": 1,
+    "canonicalChain": [
+      "Contract",
+      "PerformanceBlueprint",
+      "Milestone",
+      "DefinitionOfDonePackage",
+      "ExecutionWorkspace",
+      "CompletionCertificate",
+      "PaymentEligibility",
+      "FinancialEntitlement",
+      "ReleaseRequest",
+      "PaymentInstruction",
+      "ReconciliationRecord"
+    ],
+    "packageCount": 22,
+    "waves": [
+      {
+        "engines": [
+          "01",
+          "02",
+          "03",
+          "04",
+          "05",
+          "06",
+          "07",
+          "08",
+          "09",
+          "10"
+        ],
+        "name": "Trust Foundation",
+        "wave": 1
+      },
+      {
+        "engines": [
+          "11",
+          "12",
+          "13",
+          "14",
+          "15",
+          "16",
+          "17",
+          "18",
+          "19",
+          "20"
+        ],
+        "name": "Agreement Intelligence",
+        "wave": 2
+      },
+      {
+        "engines": [
+          "21",
+          "22",
+          "23",
+          "24",
+          "25",
+          "26",
+          "27",
+          "28",
+          "29",
+          "30"
+        ],
+        "name": "Performance Blueprint",
+        "wave": 3
+      },
+      {
+        "engines": [
+          "31",
+          "32",
+          "33",
+          "34",
+          "35",
+          "36",
+          "37",
+          "38",
+          "39",
+          "40"
+        ],
+        "name": "Execution Assurance",
+        "wave": 4
+      },
+      {
+        "engines": [
+          "41",
+          "42",
+          "43",
+          "44",
+          "45",
+          "46",
+          "47",
+          "48",
+          "49",
+          "50"
+        ],
+        "name": "Settlement Assurance",
+        "wave": 5
+      },
+      {
+        "engines": [
+          "51",
+          "52",
+          "53",
+          "54",
+          "55",
+          "56",
+          "57",
+          "58",
+          "59",
+          "60"
+        ],
+        "name": "Enterprise Intelligence",
+        "wave": 6
+      }
+    ]
+  },
+  "certification": {
+    "scripted": [
+      "certify:acceptance-criteria",
+      "certify:acceptance-decision",
+      "certify:agent-governance",
+      "certify:agent-integration",
+      "certify:agent-load",
+      "certify:agent-runtime",
+      "certify:agreement-intelligence",
+      "certify:ai-decision-support",
+      "certify:approvals",
+      "certify:authoring",
+      "certify:authorization",
+      "certify:batch1",
+      "certify:batch10",
+      "certify:batch11",
+      "certify:batch12",
+      "certify:batch13",
+      "certify:batch14",
+      "certify:batch2-governance",
+      "certify:batch3",
+      "certify:batch4",
+      "certify:batch5",
+      "certify:batch6",
+      "certify:batch7",
+      "certify:batch8",
+      "certify:batch9",
+      "certify:certification",
+      "certify:change-control",
+      "certify:clauses",
+      "certify:completion-certification",
+      "certify:conditional-release",
+      "certify:contract-analysis",
+      "certify:contract-repository",
+      "certify:contract-risk",
+      "certify:contract-version",
+      "certify:definition-of-done",
+      "certify:deliverables",
+      "certify:dependency-intelligence",
+      "certify:digital-execution",
+      "certify:dispute-resolution",
+      "certify:dod",
+      "certify:enterprise-kpi",
+      "certify:escrow-funding",
+      "certify:evidence-management",
+      "certify:execution",
+      "certify:execution-assurance-index",
+      "certify:execution-orchestration",
+      "certify:executive-dashboard",
+      "certify:final-settlement",
+      "certify:financial-approval",
+      "certify:financial-entitlement",
+      "certify:financial-payment-intelligence",
+      "certify:identity",
+      "certify:inspection",
+      "certify:invoice-claim",
+      "certify:issue-risk-capa",
+      "certify:legal",
+      "certify:milestone-planning",
+      "certify:milestones",
+      "certify:negotiation",
+      "certify:non-custody",
+      "certify:non-custody-execution",
+      "certify:party-verification",
+      "certify:payment-eligibility",
+      "certify:payment-execution",
+      "certify:payment-trigger",
+      "certify:payment-triggers",
+      "certify:performance-baseline",
+      "certify:performance-blueprint",
+      "certify:portfolio-analytics",
+      "certify:predictive-execution",
+      "certify:progress-measurement",
+      "certify:quality-assurance",
+      "certify:reconciliation-ledger",
+      "certify:renewal-relationship-intelligence",
+      "certify:reos",
+      "certify:scope-definition",
+      "certify:settlement-assurance-index",
+      "certify:success-metrics",
+      "certify:tenancy",
+      "certify:validation-acceptance-testing",
+      "certify:vendor-customer-performance",
+      "certify:workflow-intelligence"
+    ],
+    "targets": 82,
+    "unscripted": [
+      "packages/database",
+      "packages/domain",
+      "packages/shared"
+    ]
+  },
+  "dependencyGraph": [
+    {
+      "blocks": [
+        "engine:02",
+        "engine:03",
+        "engine:04",
+        "engine:05",
+        "engine:06",
+        "engine:07",
+        "engine:08",
+        "engine:09",
+        "engine:10",
+        "engine:11",
+        "engine:12",
+        "engine:13",
+        "engine:14",
+        "engine:15",
+        "engine:16",
+        "engine:17",
+        "engine:18",
+        "engine:19",
+        "engine:20",
+        "engine:21",
+        "engine:22",
+        "engine:23",
+        "engine:24",
+        "engine:25",
+        "engine:26",
+        "engine:27",
+        "engine:28",
+        "engine:29",
+        "engine:30",
+        "engine:31",
+        "engine:32",
+        "engine:33",
+        "engine:34",
+        "engine:35",
+        "engine:36",
+        "engine:37",
+        "engine:38",
+        "engine:39",
+        "engine:40",
+        "engine:41",
+        "engine:42",
+        "engine:43",
+        "engine:44",
+        "engine:45",
+        "engine:46",
+        "engine:47",
+        "engine:48",
+        "engine:49",
+        "engine:50",
+        "engine:51",
+        "engine:52",
+        "engine:53",
+        "engine:54",
+        "engine:55",
+        "engine:56",
+        "engine:57",
+        "engine:58",
+        "engine:59",
+        "engine:60"
+      ],
+      "dependsOn": [],
+      "id": "engine:01",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "engine:03",
+        "engine:04",
+        "engine:05",
+        "engine:06",
+        "engine:07",
+        "engine:08",
+        "engine:09",
+        "engine:10",
+        "engine:11",
+        "engine:12",
+        "engine:13",
+        "engine:14",
+        "engine:15",
+        "engine:16",
+        "engine:17",
+        "engine:18",
+        "engine:19",
+        "engine:20",
+        "engine:21",
+        "engine:22",
+        "engine:23",
+        "engine:24",
+        "engine:25",
+        "engine:26",
+        "engine:27",
+        "engine:28",
+        "engine:29",
+        "engine:30",
+        "engine:31",
+        "engine:32",
+        "engine:33",
+        "engine:34",
+        "engine:35",
+        "engine:36",
+        "engine:37",
+        "engine:38",
+        "engine:39",
+        "engine:40",
+        "engine:41",
+        "engine:42",
+        "engine:43",
+        "engine:44",
+        "engine:45",
+        "engine:46",
+        "engine:47",
+        "engine:48",
+        "engine:49",
+        "engine:50",
+        "engine:51",
+        "engine:52",
+        "engine:53",
+        "engine:54",
+        "engine:55",
+        "engine:56",
+        "engine:57",
+        "engine:58",
+        "engine:59",
+        "engine:60"
+      ],
+      "dependsOn": [
+        "engine:01"
+      ],
+      "id": "engine:02",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "engine:04",
+        "engine:05",
+        "engine:06",
+        "engine:07",
+        "engine:08",
+        "engine:09",
+        "engine:10",
+        "engine:11",
+        "engine:12",
+        "engine:13",
+        "engine:14",
+        "engine:15",
+        "engine:16",
+        "engine:17",
+        "engine:18",
+        "engine:19",
+        "engine:20",
+        "engine:21",
+        "engine:22",
+        "engine:23",
+        "engine:24",
+        "engine:25",
+        "engine:26",
+        "engine:27",
+        "engine:28",
+        "engine:29",
+        "engine:30",
+        "engine:31",
+        "engine:32",
+        "engine:33",
+        "engine:34",
+        "engine:35",
+        "engine:36",
+        "engine:37",
+        "engine:38",
+        "engine:39",
+        "engine:40",
+        "engine:41",
+        "engine:42",
+        "engine:43",
+        "engine:44",
+        "engine:45",
+        "engine:46",
+        "engine:47",
+        "engine:48",
+        "engine:49",
+        "engine:50",
+        "engine:51",
+        "engine:52",
+        "engine:53",
+        "engine:54",
+        "engine:55",
+        "engine:56",
+        "engine:57",
+        "engine:58",
+        "engine:59",
+        "engine:60"
+      ],
+      "dependsOn": [
+        "engine:02"
+      ],
+      "id": "engine:03",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "engine:05",
+        "engine:06",
+        "engine:07",
+        "engine:08",
+        "engine:09",
+        "engine:10",
+        "engine:11",
+        "engine:12",
+        "engine:13",
+        "engine:14",
+        "engine:15",
+        "engine:16",
+        "engine:17",
+        "engine:18",
+        "engine:19",
+        "engine:20",
+        "engine:21",
+        "engine:22",
+        "engine:23",
+        "engine:24",
+        "engine:25",
+        "engine:26",
+        "engine:27",
+        "engine:28",
+        "engine:29",
+        "engine:30",
+        "engine:31",
+        "engine:32",
+        "engine:33",
+        "engine:34",
+        "engine:35",
+        "engine:36",
+        "engine:37",
+        "engine:38",
+        "engine:39",
+        "engine:40",
+        "engine:41",
+        "engine:42",
+        "engine:43",
+        "engine:44",
+        "engine:45",
+        "engine:46",
+        "engine:47",
+        "engine:48",
+        "engine:49",
+        "engine:50",
+        "engine:51",
+        "engine:52",
+        "engine:53",
+        "engine:54",
+        "engine:55",
+        "engine:56",
+        "engine:57",
+        "engine:58",
+        "engine:59",
+        "engine:60"
+      ],
+      "dependsOn": [
+        "engine:03"
+      ],
+      "id": "engine:04",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "engine:06",
+        "engine:07",
+        "engine:08",
+        "engine:09",
+        "engine:10",
+        "engine:11",
+        "engine:12",
+        "engine:13",
+        "engine:14",
+        "engine:15",
+        "engine:16",
+        "engine:17",
+        "engine:18",
+        "engine:19",
+        "engine:20",
+        "engine:21",
+        "engine:22",
+        "engine:23",
+        "engine:24",
+        "engine:25",
+        "engine:26",
+        "engine:27",
+        "engine:28",
+        "engine:29",
+        "engine:30",
+        "engine:31",
+        "engine:32",
+        "engine:33",
+        "engine:34",
+        "engine:35",
+        "engine:36",
+        "engine:37",
+        "engine:38",
+        "engine:39",
+        "engine:40",
+        "engine:41",
+        "engine:42",
+        "engine:43",
+        "engine:44",
+        "engine:45",
+        "engine:46",
+        "engine:47",
+        "engine:48",
+        "engine:49",
+        "engine:50",
+        "engine:51",
+        "engine:52",
+        "engine:53",
+        "engine:54",
+        "engine:55",
+        "engine:56",
+        "engine:57",
+        "engine:58",
+        "engine:59",
+        "engine:60"
+      ],
+      "dependsOn": [
+        "engine:04"
+      ],
+      "id": "engine:05",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [],
+      "dependsOn": [
+        "engine:05"
+      ],
+      "id": "engine:06",
+      "lifecycle": "deferred",
+      "status": "deferred"
+    },
+    {
+      "blocks": [],
+      "dependsOn": [
+        "engine:05"
+      ],
+      "id": "engine:07",
+      "lifecycle": "deferred",
+      "status": "deferred"
+    },
+    {
+      "blocks": [
+        "engine:09",
+        "engine:10",
+        "engine:11",
+        "engine:12",
+        "engine:13",
+        "engine:14",
+        "engine:15",
+        "engine:16",
+        "engine:17",
+        "engine:18",
+        "engine:19",
+        "engine:20",
+        "engine:21",
+        "engine:22",
+        "engine:23",
+        "engine:24",
+        "engine:25",
+        "engine:26",
+        "engine:27",
+        "engine:28",
+        "engine:29",
+        "engine:30",
+        "engine:31",
+        "engine:32",
+        "engine:33",
+        "engine:34",
+        "engine:35",
+        "engine:36",
+        "engine:37",
+        "engine:38",
+        "engine:39",
+        "engine:40",
+        "engine:41",
+        "engine:42",
+        "engine:43",
+        "engine:44",
+        "engine:45",
+        "engine:46",
+        "engine:47",
+        "engine:48",
+        "engine:49",
+        "engine:50",
+        "engine:51",
+        "engine:52",
+        "engine:53",
+        "engine:54",
+        "engine:55",
+        "engine:56",
+        "engine:57",
+        "engine:58",
+        "engine:59",
+        "engine:60"
+      ],
+      "dependsOn": [
+        "engine:05"
+      ],
+      "id": "engine:08",
+      "lifecycle": "planned",
+      "status": "missing"
+    },
+    {
+      "blocks": [],
+      "dependsOn": [
+        "engine:08"
+      ],
+      "id": "engine:09",
+      "lifecycle": "deferred",
+      "status": "deferred"
+    },
+    {
+      "blocks": [],
+      "dependsOn": [
+        "engine:08"
+      ],
+      "id": "engine:10",
+      "lifecycle": "deferred",
+      "status": "deferred"
+    },
+    {
+      "blocks": [
+        "engine:12",
+        "engine:13",
+        "engine:14",
+        "engine:15",
+        "engine:16",
+        "engine:17",
+        "engine:18",
+        "engine:19",
+        "engine:20",
+        "engine:21",
+        "engine:22",
+        "engine:23",
+        "engine:24",
+        "engine:25",
+        "engine:26",
+        "engine:27",
+        "engine:28",
+        "engine:29",
+        "engine:30",
+        "engine:31",
+        "engine:32",
+        "engine:33",
+        "engine:34",
+        "engine:35",
+        "engine:36",
+        "engine:37",
+        "engine:38",
+        "engine:39",
+        "engine:40",
+        "engine:41",
+        "engine:42",
+        "engine:43",
+        "engine:44",
+        "engine:45",
+        "engine:46",
+        "engine:47",
+        "engine:48",
+        "engine:49",
+        "engine:50",
+        "engine:51",
+        "engine:52",
+        "engine:53",
+        "engine:54",
+        "engine:55",
+        "engine:56",
+        "engine:57",
+        "engine:58",
+        "engine:59",
+        "engine:60"
+      ],
+      "dependsOn": [
+        "engine:08"
+      ],
+      "id": "engine:11",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "engine:13",
+        "engine:14",
+        "engine:15",
+        "engine:16",
+        "engine:17",
+        "engine:18",
+        "engine:19",
+        "engine:20",
+        "engine:21",
+        "engine:22",
+        "engine:23",
+        "engine:24",
+        "engine:25",
+        "engine:26",
+        "engine:27",
+        "engine:28",
+        "engine:29",
+        "engine:30",
+        "engine:31",
+        "engine:32",
+        "engine:33",
+        "engine:34",
+        "engine:35",
+        "engine:36",
+        "engine:37",
+        "engine:38",
+        "engine:39",
+        "engine:40",
+        "engine:41",
+        "engine:42",
+        "engine:43",
+        "engine:44",
+        "engine:45",
+        "engine:46",
+        "engine:47",
+        "engine:48",
+        "engine:49",
+        "engine:50",
+        "engine:51",
+        "engine:52",
+        "engine:53",
+        "engine:54",
+        "engine:55",
+        "engine:56",
+        "engine:57",
+        "engine:58",
+        "engine:59",
+        "engine:60"
+      ],
+      "dependsOn": [
+        "engine:11"
+      ],
+      "id": "engine:12",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "engine:14",
+        "engine:15",
+        "engine:16",
+        "engine:17",
+        "engine:18",
+        "engine:19",
+        "engine:20",
+        "engine:21",
+        "engine:22",
+        "engine:23",
+        "engine:24",
+        "engine:25",
+        "engine:26",
+        "engine:27",
+        "engine:28",
+        "engine:29",
+        "engine:30",
+        "engine:31",
+        "engine:32",
+        "engine:33",
+        "engine:34",
+        "engine:35",
+        "engine:36",
+        "engine:37",
+        "engine:38",
+        "engine:39",
+        "engine:40",
+        "engine:41",
+        "engine:42",
+        "engine:43",
+        "engine:44",
+        "engine:45",
+        "engine:46",
+        "engine:47",
+        "engine:48",
+        "engine:49",
+        "engine:50",
+        "engine:51",
+        "engine:52",
+        "engine:53",
+        "engine:54",
+        "engine:55",
+        "engine:56",
+        "engine:57",
+        "engine:58",
+        "engine:59",
+        "engine:60"
+      ],
+      "dependsOn": [
+        "engine:12"
+      ],
+      "id": "engine:13",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "engine:15",
+        "engine:16",
+        "engine:17",
+        "engine:18",
+        "engine:19",
+        "engine:20",
+        "engine:21",
+        "engine:22",
+        "engine:23",
+        "engine:24",
+        "engine:25",
+        "engine:26",
+        "engine:27",
+        "engine:28",
+        "engine:29",
+        "engine:30",
+        "engine:31",
+        "engine:32",
+        "engine:33",
+        "engine:34",
+        "engine:35",
+        "engine:36",
+        "engine:37",
+        "engine:38",
+        "engine:39",
+        "engine:40",
+        "engine:41",
+        "engine:42",
+        "engine:43",
+        "engine:44",
+        "engine:45",
+        "engine:46",
+        "engine:47",
+        "engine:48",
+        "engine:49",
+        "engine:50",
+        "engine:51",
+        "engine:52",
+        "engine:53",
+        "engine:54",
+        "engine:55",
+        "engine:56",
+        "engine:57",
+        "engine:58",
+        "engine:59",
+        "engine:60"
+      ],
+      "dependsOn": [
+        "engine:13"
+      ],
+      "id": "engine:14",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "engine:16",
+        "engine:17",
+        "engine:18",
+        "engine:19",
+        "engine:20",
+        "engine:21",
+        "engine:22",
+        "engine:23",
+        "engine:24",
+        "engine:25",
+        "engine:26",
+        "engine:27",
+        "engine:28",
+        "engine:29",
+        "engine:30",
+        "engine:31",
+        "engine:32",
+        "engine:33",
+        "engine:34",
+        "engine:35",
+        "engine:36",
+        "engine:37",
+        "engine:38",
+        "engine:39",
+        "engine:40",
+        "engine:41",
+        "engine:42",
+        "engine:43",
+        "engine:44",
+        "engine:45",
+        "engine:46",
+        "engine:47",
+        "engine:48",
+        "engine:49",
+        "engine:50",
+        "engine:51",
+        "engine:52",
+        "engine:53",
+        "engine:54",
+        "engine:55",
+        "engine:56",
+        "engine:57",
+        "engine:58",
+        "engine:59",
+        "engine:60"
+      ],
+      "dependsOn": [
+        "engine:14"
+      ],
+      "id": "engine:15",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "engine:17",
+        "engine:18",
+        "engine:19",
+        "engine:20",
+        "engine:21",
+        "engine:22",
+        "engine:23",
+        "engine:24",
+        "engine:25",
+        "engine:26",
+        "engine:27",
+        "engine:28",
+        "engine:29",
+        "engine:30",
+        "engine:31",
+        "engine:32",
+        "engine:33",
+        "engine:34",
+        "engine:35",
+        "engine:36",
+        "engine:37",
+        "engine:38",
+        "engine:39",
+        "engine:40",
+        "engine:41",
+        "engine:42",
+        "engine:43",
+        "engine:44",
+        "engine:45",
+        "engine:46",
+        "engine:47",
+        "engine:48",
+        "engine:49",
+        "engine:50",
+        "engine:51",
+        "engine:52",
+        "engine:53",
+        "engine:54",
+        "engine:55",
+        "engine:56",
+        "engine:57",
+        "engine:58",
+        "engine:59",
+        "engine:60"
+      ],
+      "dependsOn": [
+        "engine:15"
+      ],
+      "id": "engine:16",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "engine:18",
+        "engine:19",
+        "engine:20",
+        "engine:21",
+        "engine:22",
+        "engine:23",
+        "engine:24",
+        "engine:25",
+        "engine:26",
+        "engine:27",
+        "engine:28",
+        "engine:29",
+        "engine:30",
+        "engine:31",
+        "engine:32",
+        "engine:33",
+        "engine:34",
+        "engine:35",
+        "engine:36",
+        "engine:37",
+        "engine:38",
+        "engine:39",
+        "engine:40",
+        "engine:41",
+        "engine:42",
+        "engine:43",
+        "engine:44",
+        "engine:45",
+        "engine:46",
+        "engine:47",
+        "engine:48",
+        "engine:49",
+        "engine:50",
+        "engine:51",
+        "engine:52",
+        "engine:53",
+        "engine:54",
+        "engine:55",
+        "engine:56",
+        "engine:57",
+        "engine:58",
+        "engine:59",
+        "engine:60"
+      ],
+      "dependsOn": [
+        "engine:16"
+      ],
+      "id": "engine:17",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "engine:19",
+        "engine:20",
+        "engine:21",
+        "engine:22",
+        "engine:23",
+        "engine:24",
+        "engine:25",
+        "engine:26",
+        "engine:27",
+        "engine:28",
+        "engine:29",
+        "engine:30",
+        "engine:31",
+        "engine:32",
+        "engine:33",
+        "engine:34",
+        "engine:35",
+        "engine:36",
+        "engine:37",
+        "engine:38",
+        "engine:39",
+        "engine:40",
+        "engine:41",
+        "engine:42",
+        "engine:43",
+        "engine:44",
+        "engine:45",
+        "engine:46",
+        "engine:47",
+        "engine:48",
+        "engine:49",
+        "engine:50",
+        "engine:51",
+        "engine:52",
+        "engine:53",
+        "engine:54",
+        "engine:55",
+        "engine:56",
+        "engine:57",
+        "engine:58",
+        "engine:59",
+        "engine:60"
+      ],
+      "dependsOn": [
+        "engine:17"
+      ],
+      "id": "engine:18",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "engine:20",
+        "engine:21",
+        "engine:22",
+        "engine:23",
+        "engine:24",
+        "engine:25",
+        "engine:26",
+        "engine:27",
+        "engine:28",
+        "engine:29",
+        "engine:30",
+        "engine:31",
+        "engine:32",
+        "engine:33",
+        "engine:34",
+        "engine:35",
+        "engine:36",
+        "engine:37",
+        "engine:38",
+        "engine:39",
+        "engine:40",
+        "engine:41",
+        "engine:42",
+        "engine:43",
+        "engine:44",
+        "engine:45",
+        "engine:46",
+        "engine:47",
+        "engine:48",
+        "engine:49",
+        "engine:50",
+        "engine:51",
+        "engine:52",
+        "engine:53",
+        "engine:54",
+        "engine:55",
+        "engine:56",
+        "engine:57",
+        "engine:58",
+        "engine:59",
+        "engine:60"
+      ],
+      "dependsOn": [
+        "engine:18"
+      ],
+      "id": "engine:19",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "engine:21",
+        "engine:22",
+        "engine:23",
+        "engine:24",
+        "engine:25",
+        "engine:26",
+        "engine:27",
+        "engine:28",
+        "engine:29",
+        "engine:30",
+        "engine:31",
+        "engine:32",
+        "engine:33",
+        "engine:34",
+        "engine:35",
+        "engine:36",
+        "engine:37",
+        "engine:38",
+        "engine:39",
+        "engine:40",
+        "engine:41",
+        "engine:42",
+        "engine:43",
+        "engine:44",
+        "engine:45",
+        "engine:46",
+        "engine:47",
+        "engine:48",
+        "engine:49",
+        "engine:50",
+        "engine:51",
+        "engine:52",
+        "engine:53",
+        "engine:54",
+        "engine:55",
+        "engine:56",
+        "engine:57",
+        "engine:58",
+        "engine:59",
+        "engine:60"
+      ],
+      "dependsOn": [
+        "engine:19"
+      ],
+      "id": "engine:20",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "engine:22",
+        "engine:23",
+        "engine:24",
+        "engine:25",
+        "engine:26",
+        "engine:27",
+        "engine:28",
+        "engine:29",
+        "engine:30",
+        "engine:31",
+        "engine:32",
+        "engine:33",
+        "engine:34",
+        "engine:35",
+        "engine:36",
+        "engine:37",
+        "engine:38",
+        "engine:39",
+        "engine:40",
+        "engine:41",
+        "engine:42",
+        "engine:43",
+        "engine:44",
+        "engine:45",
+        "engine:46",
+        "engine:47",
+        "engine:48",
+        "engine:49",
+        "engine:50",
+        "engine:51",
+        "engine:52",
+        "engine:53",
+        "engine:54",
+        "engine:55",
+        "engine:56",
+        "engine:57",
+        "engine:58",
+        "engine:59",
+        "engine:60"
+      ],
+      "dependsOn": [
+        "engine:20"
+      ],
+      "id": "engine:21",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "engine:23",
+        "engine:24",
+        "engine:25",
+        "engine:26",
+        "engine:27",
+        "engine:28",
+        "engine:29",
+        "engine:30",
+        "engine:31",
+        "engine:32",
+        "engine:33",
+        "engine:34",
+        "engine:35",
+        "engine:36",
+        "engine:37",
+        "engine:38",
+        "engine:39",
+        "engine:40",
+        "engine:41",
+        "engine:42",
+        "engine:43",
+        "engine:44",
+        "engine:45",
+        "engine:46",
+        "engine:47",
+        "engine:48",
+        "engine:49",
+        "engine:50",
+        "engine:51",
+        "engine:52",
+        "engine:53",
+        "engine:54",
+        "engine:55",
+        "engine:56",
+        "engine:57",
+        "engine:58",
+        "engine:59",
+        "engine:60"
+      ],
+      "dependsOn": [
+        "engine:21"
+      ],
+      "id": "engine:22",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "engine:24",
+        "engine:25",
+        "engine:26",
+        "engine:27",
+        "engine:28",
+        "engine:29",
+        "engine:30",
+        "engine:31",
+        "engine:32",
+        "engine:33",
+        "engine:34",
+        "engine:35",
+        "engine:36",
+        "engine:37",
+        "engine:38",
+        "engine:39",
+        "engine:40",
+        "engine:41",
+        "engine:42",
+        "engine:43",
+        "engine:44",
+        "engine:45",
+        "engine:46",
+        "engine:47",
+        "engine:48",
+        "engine:49",
+        "engine:50",
+        "engine:51",
+        "engine:52",
+        "engine:53",
+        "engine:54",
+        "engine:55",
+        "engine:56",
+        "engine:57",
+        "engine:58",
+        "engine:59",
+        "engine:60"
+      ],
+      "dependsOn": [
+        "engine:22"
+      ],
+      "id": "engine:23",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "engine:25",
+        "engine:26",
+        "engine:27",
+        "engine:28",
+        "engine:29",
+        "engine:30",
+        "engine:31",
+        "engine:32",
+        "engine:33",
+        "engine:34",
+        "engine:35",
+        "engine:36",
+        "engine:37",
+        "engine:38",
+        "engine:39",
+        "engine:40",
+        "engine:41",
+        "engine:42",
+        "engine:43",
+        "engine:44",
+        "engine:45",
+        "engine:46",
+        "engine:47",
+        "engine:48",
+        "engine:49",
+        "engine:50",
+        "engine:51",
+        "engine:52",
+        "engine:53",
+        "engine:54",
+        "engine:55",
+        "engine:56",
+        "engine:57",
+        "engine:58",
+        "engine:59",
+        "engine:60"
+      ],
+      "dependsOn": [
+        "engine:23"
+      ],
+      "id": "engine:24",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "engine:26",
+        "engine:27",
+        "engine:28",
+        "engine:29",
+        "engine:30",
+        "engine:31",
+        "engine:32",
+        "engine:33",
+        "engine:34",
+        "engine:35",
+        "engine:36",
+        "engine:37",
+        "engine:38",
+        "engine:39",
+        "engine:40",
+        "engine:41",
+        "engine:42",
+        "engine:43",
+        "engine:44",
+        "engine:45",
+        "engine:46",
+        "engine:47",
+        "engine:48",
+        "engine:49",
+        "engine:50",
+        "engine:51",
+        "engine:52",
+        "engine:53",
+        "engine:54",
+        "engine:55",
+        "engine:56",
+        "engine:57",
+        "engine:58",
+        "engine:59",
+        "engine:60"
+      ],
+      "dependsOn": [
+        "engine:24"
+      ],
+      "id": "engine:25",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "engine:27",
+        "engine:28",
+        "engine:29",
+        "engine:30",
+        "engine:31",
+        "engine:32",
+        "engine:33",
+        "engine:34",
+        "engine:35",
+        "engine:36",
+        "engine:37",
+        "engine:38",
+        "engine:39",
+        "engine:40",
+        "engine:41",
+        "engine:42",
+        "engine:43",
+        "engine:44",
+        "engine:45",
+        "engine:46",
+        "engine:47",
+        "engine:48",
+        "engine:49",
+        "engine:50",
+        "engine:51",
+        "engine:52",
+        "engine:53",
+        "engine:54",
+        "engine:55",
+        "engine:56",
+        "engine:57",
+        "engine:58",
+        "engine:59",
+        "engine:60"
+      ],
+      "dependsOn": [
+        "engine:25"
+      ],
+      "id": "engine:26",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "engine:28",
+        "engine:29",
+        "engine:30",
+        "engine:31",
+        "engine:32",
+        "engine:33",
+        "engine:34",
+        "engine:35",
+        "engine:36",
+        "engine:37",
+        "engine:38",
+        "engine:39",
+        "engine:40",
+        "engine:41",
+        "engine:42",
+        "engine:43",
+        "engine:44",
+        "engine:45",
+        "engine:46",
+        "engine:47",
+        "engine:48",
+        "engine:49",
+        "engine:50",
+        "engine:51",
+        "engine:52",
+        "engine:53",
+        "engine:54",
+        "engine:55",
+        "engine:56",
+        "engine:57",
+        "engine:58",
+        "engine:59",
+        "engine:60"
+      ],
+      "dependsOn": [
+        "engine:26"
+      ],
+      "id": "engine:27",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "engine:29",
+        "engine:30",
+        "engine:31",
+        "engine:32",
+        "engine:33",
+        "engine:34",
+        "engine:35",
+        "engine:36",
+        "engine:37",
+        "engine:38",
+        "engine:39",
+        "engine:40",
+        "engine:41",
+        "engine:42",
+        "engine:43",
+        "engine:44",
+        "engine:45",
+        "engine:46",
+        "engine:47",
+        "engine:48",
+        "engine:49",
+        "engine:50",
+        "engine:51",
+        "engine:52",
+        "engine:53",
+        "engine:54",
+        "engine:55",
+        "engine:56",
+        "engine:57",
+        "engine:58",
+        "engine:59",
+        "engine:60"
+      ],
+      "dependsOn": [
+        "engine:27"
+      ],
+      "id": "engine:28",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "engine:30",
+        "engine:31",
+        "engine:32",
+        "engine:33",
+        "engine:34",
+        "engine:35",
+        "engine:36",
+        "engine:37",
+        "engine:38",
+        "engine:39",
+        "engine:40",
+        "engine:41",
+        "engine:42",
+        "engine:43",
+        "engine:44",
+        "engine:45",
+        "engine:46",
+        "engine:47",
+        "engine:48",
+        "engine:49",
+        "engine:50",
+        "engine:51",
+        "engine:52",
+        "engine:53",
+        "engine:54",
+        "engine:55",
+        "engine:56",
+        "engine:57",
+        "engine:58",
+        "engine:59",
+        "engine:60"
+      ],
+      "dependsOn": [
+        "engine:28"
+      ],
+      "id": "engine:29",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "engine:31",
+        "engine:32",
+        "engine:33",
+        "engine:34",
+        "engine:35",
+        "engine:36",
+        "engine:37",
+        "engine:38",
+        "engine:39",
+        "engine:40",
+        "engine:41",
+        "engine:42",
+        "engine:43",
+        "engine:44",
+        "engine:45",
+        "engine:46",
+        "engine:47",
+        "engine:48",
+        "engine:49",
+        "engine:50",
+        "engine:51",
+        "engine:52",
+        "engine:53",
+        "engine:54",
+        "engine:55",
+        "engine:56",
+        "engine:57",
+        "engine:58",
+        "engine:59",
+        "engine:60"
+      ],
+      "dependsOn": [
+        "engine:29"
+      ],
+      "id": "engine:30",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "engine:32",
+        "engine:33",
+        "engine:34",
+        "engine:35",
+        "engine:36",
+        "engine:37",
+        "engine:38",
+        "engine:39",
+        "engine:40",
+        "engine:41",
+        "engine:42",
+        "engine:43",
+        "engine:44",
+        "engine:45",
+        "engine:46",
+        "engine:47",
+        "engine:48",
+        "engine:49",
+        "engine:50",
+        "engine:51",
+        "engine:52",
+        "engine:53",
+        "engine:54",
+        "engine:55",
+        "engine:56",
+        "engine:57",
+        "engine:58",
+        "engine:59",
+        "engine:60"
+      ],
+      "dependsOn": [
+        "engine:30"
+      ],
+      "id": "engine:31",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "engine:33",
+        "engine:34",
+        "engine:35",
+        "engine:36",
+        "engine:37",
+        "engine:38",
+        "engine:39",
+        "engine:40",
+        "engine:41",
+        "engine:42",
+        "engine:43",
+        "engine:44",
+        "engine:45",
+        "engine:46",
+        "engine:47",
+        "engine:48",
+        "engine:49",
+        "engine:50",
+        "engine:51",
+        "engine:52",
+        "engine:53",
+        "engine:54",
+        "engine:55",
+        "engine:56",
+        "engine:57",
+        "engine:58",
+        "engine:59",
+        "engine:60"
+      ],
+      "dependsOn": [
+        "engine:31"
+      ],
+      "id": "engine:32",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "engine:34",
+        "engine:35",
+        "engine:36",
+        "engine:37",
+        "engine:38",
+        "engine:39",
+        "engine:40",
+        "engine:41",
+        "engine:42",
+        "engine:43",
+        "engine:44",
+        "engine:45",
+        "engine:46",
+        "engine:47",
+        "engine:48",
+        "engine:49",
+        "engine:50",
+        "engine:51",
+        "engine:52",
+        "engine:53",
+        "engine:54",
+        "engine:55",
+        "engine:56",
+        "engine:57",
+        "engine:58",
+        "engine:59",
+        "engine:60"
+      ],
+      "dependsOn": [
+        "engine:32"
+      ],
+      "id": "engine:33",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "engine:35",
+        "engine:36",
+        "engine:37",
+        "engine:38",
+        "engine:39",
+        "engine:40",
+        "engine:41",
+        "engine:42",
+        "engine:43",
+        "engine:44",
+        "engine:45",
+        "engine:46",
+        "engine:47",
+        "engine:48",
+        "engine:49",
+        "engine:50",
+        "engine:51",
+        "engine:52",
+        "engine:53",
+        "engine:54",
+        "engine:55",
+        "engine:56",
+        "engine:57",
+        "engine:58",
+        "engine:59",
+        "engine:60"
+      ],
+      "dependsOn": [
+        "engine:33"
+      ],
+      "id": "engine:34",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "engine:36",
+        "engine:37",
+        "engine:38",
+        "engine:39",
+        "engine:40",
+        "engine:41",
+        "engine:42",
+        "engine:43",
+        "engine:44",
+        "engine:45",
+        "engine:46",
+        "engine:47",
+        "engine:48",
+        "engine:49",
+        "engine:50",
+        "engine:51",
+        "engine:52",
+        "engine:53",
+        "engine:54",
+        "engine:55",
+        "engine:56",
+        "engine:57",
+        "engine:58",
+        "engine:59",
+        "engine:60"
+      ],
+      "dependsOn": [
+        "engine:34"
+      ],
+      "id": "engine:35",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "engine:37",
+        "engine:38",
+        "engine:39",
+        "engine:40",
+        "engine:41",
+        "engine:42",
+        "engine:43",
+        "engine:44",
+        "engine:45",
+        "engine:46",
+        "engine:47",
+        "engine:48",
+        "engine:49",
+        "engine:50",
+        "engine:51",
+        "engine:52",
+        "engine:53",
+        "engine:54",
+        "engine:55",
+        "engine:56",
+        "engine:57",
+        "engine:58",
+        "engine:59",
+        "engine:60"
+      ],
+      "dependsOn": [
+        "engine:35"
+      ],
+      "id": "engine:36",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "engine:38",
+        "engine:39",
+        "engine:40",
+        "engine:41",
+        "engine:42",
+        "engine:43",
+        "engine:44",
+        "engine:45",
+        "engine:46",
+        "engine:47",
+        "engine:48",
+        "engine:49",
+        "engine:50",
+        "engine:51",
+        "engine:52",
+        "engine:53",
+        "engine:54",
+        "engine:55",
+        "engine:56",
+        "engine:57",
+        "engine:58",
+        "engine:59",
+        "engine:60"
+      ],
+      "dependsOn": [
+        "engine:36"
+      ],
+      "id": "engine:37",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "engine:39",
+        "engine:40",
+        "engine:41",
+        "engine:42",
+        "engine:43",
+        "engine:44",
+        "engine:45",
+        "engine:46",
+        "engine:47",
+        "engine:48",
+        "engine:49",
+        "engine:50",
+        "engine:51",
+        "engine:52",
+        "engine:53",
+        "engine:54",
+        "engine:55",
+        "engine:56",
+        "engine:57",
+        "engine:58",
+        "engine:59",
+        "engine:60"
+      ],
+      "dependsOn": [
+        "engine:37"
+      ],
+      "id": "engine:38",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "engine:40",
+        "engine:41",
+        "engine:42",
+        "engine:43",
+        "engine:44",
+        "engine:45",
+        "engine:46",
+        "engine:47",
+        "engine:48",
+        "engine:49",
+        "engine:50",
+        "engine:51",
+        "engine:52",
+        "engine:53",
+        "engine:54",
+        "engine:55",
+        "engine:56",
+        "engine:57",
+        "engine:58",
+        "engine:59",
+        "engine:60"
+      ],
+      "dependsOn": [
+        "engine:38"
+      ],
+      "id": "engine:39",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "engine:41",
+        "engine:42",
+        "engine:43",
+        "engine:44",
+        "engine:45",
+        "engine:46",
+        "engine:47",
+        "engine:48",
+        "engine:49",
+        "engine:50",
+        "engine:51",
+        "engine:52",
+        "engine:53",
+        "engine:54",
+        "engine:55",
+        "engine:56",
+        "engine:57",
+        "engine:58",
+        "engine:59",
+        "engine:60"
+      ],
+      "dependsOn": [
+        "engine:39"
+      ],
+      "id": "engine:40",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "engine:42",
+        "engine:43",
+        "engine:44",
+        "engine:45",
+        "engine:46",
+        "engine:47",
+        "engine:48",
+        "engine:49",
+        "engine:50",
+        "engine:51",
+        "engine:52",
+        "engine:53",
+        "engine:54",
+        "engine:55",
+        "engine:56",
+        "engine:57",
+        "engine:58",
+        "engine:59",
+        "engine:60"
+      ],
+      "dependsOn": [
+        "engine:40"
+      ],
+      "id": "engine:41",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "engine:43",
+        "engine:44",
+        "engine:45",
+        "engine:46",
+        "engine:47",
+        "engine:48",
+        "engine:49",
+        "engine:50",
+        "engine:51",
+        "engine:52",
+        "engine:53",
+        "engine:54",
+        "engine:55",
+        "engine:56",
+        "engine:57",
+        "engine:58",
+        "engine:59",
+        "engine:60"
+      ],
+      "dependsOn": [
+        "engine:41"
+      ],
+      "id": "engine:42",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "engine:44",
+        "engine:45",
+        "engine:46",
+        "engine:47",
+        "engine:48",
+        "engine:49",
+        "engine:50",
+        "engine:51",
+        "engine:52",
+        "engine:53",
+        "engine:54",
+        "engine:55",
+        "engine:56",
+        "engine:57",
+        "engine:58",
+        "engine:59",
+        "engine:60"
+      ],
+      "dependsOn": [
+        "engine:42"
+      ],
+      "id": "engine:43",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "engine:45",
+        "engine:46",
+        "engine:47",
+        "engine:48",
+        "engine:49",
+        "engine:50",
+        "engine:51",
+        "engine:52",
+        "engine:53",
+        "engine:54",
+        "engine:55",
+        "engine:56",
+        "engine:57",
+        "engine:58",
+        "engine:59",
+        "engine:60"
+      ],
+      "dependsOn": [
+        "engine:43"
+      ],
+      "id": "engine:44",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "engine:46",
+        "engine:47",
+        "engine:48",
+        "engine:49",
+        "engine:50",
+        "engine:51",
+        "engine:52",
+        "engine:53",
+        "engine:54",
+        "engine:55",
+        "engine:56",
+        "engine:57",
+        "engine:58",
+        "engine:59",
+        "engine:60"
+      ],
+      "dependsOn": [
+        "engine:44"
+      ],
+      "id": "engine:45",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "engine:47",
+        "engine:48",
+        "engine:49",
+        "engine:50",
+        "engine:51",
+        "engine:52",
+        "engine:53",
+        "engine:54",
+        "engine:55",
+        "engine:56",
+        "engine:57",
+        "engine:58",
+        "engine:59",
+        "engine:60"
+      ],
+      "dependsOn": [
+        "engine:45"
+      ],
+      "id": "engine:46",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "engine:48",
+        "engine:49",
+        "engine:50",
+        "engine:51",
+        "engine:52",
+        "engine:53",
+        "engine:54",
+        "engine:55",
+        "engine:56",
+        "engine:57",
+        "engine:58",
+        "engine:59",
+        "engine:60"
+      ],
+      "dependsOn": [
+        "engine:46"
+      ],
+      "id": "engine:47",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "engine:49",
+        "engine:50",
+        "engine:51",
+        "engine:52",
+        "engine:53",
+        "engine:54",
+        "engine:55",
+        "engine:56",
+        "engine:57",
+        "engine:58",
+        "engine:59",
+        "engine:60"
+      ],
+      "dependsOn": [
+        "engine:47"
+      ],
+      "id": "engine:48",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "engine:50",
+        "engine:51",
+        "engine:52",
+        "engine:53",
+        "engine:54",
+        "engine:55",
+        "engine:56",
+        "engine:57",
+        "engine:58",
+        "engine:59",
+        "engine:60"
+      ],
+      "dependsOn": [
+        "engine:48"
+      ],
+      "id": "engine:49",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "engine:51",
+        "engine:52",
+        "engine:53",
+        "engine:54",
+        "engine:55",
+        "engine:56",
+        "engine:57",
+        "engine:58",
+        "engine:59",
+        "engine:60"
+      ],
+      "dependsOn": [
+        "engine:49"
+      ],
+      "id": "engine:50",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "engine:52",
+        "engine:53",
+        "engine:54",
+        "engine:55",
+        "engine:56",
+        "engine:57",
+        "engine:58",
+        "engine:59",
+        "engine:60"
+      ],
+      "dependsOn": [
+        "engine:50"
+      ],
+      "id": "engine:51",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "engine:53",
+        "engine:54",
+        "engine:55",
+        "engine:56",
+        "engine:57",
+        "engine:58",
+        "engine:59",
+        "engine:60"
+      ],
+      "dependsOn": [
+        "engine:51"
+      ],
+      "id": "engine:52",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "engine:54",
+        "engine:55",
+        "engine:56",
+        "engine:57",
+        "engine:58",
+        "engine:59",
+        "engine:60"
+      ],
+      "dependsOn": [
+        "engine:52"
+      ],
+      "id": "engine:53",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "engine:55",
+        "engine:56",
+        "engine:57",
+        "engine:58",
+        "engine:59",
+        "engine:60"
+      ],
+      "dependsOn": [
+        "engine:53"
+      ],
+      "id": "engine:54",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "engine:56",
+        "engine:57",
+        "engine:58",
+        "engine:59",
+        "engine:60"
+      ],
+      "dependsOn": [
+        "engine:54"
+      ],
+      "id": "engine:55",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "engine:57",
+        "engine:58",
+        "engine:59",
+        "engine:60"
+      ],
+      "dependsOn": [
+        "engine:55"
+      ],
+      "id": "engine:56",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "engine:58",
+        "engine:59",
+        "engine:60"
+      ],
+      "dependsOn": [
+        "engine:56"
+      ],
+      "id": "engine:57",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "engine:59",
+        "engine:60"
+      ],
+      "dependsOn": [
+        "engine:57"
+      ],
+      "id": "engine:58",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "engine:60"
+      ],
+      "dependsOn": [
+        "engine:58"
+      ],
+      "id": "engine:59",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [],
+      "dependsOn": [
+        "engine:59"
+      ],
+      "id": "engine:60",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "persistence.rls-certification"
+      ],
+      "dependsOn": [
+        "trust.permission-enforcement"
+      ],
+      "id": "persistence.postgres-repository",
+      "lifecycle": "planned",
+      "status": "missing"
+    },
+    {
+      "blocks": [],
+      "dependsOn": [
+        "persistence.postgres-repository"
+      ],
+      "id": "persistence.rls-certification",
+      "lifecycle": "missing",
+      "status": "missing"
+    },
+    {
+      "blocks": [
+        "persistence.postgres-repository",
+        "persistence.rls-certification",
+        "runtime.agent-registration",
+        "settlement.non-custody-guard",
+        "trust.identity-assertions",
+        "trust.identity-gateway",
+        "trust.permission-enforcement",
+        "trust.route-permission-integration"
+      ],
+      "dependsOn": [],
+      "id": "reos.execution-os",
+      "lifecycle": "certified",
+      "status": "implemented"
+    },
+    {
+      "blocks": [],
+      "dependsOn": [
+        "trust.permission-enforcement"
+      ],
+      "id": "runtime.agent-registration",
+      "lifecycle": "planned",
+      "status": "missing"
+    },
+    {
+      "blocks": [],
+      "dependsOn": [
+        "reos.execution-os"
+      ],
+      "id": "settlement.non-custody-guard",
+      "lifecycle": "certified",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "persistence.postgres-repository",
+        "persistence.rls-certification",
+        "runtime.agent-registration",
+        "trust.identity-gateway",
+        "trust.permission-enforcement",
+        "trust.route-permission-integration"
+      ],
+      "dependsOn": [
+        "reos.execution-os"
+      ],
+      "id": "trust.identity-assertions",
+      "lifecycle": "certified",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "persistence.postgres-repository",
+        "persistence.rls-certification",
+        "runtime.agent-registration",
+        "trust.permission-enforcement",
+        "trust.route-permission-integration"
+      ],
+      "dependsOn": [
+        "trust.identity-assertions"
+      ],
+      "id": "trust.identity-gateway",
+      "lifecycle": "certified",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "persistence.postgres-repository",
+        "persistence.rls-certification",
+        "runtime.agent-registration",
+        "trust.route-permission-integration"
+      ],
+      "dependsOn": [
+        "trust.identity-gateway"
+      ],
+      "id": "trust.permission-enforcement",
+      "lifecycle": "certified",
+      "status": "implemented"
+    },
+    {
+      "blocks": [],
+      "dependsOn": [
+        "trust.permission-enforcement"
+      ],
+      "id": "trust.route-permission-integration",
+      "lifecycle": "planned",
+      "status": "missing"
+    }
+  ],
+  "engines": [
+    {
+      "certificationScript": "certify:identity",
+      "declaredStatus": "Conditionally implemented",
+      "divergent": true,
+      "id": "01",
+      "lifecycle": "released",
+      "name": "Identity & Digital Trust",
+      "observedStatus": "implemented",
+      "packageDirectory": "packages/identity",
+      "wave": 1
+    },
+    {
+      "certificationScript": "certify:tenancy",
+      "declaredStatus": "Conditionally implemented",
+      "divergent": true,
+      "id": "02",
+      "lifecycle": "released",
+      "name": "Organization & Multi-Tenant",
+      "observedStatus": "implemented",
+      "packageDirectory": "packages/organizations",
+      "wave": 1
+    },
+    {
+      "certificationScript": "certify:authorization",
+      "declaredStatus": "Conditionally implemented",
+      "divergent": true,
+      "id": "03",
+      "lifecycle": "released",
+      "name": "Roles, Permissions & Governance",
+      "observedStatus": "implemented",
+      "packageDirectory": "packages/permissions",
+      "wave": 1
+    },
+    {
+      "certificationScript": "certify:party-verification",
+      "declaredStatus": "Conditionally implemented",
+      "divergent": true,
+      "id": "04",
+      "lifecycle": "released",
+      "name": "Party Verification",
+      "observedStatus": "implemented",
+      "packageDirectory": "packages/parties",
+      "wave": 1
+    },
+    {
+      "certificationScript": "certify:legal",
+      "declaredStatus": "Conditionally implemented",
+      "divergent": true,
+      "id": "05",
+      "lifecycle": "released",
+      "name": "Legal Governance",
+      "observedStatus": "implemented",
+      "packageDirectory": "packages/legal",
+      "wave": 1
+    },
+    {
+      "certificationScript": "certify:batch1",
+      "declaredStatus": "Deferred",
+      "divergent": false,
+      "id": "06",
+      "lifecycle": "deferred",
+      "name": "Third-Party Risk",
+      "observedStatus": "deferred",
+      "packageDirectory": null,
+      "wave": 1
+    },
+    {
+      "certificationScript": "certify:batch1",
+      "declaredStatus": "Deferred",
+      "divergent": false,
+      "id": "07",
+      "lifecycle": "deferred",
+      "name": "Compliance Foundation",
+      "observedStatus": "deferred",
+      "packageDirectory": null,
+      "wave": 1
+    },
+    {
+      "certificationScript": "certify:batch1",
+      "declaredStatus": "Foundation only",
+      "divergent": true,
+      "id": "08",
+      "lifecycle": "planned",
+      "name": "Audit & Evidence Ledger",
+      "observedStatus": "missing",
+      "packageDirectory": null,
+      "wave": 1
+    },
+    {
+      "certificationScript": "certify:batch1",
+      "declaredStatus": "Deferred",
+      "divergent": false,
+      "id": "09",
+      "lifecycle": "deferred",
+      "name": "Notification & Communication",
+      "observedStatus": "deferred",
+      "packageDirectory": null,
+      "wave": 1
+    },
+    {
+      "certificationScript": "certify:batch1",
+      "declaredStatus": "Deferred",
+      "divergent": false,
+      "id": "10",
+      "lifecycle": "deferred",
+      "name": "Enterprise Configuration",
+      "observedStatus": "deferred",
+      "packageDirectory": null,
+      "wave": 1
+    },
+    {
+      "certificationScript": "certify:authoring",
+      "declaredStatus": null,
+      "divergent": false,
+      "id": "11",
+      "lifecycle": "released",
+      "name": "Contract Authoring",
+      "observedStatus": "implemented",
+      "packageDirectory": "packages/agreement-creation",
+      "wave": 2
+    },
+    {
+      "certificationScript": "certify:clauses",
+      "declaredStatus": null,
+      "divergent": false,
+      "id": "12",
+      "lifecycle": "released",
+      "name": "Clause Intelligence",
+      "observedStatus": "implemented",
+      "packageDirectory": "packages/agreement-creation",
+      "wave": 2
+    },
+    {
+      "certificationScript": "certify:negotiation",
+      "declaredStatus": null,
+      "divergent": false,
+      "id": "13",
+      "lifecycle": "released",
+      "name": "Negotiation",
+      "observedStatus": "implemented",
+      "packageDirectory": "packages/agreement-creation",
+      "wave": 2
+    },
+    {
+      "certificationScript": "certify:approvals",
+      "declaredStatus": null,
+      "divergent": false,
+      "id": "14",
+      "lifecycle": "released",
+      "name": "Approval Workflow",
+      "observedStatus": "implemented",
+      "packageDirectory": "packages/agreement-creation",
+      "wave": 2
+    },
+    {
+      "certificationScript": "certify:digital-execution",
+      "declaredStatus": null,
+      "divergent": false,
+      "id": "15",
+      "lifecycle": "released",
+      "name": "Digital Execution",
+      "observedStatus": "implemented",
+      "packageDirectory": "packages/agreement-creation",
+      "wave": 2
+    },
+    {
+      "certificationScript": "certify:contract-analysis",
+      "declaredStatus": null,
+      "divergent": false,
+      "id": "16",
+      "lifecycle": "released",
+      "name": "AI Contract Analysis",
+      "observedStatus": "implemented",
+      "packageDirectory": "packages/agreement-intelligence",
+      "wave": 2
+    },
+    {
+      "certificationScript": "certify:contract-risk",
+      "declaredStatus": null,
+      "divergent": false,
+      "id": "17",
+      "lifecycle": "released",
+      "name": "Contract Risk",
+      "observedStatus": "implemented",
+      "packageDirectory": "packages/agreement-intelligence",
+      "wave": 2
+    },
+    {
+      "certificationScript": "certify:contract-version",
+      "declaredStatus": null,
+      "divergent": false,
+      "id": "18",
+      "lifecycle": "released",
+      "name": "Contract Version",
+      "observedStatus": "implemented",
+      "packageDirectory": "packages/agreement-intelligence",
+      "wave": 2
+    },
+    {
+      "certificationScript": "certify:contract-repository",
+      "declaredStatus": null,
+      "divergent": false,
+      "id": "19",
+      "lifecycle": "released",
+      "name": "Contract Repository",
+      "observedStatus": "implemented",
+      "packageDirectory": "packages/agreement-intelligence",
+      "wave": 2
+    },
+    {
+      "certificationScript": "certify:agreement-intelligence",
+      "declaredStatus": null,
+      "divergent": false,
+      "id": "20",
+      "lifecycle": "released",
+      "name": "Agreement Intelligence",
+      "observedStatus": "implemented",
+      "packageDirectory": "packages/agreement-intelligence",
+      "wave": 2
+    },
+    {
+      "certificationScript": "certify:performance-blueprint",
+      "declaredStatus": null,
+      "divergent": false,
+      "id": "21",
+      "lifecycle": "released",
+      "name": "Performance Blueprint",
+      "observedStatus": "implemented",
+      "packageDirectory": "packages/performance-blueprint",
+      "wave": 3
+    },
+    {
+      "certificationScript": "certify:scope-definition",
+      "declaredStatus": null,
+      "divergent": false,
+      "id": "22",
+      "lifecycle": "released",
+      "name": "Scope Definition",
+      "observedStatus": "implemented",
+      "packageDirectory": "packages/performance-blueprint",
+      "wave": 3
+    },
+    {
+      "certificationScript": "certify:deliverables",
+      "declaredStatus": null,
+      "divergent": false,
+      "id": "23",
+      "lifecycle": "released",
+      "name": "Deliverables",
+      "observedStatus": "implemented",
+      "packageDirectory": "packages/performance-blueprint",
+      "wave": 3
+    },
+    {
+      "certificationScript": "certify:milestone-planning",
+      "declaredStatus": null,
+      "divergent": false,
+      "id": "24",
+      "lifecycle": "released",
+      "name": "Milestone Planning",
+      "observedStatus": "implemented",
+      "packageDirectory": "packages/performance-blueprint",
+      "wave": 3
+    },
+    {
+      "certificationScript": "certify:definition-of-done",
+      "declaredStatus": null,
+      "divergent": false,
+      "id": "25",
+      "lifecycle": "released",
+      "name": "Definition of Done",
+      "observedStatus": "implemented",
+      "packageDirectory": "packages/performance-blueprint",
+      "wave": 3
+    },
+    {
+      "certificationScript": "certify:acceptance-criteria",
+      "declaredStatus": null,
+      "divergent": false,
+      "id": "26",
+      "lifecycle": "released",
+      "name": "Acceptance Criteria",
+      "observedStatus": "implemented",
+      "packageDirectory": "packages/performance-readiness",
+      "wave": 3
+    },
+    {
+      "certificationScript": "certify:success-metrics",
+      "declaredStatus": null,
+      "divergent": false,
+      "id": "27",
+      "lifecycle": "released",
+      "name": "Success Metrics",
+      "observedStatus": "implemented",
+      "packageDirectory": "packages/performance-readiness",
+      "wave": 3
+    },
+    {
+      "certificationScript": "certify:dependency-intelligence",
+      "declaredStatus": null,
+      "divergent": false,
+      "id": "28",
+      "lifecycle": "released",
+      "name": "Dependency Intelligence",
+      "observedStatus": "implemented",
+      "packageDirectory": "packages/performance-readiness",
+      "wave": 3
+    },
+    {
+      "certificationScript": "certify:payment-trigger",
+      "declaredStatus": null,
+      "divergent": false,
+      "id": "29",
+      "lifecycle": "released",
+      "name": "Payment Trigger",
+      "observedStatus": "implemented",
+      "packageDirectory": "packages/performance-readiness",
+      "wave": 3
+    },
+    {
+      "certificationScript": "certify:performance-baseline",
+      "declaredStatus": null,
+      "divergent": false,
+      "id": "30",
+      "lifecycle": "released",
+      "name": "Performance Baseline",
+      "observedStatus": "implemented",
+      "packageDirectory": "packages/performance-readiness",
+      "wave": 3
+    },
+    {
+      "certificationScript": "certify:execution-orchestration",
+      "declaredStatus": null,
+      "divergent": false,
+      "id": "31",
+      "lifecycle": "released",
+      "name": "Execution Orchestration",
+      "observedStatus": "implemented",
+      "packageDirectory": "packages/execution-orchestration",
+      "wave": 4
+    },
+    {
+      "certificationScript": "certify:progress-measurement",
+      "declaredStatus": null,
+      "divergent": false,
+      "id": "32",
+      "lifecycle": "released",
+      "name": "Progress Measurement",
+      "observedStatus": "implemented",
+      "packageDirectory": "packages/execution-orchestration",
+      "wave": 4
+    },
+    {
+      "certificationScript": "certify:evidence-management",
+      "declaredStatus": null,
+      "divergent": false,
+      "id": "33",
+      "lifecycle": "released",
+      "name": "Evidence Management",
+      "observedStatus": "implemented",
+      "packageDirectory": "packages/execution-orchestration",
+      "wave": 4
+    },
+    {
+      "certificationScript": "certify:validation-acceptance-testing",
+      "declaredStatus": null,
+      "divergent": false,
+      "id": "34",
+      "lifecycle": "released",
+      "name": "Validation & Acceptance Testing",
+      "observedStatus": "implemented",
+      "packageDirectory": "packages/execution-orchestration",
+      "wave": 4
+    },
+    {
+      "certificationScript": "certify:quality-assurance",
+      "declaredStatus": null,
+      "divergent": false,
+      "id": "35",
+      "lifecycle": "released",
+      "name": "Quality Assurance",
+      "observedStatus": "implemented",
+      "packageDirectory": "packages/execution-orchestration",
+      "wave": 4
+    },
+    {
+      "certificationScript": "certify:inspection",
+      "declaredStatus": null,
+      "divergent": false,
+      "id": "36",
+      "lifecycle": "released",
+      "name": "Inspection & Field Verification",
+      "observedStatus": "implemented",
+      "packageDirectory": "packages/completion-assurance",
+      "wave": 4
+    },
+    {
+      "certificationScript": "certify:issue-risk-capa",
+      "declaredStatus": null,
+      "divergent": false,
+      "id": "37",
+      "lifecycle": "released",
+      "name": "Issue, Risk & Corrective Action",
+      "observedStatus": "implemented",
+      "packageDirectory": "packages/completion-assurance",
+      "wave": 4
+    },
+    {
+      "certificationScript": "certify:change-control",
+      "declaredStatus": null,
+      "divergent": false,
+      "id": "38",
+      "lifecycle": "released",
+      "name": "Change Control",
+      "observedStatus": "implemented",
+      "packageDirectory": "packages/completion-assurance",
+      "wave": 4
+    },
+    {
+      "certificationScript": "certify:acceptance-decision",
+      "declaredStatus": null,
+      "divergent": false,
+      "id": "39",
+      "lifecycle": "released",
+      "name": "Acceptance & Decision",
+      "observedStatus": "implemented",
+      "packageDirectory": "packages/completion-assurance",
+      "wave": 4
+    },
+    {
+      "certificationScript": "certify:completion-certification",
+      "declaredStatus": null,
+      "divergent": false,
+      "id": "40",
+      "lifecycle": "released",
+      "name": "Completion Certification",
+      "observedStatus": "implemented",
+      "packageDirectory": "packages/completion-assurance",
+      "wave": 4
+    },
+    {
+      "certificationScript": "certify:payment-eligibility",
+      "declaredStatus": null,
+      "divergent": false,
+      "id": "41",
+      "lifecycle": "released",
+      "name": "Payment Eligibility",
+      "observedStatus": "implemented",
+      "packageDirectory": "packages/settlement-assurance",
+      "wave": 5
+    },
+    {
+      "certificationScript": "certify:financial-entitlement",
+      "declaredStatus": null,
+      "divergent": false,
+      "id": "42",
+      "lifecycle": "released",
+      "name": "Financial Entitlement",
+      "observedStatus": "implemented",
+      "packageDirectory": "packages/settlement-assurance",
+      "wave": 5
+    },
+    {
+      "certificationScript": "certify:invoice-claim",
+      "declaredStatus": null,
+      "divergent": false,
+      "id": "43",
+      "lifecycle": "released",
+      "name": "Invoice & Claim Management",
+      "observedStatus": "implemented",
+      "packageDirectory": "packages/settlement-assurance",
+      "wave": 5
+    },
+    {
+      "certificationScript": "certify:escrow-funding",
+      "declaredStatus": null,
+      "divergent": false,
+      "id": "44",
+      "lifecycle": "released",
+      "name": "Escrow & Funding Assurance",
+      "observedStatus": "implemented",
+      "packageDirectory": "packages/settlement-assurance",
+      "wave": 5
+    },
+    {
+      "certificationScript": "certify:conditional-release",
+      "declaredStatus": null,
+      "divergent": false,
+      "id": "45",
+      "lifecycle": "released",
+      "name": "Conditional Release Orchestration",
+      "observedStatus": "implemented",
+      "packageDirectory": "packages/settlement-assurance",
+      "wave": 5
+    },
+    {
+      "certificationScript": "certify:financial-approval",
+      "declaredStatus": null,
+      "divergent": false,
+      "id": "46",
+      "lifecycle": "released",
+      "name": "Financial Approval & Authority",
+      "observedStatus": "implemented",
+      "packageDirectory": "packages/settlement-execution",
+      "wave": 5
+    },
+    {
+      "certificationScript": "certify:payment-execution",
+      "declaredStatus": null,
+      "divergent": false,
+      "id": "47",
+      "lifecycle": "released",
+      "name": "Payment Execution & Treasury Integration",
+      "observedStatus": "implemented",
+      "packageDirectory": "packages/settlement-execution",
+      "wave": 5
+    },
+    {
+      "certificationScript": "certify:reconciliation-ledger",
+      "declaredStatus": null,
+      "divergent": false,
+      "id": "48",
+      "lifecycle": "released",
+      "name": "Reconciliation & Financial Ledger",
+      "observedStatus": "implemented",
+      "packageDirectory": "packages/settlement-execution",
+      "wave": 5
+    },
+    {
+      "certificationScript": "certify:dispute-resolution",
+      "declaredStatus": null,
+      "divergent": false,
+      "id": "49",
+      "lifecycle": "released",
+      "name": "Dispute, Claim & Appeal Resolution",
+      "observedStatus": "implemented",
+      "packageDirectory": "packages/settlement-execution",
+      "wave": 5
+    },
+    {
+      "certificationScript": "certify:final-settlement",
+      "declaredStatus": null,
+      "divergent": false,
+      "id": "50",
+      "lifecycle": "released",
+      "name": "Final Settlement & Financial Closure",
+      "observedStatus": "implemented",
+      "packageDirectory": "packages/settlement-execution",
+      "wave": 5
+    },
+    {
+      "certificationScript": "certify:execution-assurance-index",
+      "declaredStatus": null,
+      "divergent": false,
+      "id": "51",
+      "lifecycle": "released",
+      "name": "Execution Assurance Index",
+      "observedStatus": "implemented",
+      "packageDirectory": "packages/enterprise-intelligence",
+      "wave": 6
+    },
+    {
+      "certificationScript": "certify:settlement-assurance-index",
+      "declaredStatus": null,
+      "divergent": false,
+      "id": "52",
+      "lifecycle": "released",
+      "name": "Settlement Assurance Index",
+      "observedStatus": "implemented",
+      "packageDirectory": "packages/enterprise-intelligence",
+      "wave": 6
+    },
+    {
+      "certificationScript": "certify:enterprise-kpi",
+      "declaredStatus": null,
+      "divergent": false,
+      "id": "53",
+      "lifecycle": "released",
+      "name": "Enterprise KPI",
+      "observedStatus": "implemented",
+      "packageDirectory": "packages/enterprise-intelligence",
+      "wave": 6
+    },
+    {
+      "certificationScript": "certify:executive-dashboard",
+      "declaredStatus": null,
+      "divergent": false,
+      "id": "54",
+      "lifecycle": "released",
+      "name": "Executive Dashboard",
+      "observedStatus": "implemented",
+      "packageDirectory": "packages/enterprise-intelligence",
+      "wave": 6
+    },
+    {
+      "certificationScript": "certify:predictive-execution",
+      "declaredStatus": null,
+      "divergent": false,
+      "id": "55",
+      "lifecycle": "released",
+      "name": "Predictive Execution Intelligence",
+      "observedStatus": "implemented",
+      "packageDirectory": "packages/enterprise-intelligence",
+      "wave": 6
+    },
+    {
+      "certificationScript": "certify:financial-payment-intelligence",
+      "declaredStatus": null,
+      "divergent": false,
+      "id": "56",
+      "lifecycle": "released",
+      "name": "Financial & Payment Intelligence",
+      "observedStatus": "implemented",
+      "packageDirectory": "packages/enterprise-analytics",
+      "wave": 6
+    },
+    {
+      "certificationScript": "certify:vendor-customer-performance",
+      "declaredStatus": null,
+      "divergent": false,
+      "id": "57",
+      "lifecycle": "released",
+      "name": "Vendor & Customer Performance",
+      "observedStatus": "implemented",
+      "packageDirectory": "packages/enterprise-analytics",
+      "wave": 6
+    },
+    {
+      "certificationScript": "certify:portfolio-analytics",
+      "declaredStatus": null,
+      "divergent": false,
+      "id": "58",
+      "lifecycle": "released",
+      "name": "Portfolio Analytics",
+      "observedStatus": "implemented",
+      "packageDirectory": "packages/enterprise-analytics",
+      "wave": 6
+    },
+    {
+      "certificationScript": "certify:renewal-relationship-intelligence",
+      "declaredStatus": null,
+      "divergent": false,
+      "id": "59",
+      "lifecycle": "released",
+      "name": "Renewal & Relationship Intelligence",
+      "observedStatus": "implemented",
+      "packageDirectory": "packages/enterprise-analytics",
+      "wave": 6
+    },
+    {
+      "certificationScript": "certify:ai-decision-support",
+      "declaredStatus": null,
+      "divergent": false,
+      "id": "60",
+      "lifecycle": "released",
+      "name": "AI Decision Support & Continuous Improvement",
+      "observedStatus": "implemented",
+      "packageDirectory": "packages/enterprise-analytics",
+      "wave": 6
+    }
+  ],
+  "executionBacklog": [
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "dependsOn": [
+        "trust.permission-enforcement"
+      ],
+      "executable": true,
+      "id": "runtime.agent-registration",
+      "lifecycle": "planned",
+      "priority": 20,
+      "requiresLiveInfrastructure": false,
+      "scope": {
+        "estimated": false,
+        "files": 1,
+        "tests": 1
+      },
+      "status": "missing",
+      "title": "Agent Runtime registration"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "dependsOn": [
+        "trust.permission-enforcement"
+      ],
+      "executable": true,
+      "id": "trust.route-permission-integration",
+      "lifecycle": "planned",
+      "priority": 30,
+      "requiresLiveInfrastructure": false,
+      "scope": {
+        "estimated": true,
+        "files": 1,
+        "tests": 1
+      },
+      "status": "missing",
+      "title": "Route-level permission mapping"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [
+        "persistence.rls-certification"
+      ],
+      "dependsOn": [
+        "trust.permission-enforcement"
+      ],
+      "executable": true,
+      "id": "persistence.postgres-repository",
+      "lifecycle": "planned",
+      "priority": 40,
+      "requiresLiveInfrastructure": true,
+      "scope": {
+        "estimated": false,
+        "files": 1,
+        "tests": 1
+      },
+      "status": "missing",
+      "title": "PostgreSQL repository implementation"
+    },
+    {
+      "blockedBy": [
+        "persistence.postgres-repository"
+      ],
+      "blocks": [],
+      "dependsOn": [
+        "persistence.postgres-repository"
+      ],
+      "executable": false,
+      "id": "persistence.rls-certification",
+      "lifecycle": "missing",
+      "priority": 41,
+      "requiresLiveInfrastructure": true,
+      "scope": {
+        "estimated": false,
+        "files": 1,
+        "tests": 1
+      },
+      "status": "missing",
+      "title": "Row Level Security certification"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [
+        "engine:09",
+        "engine:10",
+        "engine:11",
+        "engine:12",
+        "engine:13",
+        "engine:14",
+        "engine:15",
+        "engine:16",
+        "engine:17",
+        "engine:18",
+        "engine:19",
+        "engine:20",
+        "engine:21",
+        "engine:22",
+        "engine:23",
+        "engine:24",
+        "engine:25",
+        "engine:26",
+        "engine:27",
+        "engine:28",
+        "engine:29",
+        "engine:30",
+        "engine:31",
+        "engine:32",
+        "engine:33",
+        "engine:34",
+        "engine:35",
+        "engine:36",
+        "engine:37",
+        "engine:38",
+        "engine:39",
+        "engine:40",
+        "engine:41",
+        "engine:42",
+        "engine:43",
+        "engine:44",
+        "engine:45",
+        "engine:46",
+        "engine:47",
+        "engine:48",
+        "engine:49",
+        "engine:50",
+        "engine:51",
+        "engine:52",
+        "engine:53",
+        "engine:54",
+        "engine:55",
+        "engine:56",
+        "engine:57",
+        "engine:58",
+        "engine:59",
+        "engine:60"
+      ],
+      "dependsOn": [
+        "engine:05"
+      ],
+      "executable": true,
+      "id": "engine:08",
+      "lifecycle": "planned",
+      "priority": 108,
+      "requiresLiveInfrastructure": false,
+      "scope": {
+        "estimated": false,
+        "files": 0,
+        "tests": 0
+      },
+      "status": "missing",
+      "title": "Engine 08 — Audit & Evidence Ledger"
+    }
+  ],
+  "identity": {
+    "branch": "claude/git-pull-cqc04u",
+    "clean": false,
+    "head": "cbe143540c9dba8ae93680e2e7387e8d0d085f8b",
+    "repository": "assurapay",
+    "version": "0.1.0"
+  },
+  "implementedCapabilities": [
+    "engine:01",
+    "engine:02",
+    "engine:03",
+    "engine:04",
+    "engine:05",
+    "engine:11",
+    "engine:12",
+    "engine:13",
+    "engine:14",
+    "engine:15",
+    "engine:16",
+    "engine:17",
+    "engine:18",
+    "engine:19",
+    "engine:20",
+    "engine:21",
+    "engine:22",
+    "engine:23",
+    "engine:24",
+    "engine:25",
+    "engine:26",
+    "engine:27",
+    "engine:28",
+    "engine:29",
+    "engine:30",
+    "engine:31",
+    "engine:32",
+    "engine:33",
+    "engine:34",
+    "engine:35",
+    "engine:36",
+    "engine:37",
+    "engine:38",
+    "engine:39",
+    "engine:40",
+    "engine:41",
+    "engine:42",
+    "engine:43",
+    "engine:44",
+    "engine:45",
+    "engine:46",
+    "engine:47",
+    "engine:48",
+    "engine:49",
+    "engine:50",
+    "engine:51",
+    "engine:52",
+    "engine:53",
+    "engine:54",
+    "engine:55",
+    "engine:56",
+    "engine:57",
+    "engine:58",
+    "engine:59",
+    "engine:60",
+    "reos.execution-os",
+    "settlement.non-custody-guard",
+    "trust.identity-assertions",
+    "trust.identity-gateway",
+    "trust.permission-enforcement"
+  ],
+  "lifecycleSummary": {
+    "certified": 5,
+    "deferred": 4,
+    "implemented": 0,
+    "implementing": 0,
+    "missing": 1,
+    "planned": 4,
+    "released": 55,
+    "validated": 0
+  },
+  "manifestDigest": "51713f5c2ba5",
+  "missingCapabilities": [
+    "engine:08",
+    "persistence.postgres-repository",
+    "persistence.rls-certification",
+    "runtime.agent-registration",
+    "trust.route-permission-integration"
+  ],
+  "packages": [
+    {
+      "directory": "packages/agent-runtime",
+      "exportedClasses": [
+        "AgentGovernanceEngine",
+        "AgentRegistryEngine",
+        "AgentRuntimeEngine",
+        "AgentTelemetryEngine",
+        "AiGatewayEngine",
+        "CapabilityRegistryEngine",
+        "ContextEngine",
+        "ExecutionMemoryEngine",
+        "HumanApprovalEngine",
+        "PromptRegistryEngine"
+      ],
+      "externalDependencies": [],
+      "main": "src/index.ts",
+      "moduleType": null,
+      "name": "@assurapay/agent-runtime",
+      "sourceFiles": 1,
+      "sourceLines": 998,
+      "testFiles": [
+        "packages/agent-runtime/src/agent-runtime.e2e.test.ts",
+        "packages/agent-runtime/src/agent-runtime.integration.test.ts",
+        "packages/agent-runtime/src/agent-runtime.performance.test.ts",
+        "packages/agent-runtime/src/agent-runtime.security.test.ts",
+        "packages/agent-runtime/src/agent-runtime.test.ts"
+      ],
+      "tests": {
+        "e2e": 1,
+        "integration": 1,
+        "performance": 1,
+        "security": 1,
+        "unit": 1
+      },
+      "workspaceDependencies": [
+        "@assurapay/database",
+        "@assurapay/shared"
+      ]
+    },
+    {
+      "directory": "packages/agreement-creation",
+      "exportedClasses": [
+        "ApprovalWorkflowEngine",
+        "ClauseIntelligenceEngine",
+        "ContractAuthoringEngine",
+        "DigitalExecutionEngine",
+        "NegotiationEngine"
+      ],
+      "externalDependencies": [],
+      "main": "src/index.ts",
+      "moduleType": null,
+      "name": "@assurapay/agreement-creation",
+      "sourceFiles": 1,
+      "sourceLines": 905,
+      "testFiles": [
+        "packages/agreement-creation/src/agreement-creation.e2e.test.ts",
+        "packages/agreement-creation/src/agreement-creation.integration.test.ts",
+        "packages/agreement-creation/src/agreement-creation.test.ts"
+      ],
+      "tests": {
+        "e2e": 1,
+        "integration": 1,
+        "performance": 0,
+        "security": 0,
+        "unit": 1
+      },
+      "workspaceDependencies": [
+        "@assurapay/database",
+        "@assurapay/shared"
+      ]
+    },
+    {
+      "directory": "packages/agreement-intelligence",
+      "exportedClasses": [
+        "AgreementIntelligenceEngine",
+        "ContractAnalysisEngine",
+        "ContractRepositoryEngine",
+        "ContractRiskEngine",
+        "ContractVersionEngine"
+      ],
+      "externalDependencies": [],
+      "main": "src/index.ts",
+      "moduleType": null,
+      "name": "@assurapay/agreement-intelligence",
+      "sourceFiles": 1,
+      "sourceLines": 9,
+      "testFiles": [
+        "packages/agreement-intelligence/src/agreement-intelligence.e2e.test.ts",
+        "packages/agreement-intelligence/src/agreement-intelligence.integration.test.ts",
+        "packages/agreement-intelligence/src/agreement-intelligence.test.ts"
+      ],
+      "tests": {
+        "e2e": 1,
+        "integration": 1,
+        "performance": 0,
+        "security": 0,
+        "unit": 1
+      },
+      "workspaceDependencies": [
+        "@assurapay/database",
+        "@assurapay/shared"
+      ]
+    },
+    {
+      "directory": "packages/completion-assurance",
+      "exportedClasses": [
+        "AcceptanceDecisionEngine",
+        "ChangeControlEngine",
+        "CompletionCertificationEngine",
+        "InspectionEngine",
+        "IssueRiskCorrectiveActionEngine"
+      ],
+      "externalDependencies": [],
+      "main": "src/index.ts",
+      "moduleType": null,
+      "name": "@assurapay/completion-assurance",
+      "sourceFiles": 1,
+      "sourceLines": 469,
+      "testFiles": [
+        "packages/completion-assurance/src/completion-assurance.e2e.test.ts",
+        "packages/completion-assurance/src/completion-assurance.integration.test.ts",
+        "packages/completion-assurance/src/completion-assurance.test.ts"
+      ],
+      "tests": {
+        "e2e": 1,
+        "integration": 1,
+        "performance": 0,
+        "security": 0,
+        "unit": 1
+      },
+      "workspaceDependencies": [
+        "@assurapay/database",
+        "@assurapay/shared"
+      ]
+    },
+    {
+      "directory": "packages/database",
+      "exportedClasses": [
+        "FileAssuraStore",
+        "InMemoryTrustStore"
+      ],
+      "externalDependencies": [],
+      "main": "src/index.ts",
+      "moduleType": null,
+      "name": "@assurapay/database",
+      "sourceFiles": 2,
+      "sourceLines": 319,
+      "testFiles": [
+        "packages/database/src/trust-migrations.integration.test.ts"
+      ],
+      "tests": {
+        "e2e": 0,
+        "integration": 1,
+        "performance": 0,
+        "security": 0,
+        "unit": 0
+      },
+      "workspaceDependencies": [
+        "@assurapay/shared"
+      ]
+    },
+    {
+      "directory": "packages/domain",
+      "exportedClasses": [
+        "AssuraPayService"
+      ],
+      "externalDependencies": [],
+      "main": "src/index.ts",
+      "moduleType": null,
+      "name": "@assurapay/domain",
+      "sourceFiles": 4,
+      "sourceLines": 1181,
+      "testFiles": [
+        "packages/domain/src/services/assurapay-service.test.ts",
+        "packages/domain/src/services/batch2-remediation.test.ts",
+        "packages/domain/src/services/batch4-extensions.test.ts",
+        "packages/domain/src/services/batch4-intelligence.test.ts",
+        "packages/domain/src/services/intelligence-foundation.test.ts",
+        "packages/domain/src/services/settlement-assurance.test.ts",
+        "packages/domain/src/trust-foundation.e2e.test.ts"
+      ],
+      "tests": {
+        "e2e": 1,
+        "integration": 0,
+        "performance": 0,
+        "security": 0,
+        "unit": 6
+      },
+      "workspaceDependencies": [
+        "@assurapay/database",
+        "@assurapay/identity",
+        "@assurapay/legal",
+        "@assurapay/organizations",
+        "@assurapay/parties",
+        "@assurapay/permissions",
+        "@assurapay/shared"
+      ]
+    },
+    {
+      "directory": "packages/enterprise-analytics",
+      "exportedClasses": [
+        "AiDecisionSupportEngine",
+        "FinancialPaymentIntelligenceEngine",
+        "PortfolioAnalyticsEngine",
+        "RenewalRelationshipIntelligenceEngine",
+        "VendorCustomerPerformanceEngine"
+      ],
+      "externalDependencies": [],
+      "main": "src/index.ts",
+      "moduleType": null,
+      "name": "@assurapay/enterprise-analytics",
+      "sourceFiles": 1,
+      "sourceLines": 519,
+      "testFiles": [
+        "packages/enterprise-analytics/src/enterprise-analytics.e2e.test.ts",
+        "packages/enterprise-analytics/src/enterprise-analytics.integration.test.ts",
+        "packages/enterprise-analytics/src/enterprise-analytics.test.ts"
+      ],
+      "tests": {
+        "e2e": 1,
+        "integration": 1,
+        "performance": 0,
+        "security": 0,
+        "unit": 1
+      },
+      "workspaceDependencies": [
+        "@assurapay/database",
+        "@assurapay/shared"
+      ]
+    },
+    {
+      "directory": "packages/enterprise-intelligence",
+      "exportedClasses": [
+        "EnterpriseKpiEngine",
+        "ExecutionAssuranceIndexEngine",
+        "ExecutiveDashboardEngine",
+        "PredictiveExecutionIntelligenceEngine",
+        "SettlementAssuranceIndexEngine"
+      ],
+      "externalDependencies": [],
+      "main": "src/index.ts",
+      "moduleType": null,
+      "name": "@assurapay/enterprise-intelligence",
+      "sourceFiles": 1,
+      "sourceLines": 353,
+      "testFiles": [
+        "packages/enterprise-intelligence/src/enterprise-intelligence.e2e.test.ts",
+        "packages/enterprise-intelligence/src/enterprise-intelligence.integration.test.ts",
+        "packages/enterprise-intelligence/src/enterprise-intelligence.test.ts"
+      ],
+      "tests": {
+        "e2e": 1,
+        "integration": 1,
+        "performance": 0,
+        "security": 0,
+        "unit": 1
+      },
+      "workspaceDependencies": [
+        "@assurapay/database",
+        "@assurapay/shared"
+      ]
+    },
+    {
+      "directory": "packages/execution-orchestration",
+      "exportedClasses": [
+        "EvidenceManagementEngine",
+        "ExecutionOrchestrationEngine",
+        "ProgressMeasurementEngine",
+        "QualityAssuranceEngine",
+        "ValidationAcceptanceTestingEngine"
+      ],
+      "externalDependencies": [],
+      "main": "src/index.ts",
+      "moduleType": null,
+      "name": "@assurapay/execution-orchestration",
+      "sourceFiles": 1,
+      "sourceLines": 516,
+      "testFiles": [
+        "packages/execution-orchestration/src/execution-orchestration.e2e.test.ts",
+        "packages/execution-orchestration/src/execution-orchestration.integration.test.ts",
+        "packages/execution-orchestration/src/execution-orchestration.test.ts"
+      ],
+      "tests": {
+        "e2e": 1,
+        "integration": 1,
+        "performance": 0,
+        "security": 0,
+        "unit": 1
+      },
+      "workspaceDependencies": [
+        "@assurapay/database",
+        "@assurapay/shared"
+      ]
+    },
+    {
+      "directory": "packages/governance-core",
+      "exportedClasses": [
+        "CertificationEngine",
+        "DefinitionOfDoneEngine",
+        "ExecutionEngine",
+        "MilestoneEngine",
+        "PaymentTriggerEngine"
+      ],
+      "externalDependencies": [],
+      "main": "src/index.ts",
+      "moduleType": null,
+      "name": "@assurapay/governance-core",
+      "sourceFiles": 1,
+      "sourceLines": 849,
+      "testFiles": [
+        "packages/governance-core/src/governance-core.e2e.test.ts",
+        "packages/governance-core/src/governance-core.integration.test.ts",
+        "packages/governance-core/src/governance-core.test.ts"
+      ],
+      "tests": {
+        "e2e": 1,
+        "integration": 1,
+        "performance": 0,
+        "security": 0,
+        "unit": 1
+      },
+      "workspaceDependencies": [
+        "@assurapay/database",
+        "@assurapay/shared"
+      ]
+    },
+    {
+      "directory": "packages/identity",
+      "exportedClasses": [
+        "IdentityAssertionError",
+        "IdentityAssertionService",
+        "IdentityGateway",
+        "IdentityGatewayError",
+        "IdentityService",
+        "InMemoryAssertionReplayStore"
+      ],
+      "externalDependencies": [],
+      "main": "src/index.ts",
+      "moduleType": null,
+      "name": "@assurapay/identity",
+      "sourceFiles": 3,
+      "sourceLines": 932,
+      "testFiles": [
+        "packages/identity/src/assertions.test.ts",
+        "packages/identity/src/gateway.test.ts",
+        "packages/identity/src/identity.test.ts"
+      ],
+      "tests": {
+        "e2e": 0,
+        "integration": 0,
+        "performance": 0,
+        "security": 0,
+        "unit": 3
+      },
+      "workspaceDependencies": [
+        "@assurapay/database",
+        "@assurapay/shared"
+      ]
+    },
+    {
+      "directory": "packages/legal",
+      "exportedClasses": [
+        "LegalService"
+      ],
+      "externalDependencies": [],
+      "main": "src/index.ts",
+      "moduleType": null,
+      "name": "@assurapay/legal",
+      "sourceFiles": 1,
+      "sourceLines": 28,
+      "testFiles": [
+        "packages/legal/src/legal.test.ts"
+      ],
+      "tests": {
+        "e2e": 0,
+        "integration": 0,
+        "performance": 0,
+        "security": 0,
+        "unit": 1
+      },
+      "workspaceDependencies": [
+        "@assurapay/database",
+        "@assurapay/shared"
+      ]
+    },
+    {
+      "directory": "packages/organizations",
+      "exportedClasses": [
+        "OrganizationService"
+      ],
+      "externalDependencies": [],
+      "main": "src/index.ts",
+      "moduleType": null,
+      "name": "@assurapay/organizations",
+      "sourceFiles": 1,
+      "sourceLines": 23,
+      "testFiles": [
+        "packages/organizations/src/organizations.test.ts"
+      ],
+      "tests": {
+        "e2e": 0,
+        "integration": 0,
+        "performance": 0,
+        "security": 0,
+        "unit": 1
+      },
+      "workspaceDependencies": [
+        "@assurapay/database",
+        "@assurapay/shared"
+      ]
+    },
+    {
+      "directory": "packages/parties",
+      "exportedClasses": [
+        "DeterministicVerificationProvider",
+        "PartyService"
+      ],
+      "externalDependencies": [],
+      "main": "src/index.ts",
+      "moduleType": null,
+      "name": "@assurapay/parties",
+      "sourceFiles": 1,
+      "sourceLines": 20,
+      "testFiles": [
+        "packages/parties/src/parties.test.ts"
+      ],
+      "tests": {
+        "e2e": 0,
+        "integration": 0,
+        "performance": 0,
+        "security": 0,
+        "unit": 1
+      },
+      "workspaceDependencies": [
+        "@assurapay/database",
+        "@assurapay/shared"
+      ]
+    },
+    {
+      "directory": "packages/performance-blueprint",
+      "exportedClasses": [
+        "DefinitionOfDonePackageEngine",
+        "DeliverablesEngine",
+        "MilestonePlanningEngine",
+        "PerformanceBlueprintEngine",
+        "ScopeDefinitionEngine"
+      ],
+      "externalDependencies": [],
+      "main": "src/index.ts",
+      "moduleType": null,
+      "name": "@assurapay/performance-blueprint",
+      "sourceFiles": 1,
+      "sourceLines": 469,
+      "testFiles": [
+        "packages/performance-blueprint/src/performance-blueprint.e2e.test.ts",
+        "packages/performance-blueprint/src/performance-blueprint.integration.test.ts",
+        "packages/performance-blueprint/src/performance-blueprint.test.ts"
+      ],
+      "tests": {
+        "e2e": 1,
+        "integration": 1,
+        "performance": 0,
+        "security": 0,
+        "unit": 1
+      },
+      "workspaceDependencies": [
+        "@assurapay/database",
+        "@assurapay/shared"
+      ]
+    },
+    {
+      "directory": "packages/performance-readiness",
+      "exportedClasses": [
+        "AcceptanceCriteriaEngine",
+        "DependencyIntelligenceEngine",
+        "PaymentTriggerRuleEngine",
+        "PerformanceBaselineEngine",
+        "SuccessMetricsEngine"
+      ],
+      "externalDependencies": [],
+      "main": "src/index.ts",
+      "moduleType": null,
+      "name": "@assurapay/performance-readiness",
+      "sourceFiles": 1,
+      "sourceLines": 431,
+      "testFiles": [
+        "packages/performance-readiness/src/performance-readiness.e2e.test.ts",
+        "packages/performance-readiness/src/performance-readiness.integration.test.ts",
+        "packages/performance-readiness/src/performance-readiness.test.ts"
+      ],
+      "tests": {
+        "e2e": 1,
+        "integration": 1,
+        "performance": 0,
+        "security": 0,
+        "unit": 1
+      },
+      "workspaceDependencies": [
+        "@assurapay/database",
+        "@assurapay/shared"
+      ]
+    },
+    {
+      "directory": "packages/permissions",
+      "exportedClasses": [
+        "PermissionEnforcementError",
+        "PermissionService",
+        "TrustStoreMembershipReader"
+      ],
+      "externalDependencies": [],
+      "main": "src/index.ts",
+      "moduleType": null,
+      "name": "@assurapay/permissions",
+      "sourceFiles": 2,
+      "sourceLines": 221,
+      "testFiles": [
+        "packages/permissions/src/enforcement.test.ts",
+        "packages/permissions/src/permissions.test.ts"
+      ],
+      "tests": {
+        "e2e": 0,
+        "integration": 0,
+        "performance": 0,
+        "security": 0,
+        "unit": 2
+      },
+      "workspaceDependencies": [
+        "@assurapay/database",
+        "@assurapay/shared"
+      ]
+    },
+    {
+      "directory": "packages/reos",
+      "exportedClasses": [],
+      "externalDependencies": [],
+      "main": "src/index.ts",
+      "moduleType": "module",
+      "name": "@assurapay/reos",
+      "sourceFiles": 24,
+      "sourceLines": 4149,
+      "testFiles": [
+        "packages/reos/src/reos.e2e.test.ts",
+        "packages/reos/src/reos.governance.test.ts",
+        "packages/reos/src/reos.integration.test.ts",
+        "packages/reos/src/reos.ledger.test.ts",
+        "packages/reos/src/reos.security.test.ts",
+        "packages/reos/src/reos.test.ts"
+      ],
+      "tests": {
+        "e2e": 1,
+        "integration": 1,
+        "performance": 0,
+        "security": 1,
+        "unit": 3
+      },
+      "workspaceDependencies": []
+    },
+    {
+      "directory": "packages/settlement-assurance",
+      "exportedClasses": [
+        "ConditionalReleaseOrchestrationEngine",
+        "EscrowFundingAssuranceEngine",
+        "FinancialEntitlementEngine",
+        "InvoiceClaimEngine",
+        "PaymentEligibilityEngine"
+      ],
+      "externalDependencies": [],
+      "main": "src/index.ts",
+      "moduleType": null,
+      "name": "@assurapay/settlement-assurance",
+      "sourceFiles": 1,
+      "sourceLines": 504,
+      "testFiles": [
+        "packages/settlement-assurance/src/settlement-assurance.e2e.test.ts",
+        "packages/settlement-assurance/src/settlement-assurance.integration.test.ts",
+        "packages/settlement-assurance/src/settlement-assurance.non-custody.test.ts",
+        "packages/settlement-assurance/src/settlement-assurance.test.ts"
+      ],
+      "tests": {
+        "e2e": 1,
+        "integration": 1,
+        "performance": 0,
+        "security": 0,
+        "unit": 2
+      },
+      "workspaceDependencies": [
+        "@assurapay/database",
+        "@assurapay/shared"
+      ]
+    },
+    {
+      "directory": "packages/settlement-execution",
+      "exportedClasses": [
+        "DisputeResolutionEngine",
+        "FinalSettlementEngine",
+        "FinancialApprovalAuthorityEngine",
+        "PaymentExecutionEngine",
+        "ReconciliationLedgerEngine"
+      ],
+      "externalDependencies": [],
+      "main": "src/index.ts",
+      "moduleType": null,
+      "name": "@assurapay/settlement-execution",
+      "sourceFiles": 1,
+      "sourceLines": 663,
+      "testFiles": [
+        "packages/settlement-execution/src/settlement-execution.e2e.test.ts",
+        "packages/settlement-execution/src/settlement-execution.integration.test.ts",
+        "packages/settlement-execution/src/settlement-execution.non-custody.test.ts",
+        "packages/settlement-execution/src/settlement-execution.test.ts"
+      ],
+      "tests": {
+        "e2e": 1,
+        "integration": 1,
+        "performance": 0,
+        "security": 0,
+        "unit": 2
+      },
+      "workspaceDependencies": [
+        "@assurapay/database",
+        "@assurapay/shared"
+      ]
+    },
+    {
+      "directory": "packages/shared",
+      "exportedClasses": [],
+      "externalDependencies": [],
+      "main": "src/index.ts",
+      "moduleType": null,
+      "name": "@assurapay/shared",
+      "sourceFiles": 2,
+      "sourceLines": 437,
+      "testFiles": [],
+      "tests": {
+        "e2e": 0,
+        "integration": 0,
+        "performance": 0,
+        "security": 0,
+        "unit": 0
+      },
+      "workspaceDependencies": []
+    },
+    {
+      "directory": "packages/workflow-intelligence",
+      "exportedClasses": [
+        "BottleneckDetectionEngine",
+        "DependencyIntelligenceEngine",
+        "EscalationIntelligenceEngine",
+        "ExceptionManagementEngine",
+        "ExecutionHealthEngine",
+        "PredictiveRiskIntelligenceEngine",
+        "ResourceIntelligenceEngine",
+        "ScheduleOptimizationEngine",
+        "SlaIntelligenceEngine",
+        "WorkflowIntelligenceEngine"
+      ],
+      "externalDependencies": [],
+      "main": "src/index.ts",
+      "moduleType": null,
+      "name": "@assurapay/workflow-intelligence",
+      "sourceFiles": 1,
+      "sourceLines": 581,
+      "testFiles": [
+        "packages/workflow-intelligence/src/workflow-intelligence.e2e.test.ts",
+        "packages/workflow-intelligence/src/workflow-intelligence.integration.test.ts",
+        "packages/workflow-intelligence/src/workflow-intelligence.performance.test.ts",
+        "packages/workflow-intelligence/src/workflow-intelligence.security.test.ts",
+        "packages/workflow-intelligence/src/workflow-intelligence.test.ts"
+      ],
+      "tests": {
+        "e2e": 1,
+        "integration": 1,
+        "performance": 1,
+        "security": 1,
+        "unit": 1
+      },
+      "workspaceDependencies": [
+        "@assurapay/database",
+        "@assurapay/shared"
+      ]
+    }
+  ],
+  "platformCapabilities": [
+    {
+      "git": {
+        "historicalCommits": [],
+        "reachableFromHead": false,
+        "refsContaining": [],
+        "removedFromHead": false
+      },
+      "id": "persistence.postgres-repository",
+      "kind": "platform",
+      "onDefaultBranch": false,
+      "probes": [
+        {
+          "kind": "path",
+          "matches": [],
+          "query": "packages/database/src/postgres-store.ts",
+          "satisfied": false
+        },
+        {
+          "kind": "symbol",
+          "matches": [],
+          "query": "PostgresTrustStore",
+          "satisfied": false
+        },
+        {
+          "kind": "test",
+          "matches": [],
+          "query": "packages/database/src/postgres-store.integration.test.ts",
+          "satisfied": false
+        }
+      ],
+      "rationale": "No evidence at HEAD, on any ref, or in history.",
+      "satisfiedProbes": 0,
+      "status": "missing",
+      "title": "PostgreSQL repository implementation",
+      "totalProbes": 3
+    },
+    {
+      "git": {
+        "historicalCommits": [],
+        "reachableFromHead": false,
+        "refsContaining": [],
+        "removedFromHead": false
+      },
+      "id": "persistence.rls-certification",
+      "kind": "platform",
+      "onDefaultBranch": false,
+      "probes": [
+        {
+          "kind": "path",
+          "matches": [],
+          "query": "packages/database/src/rls-certification.ts",
+          "satisfied": false
+        },
+        {
+          "kind": "symbol",
+          "matches": [],
+          "query": "certifyRowLevelSecurity",
+          "satisfied": false
+        },
+        {
+          "kind": "symbol",
+          "matches": [],
+          "query": "assertCrossTenantDenied",
+          "satisfied": false
+        },
+        {
+          "kind": "test",
+          "matches": [],
+          "query": "packages/database/src/rls-certification.integration.test.ts",
+          "satisfied": false
+        }
+      ],
+      "rationale": "No evidence at HEAD, on any ref, or in history.",
+      "satisfiedProbes": 0,
+      "status": "missing",
+      "title": "Row Level Security certification",
+      "totalProbes": 4
+    },
+    {
+      "git": {
+        "historicalCommits": [],
+        "reachableFromHead": true,
+        "refsContaining": [],
+        "removedFromHead": false
+      },
+      "id": "reos.execution-os",
+      "kind": "platform",
+      "onDefaultBranch": false,
+      "probes": [
+        {
+          "kind": "path",
+          "matches": [
+            "packages/reos/src/index.ts"
+          ],
+          "query": "packages/reos/src/index.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "path",
+          "matches": [
+            "packages/reos/bin/reos.ts"
+          ],
+          "query": "packages/reos/bin/reos.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "path",
+          "matches": [
+            "docs/governance/reos/README.md"
+          ],
+          "query": "docs/governance/reos/README.md",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "packages/reos/bin/reos.ts",
+            "packages/reos/src/index.ts",
+            "packages/reos/src/pipeline.ts"
+          ],
+          "query": "runPipeline",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "packages/reos/src/index.ts",
+            "packages/reos/src/pipeline.ts",
+            "packages/reos/src/reos.integration.test.ts",
+            "packages/reos/src/stages/dependencies.ts"
+          ],
+          "query": "resolveDependencies",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "packages/reos/src/index.ts",
+            "packages/reos/src/pipeline.ts",
+            "packages/reos/src/reos.integration.test.ts",
+            "packages/reos/src/stages/manifest.ts"
+          ],
+          "query": "buildExecutionManifest",
+          "satisfied": true
+        },
+        {
+          "kind": "test",
+          "matches": [
+            "packages/reos/src/reos.test.ts"
+          ],
+          "query": "packages/reos/src/reos.test.ts",
+          "satisfied": true
+        }
+      ],
+      "rationale": "All 7 evidence probes satisfied at HEAD.",
+      "satisfiedProbes": 7,
+      "status": "implemented",
+      "title": "Repository Execution Operating System",
+      "totalProbes": 7
+    },
+    {
+      "git": {
+        "historicalCommits": [],
+        "reachableFromHead": false,
+        "refsContaining": [],
+        "removedFromHead": false
+      },
+      "id": "runtime.agent-registration",
+      "kind": "platform",
+      "onDefaultBranch": false,
+      "probes": [
+        {
+          "kind": "path",
+          "matches": [],
+          "query": "apps/web/lib/agent-runtime-app.ts",
+          "satisfied": false
+        },
+        {
+          "kind": "symbol",
+          "matches": [],
+          "query": "registerAgentRuntime",
+          "satisfied": false
+        },
+        {
+          "kind": "test",
+          "matches": [],
+          "query": "packages/agent-runtime/src/agent-runtime.registration.test.ts",
+          "satisfied": false
+        }
+      ],
+      "rationale": "No evidence at HEAD, on any ref, or in history.",
+      "satisfiedProbes": 0,
+      "status": "missing",
+      "title": "Agent Runtime registration",
+      "totalProbes": 3
+    },
+    {
+      "git": {
+        "historicalCommits": [],
+        "reachableFromHead": true,
+        "refsContaining": [],
+        "removedFromHead": false
+      },
+      "id": "settlement.non-custody-guard",
+      "kind": "platform",
+      "onDefaultBranch": false,
+      "probes": [
+        {
+          "kind": "path",
+          "matches": [
+            "packages/reos/src/validators/security.ts"
+          ],
+          "query": "packages/reos/src/validators/security.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "packages/reos/src/index.ts",
+            "packages/reos/src/reos.integration.test.ts",
+            "packages/reos/src/reos.security.test.ts",
+            "packages/reos/src/stages/certify.ts",
+            "packages/reos/src/stages/report.ts",
+            "packages/reos/src/validators/security.ts"
+          ],
+          "query": "validateSecurity",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "packages/reos/src/index.ts",
+            "packages/reos/src/reos.security.test.ts",
+            "packages/reos/src/validators/security.ts"
+          ],
+          "query": "CUSTODY_PRIMITIVES",
+          "satisfied": true
+        },
+        {
+          "kind": "test",
+          "matches": [
+            "packages/reos/src/reos.security.test.ts"
+          ],
+          "query": "packages/reos/src/reos.security.test.ts",
+          "satisfied": true
+        }
+      ],
+      "rationale": "All 4 evidence probes satisfied at HEAD.",
+      "satisfiedProbes": 4,
+      "status": "implemented",
+      "title": "Non-custody architectural guard",
+      "totalProbes": 4
+    },
+    {
+      "git": {
+        "historicalCommits": [],
+        "reachableFromHead": true,
+        "refsContaining": [],
+        "removedFromHead": false
+      },
+      "id": "trust.identity-assertions",
+      "kind": "platform",
+      "onDefaultBranch": false,
+      "probes": [
+        {
+          "kind": "path",
+          "matches": [
+            "packages/identity/src/assertions.ts"
+          ],
+          "query": "packages/identity/src/assertions.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "packages/identity/src/assertions.test.ts",
+            "packages/identity/src/assertions.ts",
+            "packages/identity/src/gateway.test.ts",
+            "packages/identity/src/gateway.ts"
+          ],
+          "query": "createIdentityAssertion",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "packages/identity/src/assertions.test.ts",
+            "packages/identity/src/assertions.ts",
+            "packages/identity/src/gateway.ts"
+          ],
+          "query": "verifyIdentityAssertion",
+          "satisfied": true
+        },
+        {
+          "kind": "test",
+          "matches": [
+            "packages/identity/src/assertions.test.ts"
+          ],
+          "query": "packages/identity/src/assertions.test.ts",
+          "satisfied": true
+        }
+      ],
+      "rationale": "All 4 evidence probes satisfied at HEAD.",
+      "satisfiedProbes": 4,
+      "status": "implemented",
+      "title": "HMAC identity assertions",
+      "totalProbes": 4
+    },
+    {
+      "git": {
+        "historicalCommits": [],
+        "reachableFromHead": true,
+        "refsContaining": [],
+        "removedFromHead": false
+      },
+      "id": "trust.identity-gateway",
+      "kind": "platform",
+      "onDefaultBranch": false,
+      "probes": [
+        {
+          "kind": "path",
+          "matches": [
+            "packages/identity/src/gateway.ts"
+          ],
+          "query": "packages/identity/src/gateway.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "apps/web/lib/trust-app.ts",
+            "packages/identity/src/assertions.ts",
+            "packages/identity/src/gateway.test.ts",
+            "packages/identity/src/gateway.ts"
+          ],
+          "query": "IdentityGateway",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "packages/identity/src/gateway.test.ts",
+            "packages/identity/src/gateway.ts"
+          ],
+          "query": "resolveRequestContext",
+          "satisfied": true
+        },
+        {
+          "kind": "test",
+          "matches": [
+            "packages/identity/src/gateway.test.ts"
+          ],
+          "query": "packages/identity/src/gateway.test.ts",
+          "satisfied": true
+        }
+      ],
+      "rationale": "All 4 evidence probes satisfied at HEAD.",
+      "satisfiedProbes": 4,
+      "status": "implemented",
+      "title": "Production identity gateway",
+      "totalProbes": 4
+    },
+    {
+      "git": {
+        "historicalCommits": [],
+        "reachableFromHead": true,
+        "refsContaining": [],
+        "removedFromHead": false
+      },
+      "id": "trust.permission-enforcement",
+      "kind": "platform",
+      "onDefaultBranch": false,
+      "probes": [
+        {
+          "kind": "path",
+          "matches": [
+            "packages/permissions/src/enforcement.ts"
+          ],
+          "query": "packages/permissions/src/enforcement.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "apps/web/lib/trust-app.ts",
+            "packages/permissions/src/enforcement.test.ts",
+            "packages/permissions/src/enforcement.ts"
+          ],
+          "query": "enforcePermission",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "packages/permissions/src/enforcement.test.ts",
+            "packages/permissions/src/enforcement.ts"
+          ],
+          "query": "PermissionEnforcementError",
+          "satisfied": true
+        },
+        {
+          "kind": "test",
+          "matches": [
+            "packages/permissions/src/enforcement.test.ts"
+          ],
+          "query": "packages/permissions/src/enforcement.test.ts",
+          "satisfied": true
+        }
+      ],
+      "rationale": "All 4 evidence probes satisfied at HEAD.",
+      "satisfiedProbes": 4,
+      "status": "implemented",
+      "title": "Permission enforcement middleware",
+      "totalProbes": 4
+    },
+    {
+      "git": {
+        "historicalCommits": [],
+        "reachableFromHead": false,
+        "refsContaining": [],
+        "removedFromHead": false
+      },
+      "id": "trust.route-permission-integration",
+      "kind": "platform",
+      "onDefaultBranch": false,
+      "probes": [
+        {
+          "kind": "path",
+          "matches": [],
+          "query": "apps/web/lib/route-permissions.ts",
+          "satisfied": false
+        },
+        {
+          "kind": "symbol",
+          "matches": [],
+          "query": "ROUTE_PERMISSION_REQUIREMENTS",
+          "satisfied": false
+        },
+        {
+          "kind": "symbol",
+          "matches": [],
+          "query": "requirementForRoute",
+          "satisfied": false
+        },
+        {
+          "kind": "test",
+          "matches": [],
+          "query": "apps/web/lib/route-permissions.test.ts",
+          "satisfied": false
+        }
+      ],
+      "rationale": "No evidence at HEAD, on any ref, or in history.",
+      "satisfiedProbes": 0,
+      "status": "missing",
+      "title": "Route-level permission mapping",
+      "totalProbes": 4
+    }
+  ],
+  "reconciliationFindings": [
+    {
+      "evidence": [
+        "vitest run packages/governance-core/src/governance-core.test.ts --testNamePattern=09"
+      ],
+      "location": "package.json",
+      "message": "certify:certification certifies packages/governance-core using batch number 09, but catalog engine 09 (Notification & Communication) maps to no implementation package. The certify:* batch numbering and the catalog engine numbering are two different identifier spaces using the same numbers.",
+      "rule": "catalog/certification-numbering-collision",
+      "severity": "warning",
+      "subject": "certify:certification"
+    },
+    {
+      "evidence": [
+        "vitest run packages/governance-core/src/governance-core.test.ts --testNamePattern=08"
+      ],
+      "location": "package.json",
+      "message": "certify:dod certifies packages/governance-core using batch number 08, but catalog engine 08 (Audit & Evidence Ledger) maps to no implementation package. The certify:* batch numbering and the catalog engine numbering are two different identifier spaces using the same numbers.",
+      "rule": "catalog/certification-numbering-collision",
+      "severity": "warning",
+      "subject": "certify:dod"
+    },
+    {
+      "evidence": [
+        "vitest run packages/governance-core/src/governance-core.test.ts --testNamePattern=06"
+      ],
+      "location": "package.json",
+      "message": "certify:execution certifies packages/governance-core using batch number 06, but catalog engine 06 (Third-Party Risk) maps to no implementation package. The certify:* batch numbering and the catalog engine numbering are two different identifier spaces using the same numbers.",
+      "rule": "catalog/certification-numbering-collision",
+      "severity": "warning",
+      "subject": "certify:execution"
+    },
+    {
+      "evidence": [
+        "vitest run packages/governance-core/src/governance-core.test.ts --testNamePattern=07"
+      ],
+      "location": "package.json",
+      "message": "certify:milestones certifies packages/governance-core using batch number 07, but catalog engine 07 (Compliance Foundation) maps to no implementation package. The certify:* batch numbering and the catalog engine numbering are two different identifier spaces using the same numbers.",
+      "rule": "catalog/certification-numbering-collision",
+      "severity": "warning",
+      "subject": "certify:milestones"
+    },
+    {
+      "evidence": [
+        "vitest run packages/governance-core/src/governance-core.test.ts --testNamePattern=10"
+      ],
+      "location": "package.json",
+      "message": "certify:payment-triggers certifies packages/governance-core using batch number 10, but catalog engine 10 (Enterprise Configuration) maps to no implementation package. The certify:* batch numbering and the catalog engine numbering are two different identifier spaces using the same numbers.",
+      "rule": "catalog/certification-numbering-collision",
+      "severity": "warning",
+      "subject": "certify:payment-triggers"
+    },
+    {
+      "location": "docs/ENGINE_CATALOG.md",
+      "message": "Engine 01 (Identity & Digital Trust) is declared \"Conditionally implemented\" but repository evidence shows \"implemented\".",
+      "rule": "catalog/status-divergence",
+      "severity": "warning",
+      "subject": "engine:01"
+    },
+    {
+      "location": "docs/ENGINE_CATALOG.md",
+      "message": "Engine 02 (Organization & Multi-Tenant) is declared \"Conditionally implemented\" but repository evidence shows \"implemented\".",
+      "rule": "catalog/status-divergence",
+      "severity": "warning",
+      "subject": "engine:02"
+    },
+    {
+      "location": "docs/ENGINE_CATALOG.md",
+      "message": "Engine 03 (Roles, Permissions & Governance) is declared \"Conditionally implemented\" but repository evidence shows \"implemented\".",
+      "rule": "catalog/status-divergence",
+      "severity": "warning",
+      "subject": "engine:03"
+    },
+    {
+      "location": "docs/ENGINE_CATALOG.md",
+      "message": "Engine 04 (Party Verification) is declared \"Conditionally implemented\" but repository evidence shows \"implemented\".",
+      "rule": "catalog/status-divergence",
+      "severity": "warning",
+      "subject": "engine:04"
+    },
+    {
+      "location": "docs/ENGINE_CATALOG.md",
+      "message": "Engine 05 (Legal Governance) is declared \"Conditionally implemented\" but repository evidence shows \"implemented\".",
+      "rule": "catalog/status-divergence",
+      "severity": "warning",
+      "subject": "engine:05"
+    },
+    {
+      "location": "docs/ENGINE_CATALOG.md",
+      "message": "Engine 08 (Audit & Evidence Ledger) is declared \"Foundation only\" but repository evidence shows \"missing\".",
+      "rule": "catalog/status-divergence",
+      "severity": "warning",
+      "subject": "engine:08"
+    },
+    {
+      "evidence": [
+        "AgentGovernanceEngine",
+        "AgentRegistryEngine",
+        "AgentRuntimeEngine",
+        "AgentTelemetryEngine",
+        "AiGatewayEngine",
+        "CapabilityRegistryEngine",
+        "ContextEngine",
+        "ExecutionMemoryEngine"
+      ],
+      "location": "packages/agent-runtime/src/index.ts",
+      "message": "packages/agent-runtime exports 10 engine class(es) but is not mapped to any catalog engine, so its scope is not represented in docs/ENGINE_CATALOG.md.",
+      "rule": "catalog/unmapped-engine-package",
+      "severity": "warning",
+      "subject": "packages/agent-runtime"
+    },
+    {
+      "evidence": [
+        "CertificationEngine",
+        "DefinitionOfDoneEngine",
+        "ExecutionEngine",
+        "MilestoneEngine",
+        "PaymentTriggerEngine"
+      ],
+      "location": "packages/governance-core/src/index.ts",
+      "message": "packages/governance-core exports 5 engine class(es) but is not mapped to any catalog engine, so its scope is not represented in docs/ENGINE_CATALOG.md.",
+      "rule": "catalog/unmapped-engine-package",
+      "severity": "warning",
+      "subject": "packages/governance-core"
+    },
+    {
+      "evidence": [
+        "BottleneckDetectionEngine",
+        "DependencyIntelligenceEngine",
+        "EscalationIntelligenceEngine",
+        "ExceptionManagementEngine",
+        "ExecutionHealthEngine",
+        "PredictiveRiskIntelligenceEngine",
+        "ResourceIntelligenceEngine",
+        "ScheduleOptimizationEngine"
+      ],
+      "location": "packages/workflow-intelligence/src/index.ts",
+      "message": "packages/workflow-intelligence exports 10 engine class(es) but is not mapped to any catalog engine, so its scope is not represented in docs/ENGINE_CATALOG.md.",
+      "rule": "catalog/unmapped-engine-package",
+      "severity": "warning",
+      "subject": "packages/workflow-intelligence"
+    },
+    {
+      "evidence": [
+        "packages/performance-readiness",
+        "packages/workflow-intelligence"
+      ],
+      "message": "DependencyIntelligenceEngine is exported by 2 packages, which duplicates an abstraction.",
+      "rule": "runtime/duplicate-abstraction",
+      "severity": "error",
+      "subject": "DependencyIntelligenceEngine"
+    },
+    {
+      "evidence": [
+        "AgentGovernanceEngine",
+        "AgentRegistryEngine",
+        "AgentRuntimeEngine",
+        "AgentTelemetryEngine",
+        "AiGatewayEngine",
+        "CapabilityRegistryEngine",
+        "ContextEngine",
+        "ExecutionMemoryEngine",
+        "FileAssuraStore",
+        "HumanApprovalEngine",
+        "IdentityAssertionError",
+        "IdentityGateway"
+      ],
+      "message": "18 exported engine class(es) are not instantiated in any composition root, so they are unreachable at runtime.",
+      "rule": "runtime/unregistered-engine",
+      "severity": "warning",
+      "subject": "runtime"
+    }
+  ],
+  "reosVersion": "1.0.0",
+  "runtime": {
+    "duplicatedEngines": [
+      "DependencyIntelligenceEngine"
+    ],
+    "exportedEngines": [
+      "AcceptanceCriteriaEngine",
+      "AcceptanceDecisionEngine",
+      "AgentGovernanceEngine",
+      "AgentRegistryEngine",
+      "AgentRuntimeEngine",
+      "AgentTelemetryEngine",
+      "AgreementIntelligenceEngine",
+      "AiDecisionSupportEngine",
+      "AiGatewayEngine",
+      "ApprovalWorkflowEngine",
+      "AssuraPayService",
+      "BottleneckDetectionEngine",
+      "CapabilityRegistryEngine",
+      "CertificationEngine",
+      "ChangeControlEngine",
+      "ClauseIntelligenceEngine",
+      "CompletionCertificationEngine",
+      "ConditionalReleaseOrchestrationEngine",
+      "ContextEngine",
+      "ContractAnalysisEngine",
+      "ContractAuthoringEngine",
+      "ContractRepositoryEngine",
+      "ContractRiskEngine",
+      "ContractVersionEngine",
+      "DefinitionOfDoneEngine",
+      "DefinitionOfDonePackageEngine",
+      "DeliverablesEngine",
+      "DependencyIntelligenceEngine",
+      "DeterministicVerificationProvider",
+      "DigitalExecutionEngine",
+      "DisputeResolutionEngine",
+      "EnterpriseKpiEngine",
+      "EscalationIntelligenceEngine",
+      "EscrowFundingAssuranceEngine",
+      "EvidenceManagementEngine",
+      "ExceptionManagementEngine",
+      "ExecutionAssuranceIndexEngine",
+      "ExecutionEngine",
+      "ExecutionHealthEngine",
+      "ExecutionMemoryEngine",
+      "ExecutionOrchestrationEngine",
+      "ExecutiveDashboardEngine",
+      "FileAssuraStore",
+      "FinalSettlementEngine",
+      "FinancialApprovalAuthorityEngine",
+      "FinancialEntitlementEngine",
+      "FinancialPaymentIntelligenceEngine",
+      "HumanApprovalEngine",
+      "IdentityAssertionError",
+      "IdentityAssertionService",
+      "IdentityGateway",
+      "IdentityGatewayError",
+      "IdentityService",
+      "InMemoryAssertionReplayStore",
+      "InMemoryTrustStore",
+      "InspectionEngine",
+      "InvoiceClaimEngine",
+      "IssueRiskCorrectiveActionEngine",
+      "LegalService",
+      "MilestoneEngine",
+      "MilestonePlanningEngine",
+      "NegotiationEngine",
+      "OrganizationService",
+      "PartyService",
+      "PaymentEligibilityEngine",
+      "PaymentExecutionEngine",
+      "PaymentTriggerEngine",
+      "PaymentTriggerRuleEngine",
+      "PerformanceBaselineEngine",
+      "PerformanceBlueprintEngine",
+      "PermissionEnforcementError",
+      "PermissionService",
+      "PortfolioAnalyticsEngine",
+      "PredictiveExecutionIntelligenceEngine",
+      "PredictiveRiskIntelligenceEngine",
+      "ProgressMeasurementEngine",
+      "PromptRegistryEngine",
+      "QualityAssuranceEngine",
+      "ReconciliationLedgerEngine",
+      "RenewalRelationshipIntelligenceEngine",
+      "ResourceIntelligenceEngine",
+      "ScheduleOptimizationEngine",
+      "ScopeDefinitionEngine",
+      "SettlementAssuranceIndexEngine",
+      "SlaIntelligenceEngine",
+      "SuccessMetricsEngine",
+      "TrustStoreMembershipReader",
+      "ValidationAcceptanceTestingEngine",
+      "VendorCustomerPerformanceEngine",
+      "WorkflowIntelligenceEngine"
+    ],
+    "registrations": [
+      {
+        "compositionRoot": "apps/web/lib/assurapay-app.ts",
+        "registeredEngines": [
+          "AssuraPayService"
+        ]
+      },
+      {
+        "compositionRoot": "apps/web/lib/trust-app.ts",
+        "registeredEngines": [
+          "AcceptanceCriteriaEngine",
+          "AcceptanceDecisionEngine",
+          "AgreementIntelligenceEngine",
+          "AiDecisionSupportEngine",
+          "ApprovalWorkflowEngine",
+          "BottleneckDetectionEngine",
+          "CertificationEngine",
+          "ChangeControlEngine",
+          "ClauseIntelligenceEngine",
+          "CompletionCertificationEngine",
+          "ConditionalReleaseOrchestrationEngine",
+          "ContractAnalysisEngine",
+          "ContractAuthoringEngine",
+          "ContractRepositoryEngine",
+          "ContractRiskEngine",
+          "ContractVersionEngine",
+          "DefinitionOfDoneEngine",
+          "DefinitionOfDonePackageEngine",
+          "DeliverablesEngine",
+          "DependencyIntelligenceEngine",
+          "DeterministicVerificationProvider",
+          "DigitalExecutionEngine",
+          "DisputeResolutionEngine",
+          "EnterpriseKpiEngine",
+          "EscalationIntelligenceEngine",
+          "EscrowFundingAssuranceEngine",
+          "EvidenceManagementEngine",
+          "ExceptionManagementEngine",
+          "ExecutionAssuranceIndexEngine",
+          "ExecutionEngine",
+          "ExecutionHealthEngine",
+          "ExecutionOrchestrationEngine",
+          "ExecutiveDashboardEngine",
+          "FinalSettlementEngine",
+          "FinancialApprovalAuthorityEngine",
+          "FinancialEntitlementEngine",
+          "FinancialPaymentIntelligenceEngine",
+          "IdentityAssertionService",
+          "IdentityService",
+          "InspectionEngine",
+          "InvoiceClaimEngine",
+          "IssueRiskCorrectiveActionEngine",
+          "LegalService",
+          "MilestoneEngine",
+          "MilestonePlanningEngine",
+          "NegotiationEngine",
+          "OrganizationService",
+          "PartyService",
+          "PaymentEligibilityEngine",
+          "PaymentExecutionEngine",
+          "PaymentTriggerEngine",
+          "PaymentTriggerRuleEngine",
+          "PerformanceBaselineEngine",
+          "PerformanceBlueprintEngine",
+          "PermissionService",
+          "PortfolioAnalyticsEngine",
+          "PredictiveExecutionIntelligenceEngine",
+          "PredictiveRiskIntelligenceEngine",
+          "ProgressMeasurementEngine",
+          "QualityAssuranceEngine",
+          "ReconciliationLedgerEngine",
+          "RenewalRelationshipIntelligenceEngine",
+          "ResourceIntelligenceEngine",
+          "ScheduleOptimizationEngine",
+          "ScopeDefinitionEngine",
+          "SettlementAssuranceIndexEngine",
+          "SlaIntelligenceEngine",
+          "SuccessMetricsEngine",
+          "ValidationAcceptanceTestingEngine",
+          "VendorCustomerPerformanceEngine",
+          "WorkflowDependencyIntelligenceEngine",
+          "WorkflowIntelligenceEngine"
+        ]
+      }
+    ],
+    "unregisteredEngines": [
+      "AgentGovernanceEngine",
+      "AgentRegistryEngine",
+      "AgentRuntimeEngine",
+      "AgentTelemetryEngine",
+      "AiGatewayEngine",
+      "CapabilityRegistryEngine",
+      "ContextEngine",
+      "ExecutionMemoryEngine",
+      "FileAssuraStore",
+      "HumanApprovalEngine",
+      "IdentityAssertionError",
+      "IdentityGateway",
+      "IdentityGatewayError",
+      "InMemoryAssertionReplayStore",
+      "InMemoryTrustStore",
+      "PermissionEnforcementError",
+      "PromptRegistryEngine",
+      "TrustStoreMembershipReader"
+    ]
+  },
+  "stage": "manifest"
+}

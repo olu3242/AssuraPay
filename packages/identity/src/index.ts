@@ -1,4 +1,8 @@
 import { createHash, randomUUID } from 'node:crypto';
+
+export * from './assertions';
+export * from './gateway';
+
 import type { AssuranceLevel, RequestContext, TrustPersistence } from '@assurapay/shared';
 
 export type IdentityStatus = 'PENDING_VERIFICATION' | 'ACTIVE' | 'SUSPENDED' | 'LOCKED' | 'DISABLED' | 'DELETED';

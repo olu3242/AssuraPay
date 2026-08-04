@@ -1,0 +1,472 @@
+{
+  "capabilities": [
+    {
+      "git": {
+        "historicalCommits": [],
+        "reachableFromHead": false,
+        "refsContaining": [],
+        "removedFromHead": false
+      },
+      "id": "persistence.postgres-repository",
+      "kind": "platform",
+      "onDefaultBranch": false,
+      "probes": [
+        {
+          "kind": "path",
+          "matches": [],
+          "query": "packages/database/src/postgres-store.ts",
+          "satisfied": false
+        },
+        {
+          "kind": "symbol",
+          "matches": [],
+          "query": "PostgresTrustStore",
+          "satisfied": false
+        },
+        {
+          "kind": "test",
+          "matches": [],
+          "query": "packages/database/src/postgres-store.integration.test.ts",
+          "satisfied": false
+        }
+      ],
+      "rationale": "No evidence at HEAD, on any ref, or in history.",
+      "satisfiedProbes": 0,
+      "status": "missing",
+      "title": "PostgreSQL repository implementation",
+      "totalProbes": 3
+    },
+    {
+      "git": {
+        "historicalCommits": [],
+        "reachableFromHead": false,
+        "refsContaining": [],
+        "removedFromHead": false
+      },
+      "id": "persistence.rls-certification",
+      "kind": "platform",
+      "onDefaultBranch": false,
+      "probes": [
+        {
+          "kind": "path",
+          "matches": [],
+          "query": "packages/database/src/rls-certification.ts",
+          "satisfied": false
+        },
+        {
+          "kind": "symbol",
+          "matches": [],
+          "query": "certifyRowLevelSecurity",
+          "satisfied": false
+        },
+        {
+          "kind": "symbol",
+          "matches": [],
+          "query": "assertCrossTenantDenied",
+          "satisfied": false
+        },
+        {
+          "kind": "test",
+          "matches": [],
+          "query": "packages/database/src/rls-certification.integration.test.ts",
+          "satisfied": false
+        }
+      ],
+      "rationale": "No evidence at HEAD, on any ref, or in history.",
+      "satisfiedProbes": 0,
+      "status": "missing",
+      "title": "Row Level Security certification",
+      "totalProbes": 4
+    },
+    {
+      "git": {
+        "historicalCommits": [],
+        "reachableFromHead": true,
+        "refsContaining": [],
+        "removedFromHead": false
+      },
+      "id": "reos.execution-os",
+      "kind": "platform",
+      "onDefaultBranch": false,
+      "probes": [
+        {
+          "kind": "path",
+          "matches": [
+            "packages/reos/src/index.ts"
+          ],
+          "query": "packages/reos/src/index.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "path",
+          "matches": [
+            "packages/reos/bin/reos.ts"
+          ],
+          "query": "packages/reos/bin/reos.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "path",
+          "matches": [
+            "docs/governance/reos/README.md"
+          ],
+          "query": "docs/governance/reos/README.md",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "packages/reos/bin/reos.ts",
+            "packages/reos/src/index.ts",
+            "packages/reos/src/pipeline.ts"
+          ],
+          "query": "runPipeline",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "packages/reos/src/index.ts",
+            "packages/reos/src/pipeline.ts",
+            "packages/reos/src/reos.integration.test.ts",
+            "packages/reos/src/stages/dependencies.ts"
+          ],
+          "query": "resolveDependencies",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "packages/reos/src/index.ts",
+            "packages/reos/src/pipeline.ts",
+            "packages/reos/src/reos.integration.test.ts",
+            "packages/reos/src/stages/manifest.ts"
+          ],
+          "query": "buildExecutionManifest",
+          "satisfied": true
+        },
+        {
+          "kind": "test",
+          "matches": [
+            "packages/reos/src/reos.test.ts"
+          ],
+          "query": "packages/reos/src/reos.test.ts",
+          "satisfied": true
+        }
+      ],
+      "rationale": "All 7 evidence probes satisfied at HEAD.",
+      "satisfiedProbes": 7,
+      "status": "implemented",
+      "title": "Repository Execution Operating System",
+      "totalProbes": 7
+    },
+    {
+      "git": {
+        "historicalCommits": [],
+        "reachableFromHead": false,
+        "refsContaining": [],
+        "removedFromHead": false
+      },
+      "id": "runtime.agent-registration",
+      "kind": "platform",
+      "onDefaultBranch": false,
+      "probes": [
+        {
+          "kind": "path",
+          "matches": [],
+          "query": "apps/web/lib/agent-runtime-app.ts",
+          "satisfied": false
+        },
+        {
+          "kind": "symbol",
+          "matches": [],
+          "query": "registerAgentRuntime",
+          "satisfied": false
+        },
+        {
+          "kind": "test",
+          "matches": [],
+          "query": "packages/agent-runtime/src/agent-runtime.registration.test.ts",
+          "satisfied": false
+        }
+      ],
+      "rationale": "No evidence at HEAD, on any ref, or in history.",
+      "satisfiedProbes": 0,
+      "status": "missing",
+      "title": "Agent Runtime registration",
+      "totalProbes": 3
+    },
+    {
+      "git": {
+        "historicalCommits": [],
+        "reachableFromHead": true,
+        "refsContaining": [],
+        "removedFromHead": false
+      },
+      "id": "settlement.non-custody-guard",
+      "kind": "platform",
+      "onDefaultBranch": false,
+      "probes": [
+        {
+          "kind": "path",
+          "matches": [
+            "packages/reos/src/validators/security.ts"
+          ],
+          "query": "packages/reos/src/validators/security.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "packages/reos/src/index.ts",
+            "packages/reos/src/reos.integration.test.ts",
+            "packages/reos/src/reos.security.test.ts",
+            "packages/reos/src/stages/certify.ts",
+            "packages/reos/src/stages/report.ts",
+            "packages/reos/src/validators/security.ts"
+          ],
+          "query": "validateSecurity",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "packages/reos/src/index.ts",
+            "packages/reos/src/reos.security.test.ts",
+            "packages/reos/src/validators/security.ts"
+          ],
+          "query": "CUSTODY_PRIMITIVES",
+          "satisfied": true
+        },
+        {
+          "kind": "test",
+          "matches": [
+            "packages/reos/src/reos.security.test.ts"
+          ],
+          "query": "packages/reos/src/reos.security.test.ts",
+          "satisfied": true
+        }
+      ],
+      "rationale": "All 4 evidence probes satisfied at HEAD.",
+      "satisfiedProbes": 4,
+      "status": "implemented",
+      "title": "Non-custody architectural guard",
+      "totalProbes": 4
+    },
+    {
+      "git": {
+        "historicalCommits": [],
+        "reachableFromHead": true,
+        "refsContaining": [],
+        "removedFromHead": false
+      },
+      "id": "trust.identity-assertions",
+      "kind": "platform",
+      "onDefaultBranch": false,
+      "probes": [
+        {
+          "kind": "path",
+          "matches": [
+            "packages/identity/src/assertions.ts"
+          ],
+          "query": "packages/identity/src/assertions.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "packages/identity/src/assertions.test.ts",
+            "packages/identity/src/assertions.ts",
+            "packages/identity/src/gateway.test.ts",
+            "packages/identity/src/gateway.ts"
+          ],
+          "query": "createIdentityAssertion",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "packages/identity/src/assertions.test.ts",
+            "packages/identity/src/assertions.ts",
+            "packages/identity/src/gateway.ts"
+          ],
+          "query": "verifyIdentityAssertion",
+          "satisfied": true
+        },
+        {
+          "kind": "test",
+          "matches": [
+            "packages/identity/src/assertions.test.ts"
+          ],
+          "query": "packages/identity/src/assertions.test.ts",
+          "satisfied": true
+        }
+      ],
+      "rationale": "All 4 evidence probes satisfied at HEAD.",
+      "satisfiedProbes": 4,
+      "status": "implemented",
+      "title": "HMAC identity assertions",
+      "totalProbes": 4
+    },
+    {
+      "git": {
+        "historicalCommits": [],
+        "reachableFromHead": true,
+        "refsContaining": [],
+        "removedFromHead": false
+      },
+      "id": "trust.identity-gateway",
+      "kind": "platform",
+      "onDefaultBranch": false,
+      "probes": [
+        {
+          "kind": "path",
+          "matches": [
+            "packages/identity/src/gateway.ts"
+          ],
+          "query": "packages/identity/src/gateway.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "apps/web/lib/trust-app.ts",
+            "packages/identity/src/assertions.ts",
+            "packages/identity/src/gateway.test.ts",
+            "packages/identity/src/gateway.ts"
+          ],
+          "query": "IdentityGateway",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "packages/identity/src/gateway.test.ts",
+            "packages/identity/src/gateway.ts"
+          ],
+          "query": "resolveRequestContext",
+          "satisfied": true
+        },
+        {
+          "kind": "test",
+          "matches": [
+            "packages/identity/src/gateway.test.ts"
+          ],
+          "query": "packages/identity/src/gateway.test.ts",
+          "satisfied": true
+        }
+      ],
+      "rationale": "All 4 evidence probes satisfied at HEAD.",
+      "satisfiedProbes": 4,
+      "status": "implemented",
+      "title": "Production identity gateway",
+      "totalProbes": 4
+    },
+    {
+      "git": {
+        "historicalCommits": [],
+        "reachableFromHead": true,
+        "refsContaining": [],
+        "removedFromHead": false
+      },
+      "id": "trust.permission-enforcement",
+      "kind": "platform",
+      "onDefaultBranch": false,
+      "probes": [
+        {
+          "kind": "path",
+          "matches": [
+            "packages/permissions/src/enforcement.ts"
+          ],
+          "query": "packages/permissions/src/enforcement.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "apps/web/lib/trust-app.ts",
+            "packages/permissions/src/enforcement.test.ts",
+            "packages/permissions/src/enforcement.ts"
+          ],
+          "query": "enforcePermission",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "packages/permissions/src/enforcement.test.ts",
+            "packages/permissions/src/enforcement.ts"
+          ],
+          "query": "PermissionEnforcementError",
+          "satisfied": true
+        },
+        {
+          "kind": "test",
+          "matches": [
+            "packages/permissions/src/enforcement.test.ts"
+          ],
+          "query": "packages/permissions/src/enforcement.test.ts",
+          "satisfied": true
+        }
+      ],
+      "rationale": "All 4 evidence probes satisfied at HEAD.",
+      "satisfiedProbes": 4,
+      "status": "implemented",
+      "title": "Permission enforcement middleware",
+      "totalProbes": 4
+    },
+    {
+      "git": {
+        "historicalCommits": [],
+        "reachableFromHead": false,
+        "refsContaining": [],
+        "removedFromHead": false
+      },
+      "id": "trust.route-permission-integration",
+      "kind": "platform",
+      "onDefaultBranch": false,
+      "probes": [
+        {
+          "kind": "path",
+          "matches": [],
+          "query": "apps/web/lib/route-permissions.ts",
+          "satisfied": false
+        },
+        {
+          "kind": "symbol",
+          "matches": [],
+          "query": "ROUTE_PERMISSION_REQUIREMENTS",
+          "satisfied": false
+        },
+        {
+          "kind": "symbol",
+          "matches": [],
+          "query": "requirementForRoute",
+          "satisfied": false
+        },
+        {
+          "kind": "test",
+          "matches": [],
+          "query": "apps/web/lib/route-permissions.test.ts",
+          "satisfied": false
+        }
+      ],
+      "rationale": "No evidence at HEAD, on any ref, or in history.",
+      "satisfiedProbes": 0,
+      "status": "missing",
+      "title": "Route-level permission mapping",
+      "totalProbes": 4
+    }
+  ],
+  "head": "cbe143540c9dba8ae93680e2e7387e8d0d085f8b",
+  "reosVersion": "1.0.0",
+  "stage": "forensics",
+  "summary": {
+    "deferred": 0,
+    "implemented": 5,
+    "lost": 0,
+    "missing": 4,
+    "partial": 0,
+    "unreachable": 0
+  }
+}

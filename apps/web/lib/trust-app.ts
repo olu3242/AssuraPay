@@ -1,7 +1,20 @@
 import { InMemoryTrustStore } from '@assurapay/database';
-import { IdentityService } from '@assurapay/identity';
+import {
+  IdentityAssertionService,
+  IdentityGateway,
+  IdentityService,
+  InMemoryAssertionReplayStore,
+  loadAssertionKeyring,
+  loadGatewayConfig,
+} from '@assurapay/identity';
 import { OrganizationService } from '@assurapay/organizations';
-import { PermissionService } from '@assurapay/permissions';
+import {
+  PermissionService,
+  TrustStoreMembershipReader,
+  enforcePermission,
+  resolveMemberships,
+  type PermissionRequirement,
+} from '@assurapay/permissions';
 import {
   DeterministicVerificationProvider,
   PartyService,
@@ -107,9 +120,55 @@ import {
 } from '@assurapay/workflow-intelligence';
 const globalTrust = globalThis as typeof globalThis & {
   assurapayTrustStore?: InMemoryTrustStore;
+  assurapayAssertionReplayStore?: InMemoryAssertionReplayStore;
 };
 export const trustStore = (globalTrust.assurapayTrustStore ??=
   new InMemoryTrustStore());
+
+/**
+ * Replay guard state must survive a dev-server reload, or a reload would forget
+ * every consumed nonce and re-admit replays.
+ */
+const assertionReplayStore = (globalTrust.assurapayAssertionReplayStore ??=
+  new InMemoryAssertionReplayStore());
+
+let identityAssertions: IdentityAssertionService | undefined;
+
+/**
+ * Assertion signing requires configured keys, so the service is built on first
+ * use rather than at import. An unconfigured environment still boots and fails
+ * closed with ASSERTION_KEYRING_REQUIRED on the paths that need an assertion,
+ * instead of breaking the whole application at load.
+ */
+export function getIdentityAssertions(): IdentityAssertionService {
+  identityAssertions ??= new IdentityAssertionService(
+    trustStore,
+    loadAssertionKeyring(process.env),
+    assertionReplayStore,
+  );
+  return identityAssertions;
+}
+
+let identityGateway: IdentityGateway | undefined;
+
+/**
+ * The governed identity boundary. Built on first use so an unconfigured
+ * environment still boots and fails closed on the request paths that need
+ * identity, rather than breaking the whole application at import.
+ *
+ * Construction refuses a process-local replay store when the configuration
+ * requires distributed protection, so production cannot silently run on
+ * single-process replay semantics.
+ */
+export function getIdentityGateway(): IdentityGateway {
+  identityGateway ??= new IdentityGateway(
+    trustStore,
+    loadAssertionKeyring(process.env),
+    assertionReplayStore,
+    loadGatewayConfig(process.env),
+  );
+  return identityGateway;
+}
 export const trust = {
   identity: new IdentityService(trustStore),
   organizations: new OrganizationService(trustStore),
@@ -226,35 +285,82 @@ export const workflowIntelligence = {
   resources: new ResourceIntelligenceEngine(),
   health: new ExecutionHealthEngine(trustStore),
 };
-export function requestContext(request: Request): RequestContext {
-  const actorUserId = request.headers.get('x-assurapay-user-id');
-  const sessionId = request.headers.get('x-assurapay-session-id');
-  const activeWorkspaceId =
-    request.headers.get('x-assurapay-workspace-id') ?? undefined;
-  const tenantId = request.headers.get('x-assurapay-tenant-id') ?? undefined;
-  if (!actorUserId || !sessionId) throw new Error('UNAUTHENTICATED');
-  return {
-    actorUserId,
-    sessionId,
-    activeWorkspaceId,
-    tenantId,
-    identityAssuranceLevel:
-      (request.headers.get(
-        'x-assurapay-assurance',
-      ) as RequestContext['identityAssuranceLevel']) ?? 'IAL1_BASIC',
-    memberships: (request.headers.get('x-assurapay-memberships') ?? '')
-      .split(',')
-      .filter(Boolean),
-    correlationId:
-      request.headers.get('x-correlation-id') ?? crypto.randomUUID(),
-  };
+/**
+ * Authoritative membership reader. Enforcement resolves membership from the record
+ * engine 02 owns; nothing infers it from a header or a signature.
+ */
+const membershipReader = new TrustStoreMembershipReader(trustStore);
+
+function correlationOf(request: Request): string {
+  return request.headers.get('x-correlation-id') ?? crypto.randomUUID();
 }
+
+/**
+ * Verified identity context for a request.
+ *
+ * Identity comes from a signed assertion, never from request headers. The previous
+ * implementation read `x-assurapay-user-id`, `x-assurapay-session-id`,
+ * `x-assurapay-tenant-id`, `x-assurapay-assurance` and `x-assurapay-memberships`
+ * directly, so any caller could claim any identity, tenant, assurance level and
+ * membership set. That was a complete authentication and authorization bypass on
+ * every route that used it.
+ *
+ * This verifies without consuming, so it is safe on every request and leaves the
+ * assertion's single use available to an acting path. `memberships` is always
+ * empty: authentication cannot prove membership, so workspace-scoped paths must
+ * have it resolved by the membership authority.
+ */
+export function requestContext(request: Request): RequestContext {
+  const correlationId = correlationOf(request);
+  const identity = getIdentityGateway().authenticate(request, correlationId);
+  // The gateway proves identity and refuses to resolve membership. Enforcement
+  // resolves it from the authoritative record, so workspace-scoped engines see
+  // proven membership rather than a claim.
+  return resolveMemberships(identity, membershipReader);
+}
+
+/**
+ * Verified identity context for a path that acts, consuming the assertion so it
+ * cannot authorise a second action.
+ */
+export function actingRequestContext(request: Request): RequestContext {
+  const correlationId = correlationOf(request);
+  const identity = getIdentityGateway().consumeRequestContext(request, correlationId);
+  return resolveMemberships(identity, membershipReader);
+}
+
+/**
+ * Authorized context for a route that names the permission it requires.
+ *
+ * Enforcement is applied here, at the composition root, never inside an engine:
+ * an engine receives an already-authorized context and does not decide whether the
+ * caller may act. Deny by default — absent an applicable grant, this throws.
+ */
+export function authorizedContext(
+  request: Request,
+  requirement: PermissionRequirement,
+): RequestContext {
+  const correlationId = correlationOf(request);
+  const identity = getIdentityGateway().authenticate(request, correlationId);
+  return enforcePermission(identity, requirement, {
+    memberships: membershipReader,
+    permissions: trust.permissions,
+    store: trustStore,
+  });
+}
+
 export function errorResponse(error: unknown) {
   const message = error instanceof Error ? error.message : 'UNKNOWN_ERROR';
-  const status = message.includes('UNAUTHENTICATED')
-    ? 401
-    : message.includes('DENIED') || message.includes('REQUIRED')
-      ? 403
-      : 400;
+  // Assertion and gateway failures are authentication failures, not bad requests.
+  const status =
+    message.includes('UNAUTHENTICATED') ||
+    message.startsWith('ASSERTION_') ||
+    message.startsWith('GATEWAY_')
+      ? 401
+      : message.startsWith('ENFORCEMENT_') || message.startsWith('PERMISSION_DENIED')
+        ? 403
+        : message.includes('DENIED') || message.includes('REQUIRED')
+          ? 403
+          : 400;
   return Response.json({ error: message }, { status });
 }
