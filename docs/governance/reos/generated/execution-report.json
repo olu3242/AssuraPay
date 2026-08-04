@@ -1,12 +1,12 @@
 {
-  "capability": "trust.identity-gateway",
+  "capability": "trust.permission-enforcement",
   "capabilityLifecycle": "certified",
   "certification": {
     "available": true,
     "failedSteps": [],
     "passed": true
   },
-  "commit": "b8f9211b132c3fc7dac046c84a8171f703e88fb0",
+  "commit": "7208527889dab3f2fb0b0cbf3611ff9f91bfeb4f",
   "filesModified": [
     ".env.example",
     ".github/workflows/ci.yml",
@@ -14,8 +14,10 @@
     "MANIFEST.md",
     "apps/web/lib/trust-app.ts",
     "apps/web/tsconfig.json",
+    "docs/certification/AUTHORIZATION_CERTIFICATION.md",
     "docs/certification/IDENTITY_CERTIFICATION.md",
     "docs/governance/execution-ledger/6c6d2a494bfb-trust.identity-assertions.json",
+    "docs/governance/execution-ledger/7208527889da-trust.permission-enforcement.json",
     "docs/governance/execution-ledger/INDEX.md",
     "docs/governance/execution-ledger/README.md",
     "docs/governance/execution-ledger/b8f9211b132c-trust.identity-gateway.json",
@@ -36,12 +38,16 @@
     "docs/governance/reos/generated/forensics.json",
     "docs/governance/reos/governance-policy.json",
     "docs/security/IDENTITY_SECURITY_MODEL.md",
+    "docs/security/PERMISSION_MODEL.md",
     "package.json",
     "packages/identity/src/assertions.test.ts",
     "packages/identity/src/assertions.ts",
     "packages/identity/src/gateway.test.ts",
     "packages/identity/src/gateway.ts",
     "packages/identity/src/index.ts",
+    "packages/permissions/src/enforcement.test.ts",
+    "packages/permissions/src/enforcement.ts",
+    "packages/permissions/src/index.ts",
     "packages/reos/bin/reos.ts",
     "packages/reos/package.json",
     "packages/reos/src/backlog.ts",
@@ -78,7 +84,7 @@
     "tsconfig.json",
     "vitest.config.ts"
   ],
-  "generatedAt": "2026-08-04T21:16:40.566Z",
+  "generatedAt": "2026-08-04T21:27:34.648Z",
   "governance": {
     "baselined": 16,
     "findings": [
@@ -247,7 +253,7 @@
           "IdentityAssertionError",
           "IdentityGateway"
         ],
-        "message": "16 exported engine class(es) are not instantiated in any composition root, so they are unreachable at runtime. (baselined pre-existing violation)",
+        "message": "18 exported engine class(es) are not instantiated in any composition root, so they are unreachable at runtime. (baselined pre-existing violation)",
         "rule": "runtime/unregistered-engine",
         "severity": "warning",
         "subject": "runtime"
@@ -258,21 +264,17 @@
     "phase": 2,
     "resolved": []
   },
-  "ledgerEntryId": "b8f9211b132c-trust.identity-gateway",
+  "ledgerEntryId": "7208527889da-trust.permission-enforcement",
   "recommendedNextCapability": {
     "blockedBy": [],
-    "blocks": [
-      "persistence.postgres-repository",
-      "persistence.rls-certification",
-      "runtime.agent-registration"
-    ],
+    "blocks": [],
     "dependsOn": [
-      "trust.identity-gateway"
+      "trust.permission-enforcement"
     ],
     "executable": true,
-    "id": "trust.permission-enforcement",
+    "id": "runtime.agent-registration",
     "lifecycle": "planned",
-    "priority": 12,
+    "priority": 20,
     "requiresLiveInfrastructure": false,
     "scope": {
       "estimated": false,
@@ -280,43 +282,18 @@
       "tests": 1
     },
     "status": "missing",
-    "title": "Permission enforcement middleware"
+    "title": "Agent Runtime registration"
   },
   "remainingBacklog": [
     {
       "blockedBy": [],
-      "blocks": [
-        "persistence.postgres-repository",
-        "persistence.rls-certification",
-        "runtime.agent-registration"
-      ],
-      "dependsOn": [
-        "trust.identity-gateway"
-      ],
-      "executable": true,
-      "id": "trust.permission-enforcement",
-      "lifecycle": "planned",
-      "priority": 12,
-      "requiresLiveInfrastructure": false,
-      "scope": {
-        "estimated": false,
-        "files": 1,
-        "tests": 1
-      },
-      "status": "missing",
-      "title": "Permission enforcement middleware"
-    },
-    {
-      "blockedBy": [
-        "trust.permission-enforcement"
-      ],
       "blocks": [],
       "dependsOn": [
         "trust.permission-enforcement"
       ],
-      "executable": false,
+      "executable": true,
       "id": "runtime.agent-registration",
-      "lifecycle": "missing",
+      "lifecycle": "planned",
       "priority": 20,
       "requiresLiveInfrastructure": false,
       "scope": {
@@ -328,18 +305,16 @@
       "title": "Agent Runtime registration"
     },
     {
-      "blockedBy": [
-        "trust.permission-enforcement"
-      ],
+      "blockedBy": [],
       "blocks": [
         "persistence.rls-certification"
       ],
       "dependsOn": [
         "trust.permission-enforcement"
       ],
-      "executable": false,
+      "executable": true,
       "id": "persistence.postgres-repository",
-      "lifecycle": "missing",
+      "lifecycle": "planned",
       "priority": 40,
       "requiresLiveInfrastructure": true,
       "scope": {
@@ -458,12 +433,12 @@
       "docs/governance/reos/generated/execution-manifest.json",
       "docs/governance/reos/generated/forensics.json"
     ],
-    "head": "b8f9211b132c3fc7dac046c84a8171f703e88fb0"
+    "head": "7208527889dab3f2fb0b0cbf3611ff9f91bfeb4f"
   },
   "stage": "report",
   "validation": [
     {
-      "checked": 141,
+      "checked": 143,
       "findings": [],
       "passed": true,
       "validator": "architecture"
@@ -482,13 +457,13 @@
       "validator": "dependencies"
     },
     {
-      "checked": 242,
+      "checked": 243,
       "findings": [],
       "passed": true,
       "validator": "security"
     },
     {
-      "checked": 57,
+      "checked": 63,
       "findings": [],
       "passed": true,
       "validator": "execution-contract"

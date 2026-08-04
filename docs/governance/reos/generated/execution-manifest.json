@@ -2400,7 +2400,7 @@
         "trust.permission-enforcement"
       ],
       "id": "persistence.postgres-repository",
-      "lifecycle": "missing",
+      "lifecycle": "planned",
       "status": "missing"
     },
     {
@@ -2433,7 +2433,7 @@
         "trust.permission-enforcement"
       ],
       "id": "runtime.agent-registration",
-      "lifecycle": "missing",
+      "lifecycle": "planned",
       "status": "missing"
     },
     {
@@ -2484,8 +2484,8 @@
         "trust.identity-gateway"
       ],
       "id": "trust.permission-enforcement",
-      "lifecycle": "planned",
-      "status": "missing"
+      "lifecycle": "certified",
+      "status": "implemented"
     }
   ],
   "engines": [
@@ -3153,38 +3153,13 @@
   "executionBacklog": [
     {
       "blockedBy": [],
-      "blocks": [
-        "persistence.postgres-repository",
-        "persistence.rls-certification",
-        "runtime.agent-registration"
-      ],
-      "dependsOn": [
-        "trust.identity-gateway"
-      ],
-      "executable": true,
-      "id": "trust.permission-enforcement",
-      "lifecycle": "planned",
-      "priority": 12,
-      "requiresLiveInfrastructure": false,
-      "scope": {
-        "estimated": false,
-        "files": 1,
-        "tests": 1
-      },
-      "status": "missing",
-      "title": "Permission enforcement middleware"
-    },
-    {
-      "blockedBy": [
-        "trust.permission-enforcement"
-      ],
       "blocks": [],
       "dependsOn": [
         "trust.permission-enforcement"
       ],
-      "executable": false,
+      "executable": true,
       "id": "runtime.agent-registration",
-      "lifecycle": "missing",
+      "lifecycle": "planned",
       "priority": 20,
       "requiresLiveInfrastructure": false,
       "scope": {
@@ -3196,18 +3171,16 @@
       "title": "Agent Runtime registration"
     },
     {
-      "blockedBy": [
-        "trust.permission-enforcement"
-      ],
+      "blockedBy": [],
       "blocks": [
         "persistence.rls-certification"
       ],
       "dependsOn": [
         "trust.permission-enforcement"
       ],
-      "executable": false,
+      "executable": true,
       "id": "persistence.postgres-repository",
-      "lifecycle": "missing",
+      "lifecycle": "planned",
       "priority": 40,
       "requiresLiveInfrastructure": true,
       "scope": {
@@ -3315,7 +3288,7 @@
   "identity": {
     "branch": "claude/git-pull-cqc04u",
     "clean": false,
-    "head": "07870b52a1d7499dd827a5d77cedd9b180632b2a",
+    "head": "7208527889dab3f2fb0b0cbf3611ff9f91bfeb4f",
     "repository": "assurapay",
     "version": "0.1.0"
   },
@@ -3378,25 +3351,25 @@
     "reos.execution-os",
     "settlement.non-custody-guard",
     "trust.identity-assertions",
-    "trust.identity-gateway"
+    "trust.identity-gateway",
+    "trust.permission-enforcement"
   ],
   "lifecycleSummary": {
-    "certified": 4,
+    "certified": 5,
     "deferred": 4,
     "implemented": 0,
     "implementing": 0,
-    "missing": 3,
-    "planned": 2,
+    "missing": 1,
+    "planned": 3,
     "released": 55,
     "validated": 0
   },
-  "manifestDigest": "f8adb6dd3bc0",
+  "manifestDigest": "b18374456885",
   "missingCapabilities": [
     "engine:08",
     "persistence.postgres-repository",
     "persistence.rls-certification",
-    "runtime.agent-registration",
-    "trust.permission-enforcement"
+    "runtime.agent-registration"
   ],
   "packages": [
     {
@@ -3904,15 +3877,18 @@
     {
       "directory": "packages/permissions",
       "exportedClasses": [
-        "PermissionService"
+        "PermissionEnforcementError",
+        "PermissionService",
+        "TrustStoreMembershipReader"
       ],
       "externalDependencies": [],
       "main": "src/index.ts",
       "moduleType": null,
       "name": "@assurapay/permissions",
-      "sourceFiles": 1,
-      "sourceLines": 23,
+      "sourceFiles": 2,
+      "sourceLines": 221,
       "testFiles": [
+        "packages/permissions/src/enforcement.test.ts",
         "packages/permissions/src/permissions.test.ts"
       ],
       "tests": {
@@ -3920,7 +3896,7 @@
         "integration": 0,
         "performance": 0,
         "security": 0,
-        "unit": 1
+        "unit": 2
       },
       "workspaceDependencies": [
         "@assurapay/database",
@@ -4444,7 +4420,7 @@
     {
       "git": {
         "historicalCommits": [],
-        "reachableFromHead": false,
+        "reachableFromHead": true,
         "refsContaining": [],
         "removedFromHead": false
       },
@@ -4454,32 +4430,43 @@
       "probes": [
         {
           "kind": "path",
-          "matches": [],
+          "matches": [
+            "packages/permissions/src/enforcement.ts"
+          ],
           "query": "packages/permissions/src/enforcement.ts",
-          "satisfied": false
+          "satisfied": true
         },
         {
           "kind": "symbol",
-          "matches": [],
+          "matches": [
+            "apps/web/lib/trust-app.ts",
+            "packages/permissions/src/enforcement.test.ts",
+            "packages/permissions/src/enforcement.ts"
+          ],
           "query": "enforcePermission",
-          "satisfied": false
+          "satisfied": true
         },
         {
           "kind": "symbol",
-          "matches": [],
+          "matches": [
+            "packages/permissions/src/enforcement.test.ts",
+            "packages/permissions/src/enforcement.ts"
+          ],
           "query": "PermissionEnforcementError",
-          "satisfied": false
+          "satisfied": true
         },
         {
           "kind": "test",
-          "matches": [],
+          "matches": [
+            "packages/permissions/src/enforcement.test.ts"
+          ],
           "query": "packages/permissions/src/enforcement.test.ts",
-          "satisfied": false
+          "satisfied": true
         }
       ],
-      "rationale": "No evidence at HEAD, on any ref, or in history.",
-      "satisfiedProbes": 0,
-      "status": "missing",
+      "rationale": "All 4 evidence probes satisfied at HEAD.",
+      "satisfiedProbes": 4,
+      "status": "implemented",
       "title": "Permission enforcement middleware",
       "totalProbes": 4
     }
@@ -4650,7 +4637,7 @@
         "IdentityAssertionError",
         "IdentityGateway"
       ],
-      "message": "16 exported engine class(es) are not instantiated in any composition root, so they are unreachable at runtime.",
+      "message": "18 exported engine class(es) are not instantiated in any composition root, so they are unreachable at runtime.",
       "rule": "runtime/unregistered-engine",
       "severity": "warning",
       "subject": "runtime"
@@ -4732,6 +4719,7 @@
       "PaymentTriggerRuleEngine",
       "PerformanceBaselineEngine",
       "PerformanceBlueprintEngine",
+      "PermissionEnforcementError",
       "PermissionService",
       "PortfolioAnalyticsEngine",
       "PredictiveExecutionIntelligenceEngine",
@@ -4747,6 +4735,7 @@
       "SettlementAssuranceIndexEngine",
       "SlaIntelligenceEngine",
       "SuccessMetricsEngine",
+      "TrustStoreMembershipReader",
       "ValidationAcceptanceTestingEngine",
       "VendorCustomerPerformanceEngine",
       "WorkflowIntelligenceEngine"
@@ -4852,7 +4841,9 @@
       "IdentityGatewayError",
       "InMemoryAssertionReplayStore",
       "InMemoryTrustStore",
-      "PromptRegistryEngine"
+      "PermissionEnforcementError",
+      "PromptRegistryEngine",
+      "TrustStoreMembershipReader"
     ]
   },
   "stage": "manifest"

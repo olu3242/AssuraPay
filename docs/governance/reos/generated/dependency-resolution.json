@@ -6,50 +6,6 @@
   "blocked": [
     {
       "blockedBy": [
-        "trust.permission-enforcement"
-      ],
-      "blocks": [],
-      "dependsOn": [
-        "trust.permission-enforcement"
-      ],
-      "executable": false,
-      "id": "runtime.agent-registration",
-      "lifecycle": "missing",
-      "priority": 20,
-      "requiresLiveInfrastructure": false,
-      "scope": {
-        "estimated": false,
-        "files": 1,
-        "tests": 1
-      },
-      "status": "missing",
-      "title": "Agent Runtime registration"
-    },
-    {
-      "blockedBy": [
-        "trust.permission-enforcement"
-      ],
-      "blocks": [
-        "persistence.rls-certification"
-      ],
-      "dependsOn": [
-        "trust.permission-enforcement"
-      ],
-      "executable": false,
-      "id": "persistence.postgres-repository",
-      "lifecycle": "missing",
-      "priority": 40,
-      "requiresLiveInfrastructure": true,
-      "scope": {
-        "estimated": false,
-        "files": 1,
-        "tests": 1
-      },
-      "status": "missing",
-      "title": "PostgreSQL repository implementation"
-    },
-    {
-      "blockedBy": [
         "persistence.postgres-repository"
       ],
       "blocks": [],
@@ -129,23 +85,20 @@
     "reos.execution-os",
     "settlement.non-custody-guard",
     "trust.identity-assertions",
-    "trust.identity-gateway"
+    "trust.identity-gateway",
+    "trust.permission-enforcement"
   ],
   "executable": [
     {
       "blockedBy": [],
-      "blocks": [
-        "persistence.postgres-repository",
-        "persistence.rls-certification",
-        "runtime.agent-registration"
-      ],
+      "blocks": [],
       "dependsOn": [
-        "trust.identity-gateway"
+        "trust.permission-enforcement"
       ],
       "executable": true,
-      "id": "trust.permission-enforcement",
+      "id": "runtime.agent-registration",
       "lifecycle": "planned",
-      "priority": 12,
+      "priority": 20,
       "requiresLiveInfrastructure": false,
       "scope": {
         "estimated": false,
@@ -153,7 +106,28 @@
         "tests": 1
       },
       "status": "missing",
-      "title": "Permission enforcement middleware"
+      "title": "Agent Runtime registration"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [
+        "persistence.rls-certification"
+      ],
+      "dependsOn": [
+        "trust.permission-enforcement"
+      ],
+      "executable": true,
+      "id": "persistence.postgres-repository",
+      "lifecycle": "planned",
+      "priority": 40,
+      "requiresLiveInfrastructure": true,
+      "scope": {
+        "estimated": false,
+        "files": 1,
+        "tests": 1
+      },
+      "status": "missing",
+      "title": "PostgreSQL repository implementation"
     },
     {
       "blockedBy": [],
@@ -228,7 +202,7 @@
       "title": "Engine 08 — Audit & Evidence Ledger"
     }
   ],
-  "head": "07870b52a1d7499dd827a5d77cedd9b180632b2a",
+  "head": "7208527889dab3f2fb0b0cbf3611ff9f91bfeb4f",
   "rejected": [
     {
       "id": "engine:08",
@@ -236,32 +210,24 @@
     },
     {
       "id": "persistence.postgres-repository",
-      "reason": "Blocked by unmet dependencies: trust.permission-enforcement."
+      "reason": "Executable but deprioritised: requires live infrastructure."
     },
     {
       "id": "persistence.rls-certification",
       "reason": "Blocked by unmet dependencies: persistence.postgres-repository."
-    },
-    {
-      "id": "runtime.agent-registration",
-      "reason": "Blocked by unmet dependencies: trust.permission-enforcement."
     }
   ],
   "reosVersion": "1.0.0",
   "selected": {
     "blockedBy": [],
-    "blocks": [
-      "persistence.postgres-repository",
-      "persistence.rls-certification",
-      "runtime.agent-registration"
-    ],
+    "blocks": [],
     "dependsOn": [
-      "trust.identity-gateway"
+      "trust.permission-enforcement"
     ],
     "executable": true,
-    "id": "trust.permission-enforcement",
+    "id": "runtime.agent-registration",
     "lifecycle": "planned",
-    "priority": 12,
+    "priority": 20,
     "requiresLiveInfrastructure": false,
     "scope": {
       "estimated": false,
@@ -269,8 +235,8 @@
       "tests": 1
     },
     "status": "missing",
-    "title": "Permission enforcement middleware"
+    "title": "Agent Runtime registration"
   },
-  "selectionReason": "Highest-priority executable capability (priority 12, lifecycle planned) — unblocks 3 downstream capability/-ies",
+  "selectionReason": "Highest-priority executable capability (priority 20, lifecycle planned)",
   "stage": "dependencies"
 }

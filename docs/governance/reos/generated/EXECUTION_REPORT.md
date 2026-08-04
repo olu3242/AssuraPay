@@ -7,16 +7,16 @@
 | Field | Value |
 | --- | --- |
 | Branch | claude/git-pull-cqc04u |
-| HEAD | b8f9211b132c3fc7dac046c84a8171f703e88fb0 |
+| HEAD | 7208527889dab3f2fb0b0cbf3611ff9f91bfeb4f |
 | Worktree clean | no |
 | Uncommitted files | 8 |
-| Generated at | 2026-08-04T21:16:40.566Z |
+| Generated at | 2026-08-04T21:27:34.648Z |
 
 ## Capability implemented
 
-`trust.identity-gateway` — lifecycle **certified**
+`trust.permission-enforcement` — lifecycle **certified**
 
-## Files modified (69)
+## Files modified (75)
 
 - `.env.example`
 - `.github/workflows/ci.yml`
@@ -24,8 +24,10 @@
 - `MANIFEST.md`
 - `apps/web/lib/trust-app.ts`
 - `apps/web/tsconfig.json`
+- `docs/certification/AUTHORIZATION_CERTIFICATION.md`
 - `docs/certification/IDENTITY_CERTIFICATION.md`
 - `docs/governance/execution-ledger/6c6d2a494bfb-trust.identity-assertions.json`
+- `docs/governance/execution-ledger/7208527889da-trust.permission-enforcement.json`
 - `docs/governance/execution-ledger/INDEX.md`
 - `docs/governance/execution-ledger/README.md`
 - `docs/governance/execution-ledger/b8f9211b132c-trust.identity-gateway.json`
@@ -46,12 +48,16 @@
 - `docs/governance/reos/generated/forensics.json`
 - `docs/governance/reos/governance-policy.json`
 - `docs/security/IDENTITY_SECURITY_MODEL.md`
+- `docs/security/PERMISSION_MODEL.md`
 - `package.json`
 - `packages/identity/src/assertions.test.ts`
 - `packages/identity/src/assertions.ts`
 - `packages/identity/src/gateway.test.ts`
 - `packages/identity/src/gateway.ts`
 - `packages/identity/src/index.ts`
+- `packages/permissions/src/enforcement.test.ts`
+- `packages/permissions/src/enforcement.ts`
+- `packages/permissions/src/index.ts`
 - `packages/reos/bin/reos.ts`
 - `packages/reos/package.json`
 - `packages/reos/src/backlog.ts`
@@ -92,10 +98,10 @@
 
 | Validator | Result | Checked | Errors | Warnings |
 | --- | --- | --- | --- | --- |
-| architecture | pass | 141 | 0 | 0 |
+| architecture | pass | 143 | 0 | 0 |
 | dependencies | pass | 23 | 0 | 1 |
-| security | pass | 242 | 0 | 0 |
-| execution-contract | pass | 57 | 0 | 0 |
+| security | pass | 243 | 0 | 0 |
+| execution-contract | pass | 63 | 0 | 0 |
 
 ### Findings
 
@@ -111,24 +117,23 @@ No newly introduced violations.
 
 **PASSED** — every certification gate is green.
 
-## Remaining backlog (5)
+## Remaining backlog (4)
 
 | Capability | Status | Executable | Blocked by |
 | --- | --- | --- | --- |
-| trust.permission-enforcement | missing | yes |  |
-| runtime.agent-registration | missing | no | trust.permission-enforcement |
-| persistence.postgres-repository | missing | no | trust.permission-enforcement |
+| runtime.agent-registration | missing | yes |  |
+| persistence.postgres-repository | missing | yes |  |
 | persistence.rls-certification | missing | no | persistence.postgres-repository |
 | engine:08 | missing | yes |  |
 
 ## Recommended next capability
 
-`trust.permission-enforcement` — Permission enforcement middleware
+`runtime.agent-registration` — Agent Runtime registration
 
 ## Ledger
 
-Recorded as `b8f9211b132c-trust.identity-gateway` in `docs/governance/execution-ledger/`.
+Recorded as `7208527889da-trust.permission-enforcement` in `docs/governance/execution-ledger/`.
 
 ## Commit
 
-`b8f9211b132c3fc7dac046c84a8171f703e88fb0`
+`7208527889dab3f2fb0b0cbf3611ff9f91bfeb4f`

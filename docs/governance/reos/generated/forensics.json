@@ -365,7 +365,7 @@
     {
       "git": {
         "historicalCommits": [],
-        "reachableFromHead": false,
+        "reachableFromHead": true,
         "refsContaining": [],
         "removedFromHead": false
       },
@@ -375,44 +375,55 @@
       "probes": [
         {
           "kind": "path",
-          "matches": [],
+          "matches": [
+            "packages/permissions/src/enforcement.ts"
+          ],
           "query": "packages/permissions/src/enforcement.ts",
-          "satisfied": false
+          "satisfied": true
         },
         {
           "kind": "symbol",
-          "matches": [],
+          "matches": [
+            "apps/web/lib/trust-app.ts",
+            "packages/permissions/src/enforcement.test.ts",
+            "packages/permissions/src/enforcement.ts"
+          ],
           "query": "enforcePermission",
-          "satisfied": false
+          "satisfied": true
         },
         {
           "kind": "symbol",
-          "matches": [],
+          "matches": [
+            "packages/permissions/src/enforcement.test.ts",
+            "packages/permissions/src/enforcement.ts"
+          ],
           "query": "PermissionEnforcementError",
-          "satisfied": false
+          "satisfied": true
         },
         {
           "kind": "test",
-          "matches": [],
+          "matches": [
+            "packages/permissions/src/enforcement.test.ts"
+          ],
           "query": "packages/permissions/src/enforcement.test.ts",
-          "satisfied": false
+          "satisfied": true
         }
       ],
-      "rationale": "No evidence at HEAD, on any ref, or in history.",
-      "satisfiedProbes": 0,
-      "status": "missing",
+      "rationale": "All 4 evidence probes satisfied at HEAD.",
+      "satisfiedProbes": 4,
+      "status": "implemented",
       "title": "Permission enforcement middleware",
       "totalProbes": 4
     }
   ],
-  "head": "07870b52a1d7499dd827a5d77cedd9b180632b2a",
+  "head": "7208527889dab3f2fb0b0cbf3611ff9f91bfeb4f",
   "reosVersion": "1.0.0",
   "stage": "forensics",
   "summary": {
     "deferred": 0,
-    "implemented": 4,
+    "implemented": 5,
     "lost": 0,
-    "missing": 4,
+    "missing": 3,
     "partial": 0,
     "unreachable": 0
   }

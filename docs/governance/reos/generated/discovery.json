@@ -2356,15 +2356,18 @@
     {
       "directory": "packages/permissions",
       "exportedClasses": [
-        "PermissionService"
+        "PermissionEnforcementError",
+        "PermissionService",
+        "TrustStoreMembershipReader"
       ],
       "externalDependencies": [],
       "main": "src/index.ts",
       "moduleType": null,
       "name": "@assurapay/permissions",
-      "sourceFiles": 1,
-      "sourceLines": 23,
+      "sourceFiles": 2,
+      "sourceLines": 221,
       "testFiles": [
+        "packages/permissions/src/enforcement.test.ts",
         "packages/permissions/src/permissions.test.ts"
       ],
       "tests": {
@@ -2372,7 +2375,7 @@
         "integration": 0,
         "performance": 0,
         "security": 0,
-        "unit": 1
+        "unit": 2
       },
       "workspaceDependencies": [
         "@assurapay/database",
@@ -2546,6 +2549,7 @@
       "clean": false,
       "dirtyFiles": [
         "docs/governance/reos/generated/CERTIFICATION_REPORT.md",
+        "docs/governance/reos/generated/DEPENDENCY_RESOLUTION.md",
         "docs/governance/reos/generated/EXECUTION_MANIFEST.md",
         "docs/governance/reos/generated/certification.json",
         "docs/governance/reos/generated/dependency-resolution.json",
@@ -2553,8 +2557,8 @@
         "docs/governance/reos/generated/execution-manifest.json",
         "docs/governance/reos/generated/forensics.json"
       ],
-      "head": "07870b52a1d7499dd827a5d77cedd9b180632b2a",
-      "headShort": "07870b5",
+      "head": "7208527889dab3f2fb0b0cbf3611ff9f91bfeb4f",
+      "headShort": "7208527",
       "reflogAvailable": true,
       "remotes": [
         "origin"
@@ -2643,6 +2647,7 @@
       "PaymentTriggerRuleEngine",
       "PerformanceBaselineEngine",
       "PerformanceBlueprintEngine",
+      "PermissionEnforcementError",
       "PermissionService",
       "PortfolioAnalyticsEngine",
       "PredictiveExecutionIntelligenceEngine",
@@ -2658,6 +2663,7 @@
       "SettlementAssuranceIndexEngine",
       "SlaIntelligenceEngine",
       "SuccessMetricsEngine",
+      "TrustStoreMembershipReader",
       "ValidationAcceptanceTestingEngine",
       "VendorCustomerPerformanceEngine",
       "WorkflowIntelligenceEngine"
@@ -2763,7 +2769,9 @@
       "IdentityGatewayError",
       "InMemoryAssertionReplayStore",
       "InMemoryTrustStore",
-      "PromptRegistryEngine"
+      "PermissionEnforcementError",
+      "PromptRegistryEngine",
+      "TrustStoreMembershipReader"
     ]
   },
   "stage": "discover",
@@ -2773,9 +2781,9 @@
       "integration": 15,
       "performance": 2,
       "security": 3,
-      "unit": 31
+      "unit": 32
     },
-    "files": 66
+    "files": 67
   },
   "totals": {
     "applications": 1,
@@ -2783,7 +2791,7 @@
     "engines": 60,
     "migrations": 20,
     "packages": 22,
-    "testFiles": 66
+    "testFiles": 67
   },
   "workflows": [
     {

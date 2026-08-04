@@ -10,9 +10,9 @@
 | Repository | assurapay |
 | Version | 0.1.0 |
 | Branch | claude/git-pull-cqc04u |
-| HEAD | 07870b52a1d7499dd827a5d77cedd9b180632b2a |
+| HEAD | 7208527889dab3f2fb0b0cbf3611ff9f91bfeb4f |
 | Worktree clean | no |
-| Manifest digest | f8adb6dd3bc0 |
+| Manifest digest | b18374456885 |
 | REOS version | 1.0.0 |
 
 ## Architecture
@@ -26,9 +26,9 @@
 
 | Lifecycle | Count |
 | --- | --- |
-| missing | 3 |
-| planned | 2 |
-| certified | 4 |
+| missing | 1 |
+| planned | 3 |
+| certified | 5 |
 | released | 55 |
 | deferred | 4 |
 
@@ -104,14 +104,14 @@ from repository evidence: package presence, test files, and certification wiring
 
 | Capability | Title | Status | Lifecycle | Probes | Rationale |
 | --- | --- | --- | --- | --- | --- |
-| persistence.postgres-repository | PostgreSQL repository implementation | missing | missing | 0/3 | No evidence at HEAD, on any ref, or in history. |
+| persistence.postgres-repository | PostgreSQL repository implementation | missing | planned | 0/3 | No evidence at HEAD, on any ref, or in history. |
 | persistence.rls-certification | Row Level Security certification | missing | missing | 0/4 | No evidence at HEAD, on any ref, or in history. |
 | reos.execution-os | Repository Execution Operating System | implemented | certified | 7/7 | All 7 evidence probes satisfied at HEAD. |
-| runtime.agent-registration | Agent Runtime registration | missing | missing | 0/3 | No evidence at HEAD, on any ref, or in history. |
+| runtime.agent-registration | Agent Runtime registration | missing | planned | 0/3 | No evidence at HEAD, on any ref, or in history. |
 | settlement.non-custody-guard | Non-custody architectural guard | implemented | certified | 4/4 | All 4 evidence probes satisfied at HEAD. |
 | trust.identity-assertions | HMAC identity assertions | implemented | certified | 4/4 | All 4 evidence probes satisfied at HEAD. |
 | trust.identity-gateway | Production identity gateway | implemented | certified | 4/4 | All 4 evidence probes satisfied at HEAD. |
-| trust.permission-enforcement | Permission enforcement middleware | missing | planned | 0/4 | No evidence at HEAD, on any ref, or in history. |
+| trust.permission-enforcement | Permission enforcement middleware | implemented | certified | 4/4 | All 4 evidence probes satisfied at HEAD. |
 
 ## Reconciliation findings
 
@@ -132,17 +132,16 @@ from repository evidence: package presence, test files, and certification wiring
 | warning | catalog/unmapped-engine-package | packages/governance-core exports 5 engine class(es) but is not mapped to any catalog engine, so its scope is not represented in docs/ENGINE_CATALOG.md. |
 | warning | catalog/unmapped-engine-package | packages/workflow-intelligence exports 10 engine class(es) but is not mapped to any catalog engine, so its scope is not represented in docs/ENGINE_CATALOG.md. |
 | error | runtime/duplicate-abstraction | DependencyIntelligenceEngine is exported by 2 packages, which duplicates an abstraction. |
-| warning | runtime/unregistered-engine | 16 exported engine class(es) are not instantiated in any composition root, so they are unreachable at runtime. |
+| warning | runtime/unregistered-engine | 18 exported engine class(es) are not instantiated in any composition root, so they are unreachable at runtime. |
 
 ## Execution backlog
 
-5 open item(s). Highest-priority first.
+4 open item(s). Highest-priority first.
 
 | Capability | Title | Lifecycle | Priority | Executable | Blocked by | Blocks |
 | --- | --- | --- | --- | --- | --- | --- |
-| trust.permission-enforcement | Permission enforcement middleware | planned | 12 | yes | — | 3 |
-| runtime.agent-registration | Agent Runtime registration | missing | 20 | no | trust.permission-enforcement | — |
-| persistence.postgres-repository | PostgreSQL repository implementation | missing | 40 | no | trust.permission-enforcement | 1 |
+| runtime.agent-registration | Agent Runtime registration | planned | 20 | yes | — | — |
+| persistence.postgres-repository | PostgreSQL repository implementation | planned | 40 | yes | — | 1 |
 | persistence.rls-certification | Row Level Security certification | missing | 41 | no | persistence.postgres-repository | — |
 | engine:08 | Engine 08 — Audit & Evidence Ledger | planned | 108 | yes | — | 52 |
 

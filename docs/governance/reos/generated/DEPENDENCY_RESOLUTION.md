@@ -6,15 +6,15 @@
 
 | Field | Value |
 | --- | --- |
-| Capability | trust.permission-enforcement |
-| Title | Permission enforcement middleware |
+| Capability | runtime.agent-registration |
+| Title | Agent Runtime registration |
 | Current status | missing |
 | Lifecycle | planned |
-| Priority | 12 |
-| Reason | Highest-priority executable capability (priority 12, lifecycle planned) — unblocks 3 downstream capability/-ies |
-| Depends on | trust.identity-gateway |
+| Priority | 20 |
+| Reason | Highest-priority executable capability (priority 20, lifecycle planned) |
+| Depends on | trust.permission-enforcement |
 | Unmet dependencies | none |
-| Blocks (transitive) | persistence.postgres-repository, persistence.rls-certification, runtime.agent-registration |
+| Blocks (transitive) | — |
 | Declared scope | 1 file(s), 1 test suite(s) |
 | Requires live infrastructure | no |
 
@@ -22,15 +22,14 @@
 
 | Capability | Title | Lifecycle | Priority | Blocks | Live infra |
 | --- | --- | --- | --- | --- | --- |
-| trust.permission-enforcement | Permission enforcement middleware | planned | 12 | 3 | no |
+| runtime.agent-registration | Agent Runtime registration | planned | 20 | — | no |
+| persistence.postgres-repository | PostgreSQL repository implementation | planned | 40 | 1 | yes |
 | engine:08 | Engine 08 — Audit & Evidence Ledger | planned | 108 | 52 | no |
 
 ## Blocked
 
 | Capability | Status | Blocked by |
 | --- | --- | --- |
-| runtime.agent-registration | missing | trust.permission-enforcement |
-| persistence.postgres-repository | missing | trust.permission-enforcement |
 | persistence.rls-certification | missing | persistence.postgres-repository |
 
 ## Awaiting live infrastructure
@@ -38,7 +37,7 @@
 - persistence.postgres-repository
 - persistence.rls-certification
 
-## Completed (59)
+## Completed (60)
 
 - engine:01
 - engine:02
@@ -99,3 +98,4 @@
 - settlement.non-custody-guard
 - trust.identity-assertions
 - trust.identity-gateway
+- trust.permission-enforcement
