@@ -96,6 +96,10 @@ export class InspectionEngine {
       createdAt: now(),
     };
     this.store.append('inspections', inspection);
+    emit(this.store, context, 'InspectionScheduled', 'Inspection', inspection.id, {
+      workItemId: inspection.workItemId,
+      reinspectionOfId: inspection.reinspectionOfId,
+    });
     return inspection;
   }
 
@@ -199,6 +203,9 @@ export class IssueRiskCorrectiveActionEngine {
     };
     this.store.append('correctiveActionPlans', capa);
     this.store.replace('issueRecords', { ...issue, status: 'CAPA_IN_PROGRESS' });
+    emit(this.store, context, 'CorrectiveActionPlanOpened', 'CorrectiveActionPlan', capa.id, {
+      issueId: capa.issueId,
+    });
     return capa;
   }
 
@@ -207,6 +214,9 @@ export class IssueRiskCorrectiveActionEngine {
     if (capa.status !== 'OPEN') throw new Error('CAPA_NOT_OPEN');
     const completed: CorrectiveActionPlan = { ...capa, status: 'COMPLETED', completedAt: now() };
     this.store.replace('correctiveActionPlans', completed);
+    emit(this.store, context, 'CorrectiveActionPlanCompleted', 'CorrectiveActionPlan', capa.id, {
+      issueId: capa.issueId,
+    });
     return completed;
   }
 
@@ -226,6 +236,7 @@ export class IssueRiskCorrectiveActionEngine {
     if (issue.status !== 'RESOLVED') throw new Error('ISSUE_NOT_RESOLVED');
     const closed: IssueRecord = { ...issue, status: 'CLOSED' };
     this.store.replace('issueRecords', closed);
+    emit(this.store, context, 'IssueClosed', 'IssueRecord', closed.id, {});
     return closed;
   }
 
@@ -283,6 +294,8 @@ export class ChangeControlEngine {
     },
   ) {
     if (!input.description.trim()) throw new Error('DESCRIPTION_REQUIRED');
+    if (input.impact.costAmountMinor !== undefined && !Number.isInteger(input.impact.costAmountMinor))
+      throw new Error('IMPACT_COST_AMOUNT_MUST_BE_INTEGER_MINOR_UNITS');
     const request: ChangeRequest = {
       id: randomUUID(),
       workspaceId: ws(context),
@@ -292,6 +305,10 @@ export class ChangeControlEngine {
       createdAt: now(),
     };
     this.store.append('changeRequests', request);
+    emit(this.store, context, 'ChangeRequestDrafted', 'ChangeRequest', request.id, {
+      milestoneId: request.milestoneId,
+      changeType: request.changeType,
+    });
     return request;
   }
 

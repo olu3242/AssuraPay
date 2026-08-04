@@ -171,6 +171,10 @@ export class ScopeDefinitionEngine {
       createdAt: now(),
     };
     this.store.append('scopeItems', item);
+    emit(this.store, context, 'ScopeItemDefined', 'ScopeItem', item.id, {
+      blueprintId: item.blueprintId,
+      kind: item.kind,
+    });
     return item;
   }
 
@@ -236,6 +240,10 @@ export class DeliverablesEngine {
       createdAt: now(),
     };
     this.store.append('deliverables', deliverable);
+    emit(this.store, context, 'DeliverableDefined', 'Deliverable', deliverable.id, {
+      blueprintId: deliverable.blueprintId,
+      scopeItemId: deliverable.scopeItemId,
+    });
     return deliverable;
   }
 
@@ -345,6 +353,11 @@ export class MilestonePlanningEngine {
     if (this.hasPath(edges, input.successorId, input.predecessorId)) throw new Error('MILESTONE_CYCLE');
     const edge: MilestoneSequenceEdge = { id: randomUUID(), workspaceId, ...input, createdAt: now() };
     this.store.append('milestoneSequenceEdges', edge);
+    emit(this.store, context, 'MilestoneDependencyAdded', 'MilestoneSequenceEdge', edge.id, {
+      blueprintId: edge.blueprintId,
+      predecessorId: edge.predecessorId,
+      successorId: edge.successorId,
+    });
     return edge;
   }
 
@@ -460,6 +473,10 @@ export class DefinitionOfDonePackageEngine {
       contentHash: digest(input),
     };
     this.store.append('dodPackages', draft);
+    emit(this.store, context, 'DefinitionOfDoneDrafted', 'DodPackage', draft.id, {
+      milestoneId: draft.milestoneId,
+      version: draft.version,
+    });
     return draft;
   }
 

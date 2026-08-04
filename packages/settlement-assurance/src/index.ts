@@ -151,13 +151,14 @@ export class FinancialEntitlementEngine {
     if (!eligibility.eligible) throw new Error('PAYMENT_NOT_ELIGIBLE');
     if (!Number.isInteger(input.grossEarnedAmountMinor) || input.grossEarnedAmountMinor <= 0)
       throw new Error('GROSS_EARNED_MUST_BE_POSITIVE_INTEGER_MINOR_UNITS');
+    if (!Number.isInteger(input.variationsAmountMinor)) throw new Error('VARIATIONS_AMOUNT_MUST_BE_INTEGER_MINOR_UNITS');
     for (const [field, value] of Object.entries({
-      variationsAmountMinor: input.variationsAmountMinor,
       retentionAmountMinor: input.retentionAmountMinor,
       taxAmountMinor: input.taxAmountMinor,
       penaltyAmountMinor: input.penaltyAmountMinor,
     }))
-      if (!Number.isInteger(value)) throw new Error(`${field.toUpperCase()}_MUST_BE_INTEGER_MINOR_UNITS`);
+      if (!Number.isInteger(value) || value < 0)
+        throw new Error(`${field.toUpperCase()}_MUST_BE_NON_NEGATIVE_INTEGER_MINOR_UNITS`);
     const netPayableAmountMinor =
       input.grossEarnedAmountMinor +
       input.variationsAmountMinor -
@@ -174,6 +175,10 @@ export class FinancialEntitlementEngine {
       calculatedAt: now(),
     };
     this.store.append('financialEntitlements', entitlement);
+    emit(this.store, context, 'FinancialEntitlementCalculated', 'FinancialEntitlement', entitlement.id, {
+      milestoneId: entitlement.milestoneId,
+      netPayableAmountMinor: entitlement.netPayableAmountMinor,
+    });
     return entitlement;
   }
 
@@ -390,6 +395,10 @@ export class EscrowFundingAssuranceEngine {
       createdAt: now(),
     };
     this.store.append('fundReservations', reservation);
+    emit(this.store, context, 'FundReservationCreated', 'FundReservation', reservation.id, {
+      fundingCommitmentId: reservation.fundingCommitmentId,
+      invoiceId: reservation.invoiceId,
+    });
     return reservation;
   }
 
@@ -410,6 +419,9 @@ export class EscrowFundingAssuranceEngine {
     if (!input.reason.trim()) throw new Error('CANCELLATION_REASON_REQUIRED');
     const cancelled: FundReservation = { ...reservation, status: 'CANCELLED' };
     this.store.replace('fundReservations', cancelled);
+    emit(this.store, context, 'FundReservationCancelled', 'FundReservation', reservation.id, {
+      reason: input.reason,
+    });
     return cancelled;
   }
 }

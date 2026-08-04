@@ -100,6 +100,9 @@ export class ExecutionOrchestrationEngine {
       createdAt: now(),
     };
     this.store.append('executionWorkspaces', workspace);
+    emit(this.store, context, 'ExecutionWorkspaceOpened', 'ExecutionWorkspace', workspace.id, {
+      milestoneId: workspace.milestoneId,
+    });
     return workspace;
   }
 
@@ -131,6 +134,10 @@ export class ExecutionOrchestrationEngine {
       updatedAt: stamp,
     };
     this.store.append('workItems', item);
+    emit(this.store, context, 'WorkItemAssigned', 'WorkItem', item.id, {
+      executionWorkspaceId: item.executionWorkspaceId,
+      deliverableId: item.deliverableId,
+    });
     return item;
   }
 
@@ -225,8 +232,8 @@ export class ProgressMeasurementEngine {
     if (input.stage === 'FINANCIALLY_EARNED') {
       if (!latest || latest.stage !== 'ACCEPTED') throw new Error('ACCEPTED_PROGRESS_REQUIRED');
       if (input.percentComplete !== 100) throw new Error('FINANCIALLY_EARNED_REQUIRES_COMPLETION');
-      if (!input.earnedValueAmountMinor || input.earnedValueAmountMinor <= 0)
-        throw new Error('EARNED_VALUE_REQUIRED');
+      if (!input.earnedValueAmountMinor || !Number.isInteger(input.earnedValueAmountMinor) || input.earnedValueAmountMinor <= 0)
+        throw new Error('EARNED_VALUE_MUST_BE_POSITIVE_INTEGER_MINOR_UNITS');
     }
     const record: ProgressRecord = {
       id: randomUUID(),
@@ -291,6 +298,10 @@ export class EvidenceManagementEngine {
       createdAt: now(),
     };
     this.store.append('evidenceRequirements', requirement);
+    emit(this.store, context, 'EvidenceRequirementDefined', 'EvidenceRequirement', requirement.id, {
+      deliverableId: requirement.deliverableId,
+      mandatory: requirement.mandatory,
+    });
     return requirement;
   }
 
@@ -467,6 +478,9 @@ export class QualityAssuranceEngine {
       createdAt: now(),
     };
     this.store.append('qualityPlans', plan);
+    emit(this.store, context, 'QualityPlanDefined', 'QualityPlan', plan.id, {
+      executionWorkspaceId: plan.executionWorkspaceId,
+    });
     return plan;
   }
 
@@ -494,6 +508,7 @@ export class QualityAssuranceEngine {
     if (!input.rootCause.trim()) throw new Error('ROOT_CAUSE_REQUIRED');
     const updated: Defect = { ...defect, rootCause: input.rootCause, status: 'IN_REWORK' };
     this.store.replace('defects', updated);
+    emit(this.store, context, 'DefectRootCauseAssigned', 'Defect', defect.id, { rootCause: input.rootCause });
     return updated;
   }
 
@@ -512,6 +527,7 @@ export class QualityAssuranceEngine {
     if (defect.status !== 'RESOLVED') throw new Error('DEFECT_NOT_RESOLVED');
     const closed: Defect = { ...defect, status: 'CLOSED' };
     this.store.replace('defects', closed);
+    emit(this.store, context, 'DefectClosed', 'Defect', defect.id, { workItemId: defect.workItemId });
     return closed;
   }
 
