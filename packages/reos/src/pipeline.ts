@@ -2,6 +2,7 @@
 import { readJson } from './util/fsx.ts';
 import { writeArtifact, writeJsonArtifact } from './util/serialize.ts';
 import { CAPABILITY_REGISTRY, absolute, artifactPaths } from './paths.ts';
+import { evaluateGovernance, loadGovernancePolicy } from './governance.ts';
 import { discover } from './stages/discover.ts';
 import { runForensics } from './stages/forensics.ts';
 import { buildExecutionManifest, renderExecutionManifest } from './stages/manifest.ts';
@@ -14,6 +15,7 @@ import { buildExecutionReport, renderExecutionReport } from './stages/report.ts'
 import type {
   CapabilityRegistry,
   CertificationReport,
+  GovernanceEvaluation,
   DependencyResolution,
   DiscoverySnapshot,
   ExecutionManifest,
@@ -45,11 +47,20 @@ export function runManifest(
   discovery: DiscoverySnapshot,
   forensics: ForensicsReport,
 ): ExecutionManifest {
+  // Lifecycle states above `implemented` depend on the last recorded
+  // certification, which is itself a committed artifact — so reading it keeps the
+  // manifest a pure function of repository state.
+  const certification = readArtifact<CertificationReport>(
+    repoRoot,
+    artifactPaths().certificationJson,
+  );
+
   const manifest = buildExecutionManifest(
     repoRoot,
     discovery,
     forensics,
     loadRegistry(repoRoot),
+    certification,
   );
   writeJsonArtifact(absolute(repoRoot, artifactPaths().manifestJson), manifest);
   writeArtifact(
@@ -144,13 +155,24 @@ export function runPlanning(repoRoot: string) {
   return { discovery, forensics, manifest, resolution };
 }
 
+/** Evaluates the governance policy against the current manifest. */
+export function runGovernance(
+  repoRoot: string,
+  manifest: ExecutionManifest,
+): GovernanceEvaluation {
+  return evaluateGovernance(manifest, loadGovernancePolicy(repoRoot));
+}
+
 /** The full pipeline: discover → forensics → manifest → dependencies → certify → report. */
 export function runPipeline(
   repoRoot: string,
   options: { capability?: string | null; certify?: CertifyOptions } = {},
 ): PipelineResult {
   const planning = runPlanning(repoRoot);
-  const certification = runCertify(repoRoot, planning.discovery, options.certify ?? {});
+  const certification = runCertify(repoRoot, planning.discovery, {
+    ...(options.certify ?? {}),
+    manifest: planning.manifest,
+  });
   const report = runReport(
     repoRoot,
     planning.discovery,

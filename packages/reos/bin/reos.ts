@@ -6,18 +6,21 @@
  * Node >= 22.18. There is deliberately no build step and no runtime dependency:
  * the execution operating system must work in a freshly cloned repository.
  */
-import { artifactPaths, resolveRepoRoot } from '../src/paths.ts';
+import { GOVERNANCE_POLICY, absolute, artifactPaths, resolveRepoRoot } from '../src/paths.ts';
 import {
   readArtifact,
   runCertify,
   runDependencies,
   runDiscover,
   runForensicsStage,
+  runGovernance,
   runManifest,
   runPipeline,
   runPlanning,
   runReport,
 } from '../src/pipeline.ts';
+import { loadGovernancePolicy, proposeBaseline } from '../src/governance.ts';
+import { writeJsonArtifact } from '../src/util/serialize.ts';
 import { REOS_VERSION } from '../src/types.ts';
 import type { CertificationReport } from '../src/types.ts';
 
@@ -30,6 +33,7 @@ const COMMANDS = [
   'report',
   'next',
   'pipeline',
+  'governance',
 ] as const;
 
 type Command = (typeof COMMANDS)[number];
@@ -73,11 +77,13 @@ function usage(): string {
     '  report          Stage 7 — write the execution report',
     '  next            Stages 1–4, then print the selected capability',
     '  pipeline        Stages 1–7 end to end',
+    '  governance      Evaluate the staged reconciliation policy',
     '',
     'Options:',
-    '  --capability=<id>   Capability implemented in this session (report)',
-    '  --only=<ids>        Run only these certification steps',
-    '  --skip=<ids>        Skip these certification steps',
+    '  --capability=<id>    Capability implemented in this session (report)',
+    '  --only=<ids>         Run only these certification steps',
+    '  --skip=<ids>         Skip these certification steps',
+    '  --accept-baseline    Record current findings as pre-existing (governance)',
     '',
   ].join('\n');
 }
@@ -106,14 +112,48 @@ function printSelection(repoRoot: string): number {
   }
 
   lines.push(
-    `Selected   : ${selected.id}`,
-    `Title      : ${selected.title}`,
-    `Status     : ${selected.status}`,
-    `Priority   : ${selected.priority}`,
-    selected.requiresLiveInfrastructure
-      ? 'Warning    : requires live infrastructure (credentials must be configured)'
-      : '',
+    'Selected:',
+    `  ${selected.id}`,
     '',
+    'Reason:',
+    `  ${resolution.selectionReason ?? 'Highest-priority executable capability'}`,
+    '',
+    'Title:',
+    `  ${selected.title}`,
+    '',
+    'Lifecycle:',
+    `  ${selected.status} → ${selected.lifecycle}`,
+    '',
+    'Depends On:',
+    ...(selected.dependsOn.length > 0
+      ? selected.dependsOn.map(
+          (id) => `  ${id}${selected.blockedBy.includes(id) ? '  [UNMET]' : ''}`,
+        )
+      : ['  (nothing)']),
+    '',
+    `Blocks (${selected.blocks.length} transitively):`,
+    ...(selected.blocks.length > 0
+      ? selected.blocks.slice(0, 10).map((id) => `  ${id}`)
+      : ['  (nothing)']),
+    ...(selected.blocks.length > 10
+      ? [`  … and ${selected.blocks.length - 10} more`]
+      : []),
+    '',
+    selected.scope.estimated ? 'Estimated Scope:' : 'Declared Evidence Scope:',
+    `  ${selected.scope.files} file(s)`,
+    `  ${selected.scope.tests} test suite(s)`,
+    '',
+  );
+
+  if (selected.requiresLiveInfrastructure) {
+    lines.push(
+      'Warning:',
+      '  Requires live infrastructure — credentials must be configured.',
+      '',
+    );
+  }
+
+  lines.push(
     'Next steps:',
     '  1. Read docs/governance/reos/EXECUTION_CONTRACT.md',
     `  2. Implement ${selected.id} in full — interfaces, registration, telemetry, tests, docs`,
@@ -122,7 +162,7 @@ function printSelection(repoRoot: string): number {
     '',
   );
 
-  process.stdout.write(lines.filter((line) => line !== '').join('\n') + '\n');
+  process.stdout.write(`${lines.join('\n')}\n`);
   return 0;
 }
 
@@ -197,8 +237,12 @@ function main(): number {
     }
 
     case 'certify': {
-      const discovery = runDiscover(repoRoot);
-      const report = runCertify(repoRoot, discovery, certifyOptions);
+      // Planning first: the governance gate needs a manifest to judge.
+      const planning = runPlanning(repoRoot);
+      const report = runCertify(repoRoot, planning.discovery, {
+        ...certifyOptions,
+        manifest: planning.manifest,
+      });
       for (const step of report.steps) {
         const mark = step.skipped ? 'skip' : step.passed ? 'pass' : 'FAIL';
         process.stdout.write(`  [${mark}] ${step.id}\n`);
@@ -235,6 +279,34 @@ function main(): number {
 
     case 'next':
       return printSelection(repoRoot);
+
+    case 'governance': {
+      const { manifest } = runPlanning(repoRoot);
+
+      if (argv.includes('--accept-baseline')) {
+        const policy = loadGovernancePolicy(repoRoot);
+        const baseline = proposeBaseline(manifest);
+        writeJsonArtifact(absolute(repoRoot, GOVERNANCE_POLICY), {
+          ...policy,
+          baseline,
+        });
+        process.stdout.write(
+          `governance: recorded ${baseline.length} finding(s) as baselined in ${GOVERNANCE_POLICY}\n`,
+        );
+        return 0;
+      }
+
+      const evaluation = runGovernance(repoRoot, manifest);
+      process.stdout.write(
+        `governance: phase ${evaluation.phase} — ${evaluation.baselined} baselined, ` +
+          `${evaluation.introduced.length} introduced, ${evaluation.resolved.length} stale baseline entry/-ies\n`,
+      );
+      for (const finding of evaluation.findings) {
+        if (finding.severity === 'info') continue;
+        process.stdout.write(`  [${finding.severity}] ${finding.rule} — ${finding.message}\n`);
+      }
+      return evaluation.passed ? 0 : 1;
+    }
 
     case 'pipeline': {
       const result = runPipeline(repoRoot, {

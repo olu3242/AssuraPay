@@ -21,6 +21,21 @@ export function resolveDependencies(
   const blocked = backlog.filter((entry) => !entry.executable);
   const selected = selectNext(backlog);
 
+  const selectionReason = selected
+    ? [
+        'Highest-priority executable capability',
+        `(priority ${selected.priority}, lifecycle ${selected.lifecycle})`,
+        selected.requiresLiveInfrastructure
+          ? '— selected despite needing live infrastructure, nothing else is executable'
+          : '',
+        selected.blocks.length > 0
+          ? `— unblocks ${selected.blocks.length} downstream capability/-ies`
+          : '',
+      ]
+        .filter((part) => part.length > 0)
+        .join(' ')
+    : null;
+
   const rejected = [
     ...blocked.map((entry) => ({
       id: entry.id,
@@ -41,6 +56,7 @@ export function resolveDependencies(
     stage: 'dependencies',
     head: manifest.identity.head,
     selected,
+    selectionReason,
     rejected,
     executable,
     blocked,
@@ -71,7 +87,18 @@ export function renderDependencyResolution(
             ['Capability', cell(selected.id)],
             ['Title', cell(selected.title)],
             ['Current status', selected.status],
+            ['Lifecycle', selected.lifecycle],
             ['Priority', String(selected.priority)],
+            ['Reason', cell(resolution.selectionReason)],
+            ['Depends on', selected.dependsOn.length > 0 ? cell(selected.dependsOn.join(', ')) : '—'],
+            ['Unmet dependencies', selected.blockedBy.length > 0 ? cell(selected.blockedBy.join(', ')) : 'none'],
+            ['Blocks (transitive)', selected.blocks.length > 0 ? cell(selected.blocks.join(', ')) : '—'],
+            [
+              'Declared scope',
+              `${selected.scope.files} file(s), ${selected.scope.tests} test suite(s)${
+                selected.scope.estimated ? ' (registry estimate)' : ''
+              }`,
+            ],
             [
               'Requires live infrastructure',
               selected.requiresLiveInfrastructure ? 'yes' : 'no',
@@ -84,12 +111,13 @@ export function renderDependencyResolution(
     '',
     resolution.executable.length > 0
       ? markdownTable(
-          ['Capability', 'Title', 'Status', 'Priority', 'Live infra'],
+          ['Capability', 'Title', 'Lifecycle', 'Priority', 'Blocks', 'Live infra'],
           resolution.executable.map((entry) => [
             cell(entry.id),
             cell(entry.title),
-            entry.status,
+            entry.lifecycle,
             String(entry.priority),
+            entry.blocks.length > 0 ? String(entry.blocks.length) : '—',
             entry.requiresLiveInfrastructure ? 'yes' : 'no',
           ]),
         )

@@ -5,8 +5,11 @@ import { validateDependencies } from '../validators/dependency.ts';
 import { validateSecurity } from '../validators/security.ts';
 import { validateExecutionContract } from '../validators/contract.ts';
 import { resolveBase } from '../validators/contract.ts';
+import { evaluateGovernance, loadGovernancePolicy } from '../governance.ts';
+import { appendLedgerEntry, buildLedgerEntry } from '../ledger.ts';
 import { REOS_VERSION } from '../types.ts';
 import type {
+  CapabilityLifecycle,
   CertificationReport,
   DependencyResolution,
   DiscoverySnapshot,
@@ -28,6 +31,38 @@ export function buildExecutionReport(
     .filter((step) => !step.passed && !step.skipped)
     .map((step) => step.id);
 
+  const capability = options.capability ?? null;
+
+  // Lifecycle of the declared capability, read from the graph the manifest built.
+  const capabilityLifecycle: CapabilityLifecycle | null = capability
+    ? manifest.dependencyGraph.find((node) => node.id === capability)?.lifecycle ??
+      null
+    : null;
+
+  const validation = [
+    validateArchitecture(repoRoot, discovery),
+    validateDependencies(repoRoot, discovery),
+    validateSecurity(repoRoot),
+    validateExecutionContract(repoRoot, discovery),
+  ];
+
+  const governance = evaluateGovernance(manifest, loadGovernancePolicy(repoRoot));
+
+  // Stage 7 is where an execution becomes history. The ledger is append-only, so
+  // re-running the report for the same commit and capability adds nothing.
+  const ledger = appendLedgerEntry(
+    repoRoot,
+    buildLedgerEntry({
+      manifest,
+      validation,
+      certification,
+      capabilityId: capability,
+      lifecycle: capabilityLifecycle,
+      branch: git.branch,
+      commit: git.head,
+    }),
+  );
+
   return {
     reosVersion: REOS_VERSION,
     stage: 'report',
@@ -38,14 +73,10 @@ export function buildExecutionReport(
       clean: git.clean,
       dirtyFiles: git.dirtyFiles,
     },
-    capability: options.capability ?? null,
+    capability,
+    capabilityLifecycle,
     filesModified: changedFiles(repoRoot, resolveBase(repoRoot)),
-    validation: [
-      validateArchitecture(repoRoot, discovery),
-      validateDependencies(repoRoot, discovery),
-      validateSecurity(repoRoot),
-      validateExecutionContract(repoRoot, discovery),
-    ],
+    validation,
     certification: {
       available: certification !== null,
       passed: certification?.passed ?? false,
@@ -53,6 +84,8 @@ export function buildExecutionReport(
     },
     remainingBacklog: manifest.executionBacklog,
     recommendedNextCapability: resolution.selected,
+    governance,
+    ledgerEntryId: ledger.entryId,
     commit: git.head,
   };
 }
@@ -88,7 +121,9 @@ export function renderExecutionReport(report: ExecutionReport): string {
     '',
     '## Capability implemented',
     '',
-    report.capability ? `\`${report.capability}\`` : 'None declared for this session.',
+    report.capability
+      ? `\`${report.capability}\` — lifecycle **${report.capabilityLifecycle ?? 'unknown'}**`
+      : 'None declared for this session.',
     '',
     `## Files modified (${report.filesModified.length})`,
     '',
@@ -116,6 +151,23 @@ export function renderExecutionReport(report: ExecutionReport): string {
           '',
         ]
       : []),
+    '## Governance',
+    '',
+    report.governance
+      ? [
+          `Phase ${report.governance.phase}. ` +
+            `${report.governance.baselined} baselined, ` +
+            `${report.governance.introduced.length} newly introduced, ` +
+            `${report.governance.resolved.length} baseline entry/-ies now stale.`,
+          '',
+          report.governance.introduced.length > 0
+            ? `Newly introduced violations:\n${report.governance.introduced
+                .map((id) => `- \`${id}\``)
+                .join('\n')}`
+            : 'No newly introduced violations.',
+        ].join('\n')
+      : 'Not evaluated.',
+    '',
     '## Certification',
     '',
     report.certification.available
@@ -145,6 +197,12 @@ export function renderExecutionReport(report: ExecutionReport): string {
     report.recommendedNextCapability
       ? `\`${report.recommendedNextCapability.id}\` — ${report.recommendedNextCapability.title}`
       : 'None available.',
+    '',
+    '## Ledger',
+    '',
+    report.ledgerEntryId
+      ? `Recorded as \`${report.ledgerEntryId}\` in \`docs/governance/execution-ledger/\`.`
+      : 'Not recorded.',
     '',
     '## Commit',
     '',

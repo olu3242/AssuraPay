@@ -9,12 +9,18 @@
  * certify → report → next.
  */
 
-export { REOS_VERSION } from './types.ts';
+export { CAPABILITY_LIFECYCLE_ORDER, REOS_VERSION } from './types.ts';
 
 export type {
   AdrRecord,
   ApplicationRecord,
   BacklogEntry,
+  CapabilityLifecycle,
+  CapabilityScope,
+  GovernanceEvaluation,
+  GovernancePhase,
+  GovernancePolicy,
+  LedgerEntry,
   CapabilityDefinition,
   CapabilityForensics,
   CapabilityRegistry,
@@ -49,15 +55,39 @@ export {
   buildBacklog,
   buildEngineNodes,
   buildPlatformNodes,
+  computeBlocks,
   engineNodeId,
+  lifecycleByNode,
   selectNext,
 } from './backlog.ts';
+
+export { deriveLifecycle, summariseLifecycle } from './lifecycle.ts';
+
+export {
+  DEFAULT_POLICY,
+  evaluateGovernance,
+  fingerprint,
+  loadGovernancePolicy,
+  proposeBaseline,
+  toValidationOutcome,
+} from './governance.ts';
+
+export {
+  appendLedgerEntry,
+  buildLedgerEntry,
+  digestOf,
+  ledgerEntryId,
+  listLedgerEntries,
+  renderLedgerIndex,
+} from './ledger.ts';
 
 export {
   ARTIFACTS,
   ARTIFACT_DIRECTORY,
   CAPABILITY_REGISTRY,
   GOVERNANCE_DIRECTORY,
+  GOVERNANCE_POLICY,
+  LEDGER_DIRECTORY,
   absolute,
   artifactDirectory,
   artifactPaths,
@@ -74,6 +104,7 @@ export {
   buildSourceIndex,
   classifyStatus,
   investigateGitEvidence,
+  isOnDefaultBranch,
   runForensics,
 } from './stages/forensics.ts';
 export {
@@ -116,6 +147,7 @@ export {
   runDependencies,
   runDiscover,
   runForensicsStage,
+  runGovernance,
   runManifest,
   runPipeline,
   runPlanning,
@@ -123,5 +155,5 @@ export {
 } from './pipeline.ts';
 
 export { stableStringify } from './util/serialize.ts';
-export { parsePorcelainPaths } from './util/git.ts';
+export { defaultBranchRef, parsePorcelainPaths } from './util/git.ts';
 export { matchGlob } from './util/fsx.ts';

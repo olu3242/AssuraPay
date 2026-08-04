@@ -5,12 +5,20 @@ import {
   buildBacklog,
   buildEngineNodes,
   buildPlatformNodes,
+  computeBlocks,
+  engineNodeId,
+  lifecycleByNode,
   type CapabilityNode,
 } from '../backlog.ts';
+import { summariseLifecycle } from '../lifecycle.ts';
+import { defaultBranchRef, pathExistsAtRef } from '../util/git.ts';
+import { digestOf } from '../ledger.ts';
 import { REOS_VERSION } from '../types.ts';
 import type {
+  CapabilityLifecycle,
   CapabilityRegistry,
   CapabilityStatus,
+  CertificationReport,
   DiscoverySnapshot,
   EngineReconciliation,
   ExecutionManifest,
@@ -18,11 +26,20 @@ import type {
   ForensicsReport,
 } from '../types.ts';
 
-/** Reads the canonical aggregate chain from CLAUDE.md so it cannot drift. */
+/**
+ * Reads the canonical aggregate chain from CLAUDE.md so it cannot drift.
+ *
+ * Anchored on the phrase that introduces it. CLAUDE.md contains more than one
+ * backticked arrow-chain — the capability lifecycle is also written that way — so
+ * matching the first arrow found would pick up whichever appears earliest.
+ */
 export function parseCanonicalChain(claudeMd: string | null): string[] {
   if (!claudeMd) return [];
-  const match = /`([^`]*→[^`]*)`/.exec(claudeMd);
+
+  const anchored = /canonical chain is\s*`([^`]*→[^`]*)`/i.exec(claudeMd);
+  const match = anchored ?? /`([^`]*→[^`]*)`/.exec(claudeMd);
   if (!match) return [];
+
   return match[1]
     .split('→')
     .map((segment) => segment.trim())
@@ -99,6 +116,8 @@ export function reconcileEngines(
       wave: engine.wave,
       declaredStatus: engine.declaredStatus,
       observedStatus,
+      // Replaced with the derived value once the dependency graph exists.
+      lifecycle: 'missing' as CapabilityLifecycle,
       packageDirectory,
       certificationScript: certificationTarget?.script ?? null,
       divergent: declared !== null && declared !== observedStatus,
@@ -142,6 +161,7 @@ export function buildReconciliationFindings(
         `${expected ?? 'no implementation package'}. The certify:* batch numbering and the ` +
         'catalog engine numbering are two different identifier spaces using the same numbers.',
       location: 'package.json',
+      subject: target.script,
       evidence: [target.command],
     });
   }
@@ -160,6 +180,7 @@ export function buildReconciliationFindings(
         `${record.directory} exports ${engineClasses.length} engine class(es) but is not mapped to any ` +
         'catalog engine, so its scope is not represented in docs/ENGINE_CATALOG.md.',
       location: `${record.directory}/src/index.ts`,
+      subject: record.directory,
       evidence: engineClasses.slice(0, 8),
     });
   }
@@ -173,6 +194,7 @@ export function buildReconciliationFindings(
         `Engine ${engine.id} (${engine.name}) is declared "${engine.declaredStatus}" ` +
         `but repository evidence shows "${engine.observedStatus}".`,
       location: 'docs/ENGINE_CATALOG.md',
+      subject: `engine:${engine.id}`,
     });
   }
 
@@ -184,6 +206,7 @@ export function buildReconciliationFindings(
       rule: 'runtime/duplicate-abstraction',
       severity: 'error',
       message: `${name} is exported by ${owners.length} packages, which duplicates an abstraction.`,
+      subject: name,
       evidence: owners,
     });
   }
@@ -195,6 +218,7 @@ export function buildReconciliationFindings(
       message:
         `${discovery.runtime.unregisteredEngines.length} exported engine class(es) are not instantiated in any ` +
         'composition root, so they are unreachable at runtime.',
+      subject: 'runtime',
       evidence: discovery.runtime.unregisteredEngines.slice(0, 12),
     });
   }
@@ -208,6 +232,7 @@ export function buildExecutionManifest(
   discovery: DiscoverySnapshot,
   forensics: ForensicsReport,
   registry: CapabilityRegistry,
+  certification: CertificationReport | null = null,
 ): ExecutionManifest {
   const engines = reconcileEngines(discovery, registry);
 
@@ -224,9 +249,26 @@ export function buildExecutionManifest(
         .sort(),
     }));
 
+  // Which engine packages already exist on the default branch. One git probe per
+  // distinct package, so the cost is bounded by package count, not engine count.
+  const defaultRef = defaultBranchRef(repoRoot);
+  const releasedPackages = new Set<string>();
+  if (defaultRef) {
+    const candidates = new Set(
+      engines
+        .map((engine) => engine.packageDirectory)
+        .filter((value): value is string => value !== null),
+    );
+    for (const directory of candidates) {
+      if (pathExistsAtRef(defaultRef, `${directory}/package.json`, repoRoot)) {
+        releasedPackages.add(directory);
+      }
+    }
+  }
+
   const nodes: CapabilityNode[] = [
     ...buildPlatformNodes(registry, forensics.capabilities),
-    ...buildEngineNodes(engines),
+    ...buildEngineNodes(engines, releasedPackages),
   ];
 
   const scripted = discovery.certificationTargets.map((target) => target.script);
@@ -239,7 +281,17 @@ export function buildExecutionManifest(
     )
     .map((record) => record.directory);
 
-  return {
+  const lifecycles = lifecycleByNode(nodes, certification);
+  const blocks = computeBlocks(nodes);
+
+  // Engine lifecycle is derived from the same graph the backlog uses, so the two
+  // can never disagree about how far an engine has progressed.
+  const reconciledEngines: EngineReconciliation[] = engines.map((engine) => ({
+    ...engine,
+    lifecycle: lifecycles.get(engineNodeId(engine.id)) ?? 'missing',
+  }));
+
+  const manifest: Omit<ExecutionManifest, 'manifestDigest'> = {
     reosVersion: REOS_VERSION,
     stage: 'manifest',
     identity: {
@@ -259,7 +311,7 @@ export function buildExecutionManifest(
     },
     packages: discovery.packages,
     applications: discovery.applications,
-    engines,
+    engines: reconciledEngines,
     runtime: discovery.runtime,
     platformCapabilities: forensics.capabilities,
     implementedCapabilities: nodes
@@ -270,6 +322,7 @@ export function buildExecutionManifest(
       .filter((node) => node.status === 'missing' || node.status === 'lost')
       .map((node) => node.id)
       .sort(),
+    lifecycleSummary: summariseLifecycle([...lifecycles.values()]),
     certification: {
       targets: discovery.certificationTargets.length,
       scripted,
@@ -279,13 +332,23 @@ export function buildExecutionManifest(
       nodes.map((node) => ({
         id: node.id,
         dependsOn: node.dependsOn,
+        blocks: blocks.get(node.id) ?? [],
         status: node.status,
+        lifecycle: lifecycles.get(node.id) ?? 'missing',
       })),
       (node) => node.id,
     ),
-    executionBacklog: buildBacklog(nodes),
-    reconciliationFindings: buildReconciliationFindings(discovery, registry, engines),
+    executionBacklog: buildBacklog(nodes, certification),
+    reconciliationFindings: buildReconciliationFindings(
+      discovery,
+      registry,
+      reconciledEngines,
+    ),
   };
+
+  // The digest covers the manifest without itself, so it identifies content
+  // rather than depending on its own value.
+  return { ...manifest, manifestDigest: digestOf(manifest) };
 }
 
 export function renderExecutionManifest(manifest: ExecutionManifest): string {
@@ -295,14 +358,20 @@ export function renderExecutionManifest(manifest: ExecutionManifest): string {
     String(engine.wave),
     cell(engine.declaredStatus),
     engine.observedStatus,
+    engine.lifecycle,
     cell(engine.packageDirectory),
     engine.divergent ? '**yes**' : 'no',
   ]);
+
+  const lifecycleById = new Map(
+    manifest.dependencyGraph.map((node) => [node.id, node.lifecycle]),
+  );
 
   const capabilityRows = manifest.platformCapabilities.map((capability) => [
     cell(capability.id),
     cell(capability.title),
     capability.status,
+    cell(lifecycleById.get(capability.id)),
     `${capability.satisfiedProbes}/${capability.totalProbes}`,
     cell(capability.rationale),
   ]);
@@ -312,10 +381,11 @@ export function renderExecutionManifest(manifest: ExecutionManifest): string {
     .map((entry) => [
       cell(entry.id),
       cell(entry.title),
-      entry.status,
+      entry.lifecycle,
       String(entry.priority),
       entry.executable ? 'yes' : 'no',
       entry.blockedBy.length > 0 ? cell(entry.blockedBy.join(', ')) : '—',
+      entry.blocks.length > 0 ? String(entry.blocks.length) : '—',
     ]);
 
   const findingRows = manifest.reconciliationFindings.map((finding) => [
@@ -340,6 +410,7 @@ export function renderExecutionManifest(manifest: ExecutionManifest): string {
         ['Branch', cell(manifest.identity.branch)],
         ['HEAD', cell(manifest.identity.head)],
         ['Worktree clean', manifest.identity.clean ? 'yes' : 'no'],
+        ['Manifest digest', cell(manifest.manifestDigest)],
         ['REOS version', cell(manifest.reosVersion)],
       ],
     ),
@@ -351,20 +422,29 @@ export function renderExecutionManifest(manifest: ExecutionManifest): string {
     `- Waves: ${manifest.architecture.waves.length}`,
     `- Canonical chain: ${manifest.architecture.canonicalChain.join(' → ') || '—'}`,
     '',
+    '## Lifecycle summary',
+    '',
+    markdownTable(
+      ['Lifecycle', 'Count'],
+      Object.entries(manifest.lifecycleSummary)
+        .filter(([, count]) => count > 0)
+        .map(([state, count]) => [state, String(count)]),
+    ),
+    '',
     '## Engine reconciliation',
     '',
     'Declared status comes from `docs/ENGINE_CATALOG.md`. Observed status is derived',
     'from repository evidence: package presence, test files, and certification wiring.',
     '',
     markdownTable(
-      ['#', 'Engine', 'Wave', 'Declared', 'Observed', 'Package', 'Divergent'],
+      ['#', 'Engine', 'Wave', 'Declared', 'Observed', 'Lifecycle', 'Package', 'Divergent'],
       engineRows,
     ),
     '',
     '## Platform capabilities',
     '',
     markdownTable(
-      ['Capability', 'Title', 'Status', 'Probes', 'Rationale'],
+      ['Capability', 'Title', 'Status', 'Lifecycle', 'Probes', 'Rationale'],
       capabilityRows,
     ),
     '',
@@ -380,7 +460,7 @@ export function renderExecutionManifest(manifest: ExecutionManifest): string {
     '',
     backlogRows.length > 0
       ? markdownTable(
-          ['Capability', 'Title', 'Status', 'Priority', 'Executable', 'Blocked by'],
+          ['Capability', 'Title', 'Lifecycle', 'Priority', 'Executable', 'Blocked by', 'Blocks'],
           backlogRows,
         )
       : 'Backlog empty.',
