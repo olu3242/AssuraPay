@@ -5,7 +5,7 @@
     "failedSteps": [],
     "passed": true
   },
-  "commit": "d0fcabac186723940655ebaab28b6227c9ef99db",
+  "commit": "aecc0d9a33656a67dfdbe72a0e45299ab2576f96",
   "filesModified": [
     ".github/workflows/ci.yml",
     "CLAUDE.md",
@@ -56,7 +56,7 @@
     "tsconfig.json",
     "vitest.config.ts"
   ],
-  "generatedAt": "2026-08-04T17:24:50.182Z",
+  "generatedAt": "2026-08-04T17:29:41.272Z",
   "recommendedNextCapability": {
     "blockedBy": [],
     "executable": true,
@@ -151,12 +151,9 @@
       "docs/governance/reos/generated/certification.json",
       "docs/governance/reos/generated/discovery.json",
       "docs/governance/reos/generated/execution-manifest.json",
-      "docs/governance/reos/generated/forensics.json",
-      "packages/reos/src/index.ts",
-      "packages/reos/src/reos.test.ts",
-      "packages/reos/src/util/git.ts"
+      "docs/governance/reos/generated/forensics.json"
     ],
-    "head": "d0fcabac186723940655ebaab28b6227c9ef99db"
+    "head": "aecc0d9a33656a67dfdbe72a0e45299ab2576f96"
   },
   "stage": "report",
   "validation": [

@@ -1958,7 +1958,7 @@
       "moduleType": null,
       "name": "@assurapay/completion-assurance",
       "sourceFiles": 1,
-      "sourceLines": 452,
+      "sourceLines": 469,
       "testFiles": [
         "packages/completion-assurance/src/completion-assurance.e2e.test.ts",
         "packages/completion-assurance/src/completion-assurance.integration.test.ts",
@@ -2053,7 +2053,7 @@
       "moduleType": null,
       "name": "@assurapay/enterprise-analytics",
       "sourceFiles": 1,
-      "sourceLines": 505,
+      "sourceLines": 519,
       "testFiles": [
         "packages/enterprise-analytics/src/enterprise-analytics.e2e.test.ts",
         "packages/enterprise-analytics/src/enterprise-analytics.integration.test.ts",
@@ -2085,7 +2085,7 @@
       "moduleType": null,
       "name": "@assurapay/enterprise-intelligence",
       "sourceFiles": 1,
-      "sourceLines": 348,
+      "sourceLines": 353,
       "testFiles": [
         "packages/enterprise-intelligence/src/enterprise-intelligence.e2e.test.ts",
         "packages/enterprise-intelligence/src/enterprise-intelligence.integration.test.ts",
@@ -2117,7 +2117,7 @@
       "moduleType": null,
       "name": "@assurapay/execution-orchestration",
       "sourceFiles": 1,
-      "sourceLines": 500,
+      "sourceLines": 516,
       "testFiles": [
         "packages/execution-orchestration/src/execution-orchestration.e2e.test.ts",
         "packages/execution-orchestration/src/execution-orchestration.integration.test.ts",
@@ -2286,7 +2286,7 @@
       "moduleType": null,
       "name": "@assurapay/performance-blueprint",
       "sourceFiles": 1,
-      "sourceLines": 452,
+      "sourceLines": 469,
       "testFiles": [
         "packages/performance-blueprint/src/performance-blueprint.e2e.test.ts",
         "packages/performance-blueprint/src/performance-blueprint.integration.test.ts",
@@ -2318,7 +2318,7 @@
       "moduleType": null,
       "name": "@assurapay/performance-readiness",
       "sourceFiles": 1,
-      "sourceLines": 418,
+      "sourceLines": 431,
       "testFiles": [
         "packages/performance-readiness/src/performance-readiness.e2e.test.ts",
         "packages/performance-readiness/src/performance-readiness.integration.test.ts",
@@ -2400,7 +2400,7 @@
       "moduleType": null,
       "name": "@assurapay/settlement-assurance",
       "sourceFiles": 1,
-      "sourceLines": 492,
+      "sourceLines": 504,
       "testFiles": [
         "packages/settlement-assurance/src/settlement-assurance.e2e.test.ts",
         "packages/settlement-assurance/src/settlement-assurance.integration.test.ts",
@@ -2433,7 +2433,7 @@
       "moduleType": null,
       "name": "@assurapay/settlement-execution",
       "sourceFiles": 1,
-      "sourceLines": 630,
+      "sourceLines": 663,
       "testFiles": [
         "packages/settlement-execution/src/settlement-execution.e2e.test.ts",
         "packages/settlement-execution/src/settlement-execution.integration.test.ts",
@@ -2528,16 +2528,16 @@
       "dirtyFiles": [
         "docs/governance/reos/generated/CERTIFICATION_REPORT.md",
         "docs/governance/reos/generated/EXECUTION_MANIFEST.md",
+        "docs/governance/reos/generated/EXECUTION_REPORT.md",
         "docs/governance/reos/generated/certification.json",
+        "docs/governance/reos/generated/dependency-resolution.json",
         "docs/governance/reos/generated/discovery.json",
         "docs/governance/reos/generated/execution-manifest.json",
-        "docs/governance/reos/generated/forensics.json",
-        "packages/reos/src/index.ts",
-        "packages/reos/src/reos.test.ts",
-        "packages/reos/src/util/git.ts"
+        "docs/governance/reos/generated/execution-report.json",
+        "docs/governance/reos/generated/forensics.json"
       ],
-      "head": "d0fcabac186723940655ebaab28b6227c9ef99db",
-      "headShort": "d0fcaba",
+      "head": "aecc0d9a33656a67dfdbe72a0e45299ab2576f96",
+      "headShort": "aecc0d9",
       "reflogAvailable": true,
       "remotes": [
         "origin"
@@ -2545,7 +2545,7 @@
       "tags": [
         "rc-engine-60"
       ],
-      "upstream": null
+      "upstream": "origin/claude/git-pull-cqc04u"
     },
     "name": "assurapay",
     "packageManager": "pnpm@11.3.0",

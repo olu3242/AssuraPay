@@ -1390,7 +1390,7 @@
   "identity": {
     "branch": "claude/git-pull-cqc04u",
     "clean": false,
-    "head": "d0fcabac186723940655ebaab28b6227c9ef99db",
+    "head": "aecc0d9a33656a67dfdbe72a0e45299ab2576f96",
     "repository": "assurapay",
     "version": "0.1.0"
   },
@@ -1580,7 +1580,7 @@
       "moduleType": null,
       "name": "@assurapay/completion-assurance",
       "sourceFiles": 1,
-      "sourceLines": 452,
+      "sourceLines": 469,
       "testFiles": [
         "packages/completion-assurance/src/completion-assurance.e2e.test.ts",
         "packages/completion-assurance/src/completion-assurance.integration.test.ts",
@@ -1675,7 +1675,7 @@
       "moduleType": null,
       "name": "@assurapay/enterprise-analytics",
       "sourceFiles": 1,
-      "sourceLines": 505,
+      "sourceLines": 519,
       "testFiles": [
         "packages/enterprise-analytics/src/enterprise-analytics.e2e.test.ts",
         "packages/enterprise-analytics/src/enterprise-analytics.integration.test.ts",
@@ -1707,7 +1707,7 @@
       "moduleType": null,
       "name": "@assurapay/enterprise-intelligence",
       "sourceFiles": 1,
-      "sourceLines": 348,
+      "sourceLines": 353,
       "testFiles": [
         "packages/enterprise-intelligence/src/enterprise-intelligence.e2e.test.ts",
         "packages/enterprise-intelligence/src/enterprise-intelligence.integration.test.ts",
@@ -1739,7 +1739,7 @@
       "moduleType": null,
       "name": "@assurapay/execution-orchestration",
       "sourceFiles": 1,
-      "sourceLines": 500,
+      "sourceLines": 516,
       "testFiles": [
         "packages/execution-orchestration/src/execution-orchestration.e2e.test.ts",
         "packages/execution-orchestration/src/execution-orchestration.integration.test.ts",
@@ -1908,7 +1908,7 @@
       "moduleType": null,
       "name": "@assurapay/performance-blueprint",
       "sourceFiles": 1,
-      "sourceLines": 452,
+      "sourceLines": 469,
       "testFiles": [
         "packages/performance-blueprint/src/performance-blueprint.e2e.test.ts",
         "packages/performance-blueprint/src/performance-blueprint.integration.test.ts",
@@ -1940,7 +1940,7 @@
       "moduleType": null,
       "name": "@assurapay/performance-readiness",
       "sourceFiles": 1,
-      "sourceLines": 418,
+      "sourceLines": 431,
       "testFiles": [
         "packages/performance-readiness/src/performance-readiness.e2e.test.ts",
         "packages/performance-readiness/src/performance-readiness.integration.test.ts",
@@ -2022,7 +2022,7 @@
       "moduleType": null,
       "name": "@assurapay/settlement-assurance",
       "sourceFiles": 1,
-      "sourceLines": 492,
+      "sourceLines": 504,
       "testFiles": [
         "packages/settlement-assurance/src/settlement-assurance.e2e.test.ts",
         "packages/settlement-assurance/src/settlement-assurance.integration.test.ts",
@@ -2055,7 +2055,7 @@
       "moduleType": null,
       "name": "@assurapay/settlement-execution",
       "sourceFiles": 1,
-      "sourceLines": 630,
+      "sourceLines": 663,
       "testFiles": [
         "packages/settlement-execution/src/settlement-execution.e2e.test.ts",
         "packages/settlement-execution/src/settlement-execution.integration.test.ts",
