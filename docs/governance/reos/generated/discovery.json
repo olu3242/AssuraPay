@@ -2546,7 +2546,6 @@
       "clean": false,
       "dirtyFiles": [
         "docs/governance/reos/generated/CERTIFICATION_REPORT.md",
-        "docs/governance/reos/generated/DEPENDENCY_RESOLUTION.md",
         "docs/governance/reos/generated/EXECUTION_MANIFEST.md",
         "docs/governance/reos/generated/certification.json",
         "docs/governance/reos/generated/dependency-resolution.json",
@@ -2554,8 +2553,8 @@
         "docs/governance/reos/generated/execution-manifest.json",
         "docs/governance/reos/generated/forensics.json"
       ],
-      "head": "b8f9211b132c3fc7dac046c84a8171f703e88fb0",
-      "headShort": "b8f9211",
+      "head": "07870b52a1d7499dd827a5d77cedd9b180632b2a",
+      "headShort": "07870b5",
       "reflogAvailable": true,
       "remotes": [
         "origin"
