@@ -2180,15 +2180,19 @@
     {
       "directory": "packages/identity",
       "exportedClasses": [
-        "IdentityService"
+        "IdentityAssertionError",
+        "IdentityAssertionService",
+        "IdentityService",
+        "InMemoryAssertionReplayGuard"
       ],
       "externalDependencies": [],
       "main": "src/index.ts",
       "moduleType": null,
       "name": "@assurapay/identity",
-      "sourceFiles": 1,
-      "sourceLines": 34,
+      "sourceFiles": 2,
+      "sourceLines": 457,
       "testFiles": [
+        "packages/identity/src/assertions.test.ts",
         "packages/identity/src/identity.test.ts"
       ],
       "tests": {
@@ -2196,7 +2200,7 @@
         "integration": 0,
         "performance": 0,
         "security": 0,
-        "unit": 1
+        "unit": 2
       },
       "workspaceDependencies": [
         "@assurapay/database",
@@ -2380,7 +2384,7 @@
       "moduleType": "module",
       "name": "@assurapay/reos",
       "sourceFiles": 24,
-      "sourceLines": 4143,
+      "sourceLines": 4149,
       "testFiles": [
         "packages/reos/src/reos.e2e.test.ts",
         "packages/reos/src/reos.governance.test.ts",
@@ -2536,10 +2540,19 @@
         "origin/feat/engines-61-70-agent-runtime",
         "origin/main"
       ],
-      "clean": true,
-      "dirtyFiles": [],
-      "head": "70cedbf2b7b8a4f1b4a30bed648e7402949a7dc8",
-      "headShort": "70cedbf",
+      "clean": false,
+      "dirtyFiles": [
+        "docs/governance/reos/generated/CERTIFICATION_REPORT.md",
+        "docs/governance/reos/generated/DEPENDENCY_RESOLUTION.md",
+        "docs/governance/reos/generated/EXECUTION_MANIFEST.md",
+        "docs/governance/reos/generated/certification.json",
+        "docs/governance/reos/generated/dependency-resolution.json",
+        "docs/governance/reos/generated/discovery.json",
+        "docs/governance/reos/generated/execution-manifest.json",
+        "docs/governance/reos/generated/forensics.json"
+      ],
+      "head": "6c6d2a494bfb3c75648349e02c4e0ca3ed924ea8",
+      "headShort": "6c6d2a4",
       "reflogAvailable": true,
       "remotes": [
         "origin"
@@ -2606,7 +2619,10 @@
       "FinancialEntitlementEngine",
       "FinancialPaymentIntelligenceEngine",
       "HumanApprovalEngine",
+      "IdentityAssertionError",
+      "IdentityAssertionService",
       "IdentityService",
+      "InMemoryAssertionReplayGuard",
       "InMemoryTrustStore",
       "InspectionEngine",
       "InvoiceClaimEngine",
@@ -2689,6 +2705,7 @@
           "FinancialApprovalAuthorityEngine",
           "FinancialEntitlementEngine",
           "FinancialPaymentIntelligenceEngine",
+          "IdentityAssertionService",
           "IdentityService",
           "InspectionEngine",
           "InvoiceClaimEngine",
@@ -2737,6 +2754,8 @@
       "ExecutionMemoryEngine",
       "FileAssuraStore",
       "HumanApprovalEngine",
+      "IdentityAssertionError",
+      "InMemoryAssertionReplayGuard",
       "InMemoryTrustStore",
       "PromptRegistryEngine"
     ]
@@ -2748,9 +2767,9 @@
       "integration": 15,
       "performance": 2,
       "security": 3,
-      "unit": 29
+      "unit": 30
     },
-    "files": 64
+    "files": 65
   },
   "totals": {
     "applications": 1,
@@ -2758,7 +2777,7 @@
     "engines": 60,
     "migrations": 20,
     "packages": 22,
-    "testFiles": 64
+    "testFiles": 65
   },
   "workflows": [
     {

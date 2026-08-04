@@ -256,7 +256,7 @@
     {
       "git": {
         "historicalCommits": [],
-        "reachableFromHead": false,
+        "reachableFromHead": true,
         "refsContaining": [],
         "removedFromHead": false
       },
@@ -266,32 +266,42 @@
       "probes": [
         {
           "kind": "path",
-          "matches": [],
+          "matches": [
+            "packages/identity/src/assertions.ts"
+          ],
           "query": "packages/identity/src/assertions.ts",
-          "satisfied": false
+          "satisfied": true
         },
         {
           "kind": "symbol",
-          "matches": [],
+          "matches": [
+            "packages/identity/src/assertions.test.ts",
+            "packages/identity/src/assertions.ts"
+          ],
           "query": "createIdentityAssertion",
-          "satisfied": false
+          "satisfied": true
         },
         {
           "kind": "symbol",
-          "matches": [],
+          "matches": [
+            "packages/identity/src/assertions.test.ts",
+            "packages/identity/src/assertions.ts"
+          ],
           "query": "verifyIdentityAssertion",
-          "satisfied": false
+          "satisfied": true
         },
         {
           "kind": "test",
-          "matches": [],
+          "matches": [
+            "packages/identity/src/assertions.test.ts"
+          ],
           "query": "packages/identity/src/assertions.test.ts",
-          "satisfied": false
+          "satisfied": true
         }
       ],
-      "rationale": "No evidence at HEAD, on any ref, or in history.",
-      "satisfiedProbes": 0,
-      "status": "missing",
+      "rationale": "All 4 evidence probes satisfied at HEAD.",
+      "satisfiedProbes": 4,
+      "status": "implemented",
       "title": "HMAC identity assertions",
       "totalProbes": 4
     },
@@ -380,14 +390,14 @@
       "totalProbes": 4
     }
   ],
-  "head": "70cedbf2b7b8a4f1b4a30bed648e7402949a7dc8",
+  "head": "6c6d2a494bfb3c75648349e02c4e0ca3ed924ea8",
   "reosVersion": "1.0.0",
   "stage": "forensics",
   "summary": {
     "deferred": 0,
-    "implemented": 2,
+    "implemented": 3,
     "lost": 0,
-    "missing": 6,
+    "missing": 5,
     "partial": 0,
     "unreachable": 0
   }

@@ -6,15 +6,15 @@
 
 | Field | Value |
 | --- | --- |
-| Capability | trust.identity-assertions |
-| Title | HMAC identity assertions |
+| Capability | trust.identity-gateway |
+| Title | Production identity gateway |
 | Current status | missing |
 | Lifecycle | planned |
-| Priority | 10 |
-| Reason | Highest-priority executable capability (priority 10, lifecycle planned) — unblocks 5 downstream capability/-ies |
-| Depends on | reos.execution-os |
+| Priority | 11 |
+| Reason | Highest-priority executable capability (priority 11, lifecycle planned) — unblocks 4 downstream capability/-ies |
+| Depends on | trust.identity-assertions |
 | Unmet dependencies | none |
-| Blocks (transitive) | persistence.postgres-repository, persistence.rls-certification, runtime.agent-registration, trust.identity-gateway, trust.permission-enforcement |
+| Blocks (transitive) | persistence.postgres-repository, persistence.rls-certification, runtime.agent-registration, trust.permission-enforcement |
 | Declared scope | 1 file(s), 1 test suite(s) |
 | Requires live infrastructure | no |
 
@@ -22,14 +22,13 @@
 
 | Capability | Title | Lifecycle | Priority | Blocks | Live infra |
 | --- | --- | --- | --- | --- | --- |
-| trust.identity-assertions | HMAC identity assertions | planned | 10 | 5 | no |
+| trust.identity-gateway | Production identity gateway | planned | 11 | 4 | no |
 | engine:08 | Engine 08 — Audit & Evidence Ledger | planned | 108 | 52 | no |
 
 ## Blocked
 
 | Capability | Status | Blocked by |
 | --- | --- | --- |
-| trust.identity-gateway | missing | trust.identity-assertions |
 | trust.permission-enforcement | missing | trust.identity-gateway |
 | runtime.agent-registration | missing | trust.permission-enforcement |
 | persistence.postgres-repository | missing | trust.permission-enforcement |
@@ -40,7 +39,7 @@
 - persistence.postgres-repository
 - persistence.rls-certification
 
-## Completed (57)
+## Completed (58)
 
 - engine:01
 - engine:02
@@ -99,3 +98,4 @@
 - engine:60
 - reos.execution-os
 - settlement.non-custody-guard
+- trust.identity-assertions

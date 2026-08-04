@@ -2457,8 +2457,8 @@
         "reos.execution-os"
       ],
       "id": "trust.identity-assertions",
-      "lifecycle": "planned",
-      "status": "missing"
+      "lifecycle": "certified",
+      "status": "implemented"
     },
     {
       "blocks": [
@@ -2471,7 +2471,7 @@
         "trust.identity-assertions"
       ],
       "id": "trust.identity-gateway",
-      "lifecycle": "missing",
+      "lifecycle": "planned",
       "status": "missing"
     },
     {
@@ -3157,41 +3157,14 @@
         "persistence.postgres-repository",
         "persistence.rls-certification",
         "runtime.agent-registration",
-        "trust.identity-gateway",
         "trust.permission-enforcement"
       ],
       "dependsOn": [
-        "reos.execution-os"
+        "trust.identity-assertions"
       ],
       "executable": true,
-      "id": "trust.identity-assertions",
-      "lifecycle": "planned",
-      "priority": 10,
-      "requiresLiveInfrastructure": false,
-      "scope": {
-        "estimated": false,
-        "files": 1,
-        "tests": 1
-      },
-      "status": "missing",
-      "title": "HMAC identity assertions"
-    },
-    {
-      "blockedBy": [
-        "trust.identity-assertions"
-      ],
-      "blocks": [
-        "persistence.postgres-repository",
-        "persistence.rls-certification",
-        "runtime.agent-registration",
-        "trust.permission-enforcement"
-      ],
-      "dependsOn": [
-        "trust.identity-assertions"
-      ],
-      "executable": false,
       "id": "trust.identity-gateway",
-      "lifecycle": "missing",
+      "lifecycle": "planned",
       "priority": 11,
       "requiresLiveInfrastructure": false,
       "scope": {
@@ -3367,8 +3340,8 @@
   ],
   "identity": {
     "branch": "claude/git-pull-cqc04u",
-    "clean": true,
-    "head": "70cedbf2b7b8a4f1b4a30bed648e7402949a7dc8",
+    "clean": false,
+    "head": "6c6d2a494bfb3c75648349e02c4e0ca3ed924ea8",
     "repository": "assurapay",
     "version": "0.1.0"
   },
@@ -3429,25 +3402,25 @@
     "engine:59",
     "engine:60",
     "reos.execution-os",
-    "settlement.non-custody-guard"
+    "settlement.non-custody-guard",
+    "trust.identity-assertions"
   ],
   "lifecycleSummary": {
-    "certified": 2,
+    "certified": 3,
     "deferred": 4,
     "implemented": 0,
     "implementing": 0,
-    "missing": 5,
+    "missing": 4,
     "planned": 2,
     "released": 55,
     "validated": 0
   },
-  "manifestDigest": "2ffe06f418f7",
+  "manifestDigest": "c41e6403971e",
   "missingCapabilities": [
     "engine:08",
     "persistence.postgres-repository",
     "persistence.rls-certification",
     "runtime.agent-registration",
-    "trust.identity-assertions",
     "trust.identity-gateway",
     "trust.permission-enforcement"
   ],
@@ -3781,15 +3754,19 @@
     {
       "directory": "packages/identity",
       "exportedClasses": [
-        "IdentityService"
+        "IdentityAssertionError",
+        "IdentityAssertionService",
+        "IdentityService",
+        "InMemoryAssertionReplayGuard"
       ],
       "externalDependencies": [],
       "main": "src/index.ts",
       "moduleType": null,
       "name": "@assurapay/identity",
-      "sourceFiles": 1,
-      "sourceLines": 34,
+      "sourceFiles": 2,
+      "sourceLines": 457,
       "testFiles": [
+        "packages/identity/src/assertions.test.ts",
         "packages/identity/src/identity.test.ts"
       ],
       "tests": {
@@ -3797,7 +3774,7 @@
         "integration": 0,
         "performance": 0,
         "security": 0,
-        "unit": 1
+        "unit": 2
       },
       "workspaceDependencies": [
         "@assurapay/database",
@@ -3981,7 +3958,7 @@
       "moduleType": "module",
       "name": "@assurapay/reos",
       "sourceFiles": 24,
-      "sourceLines": 4143,
+      "sourceLines": 4149,
       "testFiles": [
         "packages/reos/src/reos.e2e.test.ts",
         "packages/reos/src/reos.governance.test.ts",
@@ -4381,7 +4358,7 @@
     {
       "git": {
         "historicalCommits": [],
-        "reachableFromHead": false,
+        "reachableFromHead": true,
         "refsContaining": [],
         "removedFromHead": false
       },
@@ -4391,32 +4368,42 @@
       "probes": [
         {
           "kind": "path",
-          "matches": [],
+          "matches": [
+            "packages/identity/src/assertions.ts"
+          ],
           "query": "packages/identity/src/assertions.ts",
-          "satisfied": false
+          "satisfied": true
         },
         {
           "kind": "symbol",
-          "matches": [],
+          "matches": [
+            "packages/identity/src/assertions.test.ts",
+            "packages/identity/src/assertions.ts"
+          ],
           "query": "createIdentityAssertion",
-          "satisfied": false
+          "satisfied": true
         },
         {
           "kind": "symbol",
-          "matches": [],
+          "matches": [
+            "packages/identity/src/assertions.test.ts",
+            "packages/identity/src/assertions.ts"
+          ],
           "query": "verifyIdentityAssertion",
-          "satisfied": false
+          "satisfied": true
         },
         {
           "kind": "test",
-          "matches": [],
+          "matches": [
+            "packages/identity/src/assertions.test.ts"
+          ],
           "query": "packages/identity/src/assertions.test.ts",
-          "satisfied": false
+          "satisfied": true
         }
       ],
-      "rationale": "No evidence at HEAD, on any ref, or in history.",
-      "satisfiedProbes": 0,
-      "status": "missing",
+      "rationale": "All 4 evidence probes satisfied at HEAD.",
+      "satisfiedProbes": 4,
+      "status": "implemented",
       "title": "HMAC identity assertions",
       "totalProbes": 4
     },
@@ -4668,10 +4655,10 @@
         "ExecutionMemoryEngine",
         "FileAssuraStore",
         "HumanApprovalEngine",
-        "InMemoryTrustStore",
-        "PromptRegistryEngine"
+        "IdentityAssertionError",
+        "InMemoryAssertionReplayGuard"
       ],
-      "message": "12 exported engine class(es) are not instantiated in any composition root, so they are unreachable at runtime.",
+      "message": "14 exported engine class(es) are not instantiated in any composition root, so they are unreachable at runtime.",
       "rule": "runtime/unregistered-engine",
       "severity": "warning",
       "subject": "runtime"
@@ -4731,7 +4718,10 @@
       "FinancialEntitlementEngine",
       "FinancialPaymentIntelligenceEngine",
       "HumanApprovalEngine",
+      "IdentityAssertionError",
+      "IdentityAssertionService",
       "IdentityService",
+      "InMemoryAssertionReplayGuard",
       "InMemoryTrustStore",
       "InspectionEngine",
       "InvoiceClaimEngine",
@@ -4814,6 +4804,7 @@
           "FinancialApprovalAuthorityEngine",
           "FinancialEntitlementEngine",
           "FinancialPaymentIntelligenceEngine",
+          "IdentityAssertionService",
           "IdentityService",
           "InspectionEngine",
           "InvoiceClaimEngine",
@@ -4862,6 +4853,8 @@
       "ExecutionMemoryEngine",
       "FileAssuraStore",
       "HumanApprovalEngine",
+      "IdentityAssertionError",
+      "InMemoryAssertionReplayGuard",
       "InMemoryTrustStore",
       "PromptRegistryEngine"
     ]
