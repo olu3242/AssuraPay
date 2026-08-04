@@ -8,7 +8,13 @@ import {
   loadGatewayConfig,
 } from '@assurapay/identity';
 import { OrganizationService } from '@assurapay/organizations';
-import { PermissionService } from '@assurapay/permissions';
+import {
+  PermissionService,
+  TrustStoreMembershipReader,
+  enforcePermission,
+  resolveMemberships,
+  type PermissionRequirement,
+} from '@assurapay/permissions';
 import {
   DeterministicVerificationProvider,
   PartyService,
@@ -280,6 +286,16 @@ export const workflowIntelligence = {
   health: new ExecutionHealthEngine(trustStore),
 };
 /**
+ * Authoritative membership reader. Enforcement resolves membership from the record
+ * engine 02 owns; nothing infers it from a header or a signature.
+ */
+const membershipReader = new TrustStoreMembershipReader(trustStore);
+
+function correlationOf(request: Request): string {
+  return request.headers.get('x-correlation-id') ?? crypto.randomUUID();
+}
+
+/**
  * Verified identity context for a request.
  *
  * Identity comes from a signed assertion, never from request headers. The previous
@@ -295,9 +311,12 @@ export const workflowIntelligence = {
  * have it resolved by the membership authority.
  */
 export function requestContext(request: Request): RequestContext {
-  const correlationId =
-    request.headers.get('x-correlation-id') ?? crypto.randomUUID();
-  return getIdentityGateway().authenticate(request, correlationId);
+  const correlationId = correlationOf(request);
+  const identity = getIdentityGateway().authenticate(request, correlationId);
+  // The gateway proves identity and refuses to resolve membership. Enforcement
+  // resolves it from the authoritative record, so workspace-scoped engines see
+  // proven membership rather than a claim.
+  return resolveMemberships(identity, membershipReader);
 }
 
 /**
@@ -305,9 +324,29 @@ export function requestContext(request: Request): RequestContext {
  * cannot authorise a second action.
  */
 export function actingRequestContext(request: Request): RequestContext {
-  const correlationId =
-    request.headers.get('x-correlation-id') ?? crypto.randomUUID();
-  return getIdentityGateway().consumeRequestContext(request, correlationId);
+  const correlationId = correlationOf(request);
+  const identity = getIdentityGateway().consumeRequestContext(request, correlationId);
+  return resolveMemberships(identity, membershipReader);
+}
+
+/**
+ * Authorized context for a route that names the permission it requires.
+ *
+ * Enforcement is applied here, at the composition root, never inside an engine:
+ * an engine receives an already-authorized context and does not decide whether the
+ * caller may act. Deny by default — absent an applicable grant, this throws.
+ */
+export function authorizedContext(
+  request: Request,
+  requirement: PermissionRequirement,
+): RequestContext {
+  const correlationId = correlationOf(request);
+  const identity = getIdentityGateway().authenticate(request, correlationId);
+  return enforcePermission(identity, requirement, {
+    memberships: membershipReader,
+    permissions: trust.permissions,
+    store: trustStore,
+  });
 }
 
 export function errorResponse(error: unknown) {
@@ -318,8 +357,10 @@ export function errorResponse(error: unknown) {
     message.startsWith('ASSERTION_') ||
     message.startsWith('GATEWAY_')
       ? 401
-      : message.includes('DENIED') || message.includes('REQUIRED')
+      : message.startsWith('ENFORCEMENT_') || message.startsWith('PERMISSION_DENIED')
         ? 403
-        : 400;
+        : message.includes('DENIED') || message.includes('REQUIRED')
+          ? 403
+          : 400;
   return Response.json({ error: message }, { status });
 }
