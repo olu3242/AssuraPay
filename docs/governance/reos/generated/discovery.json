@@ -2370,7 +2370,7 @@
       "moduleType": "module",
       "name": "@assurapay/reos",
       "sourceFiles": 21,
-      "sourceLines": 3231,
+      "sourceLines": 3262,
       "testFiles": [
         "packages/reos/src/reos.e2e.test.ts",
         "packages/reos/src/reos.integration.test.ts",
@@ -2526,19 +2526,18 @@
       ],
       "clean": false,
       "dirtyFiles": [
-        "ANIFEST.md",
-        "LAUDE.md",
-        "ackage.json",
-        "ackages/workflow-intelligence/package.json",
-        "docs/governance/",
-        "github/workflows/ci.yml",
-        "itest.config.ts",
-        "npm-lock.yaml",
-        "packages/reos/",
-        "sconfig.json"
+        "docs/governance/reos/generated/CERTIFICATION_REPORT.md",
+        "docs/governance/reos/generated/EXECUTION_MANIFEST.md",
+        "docs/governance/reos/generated/certification.json",
+        "docs/governance/reos/generated/discovery.json",
+        "docs/governance/reos/generated/execution-manifest.json",
+        "docs/governance/reos/generated/forensics.json",
+        "packages/reos/src/index.ts",
+        "packages/reos/src/reos.test.ts",
+        "packages/reos/src/util/git.ts"
       ],
-      "head": "cf5aea478ca38d1c6abf19bc21794f7de24f8c98",
-      "headShort": "cf5aea4",
+      "head": "d0fcabac186723940655ebaab28b6227c9ef99db",
+      "headShort": "d0fcaba",
       "reflogAvailable": true,
       "remotes": [
         "origin"

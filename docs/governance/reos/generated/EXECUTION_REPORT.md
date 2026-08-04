@@ -7,10 +7,10 @@
 | Field | Value |
 | --- | --- |
 | Branch | claude/git-pull-cqc04u |
-| HEAD | cf5aea478ca38d1c6abf19bc21794f7de24f8c98 |
+| HEAD | d0fcabac186723940655ebaab28b6227c9ef99db |
 | Worktree clean | no |
-| Uncommitted files | 10 |
-| Generated at | 2026-08-04T17:19:38.656Z |
+| Uncommitted files | 9 |
+| Generated at | 2026-08-04T17:24:50.182Z |
 
 ## Capability implemented
 
@@ -18,10 +18,9 @@
 
 ## Files modified (48)
 
-- `ANIFEST.md`
-- `LAUDE.md`
-- `ackage.json`
-- `ackages/workflow-intelligence/package.json`
+- `.github/workflows/ci.yml`
+- `CLAUDE.md`
+- `MANIFEST.md`
 - `docs/governance/reos/AGENT_PROTOCOL.md`
 - `docs/governance/reos/EXECUTION_CONTRACT.md`
 - `docs/governance/reos/README.md`
@@ -36,9 +35,7 @@
 - `docs/governance/reos/generated/execution-manifest.json`
 - `docs/governance/reos/generated/execution-report.json`
 - `docs/governance/reos/generated/forensics.json`
-- `github/workflows/ci.yml`
-- `itest.config.ts`
-- `npm-lock.yaml`
+- `package.json`
 - `packages/reos/bin/reos.ts`
 - `packages/reos/package.json`
 - `packages/reos/src/backlog.ts`
@@ -65,7 +62,10 @@
 - `packages/reos/src/validators/dependency.ts`
 - `packages/reos/src/validators/exemption.ts`
 - `packages/reos/src/validators/security.ts`
-- `sconfig.json`
+- `packages/workflow-intelligence/package.json`
+- `pnpm-lock.yaml`
+- `tsconfig.json`
+- `vitest.config.ts`
 
 ## Validation
 
@@ -102,4 +102,4 @@
 
 ## Commit
 
-`cf5aea478ca38d1c6abf19bc21794f7de24f8c98`
+`d0fcabac186723940655ebaab28b6227c9ef99db`

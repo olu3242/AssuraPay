@@ -1390,7 +1390,7 @@
   "identity": {
     "branch": "claude/git-pull-cqc04u",
     "clean": false,
-    "head": "cf5aea478ca38d1c6abf19bc21794f7de24f8c98",
+    "head": "d0fcabac186723940655ebaab28b6227c9ef99db",
     "repository": "assurapay",
     "version": "0.1.0"
   },
@@ -1992,7 +1992,7 @@
       "moduleType": "module",
       "name": "@assurapay/reos",
       "sourceFiles": 21,
-      "sourceLines": 3231,
+      "sourceLines": 3262,
       "testFiles": [
         "packages/reos/src/reos.e2e.test.ts",
         "packages/reos/src/reos.integration.test.ts",

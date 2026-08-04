@@ -123,4 +123,5 @@ export {
 } from './pipeline.ts';
 
 export { stableStringify } from './util/serialize.ts';
+export { parsePorcelainPaths } from './util/git.ts';
 export { matchGlob } from './util/fsx.ts';

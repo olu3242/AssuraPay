@@ -12,6 +12,7 @@ import {
   parseCanonicalChain,
   parseCertificationTarget,
   parseEngineCatalog,
+  parsePorcelainPaths,
   selectNext,
   stableStringify,
   type CapabilityNode,
@@ -328,5 +329,49 @@ describe('REOS dependency cycle detection', () => {
 
   it('detects a self-referencing node', () => {
     expect(detectCycles(new Map([['a', ['a']]]))).toEqual([['a', 'a']]);
+  });
+});
+
+describe('REOS porcelain parsing', () => {
+  it('keeps the first character of a modified tracked path', () => {
+    // ' M MANIFEST.md' has a three-character prefix. Trimming it first and then
+    // slicing three characters silently produced 'ANIFEST.md'.
+    expect(parsePorcelainPaths(' M MANIFEST.md')).toEqual(['MANIFEST.md']);
+    expect(parsePorcelainPaths('M  tsconfig.json')).toEqual(['tsconfig.json']);
+  });
+
+  it('parses every porcelain status code the same way', () => {
+    const porcelain = [
+      ' M CLAUDE.md',
+      'A  packages/reos/src/index.ts',
+      '?? docs/governance/reos/README.md',
+      'MM vitest.config.ts',
+      ' D removed.ts',
+    ].join('\n');
+
+    expect(parsePorcelainPaths(porcelain)).toEqual([
+      'CLAUDE.md',
+      'packages/reos/src/index.ts',
+      'docs/governance/reos/README.md',
+      'vitest.config.ts',
+      'removed.ts',
+    ]);
+  });
+
+  it('takes the destination of a rename', () => {
+    expect(parsePorcelainPaths('R  old/path.ts -> new/path.ts')).toEqual([
+      'new/path.ts',
+    ]);
+  });
+
+  it('unquotes paths git chose to quote', () => {
+    expect(parsePorcelainPaths('?? "docs/a b.md"')).toEqual(['docs/a b.md']);
+  });
+
+  it('ignores empty and truncated records', () => {
+    expect(parsePorcelainPaths(null)).toEqual([]);
+    expect(parsePorcelainPaths('')).toEqual([]);
+    expect(parsePorcelainPaths('\n\n')).toEqual([]);
+    expect(parsePorcelainPaths(' M ')).toEqual([]);
   });
 });

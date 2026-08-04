@@ -5,12 +5,11 @@
     "failedSteps": [],
     "passed": true
   },
-  "commit": "cf5aea478ca38d1c6abf19bc21794f7de24f8c98",
+  "commit": "d0fcabac186723940655ebaab28b6227c9ef99db",
   "filesModified": [
-    "ANIFEST.md",
-    "LAUDE.md",
-    "ackage.json",
-    "ackages/workflow-intelligence/package.json",
+    ".github/workflows/ci.yml",
+    "CLAUDE.md",
+    "MANIFEST.md",
     "docs/governance/reos/AGENT_PROTOCOL.md",
     "docs/governance/reos/EXECUTION_CONTRACT.md",
     "docs/governance/reos/README.md",
@@ -25,9 +24,7 @@
     "docs/governance/reos/generated/execution-manifest.json",
     "docs/governance/reos/generated/execution-report.json",
     "docs/governance/reos/generated/forensics.json",
-    "github/workflows/ci.yml",
-    "itest.config.ts",
-    "npm-lock.yaml",
+    "package.json",
     "packages/reos/bin/reos.ts",
     "packages/reos/package.json",
     "packages/reos/src/backlog.ts",
@@ -54,9 +51,12 @@
     "packages/reos/src/validators/dependency.ts",
     "packages/reos/src/validators/exemption.ts",
     "packages/reos/src/validators/security.ts",
-    "sconfig.json"
+    "packages/workflow-intelligence/package.json",
+    "pnpm-lock.yaml",
+    "tsconfig.json",
+    "vitest.config.ts"
   ],
-  "generatedAt": "2026-08-04T17:19:38.656Z",
+  "generatedAt": "2026-08-04T17:24:50.182Z",
   "recommendedNextCapability": {
     "blockedBy": [],
     "executable": true,
@@ -146,18 +146,17 @@
     "branch": "claude/git-pull-cqc04u",
     "clean": false,
     "dirtyFiles": [
-      "ANIFEST.md",
-      "LAUDE.md",
-      "ackage.json",
-      "ackages/workflow-intelligence/package.json",
-      "docs/governance/",
-      "github/workflows/ci.yml",
-      "itest.config.ts",
-      "npm-lock.yaml",
-      "packages/reos/",
-      "sconfig.json"
+      "docs/governance/reos/generated/CERTIFICATION_REPORT.md",
+      "docs/governance/reos/generated/EXECUTION_MANIFEST.md",
+      "docs/governance/reos/generated/certification.json",
+      "docs/governance/reos/generated/discovery.json",
+      "docs/governance/reos/generated/execution-manifest.json",
+      "docs/governance/reos/generated/forensics.json",
+      "packages/reos/src/index.ts",
+      "packages/reos/src/reos.test.ts",
+      "packages/reos/src/util/git.ts"
     ],
-    "head": "cf5aea478ca38d1c6abf19bc21794f7de24f8c98"
+    "head": "d0fcabac186723940655ebaab28b6227c9ef99db"
   },
   "stage": "report",
   "validation": [

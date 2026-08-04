@@ -7,6 +7,16 @@ export function git(args: string[], cwd: string): string | null {
   return result.ok ? result.stdout.trim() : null;
 }
 
+/**
+ * Runs git preserving stdout exactly. Porcelain status records begin with a
+ * significant space (` M file`), which a trimming read would strip from the
+ * first line only — corrupting one path and no others.
+ */
+export function gitRaw(args: string[], cwd: string): string | null {
+  const result = runCommand('git', args, { cwd, timeoutMs: 120_000 });
+  return result.ok ? result.stdout : null;
+}
+
 function lines(value: string | null): string[] {
   if (!value) return [];
   return value
@@ -15,15 +25,38 @@ function lines(value: string | null): string[] {
     .filter((line) => line.length > 0);
 }
 
+/**
+ * Parses `git status --porcelain` paths.
+ *
+ * Each record is `XY<space>path`, so the path starts at index 3. The leading
+ * status characters must not be trimmed first: ` M file` would become `M file`
+ * and a fixed slice would then eat the first character of the filename.
+ * Renames arrive as `old -> new`; the destination is the current path.
+ */
+export function parsePorcelainPaths(porcelain: string | null): string[] {
+  if (!porcelain) return [];
+
+  return porcelain
+    .split('\n')
+    .filter((line) => line.length > 3)
+    .map((line) => {
+      const raw = line.slice(3);
+      const arrow = raw.indexOf(' -> ');
+      const candidate = arrow === -1 ? raw : raw.slice(arrow + 4);
+      // git quotes paths containing unusual characters.
+      return candidate.replace(/^"(.*)"$/, '$1').trim();
+    })
+    .filter((candidate) => candidate.length > 0);
+}
+
 export function repositoryRoot(cwd: string): string {
   return git(['rev-parse', '--show-toplevel'], cwd) ?? cwd;
 }
 
 export function readGitState(cwd: string): GitState {
-  const porcelain = git(['status', '--porcelain'], cwd) ?? '';
-  const dirtyFiles = lines(porcelain)
-    .map((line) => line.slice(3).trim())
-    .sort();
+  const dirtyFiles = parsePorcelainPaths(
+    gitRaw(['status', '--porcelain', '--untracked-files=all'], cwd),
+  ).sort();
 
   const head = git(['rev-parse', 'HEAD'], cwd) ?? 'unknown';
 
@@ -99,9 +132,9 @@ export function isMergedIntoHead(ref: string, cwd: string): boolean {
 export function changedFiles(cwd: string, base: string | null): string[] {
   // --untracked-files=all lists new files individually; the default collapses a
   // new directory to a single entry, which would under-count a new package.
-  const working = lines(
-    git(['status', '--porcelain', '--untracked-files=all'], cwd),
-  ).map((line) => line.slice(3).trim());
+  const working = parsePorcelainPaths(
+    gitRaw(['status', '--porcelain', '--untracked-files=all'], cwd),
+  );
   const committed = base
     ? lines(git(['diff', '--name-only', `${base}...HEAD`], cwd))
     : [];
