@@ -2,6 +2,25 @@
 
 Working agreement for Claude / Claude Code sessions on this repository.
 
+## Start here — the execution operating system
+
+This repository governs its own AI execution through **REOS**, the Repository
+Execution Operating System. Do not start from a previous conversation; start from
+repository evidence.
+
+```bash
+pnpm repo:next                       # what should I build, and why?
+# ... implement exactly that capability ...
+pnpm repo:certify                    # lint, types, tests, architecture, deps, security, build
+pnpm repo:report --capability=<id>   # record what happened
+```
+
+Read `docs/governance/reos/AGENT_PROTOCOL.md` before implementing anything, and
+`docs/governance/reos/EXECUTION_CONTRACT.md` before writing code. The authoritative
+execution input is `docs/governance/reos/generated/execution-manifest.json`.
+
+No implementation begins before discovery and dependency resolution.
+
 ## Product one-liner
 
 AssuraPay is an Execution Assurance Platform that transforms contractual obligations into governed, evidence-backed execution workflows and orchestrates settlement through certified Financial Providers without ever taking custody of funds.
