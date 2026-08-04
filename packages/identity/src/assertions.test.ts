@@ -3,7 +3,7 @@ import { InMemoryTrustStore } from '@assurapay/database';
 import {
   IdentityAssertionError,
   IdentityAssertionService,
-  InMemoryAssertionReplayGuard,
+  InMemoryAssertionReplayStore,
   assuranceAtLeast,
   consumeIdentityAssertion,
   createIdentityAssertion,
@@ -286,50 +286,62 @@ describe('Engine 01 identity assertions — assurance floor', () => {
 
 describe('Engine 01 identity assertions — replay resistance', () => {
   it('accepts an assertion once and rejects the same one again', () => {
-    const guard = new InMemoryAssertionReplayGuard();
+    const store = new InMemoryAssertionReplayStore();
     const { token } = createIdentityAssertion(subject, keyring);
 
-    expect(consumeIdentityAssertion(token, keyring, guard, { now: NOW }).nonce).toBeDefined();
-    expect(() => consumeIdentityAssertion(token, keyring, guard, { now: NOW })).toThrow(
+    expect(consumeIdentityAssertion(token, keyring, store, { now: NOW }).nonce).toBeDefined();
+    expect(() => consumeIdentityAssertion(token, keyring, store, { now: NOW })).toThrow(
       'ASSERTION_REPLAYED',
     );
   });
 
   it('treats two assertions for the same session as independent', () => {
-    const guard = new InMemoryAssertionReplayGuard();
+    const store = new InMemoryAssertionReplayStore();
     const first = createIdentityAssertion(subject, keyring);
     const second = createIdentityAssertion(subject, keyring);
 
-    expect(() => consumeIdentityAssertion(first.token, keyring, guard, { now: NOW })).not.toThrow();
-    expect(() => consumeIdentityAssertion(second.token, keyring, guard, { now: NOW })).not.toThrow();
+    expect(() => consumeIdentityAssertion(first.token, keyring, store, { now: NOW })).not.toThrow();
+    expect(() => consumeIdentityAssertion(second.token, keyring, store, { now: NOW })).not.toThrow();
   });
 
   it('prunes consumed nonces once they expire, so the guard stays bounded', () => {
-    const guard = new InMemoryAssertionReplayGuard();
-    guard.consume('nonce-expired', new Date(NOW.getTime() - 1_000).toISOString(), NOW);
-    guard.consume('nonce-live', new Date(NOW.getTime() + 60_000).toISOString(), NOW);
-    expect(guard.sizeAt(NOW)).toBe(1);
+    const store = new InMemoryAssertionReplayStore();
+    store.consumeIfAbsent('nonce-expired', new Date(NOW.getTime() - 1_000).toISOString(), NOW);
+    store.consumeIfAbsent('nonce-live', new Date(NOW.getTime() + 60_000).toISOString(), NOW);
+    expect(store.sizeAt(NOW)).toBe(1);
+  });
+
+  it('declares a process-local guarantee, never a distributed one', () => {
+    expect(new InMemoryAssertionReplayStore().guarantee).toBe('process-local');
+  });
+
+  it('reports whether the caller won the race, atomically', () => {
+    // One operation, not check-then-insert: two concurrent callers cannot both
+    // observe an absent nonce and both proceed.
+    const store = new InMemoryAssertionReplayStore();
+    expect(store.consumeIfAbsent('n', new Date(NOW.getTime() + 1000).toISOString(), NOW)).toBe(true);
+    expect(store.consumeIfAbsent('n', new Date(NOW.getTime() + 1000).toISOString(), NOW)).toBe(false);
   });
 
   it('prunes on the verifier clock, not wall-clock', () => {
     // A guard pruning on its own clock would drop a nonce the verifier still
     // considers live, silently re-admitting the replay it exists to stop.
-    const guard = new InMemoryAssertionReplayGuard();
+    const store = new InMemoryAssertionReplayStore();
     const { token } = createIdentityAssertion(subject, keyring);
 
-    consumeIdentityAssertion(token, keyring, guard, { now: NOW });
-    expect(() => consumeIdentityAssertion(token, keyring, guard, { now: NOW })).toThrow(
+    consumeIdentityAssertion(token, keyring, store, { now: NOW });
+    expect(() => consumeIdentityAssertion(token, keyring, store, { now: NOW })).toThrow(
       'ASSERTION_REPLAYED',
     );
   });
 
   it('verifies without consuming, so inspection cannot burn an assertion', () => {
-    const guard = new InMemoryAssertionReplayGuard();
+    const store = new InMemoryAssertionReplayStore();
     const { token } = createIdentityAssertion(subject, keyring);
 
     verifyIdentityAssertion(token, keyring, { now: NOW });
     verifyIdentityAssertion(token, keyring, { now: NOW });
-    expect(() => consumeIdentityAssertion(token, keyring, guard, { now: NOW })).not.toThrow();
+    expect(() => consumeIdentityAssertion(token, keyring, store, { now: NOW })).not.toThrow();
   });
 });
 

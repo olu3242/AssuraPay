@@ -38,6 +38,12 @@ export type IdentityAssertionErrorCode =
   | 'ASSERTION_NOT_YET_VALID'
   | 'ASSERTION_REPLAYED'
   | 'ASSERTION_ASSURANCE_INSUFFICIENT'
+  | 'ASSERTION_ISSUER_MISMATCH'
+  | 'ASSERTION_AUDIENCE_MISMATCH'
+  | 'ASSERTION_PURPOSE_MISMATCH'
+  | 'ASSERTION_TENANT_MISMATCH'
+  | 'ASSERTION_WORKSPACE_MISMATCH'
+  | 'ASSERTION_SESSION_MISMATCH'
   | 'ASSERTION_SUBJECT_REQUIRED'
   | 'ASSERTION_SESSION_REQUIRED'
   | 'ASSERTION_KEYRING_REQUIRED'
@@ -69,7 +75,16 @@ export type IdentityAssertionClaims = {
   identityAssuranceLevel: AssuranceLevel;
   workspaceId?: string;
   tenantId?: string;
-  /** Single-use value; the replay guard consumes it. */
+  /**
+   * Who minted the assertion, and for whom. Both are signed: an audience carried
+   * as unverified out-of-band context would be unenforceable, so an assertion
+   * minted for one component could be replayed at another.
+   */
+  issuer?: string;
+  audience?: string;
+  /** The operation the assertion was minted for, when the caller scopes one. */
+  purpose?: string;
+  /** Single-use value; the replay store consumes it. */
   nonce: string;
   issuedAt: string;
   expiresAt: string;
@@ -93,18 +108,32 @@ export type CreateAssertionInput = {
   identityAssuranceLevel: AssuranceLevel;
   workspaceId?: string;
   tenantId?: string;
+  issuer?: string;
+  audience?: string;
+  purpose?: string;
   ttlMs?: number;
   /** Injected for deterministic tests. */
   now?: Date;
   nonce?: string;
 };
 
+/**
+ * Expectations the verifier holds. Every comparison is explicit and fails closed:
+ * an expectation the assertion cannot satisfy — including one the assertion simply
+ * omits — is a rejection, never a pass.
+ */
 export type VerifyAssertionOptions = {
   now?: Date;
   /** Absorbs clock skew between issuer and verifier. */
   clockToleranceMs?: number;
   /** Rejects an assertion weaker than this level. */
   minimumAssuranceLevel?: AssuranceLevel;
+  expectedIssuer?: string;
+  expectedAudience?: string;
+  expectedPurpose?: string;
+  expectedTenantId?: string;
+  expectedWorkspaceId?: string;
+  expectedSessionId?: string;
 };
 
 function base64UrlEncode(value: Buffer): string {
@@ -194,6 +223,9 @@ export function createIdentityAssertion(
     identityAssuranceLevel: input.identityAssuranceLevel,
     workspaceId: input.workspaceId,
     tenantId: input.tenantId,
+    issuer: input.issuer,
+    audience: input.audience,
+    purpose: input.purpose,
     nonce: input.nonce ?? randomUUID(),
     issuedAt: issuedAt.toISOString(),
     expiresAt: new Date(issuedAt.getTime() + ttlMs).toISOString(),
@@ -287,39 +319,77 @@ export function verifyIdentityAssertion(
     );
   }
 
+  // Context binding. An expectation is satisfied only by an exact match, so an
+  // assertion that omits the bound field is rejected rather than accepted.
+  const bindings: [string | undefined, string | undefined, IdentityAssertionErrorCode][] = [
+    [options.expectedIssuer, claims.issuer, 'ASSERTION_ISSUER_MISMATCH'],
+    [options.expectedAudience, claims.audience, 'ASSERTION_AUDIENCE_MISMATCH'],
+    [options.expectedPurpose, claims.purpose, 'ASSERTION_PURPOSE_MISMATCH'],
+    [options.expectedTenantId, claims.tenantId, 'ASSERTION_TENANT_MISMATCH'],
+    [options.expectedWorkspaceId, claims.workspaceId, 'ASSERTION_WORKSPACE_MISMATCH'],
+    [options.expectedSessionId, claims.sessionId, 'ASSERTION_SESSION_MISMATCH'],
+  ];
+
+  for (const [expected, actual, code] of bindings) {
+    if (expected === undefined) continue;
+    if (actual !== expected) {
+      throw new IdentityAssertionError(code, `expected=${expected} actual=${actual ?? 'absent'}`);
+    }
+  }
+
   return claims;
 }
 
-/** Single-use nonce tracking. Replay resistance needs state; this holds it. */
-export interface AssertionReplayGuard {
+/**
+ * How strong a replay store's uniqueness guarantee actually is.
+ *
+ * Carried on the store rather than assumed by the caller, so a deployment cannot
+ * accidentally present process-local protection as distributed.
+ */
+export type ReplayProtectionGuarantee = 'process-local' | 'distributed';
+
+/**
+ * Single-use nonce tracking. Replay resistance needs state; this holds it.
+ *
+ * The contract is deliberately a single atomic operation rather than a
+ * `has()` / `remember()` pair. Check-then-insert is a race: two concurrent
+ * requests carrying the same assertion can both observe an absent nonce and both
+ * proceed, which defeats the guard entirely.
+ */
+export interface AssertionReplayStore {
+  readonly guarantee: ReplayProtectionGuarantee;
+
   /**
-   * Throws ASSERTION_REPLAYED when the nonce has already been consumed.
-   *
-   * `now` is the same instant the verifier judged the validity window against.
-   * A guard that pruned on its own clock could expire a nonce the verifier still
-   * considers live, which would silently re-admit a replay.
+   * Records the nonce if and only if it is absent, in one atomic step.
+   * Returns true when this caller won the race, false when the nonce was already
+   * consumed. `now` is the instant the verifier judged the validity window
+   * against, so the store never prunes on a clock the verifier did not use.
    */
-  consume(nonce: string, expiresAt: string, now?: Date): void;
+  consumeIfAbsent(nonce: string, expiresAt: string, now: Date): boolean;
 }
 
 /**
- * Process-local replay guard. Entries are pruned once expired, so the set stays
- * bounded by the assertion TTL rather than growing without limit.
+ * Process-local replay store, correct within a single process only.
  *
- * A multi-instance deployment needs a shared guard; this one is correct only
- * within a single process.
+ * JavaScript's single-threaded execution makes the map read-and-write atomic with
+ * respect to other tasks in this process, which satisfies the contract here — but
+ * it says nothing about other replicas. A multi-instance deployment needs a store
+ * whose `guarantee` is 'distributed'; see IdentityGateway, which refuses to accept
+ * this one when distributed protection is required.
  */
-export class InMemoryAssertionReplayGuard implements AssertionReplayGuard {
+export class InMemoryAssertionReplayStore implements AssertionReplayStore {
+  readonly guarantee: ReplayProtectionGuarantee = 'process-local';
+
   private readonly seen = new Map<string, number>();
 
-  consume(nonce: string, expiresAt: string, now: Date = new Date()): void {
+  consumeIfAbsent(nonce: string, expiresAt: string, now: Date = new Date()): boolean {
     const instant = now.getTime();
     this.prune(instant);
-    if (this.seen.has(nonce)) {
-      throw new IdentityAssertionError('ASSERTION_REPLAYED', `nonce=${nonce}`);
-    }
+    if (this.seen.has(nonce)) return false;
+
     const parsed = Date.parse(expiresAt);
     this.seen.set(nonce, Number.isNaN(parsed) ? instant : parsed);
+    return true;
   }
 
   sizeAt(now: Date = new Date()): number {
@@ -328,7 +398,7 @@ export class InMemoryAssertionReplayGuard implements AssertionReplayGuard {
   }
 
   private prune(now: number): void {
-    for (const [nonce, expiresAt] of this.seen) {
+    for (const [nonce, expiresAt] of Array.from(this.seen)) {
       if (expiresAt <= now) this.seen.delete(nonce);
     }
   }
@@ -341,11 +411,14 @@ export class InMemoryAssertionReplayGuard implements AssertionReplayGuard {
 export function consumeIdentityAssertion(
   token: string,
   keyring: AssertionKeyring,
-  guard: AssertionReplayGuard,
+  store: AssertionReplayStore,
   options: VerifyAssertionOptions = {},
 ): IdentityAssertionClaims {
   const claims = verifyIdentityAssertion(token, keyring, options);
-  guard.consume(claims.nonce, claims.expiresAt, options.now);
+  const won = store.consumeIfAbsent(claims.nonce, claims.expiresAt, options.now ?? new Date());
+  if (!won) {
+    throw new IdentityAssertionError('ASSERTION_REPLAYED', `nonce=${claims.nonce}`);
+  }
   return claims;
 }
 
@@ -399,7 +472,7 @@ export class IdentityAssertionService {
   constructor(
     private readonly store: TrustPersistence,
     private readonly keyring: AssertionKeyring,
-    private readonly guard: AssertionReplayGuard = new InMemoryAssertionReplayGuard(),
+    private readonly replayStore: AssertionReplayStore = new InMemoryAssertionReplayStore(),
   ) {}
 
   issue(
@@ -444,7 +517,7 @@ export class IdentityAssertionService {
     options: VerifyAssertionOptions = {},
   ): IdentityAssertionClaims {
     try {
-      const claims = consumeIdentityAssertion(token, this.keyring, this.guard, options);
+      const claims = consumeIdentityAssertion(token, this.keyring, this.replayStore, options);
       this.store.audit({
         actorId: claims.subject,
         eventType: 'IdentityAssertionAccepted',
