@@ -9,15 +9,21 @@
 | Capability | trust.identity-assertions |
 | Title | HMAC identity assertions |
 | Current status | missing |
+| Lifecycle | planned |
 | Priority | 10 |
+| Reason | Highest-priority executable capability (priority 10, lifecycle planned) — unblocks 5 downstream capability/-ies |
+| Depends on | reos.execution-os |
+| Unmet dependencies | none |
+| Blocks (transitive) | persistence.postgres-repository, persistence.rls-certification, runtime.agent-registration, trust.identity-gateway, trust.permission-enforcement |
+| Declared scope | 1 file(s), 1 test suite(s) |
 | Requires live infrastructure | no |
 
 ## Executable queue
 
-| Capability | Title | Status | Priority | Live infra |
-| --- | --- | --- | --- | --- |
-| trust.identity-assertions | HMAC identity assertions | missing | 10 | no |
-| engine:08 | Engine 08 — Audit & Evidence Ledger | missing | 108 | no |
+| Capability | Title | Lifecycle | Priority | Blocks | Live infra |
+| --- | --- | --- | --- | --- | --- |
+| trust.identity-assertions | HMAC identity assertions | planned | 10 | 5 | no |
+| engine:08 | Engine 08 — Audit & Evidence Ledger | planned | 108 | 52 | no |
 
 ## Blocked
 

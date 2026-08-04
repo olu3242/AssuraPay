@@ -8,10 +8,25 @@
       "blockedBy": [
         "trust.identity-assertions"
       ],
+      "blocks": [
+        "persistence.postgres-repository",
+        "persistence.rls-certification",
+        "runtime.agent-registration",
+        "trust.permission-enforcement"
+      ],
+      "dependsOn": [
+        "trust.identity-assertions"
+      ],
       "executable": false,
       "id": "trust.identity-gateway",
+      "lifecycle": "missing",
       "priority": 11,
       "requiresLiveInfrastructure": false,
+      "scope": {
+        "estimated": false,
+        "files": 1,
+        "tests": 1
+      },
       "status": "missing",
       "title": "Production identity gateway"
     },
@@ -19,10 +34,24 @@
       "blockedBy": [
         "trust.identity-gateway"
       ],
+      "blocks": [
+        "persistence.postgres-repository",
+        "persistence.rls-certification",
+        "runtime.agent-registration"
+      ],
+      "dependsOn": [
+        "trust.identity-gateway"
+      ],
       "executable": false,
       "id": "trust.permission-enforcement",
+      "lifecycle": "missing",
       "priority": 12,
       "requiresLiveInfrastructure": false,
+      "scope": {
+        "estimated": false,
+        "files": 1,
+        "tests": 1
+      },
       "status": "missing",
       "title": "Permission enforcement middleware"
     },
@@ -30,10 +59,20 @@
       "blockedBy": [
         "trust.permission-enforcement"
       ],
+      "blocks": [],
+      "dependsOn": [
+        "trust.permission-enforcement"
+      ],
       "executable": false,
       "id": "runtime.agent-registration",
+      "lifecycle": "missing",
       "priority": 20,
       "requiresLiveInfrastructure": false,
+      "scope": {
+        "estimated": false,
+        "files": 1,
+        "tests": 1
+      },
       "status": "missing",
       "title": "Agent Runtime registration"
     },
@@ -41,10 +80,22 @@
       "blockedBy": [
         "trust.permission-enforcement"
       ],
+      "blocks": [
+        "persistence.rls-certification"
+      ],
+      "dependsOn": [
+        "trust.permission-enforcement"
+      ],
       "executable": false,
       "id": "persistence.postgres-repository",
+      "lifecycle": "missing",
       "priority": 40,
       "requiresLiveInfrastructure": true,
+      "scope": {
+        "estimated": false,
+        "files": 1,
+        "tests": 1
+      },
       "status": "missing",
       "title": "PostgreSQL repository implementation"
     },
@@ -52,10 +103,20 @@
       "blockedBy": [
         "persistence.postgres-repository"
       ],
+      "blocks": [],
+      "dependsOn": [
+        "persistence.postgres-repository"
+      ],
       "executable": false,
       "id": "persistence.rls-certification",
+      "lifecycle": "missing",
       "priority": 41,
       "requiresLiveInfrastructure": true,
+      "scope": {
+        "estimated": false,
+        "files": 1,
+        "tests": 1
+      },
       "status": "missing",
       "title": "Row Level Security certification"
     }
@@ -122,24 +183,103 @@
   "executable": [
     {
       "blockedBy": [],
+      "blocks": [
+        "persistence.postgres-repository",
+        "persistence.rls-certification",
+        "runtime.agent-registration",
+        "trust.identity-gateway",
+        "trust.permission-enforcement"
+      ],
+      "dependsOn": [
+        "reos.execution-os"
+      ],
       "executable": true,
       "id": "trust.identity-assertions",
+      "lifecycle": "planned",
       "priority": 10,
       "requiresLiveInfrastructure": false,
+      "scope": {
+        "estimated": false,
+        "files": 1,
+        "tests": 1
+      },
       "status": "missing",
       "title": "HMAC identity assertions"
     },
     {
       "blockedBy": [],
+      "blocks": [
+        "engine:09",
+        "engine:10",
+        "engine:11",
+        "engine:12",
+        "engine:13",
+        "engine:14",
+        "engine:15",
+        "engine:16",
+        "engine:17",
+        "engine:18",
+        "engine:19",
+        "engine:20",
+        "engine:21",
+        "engine:22",
+        "engine:23",
+        "engine:24",
+        "engine:25",
+        "engine:26",
+        "engine:27",
+        "engine:28",
+        "engine:29",
+        "engine:30",
+        "engine:31",
+        "engine:32",
+        "engine:33",
+        "engine:34",
+        "engine:35",
+        "engine:36",
+        "engine:37",
+        "engine:38",
+        "engine:39",
+        "engine:40",
+        "engine:41",
+        "engine:42",
+        "engine:43",
+        "engine:44",
+        "engine:45",
+        "engine:46",
+        "engine:47",
+        "engine:48",
+        "engine:49",
+        "engine:50",
+        "engine:51",
+        "engine:52",
+        "engine:53",
+        "engine:54",
+        "engine:55",
+        "engine:56",
+        "engine:57",
+        "engine:58",
+        "engine:59",
+        "engine:60"
+      ],
+      "dependsOn": [
+        "engine:05"
+      ],
       "executable": true,
       "id": "engine:08",
+      "lifecycle": "planned",
       "priority": 108,
       "requiresLiveInfrastructure": false,
+      "scope": {
+        "estimated": false,
+        "files": 0,
+        "tests": 0
+      },
       "status": "missing",
       "title": "Engine 08 — Audit & Evidence Ledger"
     }
   ],
-  "head": "aecc0d9a33656a67dfdbe72a0e45299ab2576f96",
+  "head": "ec890b731dde844d2b66bec5569cae3d48a13cc6",
   "rejected": [
     {
       "id": "engine:08",
@@ -169,12 +309,29 @@
   "reosVersion": "1.0.0",
   "selected": {
     "blockedBy": [],
+    "blocks": [
+      "persistence.postgres-repository",
+      "persistence.rls-certification",
+      "runtime.agent-registration",
+      "trust.identity-gateway",
+      "trust.permission-enforcement"
+    ],
+    "dependsOn": [
+      "reos.execution-os"
+    ],
     "executable": true,
     "id": "trust.identity-assertions",
+    "lifecycle": "planned",
     "priority": 10,
     "requiresLiveInfrastructure": false,
+    "scope": {
+      "estimated": false,
+      "files": 1,
+      "tests": 1
+    },
     "status": "missing",
     "title": "HMAC identity assertions"
   },
+  "selectionReason": "Highest-priority executable capability (priority 10, lifecycle planned) — unblocks 5 downstream capability/-ies",
   "stage": "dependencies"
 }

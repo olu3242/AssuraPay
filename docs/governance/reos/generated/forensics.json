@@ -9,6 +9,7 @@
       },
       "id": "persistence.postgres-repository",
       "kind": "platform",
+      "onDefaultBranch": false,
       "probes": [
         {
           "kind": "path",
@@ -44,6 +45,7 @@
       },
       "id": "persistence.rls-certification",
       "kind": "platform",
+      "onDefaultBranch": false,
       "probes": [
         {
           "kind": "path",
@@ -85,6 +87,7 @@
       },
       "id": "reos.execution-os",
       "kind": "platform",
+      "onDefaultBranch": false,
       "probes": [
         {
           "kind": "path",
@@ -166,6 +169,7 @@
       },
       "id": "runtime.agent-registration",
       "kind": "platform",
+      "onDefaultBranch": false,
       "probes": [
         {
           "kind": "path",
@@ -201,6 +205,7 @@
       },
       "id": "settlement.non-custody-guard",
       "kind": "platform",
+      "onDefaultBranch": false,
       "probes": [
         {
           "kind": "path",
@@ -257,6 +262,7 @@
       },
       "id": "trust.identity-assertions",
       "kind": "platform",
+      "onDefaultBranch": false,
       "probes": [
         {
           "kind": "path",
@@ -298,6 +304,7 @@
       },
       "id": "trust.identity-gateway",
       "kind": "platform",
+      "onDefaultBranch": false,
       "probes": [
         {
           "kind": "path",
@@ -339,6 +346,7 @@
       },
       "id": "trust.permission-enforcement",
       "kind": "platform",
+      "onDefaultBranch": false,
       "probes": [
         {
           "kind": "path",
@@ -372,7 +380,7 @@
       "totalProbes": 4
     }
   ],
-  "head": "aecc0d9a33656a67dfdbe72a0e45299ab2576f96",
+  "head": "ec890b731dde844d2b66bec5569cae3d48a13cc6",
   "reosVersion": "1.0.0",
   "stage": "forensics",
   "summary": {

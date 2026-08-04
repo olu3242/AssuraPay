@@ -1,7 +1,7 @@
 {
   "branch": "claude/git-pull-cqc04u",
-  "generatedAt": "2026-08-04T17:29:31.879Z",
-  "head": "aecc0d9a33656a67dfdbe72a0e45299ab2576f96",
+  "generatedAt": "2026-08-04T17:49:56.037Z",
+  "head": "ec890b731dde844d2b66bec5569cae3d48a13cc6",
   "passed": true,
   "reosVersion": "1.0.0",
   "stage": "certify",
@@ -9,7 +9,7 @@
     {
       "command": "pnpm run lint",
       "description": "ESLint across the workspace",
-      "durationMs": 6787,
+      "durationMs": 5018,
       "exitCode": 0,
       "findings": [],
       "id": "lint",
@@ -23,7 +23,7 @@
     {
       "command": "pnpm run typecheck",
       "description": "TypeScript project typecheck",
-      "durationMs": 2714,
+      "durationMs": 2971,
       "exitCode": 0,
       "findings": [],
       "id": "typecheck",
@@ -37,30 +37,30 @@
     {
       "command": "pnpm run test:unit",
       "description": "Unit tests",
-      "durationMs": 13300,
+      "durationMs": 15206,
       "exitCode": 0,
       "findings": [],
       "id": "test:unit",
       "kind": "command",
       "outputTail": [
-        " ✓ packages/enterprise-analytics/src/enterprise-analytics.integration.test.ts (1 test) 4ms",
-        " ✓ packages/execution-orchestration/src/execution-orchestration.integration.test.ts (1 test) 3ms",
+        " ✓ packages/execution-orchestration/src/execution-orchestration.integration.test.ts (1 test) 6ms",
         " ✓ packages/settlement-assurance/src/settlement-assurance.integration.test.ts (1 test) 3ms",
         " ✓ packages/performance-readiness/src/performance-readiness.integration.test.ts (1 test) 3ms",
         " ✓ packages/enterprise-intelligence/src/enterprise-intelligence.integration.test.ts (1 test) 3ms",
         " ✓ packages/performance-blueprint/src/performance-blueprint.integration.test.ts (1 test) 3ms",
         " ✓ packages/governance-core/src/governance-core.integration.test.ts (1 test) 3ms",
         " ✓ packages/completion-assurance/src/completion-assurance.integration.test.ts (1 test) 3ms",
-        " ✓ packages/agreement-intelligence/src/agreement-intelligence.integration.test.ts (1 test) 3ms",
-        " ✓ packages/reos/src/reos.e2e.test.ts (8 tests) 9138ms",
-        "   ✓ e2e: stages 1 to 4 run end to end through the CLI > manifest writes both the JSON input and the Markdown record 1064ms",
-        "   ✓ e2e: stages 1 to 4 run end to end through the CLI > dependencies selects a capability and records the rejections 1999ms",
-        "   ✓ e2e: stages 1 to 4 run end to end through the CLI > next prints the selected capability and the steps that follow it 1124ms",
-        "   ✓ e2e: stages 1 to 4 are byte-for-byte deterministic > produces identical artifacts across two independent CLI runs 4027ms",
-        " Test Files  62 passed (62)",
-        "      Tests  208 passed (208)",
-        "   Start at  17:28:34",
-        "   Duration  11.95s (transform 1.28s, setup 0ms, collect 5.21s, tests 10.08s, environment 11ms, prepare 3.98s)",
+        " ✓ packages/agreement-intelligence/src/agreement-intelligence.integration.test.ts (1 test) 2ms",
+        " ✓ packages/reos/src/reos.e2e.test.ts (8 tests) 10845ms",
+        "   ✓ e2e: stages 1 to 4 run end to end through the CLI > manifest writes both the JSON input and the Markdown record 1147ms",
+        "   ✓ e2e: stages 1 to 4 run end to end through the CLI > dependencies selects a capability and records the rejections 2317ms",
+        "   ✓ e2e: stages 1 to 4 run end to end through the CLI > next prints the selected capability and the steps that follow it 1237ms",
+        "   ✓ e2e: stages 1 to 4 are byte-for-byte deterministic > produces identical artifacts across two independent CLI runs 4357ms",
+        "   ✓ e2e: certification gates report structurally > runs the in-process validators and writes a certification report 1168ms",
+        " Test Files  64 passed (64)",
+        "      Tests  252 passed (252)",
+        "   Start at  17:48:53",
+        "   Duration  13.97s (transform 1.27s, setup 0ms, collect 5.65s, tests 11.86s, environment 12ms, prepare 4.22s)",
         "$ vitest run",
         "\u001b[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.\u001b[39m"
       ],
@@ -70,7 +70,7 @@
     {
       "command": "pnpm run test:integration",
       "description": "Integration tests",
-      "durationMs": 8958,
+      "durationMs": 8832,
       "exitCode": 0,
       "findings": [],
       "id": "test:integration",
@@ -78,22 +78,22 @@
       "outputTail": [
         " ↓ packages/workflow-intelligence/src/workflow-intelligence.performance.test.ts (1 test | 1 skipped)",
         " ↓ packages/agent-runtime/src/agent-runtime.performance.test.ts (1 test | 1 skipped)",
-        " ✓ packages/database/src/trust-migrations.integration.test.ts (1 test) 6ms",
+        " ✓ packages/database/src/trust-migrations.integration.test.ts (1 test) 4ms",
         " ✓ packages/settlement-execution/src/settlement-execution.integration.test.ts (1 test) 3ms",
         " ✓ packages/agreement-creation/src/agreement-creation.integration.test.ts (1 test) 3ms",
         " ✓ packages/enterprise-analytics/src/enterprise-analytics.integration.test.ts (1 test) 3ms",
         " ✓ packages/execution-orchestration/src/execution-orchestration.integration.test.ts (1 test) 3ms",
         " ✓ packages/settlement-assurance/src/settlement-assurance.integration.test.ts (1 test) 3ms",
         " ✓ packages/performance-readiness/src/performance-readiness.integration.test.ts (1 test) 3ms",
-        " ✓ packages/enterprise-intelligence/src/enterprise-intelligence.integration.test.ts (1 test) 4ms",
+        " ✓ packages/enterprise-intelligence/src/enterprise-intelligence.integration.test.ts (1 test) 3ms",
         " ✓ packages/performance-blueprint/src/performance-blueprint.integration.test.ts (1 test) 3ms",
         " ✓ packages/governance-core/src/governance-core.integration.test.ts (1 test) 3ms",
         " ✓ packages/completion-assurance/src/completion-assurance.integration.test.ts (1 test) 3ms",
         " ✓ packages/agreement-intelligence/src/agreement-intelligence.integration.test.ts (1 test) 3ms",
-        " Test Files  15 passed | 47 skipped (62)",
-        "      Tests  35 passed | 173 skipped (208)",
-        "   Start at  17:28:47",
-        "   Duration  7.60s (transform 1.37s, setup 0ms, collect 5.59s, tests 171ms, environment 12ms, prepare 4.14s)",
+        " Test Files  15 passed | 49 skipped (64)",
+        "      Tests  35 passed | 217 skipped (252)",
+        "   Start at  17:49:09",
+        "   Duration  7.55s (transform 1.34s, setup 0ms, collect 5.62s, tests 166ms, environment 13ms, prepare 4.19s)",
         "$ vitest run --testNamePattern=integration",
         "\u001b[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.\u001b[39m"
       ],
@@ -103,13 +103,12 @@
     {
       "command": "pnpm run test:e2e",
       "description": "End-to-end tests",
-      "durationMs": 13157,
+      "durationMs": 15554,
       "exitCode": 0,
       "findings": [],
       "id": "test:e2e",
       "kind": "command",
       "outputTail": [
-        " ↓ packages/enterprise-analytics/src/enterprise-analytics.integration.test.ts (1 test | 1 skipped)",
         " ↓ packages/execution-orchestration/src/execution-orchestration.integration.test.ts (1 test | 1 skipped)",
         " ↓ packages/settlement-assurance/src/settlement-assurance.integration.test.ts (1 test | 1 skipped)",
         " ↓ packages/performance-readiness/src/performance-readiness.integration.test.ts (1 test | 1 skipped)",
@@ -118,15 +117,16 @@
         " ↓ packages/governance-core/src/governance-core.integration.test.ts (1 test | 1 skipped)",
         " ↓ packages/completion-assurance/src/completion-assurance.integration.test.ts (1 test | 1 skipped)",
         " ↓ packages/agreement-intelligence/src/agreement-intelligence.integration.test.ts (1 test | 1 skipped)",
-        " ✓ packages/reos/src/reos.e2e.test.ts (8 tests) 9233ms",
-        "   ✓ e2e: stages 1 to 4 run end to end through the CLI > manifest writes both the JSON input and the Markdown record 1092ms",
-        "   ✓ e2e: stages 1 to 4 run end to end through the CLI > dependencies selects a capability and records the rejections 2158ms",
-        "   ✓ e2e: stages 1 to 4 run end to end through the CLI > next prints the selected capability and the steps that follow it 1170ms",
-        "   ✓ e2e: stages 1 to 4 are byte-for-byte deterministic > produces identical artifacts across two independent CLI runs 3942ms",
-        " Test Files  15 passed | 47 skipped (62)",
-        "      Tests  22 passed | 186 skipped (208)",
-        "   Start at  17:28:56",
-        "   Duration  11.93s (transform 1.26s, setup 0ms, collect 5.27s, tests 9.34s, environment 12ms, prepare 4.08s)",
+        " ✓ packages/reos/src/reos.e2e.test.ts (8 tests) 11154ms",
+        "   ✓ e2e: stages 1 to 4 run end to end through the CLI > manifest writes both the JSON input and the Markdown record 1167ms",
+        "   ✓ e2e: stages 1 to 4 run end to end through the CLI > dependencies selects a capability and records the rejections 2251ms",
+        "   ✓ e2e: stages 1 to 4 run end to end through the CLI > next prints the selected capability and the steps that follow it 1270ms",
+        "   ✓ e2e: stages 1 to 4 are byte-for-byte deterministic > produces identical artifacts across two independent CLI runs 4580ms",
+        "   ✓ e2e: certification gates report structurally > runs the in-process validators and writes a certification report 1261ms",
+        " Test Files  15 passed | 49 skipped (64)",
+        "      Tests  22 passed | 230 skipped (252)",
+        "   Start at  17:49:18",
+        "   Duration  14.29s (transform 1.38s, setup 0ms, collect 5.90s, tests 11.26s, environment 12ms, prepare 4.19s)",
         "$ vitest run --testNamePattern=e2e",
         "\u001b[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.\u001b[39m"
       ],
@@ -168,26 +168,210 @@
     },
     {
       "description": "Security validation",
-      "durationMs": 23,
+      "durationMs": 26,
       "exitCode": 0,
       "findings": [],
       "id": "security",
       "kind": "validator",
       "outputTail": [
-        "security: 237 unit(s) checked, 0 finding(s)"
+        "security: 240 unit(s) checked, 0 finding(s)"
       ],
       "passed": true,
       "skipped": false
     },
     {
       "description": "Execution contract validation",
-      "durationMs": 19,
+      "durationMs": 21,
       "exitCode": 0,
       "findings": [],
       "id": "contract",
       "kind": "validator",
       "outputTail": [
-        "execution-contract: 38 unit(s) checked, 0 finding(s)"
+        "execution-contract: 47 unit(s) checked, 0 finding(s)"
+      ],
+      "passed": true,
+      "skipped": false
+    },
+    {
+      "description": "Reconciliation governance policy",
+      "durationMs": 1,
+      "exitCode": 0,
+      "findings": [
+        {
+          "evidence": [
+            "vitest run packages/governance-core/src/governance-core.test.ts --testNamePattern=09"
+          ],
+          "location": "package.json",
+          "message": "certify:certification certifies packages/governance-core using batch number 09, but catalog engine 09 (Notification & Communication) maps to no implementation package. The certify:* batch numbering and the catalog engine numbering are two different identifier spaces using the same numbers. (baselined pre-existing violation)",
+          "rule": "catalog/certification-numbering-collision",
+          "severity": "warning",
+          "subject": "certify:certification"
+        },
+        {
+          "evidence": [
+            "vitest run packages/governance-core/src/governance-core.test.ts --testNamePattern=08"
+          ],
+          "location": "package.json",
+          "message": "certify:dod certifies packages/governance-core using batch number 08, but catalog engine 08 (Audit & Evidence Ledger) maps to no implementation package. The certify:* batch numbering and the catalog engine numbering are two different identifier spaces using the same numbers. (baselined pre-existing violation)",
+          "rule": "catalog/certification-numbering-collision",
+          "severity": "warning",
+          "subject": "certify:dod"
+        },
+        {
+          "evidence": [
+            "vitest run packages/governance-core/src/governance-core.test.ts --testNamePattern=06"
+          ],
+          "location": "package.json",
+          "message": "certify:execution certifies packages/governance-core using batch number 06, but catalog engine 06 (Third-Party Risk) maps to no implementation package. The certify:* batch numbering and the catalog engine numbering are two different identifier spaces using the same numbers. (baselined pre-existing violation)",
+          "rule": "catalog/certification-numbering-collision",
+          "severity": "warning",
+          "subject": "certify:execution"
+        },
+        {
+          "evidence": [
+            "vitest run packages/governance-core/src/governance-core.test.ts --testNamePattern=07"
+          ],
+          "location": "package.json",
+          "message": "certify:milestones certifies packages/governance-core using batch number 07, but catalog engine 07 (Compliance Foundation) maps to no implementation package. The certify:* batch numbering and the catalog engine numbering are two different identifier spaces using the same numbers. (baselined pre-existing violation)",
+          "rule": "catalog/certification-numbering-collision",
+          "severity": "warning",
+          "subject": "certify:milestones"
+        },
+        {
+          "evidence": [
+            "vitest run packages/governance-core/src/governance-core.test.ts --testNamePattern=10"
+          ],
+          "location": "package.json",
+          "message": "certify:payment-triggers certifies packages/governance-core using batch number 10, but catalog engine 10 (Enterprise Configuration) maps to no implementation package. The certify:* batch numbering and the catalog engine numbering are two different identifier spaces using the same numbers. (baselined pre-existing violation)",
+          "rule": "catalog/certification-numbering-collision",
+          "severity": "warning",
+          "subject": "certify:payment-triggers"
+        },
+        {
+          "location": "docs/ENGINE_CATALOG.md",
+          "message": "Engine 01 (Identity & Digital Trust) is declared \"Conditionally implemented\" but repository evidence shows \"implemented\". (baselined pre-existing violation)",
+          "rule": "catalog/status-divergence",
+          "severity": "warning",
+          "subject": "engine:01"
+        },
+        {
+          "location": "docs/ENGINE_CATALOG.md",
+          "message": "Engine 02 (Organization & Multi-Tenant) is declared \"Conditionally implemented\" but repository evidence shows \"implemented\". (baselined pre-existing violation)",
+          "rule": "catalog/status-divergence",
+          "severity": "warning",
+          "subject": "engine:02"
+        },
+        {
+          "location": "docs/ENGINE_CATALOG.md",
+          "message": "Engine 03 (Roles, Permissions & Governance) is declared \"Conditionally implemented\" but repository evidence shows \"implemented\". (baselined pre-existing violation)",
+          "rule": "catalog/status-divergence",
+          "severity": "warning",
+          "subject": "engine:03"
+        },
+        {
+          "location": "docs/ENGINE_CATALOG.md",
+          "message": "Engine 04 (Party Verification) is declared \"Conditionally implemented\" but repository evidence shows \"implemented\". (baselined pre-existing violation)",
+          "rule": "catalog/status-divergence",
+          "severity": "warning",
+          "subject": "engine:04"
+        },
+        {
+          "location": "docs/ENGINE_CATALOG.md",
+          "message": "Engine 05 (Legal Governance) is declared \"Conditionally implemented\" but repository evidence shows \"implemented\". (baselined pre-existing violation)",
+          "rule": "catalog/status-divergence",
+          "severity": "warning",
+          "subject": "engine:05"
+        },
+        {
+          "location": "docs/ENGINE_CATALOG.md",
+          "message": "Engine 08 (Audit & Evidence Ledger) is declared \"Foundation only\" but repository evidence shows \"missing\". (baselined pre-existing violation)",
+          "rule": "catalog/status-divergence",
+          "severity": "warning",
+          "subject": "engine:08"
+        },
+        {
+          "evidence": [
+            "AgentGovernanceEngine",
+            "AgentRegistryEngine",
+            "AgentRuntimeEngine",
+            "AgentTelemetryEngine",
+            "AiGatewayEngine",
+            "CapabilityRegistryEngine",
+            "ContextEngine",
+            "ExecutionMemoryEngine"
+          ],
+          "location": "packages/agent-runtime/src/index.ts",
+          "message": "packages/agent-runtime exports 10 engine class(es) but is not mapped to any catalog engine, so its scope is not represented in docs/ENGINE_CATALOG.md. (baselined pre-existing violation)",
+          "rule": "catalog/unmapped-engine-package",
+          "severity": "warning",
+          "subject": "packages/agent-runtime"
+        },
+        {
+          "evidence": [
+            "CertificationEngine",
+            "DefinitionOfDoneEngine",
+            "ExecutionEngine",
+            "MilestoneEngine",
+            "PaymentTriggerEngine"
+          ],
+          "location": "packages/governance-core/src/index.ts",
+          "message": "packages/governance-core exports 5 engine class(es) but is not mapped to any catalog engine, so its scope is not represented in docs/ENGINE_CATALOG.md. (baselined pre-existing violation)",
+          "rule": "catalog/unmapped-engine-package",
+          "severity": "warning",
+          "subject": "packages/governance-core"
+        },
+        {
+          "evidence": [
+            "BottleneckDetectionEngine",
+            "DependencyIntelligenceEngine",
+            "EscalationIntelligenceEngine",
+            "ExceptionManagementEngine",
+            "ExecutionHealthEngine",
+            "PredictiveRiskIntelligenceEngine",
+            "ResourceIntelligenceEngine",
+            "ScheduleOptimizationEngine"
+          ],
+          "location": "packages/workflow-intelligence/src/index.ts",
+          "message": "packages/workflow-intelligence exports 10 engine class(es) but is not mapped to any catalog engine, so its scope is not represented in docs/ENGINE_CATALOG.md. (baselined pre-existing violation)",
+          "rule": "catalog/unmapped-engine-package",
+          "severity": "warning",
+          "subject": "packages/workflow-intelligence"
+        },
+        {
+          "evidence": [
+            "packages/performance-readiness",
+            "packages/workflow-intelligence"
+          ],
+          "message": "DependencyIntelligenceEngine is exported by 2 packages, which duplicates an abstraction. (baselined pre-existing violation)",
+          "rule": "runtime/duplicate-abstraction",
+          "severity": "warning",
+          "subject": "DependencyIntelligenceEngine"
+        },
+        {
+          "evidence": [
+            "AgentGovernanceEngine",
+            "AgentRegistryEngine",
+            "AgentRuntimeEngine",
+            "AgentTelemetryEngine",
+            "AiGatewayEngine",
+            "CapabilityRegistryEngine",
+            "ContextEngine",
+            "ExecutionMemoryEngine",
+            "FileAssuraStore",
+            "HumanApprovalEngine",
+            "InMemoryTrustStore",
+            "PromptRegistryEngine"
+          ],
+          "message": "12 exported engine class(es) are not instantiated in any composition root, so they are unreachable at runtime. (baselined pre-existing violation)",
+          "rule": "runtime/unregistered-engine",
+          "severity": "warning",
+          "subject": "runtime"
+        }
+      ],
+      "id": "governance",
+      "kind": "validator",
+      "outputTail": [
+        "governance: 16 unit(s) checked, 16 finding(s)"
       ],
       "passed": true,
       "skipped": false
@@ -195,7 +379,7 @@
     {
       "command": "pnpm run build",
       "description": "Production build",
-      "durationMs": 23695,
+      "durationMs": 23579,
       "exitCode": 0,
       "findings": [],
       "id": "build",
@@ -227,9 +411,9 @@
     }
   ],
   "totals": {
-    "executed": 10,
+    "executed": 11,
     "failed": 0,
-    "passed": 10,
+    "passed": 11,
     "skipped": 0
   }
 }

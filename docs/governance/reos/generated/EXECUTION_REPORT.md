@@ -7,20 +7,23 @@
 | Field | Value |
 | --- | --- |
 | Branch | claude/git-pull-cqc04u |
-| HEAD | aecc0d9a33656a67dfdbe72a0e45299ab2576f96 |
+| HEAD | ec890b731dde844d2b66bec5569cae3d48a13cc6 |
 | Worktree clean | no |
-| Uncommitted files | 6 |
-| Generated at | 2026-08-04T17:29:41.272Z |
+| Uncommitted files | 37 |
+| Generated at | 2026-08-04T17:50:05.140Z |
 
 ## Capability implemented
 
-`reos.execution-os`
+`reos.execution-os` — lifecycle **certified**
 
-## Files modified (48)
+## Files modified (57)
 
 - `.github/workflows/ci.yml`
 - `CLAUDE.md`
 - `MANIFEST.md`
+- `docs/governance/execution-ledger/INDEX.md`
+- `docs/governance/execution-ledger/README.md`
+- `docs/governance/execution-ledger/ec890b731dde-reos.execution-os.json`
 - `docs/governance/reos/AGENT_PROTOCOL.md`
 - `docs/governance/reos/EXECUTION_CONTRACT.md`
 - `docs/governance/reos/README.md`
@@ -35,15 +38,21 @@
 - `docs/governance/reos/generated/execution-manifest.json`
 - `docs/governance/reos/generated/execution-report.json`
 - `docs/governance/reos/generated/forensics.json`
+- `docs/governance/reos/governance-policy.json`
 - `package.json`
 - `packages/reos/bin/reos.ts`
 - `packages/reos/package.json`
 - `packages/reos/src/backlog.ts`
+- `packages/reos/src/governance.ts`
 - `packages/reos/src/index.ts`
+- `packages/reos/src/ledger.ts`
+- `packages/reos/src/lifecycle.ts`
 - `packages/reos/src/paths.ts`
 - `packages/reos/src/pipeline.ts`
 - `packages/reos/src/reos.e2e.test.ts`
+- `packages/reos/src/reos.governance.test.ts`
 - `packages/reos/src/reos.integration.test.ts`
+- `packages/reos/src/reos.ledger.test.ts`
 - `packages/reos/src/reos.security.test.ts`
 - `packages/reos/src/reos.test.ts`
 - `packages/reos/src/stages/certify.ts`
@@ -73,12 +82,18 @@
 | --- | --- | --- | --- | --- |
 | architecture | pass | 45 | 0 | 0 |
 | dependencies | pass | 23 | 0 | 1 |
-| security | pass | 237 | 0 | 0 |
-| execution-contract | pass | 38 | 0 | 0 |
+| security | pass | 240 | 0 | 0 |
+| execution-contract | pass | 47 | 0 | 0 |
 
 ### Findings
 
 - **warning** `dependency/orphaned-engine-package` (packages/agent-runtime/package.json) — packages/agent-runtime exports engine classes but no package or application depends on it, so nothing can reach it at runtime.
+
+## Governance
+
+Phase 2. 16 baselined, 0 newly introduced, 0 baseline entry/-ies now stale.
+
+No newly introduced violations.
 
 ## Certification
 
@@ -100,6 +115,10 @@
 
 `trust.identity-assertions` — HMAC identity assertions
 
+## Ledger
+
+Recorded as `ec890b731dde-reos.execution-os` in `docs/governance/execution-ledger/`.
+
 ## Commit
 
-`aecc0d9a33656a67dfdbe72a0e45299ab2576f96`
+`ec890b731dde844d2b66bec5569cae3d48a13cc6`

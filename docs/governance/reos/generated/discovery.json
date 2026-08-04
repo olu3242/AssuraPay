@@ -1042,6 +1042,16 @@
     },
     {
       "category": "governance",
+      "path": "docs/governance/execution-ledger/INDEX.md",
+      "title": "Execution Ledger"
+    },
+    {
+      "category": "governance",
+      "path": "docs/governance/execution-ledger/README.md",
+      "title": "Execution Ledger"
+    },
+    {
+      "category": "governance",
       "path": "docs/governance/reos/AGENT_PROTOCOL.md",
       "title": "REOS Agent Protocol"
     },
@@ -2369,11 +2379,13 @@
       "main": "src/index.ts",
       "moduleType": "module",
       "name": "@assurapay/reos",
-      "sourceFiles": 21,
-      "sourceLines": 3262,
+      "sourceFiles": 24,
+      "sourceLines": 4143,
       "testFiles": [
         "packages/reos/src/reos.e2e.test.ts",
+        "packages/reos/src/reos.governance.test.ts",
         "packages/reos/src/reos.integration.test.ts",
+        "packages/reos/src/reos.ledger.test.ts",
         "packages/reos/src/reos.security.test.ts",
         "packages/reos/src/reos.test.ts"
       ],
@@ -2382,7 +2394,7 @@
         "integration": 1,
         "performance": 0,
         "security": 1,
-        "unit": 1
+        "unit": 3
       },
       "workspaceDependencies": []
     },
@@ -2526,7 +2538,15 @@
       ],
       "clean": false,
       "dirtyFiles": [
+        "CLAUDE.md",
+        "MANIFEST.md",
+        "docs/governance/execution-ledger/INDEX.md",
+        "docs/governance/execution-ledger/README.md",
+        "docs/governance/execution-ledger/ec890b731dde-reos.execution-os.json",
+        "docs/governance/reos/AGENT_PROTOCOL.md",
+        "docs/governance/reos/README.md",
         "docs/governance/reos/generated/CERTIFICATION_REPORT.md",
+        "docs/governance/reos/generated/DEPENDENCY_RESOLUTION.md",
         "docs/governance/reos/generated/EXECUTION_MANIFEST.md",
         "docs/governance/reos/generated/EXECUTION_REPORT.md",
         "docs/governance/reos/generated/certification.json",
@@ -2534,10 +2554,30 @@
         "docs/governance/reos/generated/discovery.json",
         "docs/governance/reos/generated/execution-manifest.json",
         "docs/governance/reos/generated/execution-report.json",
-        "docs/governance/reos/generated/forensics.json"
+        "docs/governance/reos/generated/forensics.json",
+        "docs/governance/reos/governance-policy.json",
+        "packages/reos/bin/reos.ts",
+        "packages/reos/src/backlog.ts",
+        "packages/reos/src/governance.ts",
+        "packages/reos/src/index.ts",
+        "packages/reos/src/ledger.ts",
+        "packages/reos/src/lifecycle.ts",
+        "packages/reos/src/paths.ts",
+        "packages/reos/src/pipeline.ts",
+        "packages/reos/src/reos.governance.test.ts",
+        "packages/reos/src/reos.ledger.test.ts",
+        "packages/reos/src/reos.test.ts",
+        "packages/reos/src/stages/certify.ts",
+        "packages/reos/src/stages/dependencies.ts",
+        "packages/reos/src/stages/forensics.ts",
+        "packages/reos/src/stages/manifest.ts",
+        "packages/reos/src/stages/report.ts",
+        "packages/reos/src/types.ts",
+        "packages/reos/src/util/git.ts",
+        "packages/reos/src/validators/contract.ts"
       ],
-      "head": "aecc0d9a33656a67dfdbe72a0e45299ab2576f96",
-      "headShort": "aecc0d9",
+      "head": "ec890b731dde844d2b66bec5569cae3d48a13cc6",
+      "headShort": "ec890b7",
       "reflogAvailable": true,
       "remotes": [
         "origin"
@@ -2746,17 +2786,17 @@
       "integration": 15,
       "performance": 2,
       "security": 3,
-      "unit": 27
+      "unit": 29
     },
-    "files": 62
+    "files": 64
   },
   "totals": {
     "applications": 1,
-    "documents": 138,
+    "documents": 140,
     "engines": 60,
     "migrations": 20,
     "packages": 22,
-    "testFiles": 62
+    "testFiles": 64
   },
   "workflows": [
     {
