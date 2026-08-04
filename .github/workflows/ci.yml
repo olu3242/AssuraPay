@@ -15,10 +15,11 @@ jobs:
           version: 11.3.0
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          # REOS runs TypeScript directly via native type stripping (>= 22.18).
+          node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm lint
-      - run: pnpm typecheck
-      - run: pnpm test
-      - run: pnpm build
+      # repo:certify runs lint, typecheck, unit/integration/e2e tests,
+      # architecture, dependency, security and contract validation, and the
+      # production build. It is the single certification gate.
+      - run: pnpm repo:certify
