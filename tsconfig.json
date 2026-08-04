@@ -11,6 +11,7 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
+    "allowImportingTsExtensions": true,
     "jsx": "preserve",
     "incremental": true,
     "baseUrl": ".",
@@ -55,6 +56,7 @@
         "packages/enterprise-analytics/src/index.ts"
       ],
       "@assurapay/agent-runtime": ["packages/agent-runtime/src/index.ts"],
+      "@assurapay/reos": ["packages/reos/src/index.ts"],
       "@assurapay/workflow-intelligence": [
         "packages/workflow-intelligence/src/index.ts"
       ]
