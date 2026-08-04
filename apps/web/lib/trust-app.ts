@@ -1,5 +1,10 @@
 import { InMemoryTrustStore } from '@assurapay/database';
-import { IdentityService } from '@assurapay/identity';
+import {
+  IdentityAssertionService,
+  IdentityService,
+  InMemoryAssertionReplayGuard,
+  loadAssertionKeyring,
+} from '@assurapay/identity';
 import { OrganizationService } from '@assurapay/organizations';
 import { PermissionService } from '@assurapay/permissions';
 import {
@@ -107,9 +112,34 @@ import {
 } from '@assurapay/workflow-intelligence';
 const globalTrust = globalThis as typeof globalThis & {
   assurapayTrustStore?: InMemoryTrustStore;
+  assurapayAssertionReplayGuard?: InMemoryAssertionReplayGuard;
 };
 export const trustStore = (globalTrust.assurapayTrustStore ??=
   new InMemoryTrustStore());
+
+/**
+ * Replay guard state must survive a dev-server reload, or a reload would forget
+ * every consumed nonce and re-admit replays.
+ */
+const assertionReplayGuard = (globalTrust.assurapayAssertionReplayGuard ??=
+  new InMemoryAssertionReplayGuard());
+
+let identityAssertions: IdentityAssertionService | undefined;
+
+/**
+ * Assertion signing requires configured keys, so the service is built on first
+ * use rather than at import. An unconfigured environment still boots and fails
+ * closed with ASSERTION_KEYRING_REQUIRED on the paths that need an assertion,
+ * instead of breaking the whole application at load.
+ */
+export function getIdentityAssertions(): IdentityAssertionService {
+  identityAssertions ??= new IdentityAssertionService(
+    trustStore,
+    loadAssertionKeyring(process.env),
+    assertionReplayGuard,
+  );
+  return identityAssertions;
+}
 export const trust = {
   identity: new IdentityService(trustStore),
   organizations: new OrganizationService(trustStore),
