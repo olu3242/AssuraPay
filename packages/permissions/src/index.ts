@@ -1,4 +1,7 @@
 import { randomUUID } from 'node:crypto';
+
+export * from './enforcement';
+
 import type { RequestContext, TrustPersistence } from '@assurapay/shared';
 import { maskValue, requireActiveWorkspace } from '@assurapay/shared';
 export type Effect = 'ALLOW' | 'DENY' | 'CONDITIONAL';
