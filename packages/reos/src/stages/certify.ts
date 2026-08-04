@@ -6,11 +6,17 @@ import { validateArchitecture } from '../validators/architecture.ts';
 import { validateDependencies } from '../validators/dependency.ts';
 import { validateSecurity } from '../validators/security.ts';
 import { validateExecutionContract } from '../validators/contract.ts';
+import {
+  evaluateGovernance,
+  loadGovernancePolicy,
+  toValidationOutcome,
+} from '../governance.ts';
 import { REOS_VERSION } from '../types.ts';
 import type {
   CertificationReport,
   CertificationStep,
   DiscoverySnapshot,
+  ExecutionManifest,
   ValidationOutcome,
 } from '../types.ts';
 
@@ -29,6 +35,7 @@ export const CERTIFICATION_STEPS = [
   { id: 'dependencies', description: 'Dependency validation', validator: 'dependencies' },
   { id: 'security', description: 'Security validation', validator: 'security' },
   { id: 'contract', description: 'Execution contract validation', validator: 'contract' },
+  { id: 'governance', description: 'Reconciliation governance policy', validator: 'governance' },
   { id: 'build', description: 'Production build', script: 'build' },
 ] as const;
 
@@ -39,6 +46,11 @@ export type CertifyOptions = {
   only?: string[];
   /** Skip these step ids. */
   skip?: string[];
+  /**
+   * Manifest to evaluate the governance policy against. Without it the
+   * governance step is skipped, because it has nothing to judge.
+   */
+  manifest?: ExecutionManifest | null;
 };
 
 function detectPackageManager(repoRoot: string): string {
@@ -51,7 +63,8 @@ function runValidator(
   name: string,
   repoRoot: string,
   discovery: DiscoverySnapshot,
-): ValidationOutcome {
+  manifest: ExecutionManifest | null,
+): ValidationOutcome | null {
   switch (name) {
     case 'architecture':
       return validateArchitecture(repoRoot, discovery);
@@ -61,6 +74,12 @@ function runValidator(
       return validateSecurity(repoRoot);
     case 'contract':
       return validateExecutionContract(repoRoot, discovery);
+    case 'governance':
+      // Nothing to judge without a manifest; the caller decides to skip.
+      if (!manifest) return null;
+      return toValidationOutcome(
+        evaluateGovernance(manifest, loadGovernancePolicy(repoRoot)),
+      );
     default:
       throw new Error(`Unknown REOS validator: ${name}`);
   }
@@ -97,7 +116,28 @@ export function certify(
     const startedAt = Date.now();
 
     if ('validator' in definition) {
-      const outcome = runValidator(definition.validator, repoRoot, discovery);
+      const outcome = runValidator(
+        definition.validator,
+        repoRoot,
+        discovery,
+        options.manifest ?? null,
+      );
+
+      if (outcome === null) {
+        steps.push({
+          id: definition.id,
+          description: definition.description,
+          kind: 'validator',
+          passed: true,
+          skipped: true,
+          exitCode: null,
+          durationMs: 0,
+          findings: [],
+          outputTail: ['skipped: no execution manifest supplied'],
+        });
+        continue;
+      }
+
       steps.push({
         id: definition.id,
         description: definition.description,

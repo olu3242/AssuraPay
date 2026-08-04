@@ -37,6 +37,11 @@ export const ARTIFACTS = artifactPaths(ARTIFACT_DIRECTORY);
 
 export const CAPABILITY_REGISTRY = `${GOVERNANCE_DIRECTORY}/capability-registry.json`;
 
+export const GOVERNANCE_POLICY = `${GOVERNANCE_DIRECTORY}/governance-policy.json`;
+
+/** Append-only execution history. Never redirected by REOS_ARTIFACT_DIR. */
+export const LEDGER_DIRECTORY = 'docs/governance/execution-ledger';
+
 /**
  * Resolves the repository root from `cwd`, preferring git and falling back to a
  * search for the workspace marker so REOS still works in an exported tree.
