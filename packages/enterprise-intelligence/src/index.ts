@@ -200,6 +200,10 @@ export class EnterpriseKpiEngine {
       createdAt: now(),
     };
     this.store.append('kpiDefinitions', definition);
+    emit(this.store, context, 'KpiDefinitionDefined', 'KpiDefinition', definition.id, {
+      kind: definition.kind,
+      name: definition.name,
+    });
     return definition;
   }
 
@@ -208,6 +212,7 @@ export class EnterpriseKpiEngine {
     if (definition.status !== 'ACTIVE') throw new Error('KPI_DEFINITION_NOT_ACTIVE');
     const retired: KpiDefinition = { ...definition, status: 'RETIRED' };
     this.store.replace('kpiDefinitions', retired);
+    emit(this.store, context, 'KpiDefinitionRetired', 'KpiDefinition', definition.id, {});
     return retired;
   }
 

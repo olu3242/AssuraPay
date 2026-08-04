@@ -96,11 +96,17 @@ export class FinancialApprovalAuthorityEngine {
     context: RequestContext,
     input: { minAmountMinor: number; maxAmountMinor: number; currency: string; requiredApprovals: number },
   ) {
+    if (!Number.isInteger(input.minAmountMinor) || !Number.isInteger(input.maxAmountMinor))
+      throw new Error('THRESHOLD_AMOUNTS_MUST_BE_INTEGER_MINOR_UNITS');
     if (input.minAmountMinor < 0 || input.maxAmountMinor <= input.minAmountMinor) throw new Error('INVALID_THRESHOLD_RANGE');
     if (!Number.isInteger(input.requiredApprovals) || input.requiredApprovals < 1)
       throw new Error('INVALID_REQUIRED_APPROVALS');
     const threshold: ApprovalThreshold = { id: randomUUID(), workspaceId: ws(context), ...input, createdAt: now() };
     this.store.append('approvalThresholds', threshold);
+    emit(this.store, context, 'ApprovalThresholdDefined', 'ApprovalThreshold', threshold.id, {
+      currency: threshold.currency,
+      requiredApprovals: threshold.requiredApprovals,
+    });
     return threshold;
   }
 
@@ -132,6 +138,11 @@ export class FinancialApprovalAuthorityEngine {
       createdAt: now(),
     };
     this.store.append('authorizationDecisions', authorization);
+    emit(this.store, context, 'AuthorizationRequested', 'AuthorizationDecision', authorization.id, {
+      releaseRequestId: authorization.releaseRequestId,
+      amountMinor: authorization.amountMinor,
+      requiredApprovals: authorization.requiredApprovals,
+    });
     return authorization;
   }
 
@@ -155,6 +166,9 @@ export class FinancialApprovalAuthorityEngine {
       decidedAt: now(),
     };
     this.store.append('financialApprovalDecisions', decision);
+    emit(this.store, context, 'ApprovalVoteCast', 'AuthorizationDecision', authorization.id, {
+      approverId: decision.approverId,
+    });
     const approverCount = existingApprovers.length + 1;
     if (approverCount >= authorization.requiredApprovals) {
       const authorized: AuthorizationDecision = { ...authorization, status: 'AUTHORIZED', authorizedAt: now() };
@@ -382,6 +396,10 @@ export class ReconciliationLedgerEngine {
       recordedAmountMinor: number;
     },
   ) {
+    if (!Number.isInteger(input.providerReportedAmountMinor) || input.providerReportedAmountMinor < 0)
+      throw new Error('PROVIDER_REPORTED_AMOUNT_MUST_BE_NON_NEGATIVE_INTEGER_MINOR_UNITS');
+    if (!Number.isInteger(input.recordedAmountMinor) || input.recordedAmountMinor < 0)
+      throw new Error('RECORDED_AMOUNT_MUST_BE_NON_NEGATIVE_INTEGER_MINOR_UNITS');
     const matched = input.providerReportedAmountMinor === input.recordedAmountMinor;
     const record: ReconciliationRecord = {
       id: randomUUID(),
@@ -487,6 +505,10 @@ export class DisputeResolutionEngine {
       releaseRequestId: dispute.releaseRequestId,
       kind: dispute.kind,
     });
+    emit(this.store, context, 'DisputeHoldPlaced', 'DisputeHold', hold.id, {
+      disputeId: hold.disputeId,
+      releaseRequestId: hold.releaseRequestId,
+    });
     return dispute;
   }
 
@@ -501,6 +523,7 @@ export class DisputeResolutionEngine {
       submittedAt: now(),
     };
     this.store.append('disputeEvidence', evidence);
+    emit(this.store, context, 'DisputeEvidenceSubmitted', 'Dispute', dispute.id, { evidenceId: evidence.id });
     return evidence;
   }
 
@@ -509,6 +532,7 @@ export class DisputeResolutionEngine {
     if (dispute.status === 'CLOSED') throw new Error('DISPUTE_CLOSED');
     const position: DisputePosition = { id: randomUUID(), workspaceId: ws(context), ...input, submittedAt: now() };
     this.store.append('disputePositions', position);
+    emit(this.store, context, 'DisputePositionSubmitted', 'Dispute', dispute.id, { partyId: input.partyId });
     return position;
   }
 
@@ -549,8 +573,13 @@ export class DisputeResolutionEngine {
     this.store.replace('disputes', closed);
     for (const hold of this.store
       .list<DisputeHold>('disputeHolds')
-      .filter((x) => x.workspaceId === workspaceId && x.disputeId === disputeId && x.active))
+      .filter((x) => x.workspaceId === workspaceId && x.disputeId === disputeId && x.active)) {
       this.store.replace('disputeHolds', { ...hold, active: false, releasedAt: now() });
+      emit(this.store, context, 'DisputeHoldReleased', 'DisputeHold', hold.id, {
+        disputeId: hold.disputeId,
+        releaseRequestId: hold.releaseRequestId,
+      });
+    }
     emit(this.store, context, 'DisputeClosed', 'Dispute', dispute.id, {});
     return closed;
   }
@@ -616,6 +645,10 @@ export class FinalSettlementEngine {
       createdAt: now(),
     };
     this.store.append('finalSettlementAccounts', account);
+    emit(this.store, context, 'FinalSettlementAccountOpened', 'FinalSettlementAccount', account.id, {
+      milestoneId: account.milestoneId,
+      outstandingAmountMinor: account.outstandingAmountMinor,
+    });
     return account;
   }
 

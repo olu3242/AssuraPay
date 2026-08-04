@@ -83,6 +83,18 @@ describe('Engine 42 Financial Entitlement', () => {
         penaltyAmountMinor: 200_000_00,
       }),
     ).toThrow('NEGATIVE_NET_PAYABLE');
+    expect(() =>
+      e.calculate(c, {
+        milestoneId: 'm',
+        paymentEligibilityId: eligibility.id,
+        currency: 'NGN',
+        grossEarnedAmountMinor: 100_000_00,
+        variationsAmountMinor: 0,
+        retentionAmountMinor: -1,
+        taxAmountMinor: 0,
+        penaltyAmountMinor: 0,
+      }),
+    ).toThrow('RETENTIONAMOUNTMINOR_MUST_BE_NON_NEGATIVE_INTEGER_MINOR_UNITS');
     const entitlement = e.calculate(c, {
       milestoneId: 'm',
       paymentEligibilityId: eligibility.id,

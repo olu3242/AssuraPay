@@ -15,7 +15,8 @@ jobs:
           version: 11.3.0
       - uses: actions/setup-node@v4
         with:
-          # REOS runs TypeScript directly via native type stripping (>= 22.18).
+          # 22 for pnpm 11 compatibility, and because REOS runs TypeScript
+          # directly via native type stripping (>= 22.18).
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile

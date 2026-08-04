@@ -234,11 +234,15 @@ export class PortfolioAnalyticsEngine {
     for (const [field, value] of Object.entries({
       atRiskCount: input.atRiskCount,
       blockedCount: input.blockedCount,
-      unpaidAmountMinor: input.unpaidAmountMinor,
       disputedCount: input.disputedCount,
-      retainedAmountMinor: input.retainedAmountMinor,
     }))
       requireNonNegative(value, field.toUpperCase());
+    for (const [field, value] of Object.entries({
+      unpaidAmountMinor: input.unpaidAmountMinor,
+      retainedAmountMinor: input.retainedAmountMinor,
+    }))
+      if (!Number.isInteger(value) || value < 0)
+        throw new Error(`${field.toUpperCase()}_MUST_BE_NON_NEGATIVE_INTEGER_MINOR_UNITS`);
     requireScoreRange(input.concentrationTopPartyPercent, 'CONCENTRATION_TOP_PARTY_PERCENT');
     const snapshot: PortfolioSnapshot = { id: randomUUID(), workspaceId: ws(context), ...input, computedAt: now() };
     this.store.append('portfolioSnapshots', snapshot);
@@ -397,6 +401,10 @@ export class AiDecisionSupportEngine {
       registeredAt: now(),
     };
     this.store.append('modelRegistrations', registration);
+    emit(this.store, context, 'ModelRegistered', 'ModelRegistration', registration.id, {
+      modelId: registration.modelId,
+      modelVersion: registration.modelVersion,
+    });
     return registration;
   }
 
@@ -405,6 +413,7 @@ export class AiDecisionSupportEngine {
     if (registration.status !== 'ACTIVE') throw new Error('MODEL_NOT_ACTIVE');
     const deprecated: ModelRegistration = { ...registration, status: 'DEPRECATED' };
     this.store.replace('modelRegistrations', deprecated);
+    emit(this.store, context, 'ModelDeprecated', 'ModelRegistration', registration.id, {});
     return deprecated;
   }
 
@@ -459,6 +468,7 @@ export class AiDecisionSupportEngine {
     if (alert.status !== 'OPEN') throw new Error('DRIFT_ALERT_NOT_OPEN');
     const acknowledged: DriftAlert = { ...alert, status: 'ACKNOWLEDGED' };
     this.store.replace('driftAlerts', acknowledged);
+    emit(this.store, context, 'DriftAlertAcknowledged', 'DriftAlert', alert.id, {});
     return acknowledged;
   }
 
@@ -494,6 +504,10 @@ export class AiDecisionSupportEngine {
       submittedAt: now(),
     };
     this.store.append('modelFeedback', feedback);
+    emit(this.store, context, 'ModelFeedbackSubmitted', 'ModelFeedback', feedback.id, {
+      modelRegistrationId: feedback.modelRegistrationId,
+      rating: feedback.rating,
+    });
     return feedback;
   }
 

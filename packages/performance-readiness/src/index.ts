@@ -108,6 +108,9 @@ export class AcceptanceCriteriaEngine {
       createdAt: now(),
     };
     this.store.append('acceptanceCriteria', criterion);
+    emit(this.store, context, 'AcceptanceCriterionDefined', 'AcceptanceCriterion', criterion.id, {
+      deliverableId: criterion.deliverableId,
+    });
     return criterion;
   }
 
@@ -163,6 +166,10 @@ export class SuccessMetricsEngine {
       createdAt: now(),
     };
     this.store.append('successMetrics', metric);
+    emit(this.store, context, 'SuccessMetricDefined', 'SuccessMetric', metric.id, {
+      milestoneId: metric.milestoneId,
+      weightPercent: metric.weightPercent,
+    });
     return metric;
   }
 
@@ -298,6 +305,10 @@ export class PaymentTriggerRuleEngine {
       createdAt: now(),
     };
     this.store.append('paymentTriggerRules', rule);
+    emit(this.store, context, 'PaymentTriggerRuleDefined', 'PaymentTriggerRule', rule.id, {
+      milestoneId: rule.milestoneId,
+      ruleType: rule.ruleType,
+    });
     return rule;
   }
 
@@ -419,6 +430,8 @@ export class PerformanceBaselineEngine {
       actualRiskScore?: number;
     },
   ) {
+    if (input.actualCostAmountMinor !== undefined && !Number.isInteger(input.actualCostAmountMinor))
+      throw new Error('ACTUAL_COST_AMOUNT_MUST_BE_INTEGER_MINOR_UNITS');
     const baseline = get<PerformanceBaseline>(this.store, 'performanceBaselines', context, input.baselineId);
     const variance: BaselineVariance = {
       id: randomUUID(),
