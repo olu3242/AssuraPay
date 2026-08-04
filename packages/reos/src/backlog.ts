@@ -1,9 +1,13 @@
 import { sortBy } from './util/serialize.ts';
+import { deriveLifecycle } from './lifecycle.ts';
 import type {
   BacklogEntry,
   CapabilityForensics,
+  CapabilityLifecycle,
   CapabilityRegistry,
+  CapabilityScope,
   CapabilityStatus,
+  CertificationReport,
   EngineReconciliation,
 } from './types.ts';
 
@@ -20,6 +24,9 @@ export type CapabilityNode = {
   priority: number;
   dependsOn: string[];
   requiresLiveInfrastructure: boolean;
+  onDefaultBranch: boolean;
+  certifyScript: string | null;
+  scope: CapabilityScope;
 };
 
 /** Engines are numbered after platform capabilities so platform work leads. */
@@ -36,6 +43,8 @@ export function engineNodeId(engineId: string): string {
  */
 export function buildEngineNodes(
   engines: EngineReconciliation[],
+  /** Package directories already present on the default branch. */
+  releasedPackages: ReadonlySet<string> = new Set(),
 ): CapabilityNode[] {
   const ordered = sortBy(engines, (engine) => engine.id);
   const nodes: CapabilityNode[] = [];
@@ -50,6 +59,13 @@ export function buildEngineNodes(
       priority: ENGINE_PRIORITY_BASE + Number(engine.id),
       dependsOn: previousBlocking ? [previousBlocking] : [],
       requiresLiveInfrastructure: false,
+      // An engine's evidence is its package, so it counts as released once that
+      // package exists on the default branch.
+      onDefaultBranch:
+        engine.packageDirectory !== null &&
+        releasedPackages.has(engine.packageDirectory),
+      certifyScript: engine.certificationScript,
+      scope: { files: 0, tests: 0, estimated: false },
     };
     nodes.push(node);
     if (engine.observedStatus !== 'deferred') previousBlocking = node.id;
@@ -62,19 +78,71 @@ export function buildPlatformNodes(
   registry: CapabilityRegistry,
   forensics: CapabilityForensics[],
 ): CapabilityNode[] {
-  const statusById = new Map(
-    forensics.map((capability) => [capability.id, capability.status]),
-  );
+  const byId = new Map(forensics.map((capability) => [capability.id, capability]));
 
   return registry.capabilities.map((definition) => ({
     id: definition.id,
     title: definition.title,
     kind: definition.kind,
-    status: statusById.get(definition.id) ?? 'missing',
+    status: byId.get(definition.id)?.status ?? 'missing',
     priority: definition.priority,
     dependsOn: [...definition.dependsOn].sort(),
     requiresLiveInfrastructure: definition.requiresLiveInfrastructure ?? false,
+    onDefaultBranch: byId.get(definition.id)?.onDefaultBranch ?? false,
+    certifyScript: definition.certify,
+    scope: scopeOf(definition),
   }));
+}
+
+/**
+ * Scope is the declared evidence surface unless the registry states an explicit
+ * estimate. Counting probes is honest — it is what the capability promises to
+ * produce — so it is never presented as a prediction of total churn.
+ */
+function scopeOf(definition: CapabilityRegistry['capabilities'][number]): CapabilityScope {
+  if (definition.scope) {
+    return { ...definition.scope, estimated: true };
+  }
+  return {
+    files: definition.evidence.paths?.length ?? 0,
+    tests: definition.evidence.tests?.length ?? 0,
+    estimated: false,
+  };
+}
+
+/**
+ * Reverse dependency closure: everything that cannot start until `id` completes,
+ * transitively. Direct dependents alone understate the cost of leaving a
+ * capability unbuilt — a one-step view of engine 01 hides the other 59.
+ * Traversal is cycle-safe, so a dependency cycle cannot hang the walk.
+ */
+export function computeBlocks(nodes: CapabilityNode[]): Map<string, string[]> {
+  const directDependents = new Map<string, string[]>();
+  for (const node of nodes) {
+    for (const dependency of node.dependsOn) {
+      directDependents.set(dependency, [
+        ...(directDependents.get(dependency) ?? []),
+        node.id,
+      ]);
+    }
+  }
+
+  const closure = new Map<string, string[]>();
+  for (const node of nodes) {
+    const reached = new Set<string>();
+    const queue = [...(directDependents.get(node.id) ?? [])];
+
+    while (queue.length > 0) {
+      const next = queue.shift();
+      if (next === undefined || next === node.id || reached.has(next)) continue;
+      reached.add(next);
+      queue.push(...(directDependents.get(next) ?? []));
+    }
+
+    if (reached.size > 0) closure.set(node.id, [...reached].sort());
+  }
+
+  return closure;
 }
 
 const COMPLETE_STATUSES = new Set<CapabilityStatus>(['implemented', 'deferred']);
@@ -88,8 +156,12 @@ const COMPLETE_STATUSES = new Set<CapabilityStatus>(['implemented', 'deferred'])
  *  - a node is executable only when every dependency is complete;
  *  - ties break on priority, then on id, so the result is deterministic.
  */
-export function buildBacklog(nodes: CapabilityNode[]): BacklogEntry[] {
+export function buildBacklog(
+  nodes: CapabilityNode[],
+  certification: CertificationReport | null = null,
+): BacklogEntry[] {
   const byId = new Map(nodes.map((node) => [node.id, node]));
+  const blocks = computeBlocks(nodes);
 
   const entries = nodes
     .filter((node) => !COMPLETE_STATUSES.has(node.status))
@@ -102,13 +174,25 @@ export function buildBacklog(nodes: CapabilityNode[]): BacklogEntry[] {
         })
         .sort();
 
+      const executable = blockedBy.length === 0;
+
       return {
         id: node.id,
         title: node.title,
         status: node.status,
+        dependsOn: node.dependsOn,
+        lifecycle: deriveLifecycle({
+          status: node.status,
+          executable,
+          onDefaultBranch: node.onDefaultBranch,
+          certification,
+          certifyScript: node.certifyScript,
+        }),
         priority: node.priority,
-        executable: blockedBy.length === 0,
+        executable,
         blockedBy,
+        blocks: blocks.get(node.id) ?? [],
+        scope: node.scope,
         requiresLiveInfrastructure: node.requiresLiveInfrastructure,
       };
     });
@@ -128,4 +212,32 @@ export function selectNext(backlog: BacklogEntry[]): BacklogEntry | null {
   const executable = backlog.filter((entry) => entry.executable);
   const offline = executable.filter((entry) => !entry.requiresLiveInfrastructure);
   return (offline[0] ?? executable[0]) ?? null;
+}
+
+/** Lifecycle for every node, including the complete ones the backlog omits. */
+export function lifecycleByNode(
+  nodes: CapabilityNode[],
+  certification: CertificationReport | null,
+): Map<string, CapabilityLifecycle> {
+  const byId = new Map(nodes.map((node) => [node.id, node]));
+
+  return new Map(
+    nodes.map((node) => {
+      const executable = node.dependsOn.every((dependency) => {
+        const target = byId.get(dependency);
+        return target ? COMPLETE_STATUSES.has(target.status) : false;
+      });
+
+      return [
+        node.id,
+        deriveLifecycle({
+          status: node.status,
+          executable,
+          onDefaultBranch: node.onDefaultBranch,
+          certification,
+          certifyScript: node.certifyScript,
+        }),
+      ];
+    }),
+  );
 }

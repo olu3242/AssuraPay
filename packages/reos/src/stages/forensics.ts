@@ -3,7 +3,9 @@ import { existsSync } from 'node:fs';
 import { readTextIfPresent, walkFiles } from '../util/fsx.ts';
 import {
   commitsTouchingSymbol,
+  defaultBranchRef,
   isMergedIntoHead,
+  pathExistsAtRef,
   refsContainingSymbol,
 } from '../util/git.ts';
 import { sortBy } from '../util/serialize.ts';
@@ -158,6 +160,28 @@ export function classifyStatus(
   };
 }
 
+/**
+ * Whether the capability's evidence is already on the default branch. This is
+ * what separates lifecycle `certified` (green on a feature branch) from
+ * `released` (present on main).
+ */
+export function isOnDefaultBranch(
+  repoRoot: string,
+  definition: CapabilityDefinition,
+  ref: string | null,
+): boolean {
+  if (!ref) return false;
+
+  const paths = definition.evidence.paths ?? [];
+  if (paths.length > 0) {
+    return paths.every((candidate) => pathExistsAtRef(ref, candidate, repoRoot));
+  }
+
+  const symbol = definition.evidence.symbols?.[0];
+  if (!symbol) return false;
+  return refsContainingSymbol(symbol, [ref], repoRoot).length > 0;
+}
+
 /** Stage 2 — evidence-based investigation of every registered capability. */
 export function runForensics(
   repoRoot: string,
@@ -166,6 +190,7 @@ export function runForensics(
 ): ForensicsReport {
   const index = buildSourceIndex(repoRoot);
   const refs = [...discovery.repository.git.branches, ...discovery.repository.git.tags];
+  const defaultRef = defaultBranchRef(repoRoot);
 
   const capabilities: CapabilityForensics[] = registry.capabilities.map(
     (definition) => {
@@ -194,6 +219,10 @@ export function runForensics(
         title: definition.title,
         kind: definition.kind,
         status,
+        onDefaultBranch:
+          status === 'implemented'
+            ? isOnDefaultBranch(repoRoot, definition, defaultRef)
+            : false,
         satisfiedProbes: satisfied,
         totalProbes: probes.length,
         probes,

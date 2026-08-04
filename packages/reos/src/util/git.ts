@@ -119,6 +119,32 @@ export function commitsTouchingSymbol(
   return lines(output);
 }
 
+/**
+ * The repository's default branch ref, preferring the remote-tracking form.
+ * Single source of truth for "what does main look like" — the contract validator
+ * and release-state detection both resolve through here.
+ */
+export function defaultBranchRef(cwd: string): string | null {
+  for (const candidate of ['origin/main', 'main', 'origin/master', 'master']) {
+    if (git(['rev-parse', '--verify', '--quiet', candidate], cwd)) return candidate;
+  }
+  return null;
+}
+
+/** True when `filePath` exists in `ref`'s tree. */
+export function pathExistsAtRef(
+  ref: string,
+  filePath: string,
+  cwd: string,
+): boolean {
+  return (
+    runCommand('git', ['cat-file', '-e', `${ref}:${filePath}`], {
+      cwd,
+      timeoutMs: 30_000,
+    }).exitCode === 0
+  );
+}
+
 /** True when `ref` is already merged into HEAD. */
 export function isMergedIntoHead(ref: string, cwd: string): boolean {
   const result = runCommand('git', ['merge-base', '--is-ancestor', ref, 'HEAD'], {

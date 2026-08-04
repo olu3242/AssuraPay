@@ -1,6 +1,6 @@
 import path from 'node:path';
 import { readTextIfPresent } from '../util/fsx.ts';
-import { changedFiles, git } from '../util/git.ts';
+import { changedFiles, defaultBranchRef } from '../util/git.ts';
 import { declaresRuleVocabulary } from './exemption.ts';
 import { artifactDirectory } from '../paths.ts';
 import { sortBy } from '../util/serialize.ts';
@@ -30,14 +30,9 @@ const PLACEHOLDER_MARKERS = [
 const NOT_IMPLEMENTED_THROW = /throw\s+new\s+Error\(\s*['"`][^'"`]*not\s+implemented/i;
 
 
-/** Resolves the comparison base, preferring the tracked upstream default branch. */
+/** Resolves the comparison base: the repository's default branch. */
 export function resolveBase(repoRoot: string): string | null {
-  for (const candidate of ['origin/main', 'main', 'origin/master']) {
-    if (git(['rev-parse', '--verify', '--quiet', candidate], repoRoot)) {
-      return candidate;
-    }
-  }
-  return null;
+  return defaultBranchRef(repoRoot);
 }
 
 function isSourceFile(file: string): boolean {

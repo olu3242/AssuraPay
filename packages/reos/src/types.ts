@@ -25,7 +25,42 @@ export type Finding = {
   message: string;
   location?: string;
   evidence?: string[];
+  /**
+   * Stable identity of what the finding is about — an engine id, a package
+   * directory, a class name. Governance baselines key on `rule:subject` so that
+   * rewording a message never silently un-baselines or re-baselines a finding.
+   */
+  subject?: string;
 };
+
+/**
+ * How far a capability has progressed, as distinct from what its evidence looks
+ * like. `CapabilityStatus` answers "what does the repository show"; lifecycle
+ * answers "how far along is it", and is derived from status plus executability,
+ * certification results and presence on the default branch.
+ *
+ * `lost` and `unreachable` statuses both surface as lifecycle `missing`; the
+ * status field is what tells an agent the work is recoverable rather than unbuilt.
+ */
+export type CapabilityLifecycle =
+  | 'missing'
+  | 'planned'
+  | 'implementing'
+  | 'implemented'
+  | 'validated'
+  | 'certified'
+  | 'released'
+  | 'deferred';
+
+export const CAPABILITY_LIFECYCLE_ORDER: CapabilityLifecycle[] = [
+  'missing',
+  'planned',
+  'implementing',
+  'implemented',
+  'validated',
+  'certified',
+  'released',
+];
 
 export type ValidationOutcome = {
   validator: string;
@@ -184,6 +219,8 @@ export type CapabilityDefinition = {
   evidence: CapabilityEvidenceRule;
   certify: string | null;
   requiresLiveInfrastructure?: boolean;
+  /** Explicit scope estimate, used in place of counting evidence probes. */
+  scope?: { files: number; tests: number };
   notes?: string;
 };
 
@@ -212,6 +249,8 @@ export type CapabilityForensics = {
   title: string;
   kind: 'platform' | 'engine';
   status: CapabilityStatus;
+  /** True when the capability's evidence is already present on the default branch. */
+  onDefaultBranch: boolean;
   satisfiedProbes: number;
   totalProbes: number;
   probes: EvidenceProbe[];
@@ -235,6 +274,7 @@ export type EngineReconciliation = {
   wave: number;
   declaredStatus: string | null;
   observedStatus: CapabilityStatus;
+  lifecycle: CapabilityLifecycle;
   packageDirectory: string | null;
   certificationScript: string | null;
   divergent: boolean;
@@ -243,6 +283,11 @@ export type EngineReconciliation = {
 export type ExecutionManifest = {
   reosVersion: string;
   stage: 'manifest';
+  /**
+   * Content digest of this manifest, excluding the digest field itself. Ledger
+   * entries record it so an execution can be tied to the exact manifest it read.
+   */
+  manifestDigest: string;
   identity: {
     repository: string;
     version: string;
@@ -263,23 +308,47 @@ export type ExecutionManifest = {
   platformCapabilities: CapabilityForensics[];
   implementedCapabilities: string[];
   missingCapabilities: string[];
+  /** Count of capabilities and engines at each lifecycle state. */
+  lifecycleSummary: Record<CapabilityLifecycle, number>;
   certification: {
     targets: number;
     scripted: string[];
     unscripted: string[];
   };
-  dependencyGraph: { id: string; dependsOn: string[]; status: CapabilityStatus }[];
+  dependencyGraph: {
+    id: string;
+    dependsOn: string[];
+    blocks: string[];
+    status: CapabilityStatus;
+    lifecycle: CapabilityLifecycle;
+  }[];
   executionBacklog: BacklogEntry[];
   reconciliationFindings: Finding[];
+};
+
+export type CapabilityScope = {
+  /** Files declared as evidence, or an explicit registry estimate. */
+  files: number;
+  /** Test suites declared as evidence, or an explicit registry estimate. */
+  tests: number;
+  /** True when the counts come from the registry rather than evidence probes. */
+  estimated: boolean;
 };
 
 export type BacklogEntry = {
   id: string;
   title: string;
   status: CapabilityStatus;
+  lifecycle: CapabilityLifecycle;
   priority: number;
   executable: boolean;
+  /** Every declared dependency, met or not. */
+  dependsOn: string[];
+  /** The subset of `dependsOn` that is not yet complete. */
   blockedBy: string[];
+  /** Capabilities that cannot start until this one completes. */
+  blocks: string[];
+  scope: CapabilityScope;
   requiresLiveInfrastructure: boolean;
 };
 
@@ -290,11 +359,60 @@ export type DependencyResolution = {
   stage: 'dependencies';
   head: string;
   selected: BacklogEntry | null;
+  /** Why `selected` won, stated in one line for the agent that implements it. */
+  selectionReason: string | null;
   rejected: { id: string; reason: string }[];
   executable: BacklogEntry[];
   blocked: BacklogEntry[];
   completed: string[];
   awaitingInfrastructure: string[];
+};
+
+/* ------------------------------------------------------- Governance policy */
+
+/**
+ * Staged enforcement of reconciliation findings.
+ *
+ *  phase 1 — report only; findings never fail certification.
+ *  phase 2 — findings absent from the baseline fail; baselined ones warn.
+ *  phase 3 — every finding fails; the baseline is ignored.
+ *
+ * Phase 2 is the working setting: it stops new violations without demanding
+ * that every pre-existing one be fixed first.
+ */
+export type GovernancePhase = 1 | 2 | 3;
+
+export type GovernancePolicy = {
+  phase: GovernancePhase;
+  /** Rules exempt from escalation at any phase, with a stated reason. */
+  exemptRules: Record<string, string>;
+  /** `rule:subject` fingerprints accepted as pre-existing. */
+  baseline: string[];
+};
+
+export type GovernanceEvaluation = {
+  phase: GovernancePhase;
+  baselined: number;
+  introduced: string[];
+  resolved: string[];
+  findings: Finding[];
+  passed: boolean;
+};
+
+/* --------------------------------------------------------- Execution ledger */
+
+export type LedgerEntry = {
+  entryId: string;
+  recordedAt: string;
+  capabilityId: string | null;
+  lifecycle: CapabilityLifecycle | null;
+  branch: string;
+  commit: string;
+  manifestDigest: string;
+  validation: { validator: string; passed: boolean; errors: number; warnings: number }[];
+  certification: { available: boolean; passed: boolean; failedSteps: string[] };
+  /** Capabilities this execution moved to a terminal lifecycle state. */
+  supersedes: string[];
 };
 
 /* ---------------------------------------------------------------- Stage 6 */
@@ -336,6 +454,7 @@ export type ExecutionReport = {
     dirtyFiles: string[];
   };
   capability: string | null;
+  capabilityLifecycle: CapabilityLifecycle | null;
   filesModified: string[];
   validation: ValidationOutcome[];
   certification: {
@@ -345,5 +464,7 @@ export type ExecutionReport = {
   };
   remainingBacklog: BacklogEntry[];
   recommendedNextCapability: BacklogEntry | null;
+  governance: GovernanceEvaluation | null;
+  ledgerEntryId: string | null;
   commit: string;
 };
