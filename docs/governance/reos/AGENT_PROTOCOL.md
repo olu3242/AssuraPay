@@ -12,6 +12,10 @@ pnpm repo:certify                           # is it correct?
 pnpm repo:report --capability=<id>          # record what happened
 ```
 
+`repo:next` tells you everything needed to start without re-reading the manifest:
+the selection reason, the capability's declared dependencies, the full transitive
+set of capabilities it unblocks, and its declared evidence scope.
+
 ## Rules
 
 1. **Never start from memory.** A prior conversation is not evidence. Run
@@ -47,6 +51,11 @@ Then read `generated/forensics.json`:
 - **`unreachable`** — the work is on a ref that is not merged. `refsContaining`
   names the ref. Merge or cherry-pick; do not rewrite.
 - **`missing`** — never built. Implement it.
+
+Lifecycle sits alongside status and tells you how far along the work is:
+`missing → planned → implementing → implemented → validated → certified →
+released`. It is derived from evidence, never declared, so it cannot flatter the
+repository. `planned` means dependencies are met and you may start now.
 
 If the expected work is absent from the repository entirely, it was never
 committed. Say so plainly rather than reimplementing it from a description —
@@ -89,7 +98,14 @@ produces a meaningless status.
 | `dependencies` | declared dependencies match real imports; graph is acyclic |
 | `security` | non-custody, certified-release, audit-immutability |
 | `contract` | no placeholders, tests present, non-custody test updated |
+| `governance` | no *new* reconciliation violations (staged policy) |
 | `build` | the application builds for production |
+
+The governance gate runs at **phase 2**: pre-existing findings are baselined and
+warn, while a new violation of the same rule fails. If you introduce one, fix it —
+do not add it to the baseline. Baselining is for violations that predate REOS.
+When you *fix* a baselined violation, REOS reports its entry as stale; delete the
+entry from `governance-policy.json` in the same change.
 
 Run a subset while iterating:
 
@@ -121,3 +137,12 @@ committing:
 pnpm repo:manifest
 pnpm repo:report --capability=<id>
 ```
+
+`repo:report` appends an entry to `docs/governance/execution-ledger/`. That ledger
+is the durable history of repository evolution and is append-only: an existing
+entry is never rewritten, and re-running the report for the same commit and
+capability adds nothing. Commit the new entry with your change.
+
+To read the history of how the repository got here, start at
+`docs/governance/execution-ledger/INDEX.md` rather than reconstructing it from
+git log.

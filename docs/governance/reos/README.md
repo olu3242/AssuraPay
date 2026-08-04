@@ -28,7 +28,9 @@ Once REOS is in place, a session prompt can be as short as:
 | 4. Dependency resolution | `pnpm repo:dependencies` | `generated/dependency-resolution.{json,md}` | deterministic |
 | 5. Implementation | — | your code | governed by `EXECUTION_CONTRACT.md` |
 | 6. Certification | `pnpm repo:certify` | `generated/certification.{json,md}` | observational |
-| 7. Execution report | `pnpm repo:report` | `generated/execution-report.{json,md}` | observational |
+| 7. Execution report | `pnpm repo:report` | `generated/execution-report.{json,md}` + a ledger entry | observational |
+
+`pnpm repo:governance` evaluates the staged reconciliation policy on its own.
 
 Stages 1–4 are pure functions of repository state: the same state produces
 byte-identical artifacts, so a diff in those files always means the repository
@@ -77,6 +79,33 @@ the capability elsewhere. That distinction produces six statuses:
 session: they tell a new agent that work exists somewhere and must be recovered
 rather than rewritten.
 
+### Capability lifecycle
+
+Status answers *what does the evidence show*. Lifecycle answers *how far along is
+it*, and is derived — never declared:
+
+```
+missing → planned → implementing → implemented → validated → certified → released
+```
+
+| Lifecycle | Derived from |
+|---|---|
+| `missing` | no evidence, and dependencies are unmet |
+| `planned` | no evidence, dependencies met, so work can start now |
+| `implementing` | some evidence probes satisfied |
+| `implemented` | every probe satisfied |
+| `validated` | implemented, and the test gates covering it are green |
+| `certified` | validated, and the full `repo:certify` run is green |
+| `released` | certified, and the evidence is present on the default branch |
+| `deferred` | declared out of scope by the engine catalog |
+
+`lost` and `unreachable` surface as lifecycle `missing`, because at HEAD nothing
+is built. The status field is what tells an agent the work is recoverable.
+
+Because `validated` and above depend on the last certification run, they are read
+from the committed `certification.json` — itself repository state, which keeps the
+manifest a pure function of the repository.
+
 ## Stage 3 — Execution manifest
 
 `execution-manifest.json` is the authoritative execution input. It carries
@@ -123,13 +152,56 @@ The three validators encode this repository's hard constraints:
 - **dependencies** — declared dependencies match real imports, the workspace
   graph is acyclic, and every engine package is reachable;
 - **security** — no custody primitive, no unconditional release path, no
-  in-place mutation of append-only history, no committed secrets.
+  in-place mutation of append-only history, no committed secrets;
+- **governance** — the staged reconciliation policy, below.
+
+### Staged governance
+
+Reconciliation findings are not advisory forever. `governance-policy.json` sets a
+phase:
+
+| Phase | Behaviour |
+|---|---|
+| 1 | report only; findings never fail certification |
+| 2 | findings absent from the baseline fail; baselined ones warn |
+| 3 | every finding fails; the baseline is ignored |
+
+The repository runs **phase 2**: the 16 findings present when REOS landed are
+baselined, so existing development is not blocked, while any *new* violation of
+the same rules fails certification immediately.
+
+Findings are baselined by `rule:subject`, not by message text, so rewording a
+finding never silently moves it in or out of the baseline. When a violation is
+fixed, its baseline entry becomes stale and REOS says so — that is the signal to
+delete the entry, which is how phase 2 ratchets toward phase 3 without a flag day.
+
+```bash
+pnpm repo:governance                    # evaluate the policy
+pnpm repo:governance --accept-baseline  # record current findings as pre-existing
+```
+
+Advancing to phase 3 means fixing the remaining baselined violations and then
+setting `"phase": 3`. Individual rules can be exempted with a stated reason via
+`exemptRules`, which demotes them to informational at every phase.
 
 ## Stage 7 — Execution report
 
-Repository state, capability implemented, files modified, validation results,
-certification outcome, remaining backlog, recommended next capability and commit
-SHA.
+Repository state, capability implemented and its lifecycle, files modified,
+validation results, governance evaluation, certification outcome, remaining
+backlog, recommended next capability, ledger entry id and commit SHA.
+
+### Execution ledger
+
+Stage 7 also appends to `docs/governance/execution-ledger/` — the durable history
+of repository evolution. One immutable JSON file per execution, plus a generated
+`INDEX.md`. Each entry records the timestamp, capability, lifecycle, branch,
+commit, manifest digest, validation outcome, certification outcome and the
+capabilities the execution superseded.
+
+The ledger is append-only, in the same spirit as CLAUDE.md hard constraint 3.
+Entry identity is `commit + capability`, so re-running `repo:report` for the same
+execution appends nothing and rewrites nothing. The manifest digest ties an entry
+to the exact manifest that execution read.
 
 ## Requirements
 

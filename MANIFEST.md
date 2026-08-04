@@ -25,6 +25,8 @@ This folder is the single harmonized source package for AssuraPay.
 - `docs/governance/reos/AGENT_PROTOCOL.md` — how an AI session executes work
 - `docs/governance/reos/EXECUTION_CONTRACT.md` — Stage 5 implementation contract
 - `docs/governance/reos/capability-registry.json` — capability evidence rules
+- `docs/governance/reos/governance-policy.json` — staged reconciliation enforcement
+- `docs/governance/execution-ledger/` — append-only execution history
 - `docs/governance/reos/generated/` — generated execution artifacts
 - `packages/reos/` — REOS implementation and `repo:*` command surface
 
