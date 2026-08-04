@@ -6,31 +6,6 @@
   "blocked": [
     {
       "blockedBy": [
-        "trust.identity-gateway"
-      ],
-      "blocks": [
-        "persistence.postgres-repository",
-        "persistence.rls-certification",
-        "runtime.agent-registration"
-      ],
-      "dependsOn": [
-        "trust.identity-gateway"
-      ],
-      "executable": false,
-      "id": "trust.permission-enforcement",
-      "lifecycle": "missing",
-      "priority": 12,
-      "requiresLiveInfrastructure": false,
-      "scope": {
-        "estimated": false,
-        "files": 1,
-        "tests": 1
-      },
-      "status": "missing",
-      "title": "Permission enforcement middleware"
-    },
-    {
-      "blockedBy": [
         "trust.permission-enforcement"
       ],
       "blocks": [],
@@ -153,7 +128,8 @@
     "engine:60",
     "reos.execution-os",
     "settlement.non-custody-guard",
-    "trust.identity-assertions"
+    "trust.identity-assertions",
+    "trust.identity-gateway"
   ],
   "executable": [
     {
@@ -161,16 +137,15 @@
       "blocks": [
         "persistence.postgres-repository",
         "persistence.rls-certification",
-        "runtime.agent-registration",
-        "trust.permission-enforcement"
+        "runtime.agent-registration"
       ],
       "dependsOn": [
-        "trust.identity-assertions"
+        "trust.identity-gateway"
       ],
       "executable": true,
-      "id": "trust.identity-gateway",
+      "id": "trust.permission-enforcement",
       "lifecycle": "planned",
-      "priority": 11,
+      "priority": 12,
       "requiresLiveInfrastructure": false,
       "scope": {
         "estimated": false,
@@ -178,7 +153,7 @@
         "tests": 1
       },
       "status": "missing",
-      "title": "Production identity gateway"
+      "title": "Permission enforcement middleware"
     },
     {
       "blockedBy": [],
@@ -253,7 +228,7 @@
       "title": "Engine 08 — Audit & Evidence Ledger"
     }
   ],
-  "head": "6c6d2a494bfb3c75648349e02c4e0ca3ed924ea8",
+  "head": "b8f9211b132c3fc7dac046c84a8171f703e88fb0",
   "rejected": [
     {
       "id": "engine:08",
@@ -270,10 +245,6 @@
     {
       "id": "runtime.agent-registration",
       "reason": "Blocked by unmet dependencies: trust.permission-enforcement."
-    },
-    {
-      "id": "trust.permission-enforcement",
-      "reason": "Blocked by unmet dependencies: trust.identity-gateway."
     }
   ],
   "reosVersion": "1.0.0",
@@ -282,16 +253,15 @@
     "blocks": [
       "persistence.postgres-repository",
       "persistence.rls-certification",
-      "runtime.agent-registration",
-      "trust.permission-enforcement"
+      "runtime.agent-registration"
     ],
     "dependsOn": [
-      "trust.identity-assertions"
+      "trust.identity-gateway"
     ],
     "executable": true,
-    "id": "trust.identity-gateway",
+    "id": "trust.permission-enforcement",
     "lifecycle": "planned",
-    "priority": 11,
+    "priority": 12,
     "requiresLiveInfrastructure": false,
     "scope": {
       "estimated": false,
@@ -299,8 +269,8 @@
       "tests": 1
     },
     "status": "missing",
-    "title": "Production identity gateway"
+    "title": "Permission enforcement middleware"
   },
-  "selectionReason": "Highest-priority executable capability (priority 11, lifecycle planned) — unblocks 4 downstream capability/-ies",
+  "selectionReason": "Highest-priority executable capability (priority 12, lifecycle planned) — unblocks 3 downstream capability/-ies",
   "stage": "dependencies"
 }

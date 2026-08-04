@@ -2182,17 +2182,20 @@
       "exportedClasses": [
         "IdentityAssertionError",
         "IdentityAssertionService",
+        "IdentityGateway",
+        "IdentityGatewayError",
         "IdentityService",
-        "InMemoryAssertionReplayGuard"
+        "InMemoryAssertionReplayStore"
       ],
       "externalDependencies": [],
       "main": "src/index.ts",
       "moduleType": null,
       "name": "@assurapay/identity",
-      "sourceFiles": 2,
-      "sourceLines": 457,
+      "sourceFiles": 3,
+      "sourceLines": 932,
       "testFiles": [
         "packages/identity/src/assertions.test.ts",
+        "packages/identity/src/gateway.test.ts",
         "packages/identity/src/identity.test.ts"
       ],
       "tests": {
@@ -2200,7 +2203,7 @@
         "integration": 0,
         "performance": 0,
         "security": 0,
-        "unit": 2
+        "unit": 3
       },
       "workspaceDependencies": [
         "@assurapay/database",
@@ -2551,8 +2554,8 @@
         "docs/governance/reos/generated/execution-manifest.json",
         "docs/governance/reos/generated/forensics.json"
       ],
-      "head": "6c6d2a494bfb3c75648349e02c4e0ca3ed924ea8",
-      "headShort": "6c6d2a4",
+      "head": "b8f9211b132c3fc7dac046c84a8171f703e88fb0",
+      "headShort": "b8f9211",
       "reflogAvailable": true,
       "remotes": [
         "origin"
@@ -2621,8 +2624,10 @@
       "HumanApprovalEngine",
       "IdentityAssertionError",
       "IdentityAssertionService",
+      "IdentityGateway",
+      "IdentityGatewayError",
       "IdentityService",
-      "InMemoryAssertionReplayGuard",
+      "InMemoryAssertionReplayStore",
       "InMemoryTrustStore",
       "InspectionEngine",
       "InvoiceClaimEngine",
@@ -2755,7 +2760,9 @@
       "FileAssuraStore",
       "HumanApprovalEngine",
       "IdentityAssertionError",
-      "InMemoryAssertionReplayGuard",
+      "IdentityGateway",
+      "IdentityGatewayError",
+      "InMemoryAssertionReplayStore",
       "InMemoryTrustStore",
       "PromptRegistryEngine"
     ]
@@ -2767,9 +2774,9 @@
       "integration": 15,
       "performance": 2,
       "security": 3,
-      "unit": 30
+      "unit": 31
     },
-    "files": 65
+    "files": 66
   },
   "totals": {
     "applications": 1,
@@ -2777,7 +2784,7 @@
     "engines": 60,
     "migrations": 20,
     "packages": 22,
-    "testFiles": 65
+    "testFiles": 66
   },
   "workflows": [
     {

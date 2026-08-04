@@ -7,16 +7,16 @@
 | Field | Value |
 | --- | --- |
 | Branch | claude/git-pull-cqc04u |
-| HEAD | 6c6d2a494bfb3c75648349e02c4e0ca3ed924ea8 |
+| HEAD | b8f9211b132c3fc7dac046c84a8171f703e88fb0 |
 | Worktree clean | no |
 | Uncommitted files | 8 |
-| Generated at | 2026-08-04T20:40:38.181Z |
+| Generated at | 2026-08-04T21:16:40.566Z |
 
 ## Capability implemented
 
-`trust.identity-assertions` — lifecycle **certified**
+`trust.identity-gateway` — lifecycle **certified**
 
-## Files modified (66)
+## Files modified (69)
 
 - `.env.example`
 - `.github/workflows/ci.yml`
@@ -28,6 +28,7 @@
 - `docs/governance/execution-ledger/6c6d2a494bfb-trust.identity-assertions.json`
 - `docs/governance/execution-ledger/INDEX.md`
 - `docs/governance/execution-ledger/README.md`
+- `docs/governance/execution-ledger/b8f9211b132c-trust.identity-gateway.json`
 - `docs/governance/execution-ledger/ec890b731dde-reos.execution-os.json`
 - `docs/governance/reos/AGENT_PROTOCOL.md`
 - `docs/governance/reos/EXECUTION_CONTRACT.md`
@@ -48,6 +49,8 @@
 - `package.json`
 - `packages/identity/src/assertions.test.ts`
 - `packages/identity/src/assertions.ts`
+- `packages/identity/src/gateway.test.ts`
+- `packages/identity/src/gateway.ts`
 - `packages/identity/src/index.ts`
 - `packages/reos/bin/reos.ts`
 - `packages/reos/package.json`
@@ -89,10 +92,10 @@
 
 | Validator | Result | Checked | Errors | Warnings |
 | --- | --- | --- | --- | --- |
-| architecture | pass | 139 | 0 | 0 |
+| architecture | pass | 141 | 0 | 0 |
 | dependencies | pass | 23 | 0 | 1 |
-| security | pass | 241 | 0 | 0 |
-| execution-contract | pass | 54 | 0 | 0 |
+| security | pass | 242 | 0 | 0 |
+| execution-contract | pass | 57 | 0 | 0 |
 
 ### Findings
 
@@ -108,12 +111,11 @@ No newly introduced violations.
 
 **PASSED** — every certification gate is green.
 
-## Remaining backlog (6)
+## Remaining backlog (5)
 
 | Capability | Status | Executable | Blocked by |
 | --- | --- | --- | --- |
-| trust.identity-gateway | missing | yes |  |
-| trust.permission-enforcement | missing | no | trust.identity-gateway |
+| trust.permission-enforcement | missing | yes |  |
 | runtime.agent-registration | missing | no | trust.permission-enforcement |
 | persistence.postgres-repository | missing | no | trust.permission-enforcement |
 | persistence.rls-certification | missing | no | persistence.postgres-repository |
@@ -121,12 +123,12 @@ No newly introduced violations.
 
 ## Recommended next capability
 
-`trust.identity-gateway` — Production identity gateway
+`trust.permission-enforcement` — Permission enforcement middleware
 
 ## Ledger
 
-Recorded as `6c6d2a494bfb-trust.identity-assertions` in `docs/governance/execution-ledger/`.
+Recorded as `b8f9211b132c-trust.identity-gateway` in `docs/governance/execution-ledger/`.
 
 ## Commit
 
-`6c6d2a494bfb3c75648349e02c4e0ca3ed924ea8`
+`b8f9211b132c3fc7dac046c84a8171f703e88fb0`

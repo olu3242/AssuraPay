@@ -2471,8 +2471,8 @@
         "trust.identity-assertions"
       ],
       "id": "trust.identity-gateway",
-      "lifecycle": "planned",
-      "status": "missing"
+      "lifecycle": "certified",
+      "status": "implemented"
     },
     {
       "blocks": [
@@ -2484,7 +2484,7 @@
         "trust.identity-gateway"
       ],
       "id": "trust.permission-enforcement",
-      "lifecycle": "missing",
+      "lifecycle": "planned",
       "status": "missing"
     }
   ],
@@ -3156,40 +3156,14 @@
       "blocks": [
         "persistence.postgres-repository",
         "persistence.rls-certification",
-        "runtime.agent-registration",
-        "trust.permission-enforcement"
-      ],
-      "dependsOn": [
-        "trust.identity-assertions"
-      ],
-      "executable": true,
-      "id": "trust.identity-gateway",
-      "lifecycle": "planned",
-      "priority": 11,
-      "requiresLiveInfrastructure": false,
-      "scope": {
-        "estimated": false,
-        "files": 1,
-        "tests": 1
-      },
-      "status": "missing",
-      "title": "Production identity gateway"
-    },
-    {
-      "blockedBy": [
-        "trust.identity-gateway"
-      ],
-      "blocks": [
-        "persistence.postgres-repository",
-        "persistence.rls-certification",
         "runtime.agent-registration"
       ],
       "dependsOn": [
         "trust.identity-gateway"
       ],
-      "executable": false,
+      "executable": true,
       "id": "trust.permission-enforcement",
-      "lifecycle": "missing",
+      "lifecycle": "planned",
       "priority": 12,
       "requiresLiveInfrastructure": false,
       "scope": {
@@ -3341,7 +3315,7 @@
   "identity": {
     "branch": "claude/git-pull-cqc04u",
     "clean": false,
-    "head": "6c6d2a494bfb3c75648349e02c4e0ca3ed924ea8",
+    "head": "b8f9211b132c3fc7dac046c84a8171f703e88fb0",
     "repository": "assurapay",
     "version": "0.1.0"
   },
@@ -3403,25 +3377,25 @@
     "engine:60",
     "reos.execution-os",
     "settlement.non-custody-guard",
-    "trust.identity-assertions"
+    "trust.identity-assertions",
+    "trust.identity-gateway"
   ],
   "lifecycleSummary": {
-    "certified": 3,
+    "certified": 4,
     "deferred": 4,
     "implemented": 0,
     "implementing": 0,
-    "missing": 4,
+    "missing": 3,
     "planned": 2,
     "released": 55,
     "validated": 0
   },
-  "manifestDigest": "c41e6403971e",
+  "manifestDigest": "c00eeb44804e",
   "missingCapabilities": [
     "engine:08",
     "persistence.postgres-repository",
     "persistence.rls-certification",
     "runtime.agent-registration",
-    "trust.identity-gateway",
     "trust.permission-enforcement"
   ],
   "packages": [
@@ -3756,17 +3730,20 @@
       "exportedClasses": [
         "IdentityAssertionError",
         "IdentityAssertionService",
+        "IdentityGateway",
+        "IdentityGatewayError",
         "IdentityService",
-        "InMemoryAssertionReplayGuard"
+        "InMemoryAssertionReplayStore"
       ],
       "externalDependencies": [],
       "main": "src/index.ts",
       "moduleType": null,
       "name": "@assurapay/identity",
-      "sourceFiles": 2,
-      "sourceLines": 457,
+      "sourceFiles": 3,
+      "sourceLines": 932,
       "testFiles": [
         "packages/identity/src/assertions.test.ts",
+        "packages/identity/src/gateway.test.ts",
         "packages/identity/src/identity.test.ts"
       ],
       "tests": {
@@ -3774,7 +3751,7 @@
         "integration": 0,
         "performance": 0,
         "security": 0,
-        "unit": 2
+        "unit": 3
       },
       "workspaceDependencies": [
         "@assurapay/database",
@@ -4378,7 +4355,9 @@
           "kind": "symbol",
           "matches": [
             "packages/identity/src/assertions.test.ts",
-            "packages/identity/src/assertions.ts"
+            "packages/identity/src/assertions.ts",
+            "packages/identity/src/gateway.test.ts",
+            "packages/identity/src/gateway.ts"
           ],
           "query": "createIdentityAssertion",
           "satisfied": true
@@ -4387,7 +4366,8 @@
           "kind": "symbol",
           "matches": [
             "packages/identity/src/assertions.test.ts",
-            "packages/identity/src/assertions.ts"
+            "packages/identity/src/assertions.ts",
+            "packages/identity/src/gateway.ts"
           ],
           "query": "verifyIdentityAssertion",
           "satisfied": true
@@ -4410,7 +4390,7 @@
     {
       "git": {
         "historicalCommits": [],
-        "reachableFromHead": false,
+        "reachableFromHead": true,
         "refsContaining": [],
         "removedFromHead": false
       },
@@ -4420,32 +4400,44 @@
       "probes": [
         {
           "kind": "path",
-          "matches": [],
+          "matches": [
+            "packages/identity/src/gateway.ts"
+          ],
           "query": "packages/identity/src/gateway.ts",
-          "satisfied": false
+          "satisfied": true
         },
         {
           "kind": "symbol",
-          "matches": [],
+          "matches": [
+            "apps/web/lib/trust-app.ts",
+            "packages/identity/src/assertions.ts",
+            "packages/identity/src/gateway.test.ts",
+            "packages/identity/src/gateway.ts"
+          ],
           "query": "IdentityGateway",
-          "satisfied": false
+          "satisfied": true
         },
         {
           "kind": "symbol",
-          "matches": [],
+          "matches": [
+            "packages/identity/src/gateway.test.ts",
+            "packages/identity/src/gateway.ts"
+          ],
           "query": "resolveRequestContext",
-          "satisfied": false
+          "satisfied": true
         },
         {
           "kind": "test",
-          "matches": [],
+          "matches": [
+            "packages/identity/src/gateway.test.ts"
+          ],
           "query": "packages/identity/src/gateway.test.ts",
-          "satisfied": false
+          "satisfied": true
         }
       ],
-      "rationale": "No evidence at HEAD, on any ref, or in history.",
-      "satisfiedProbes": 0,
-      "status": "missing",
+      "rationale": "All 4 evidence probes satisfied at HEAD.",
+      "satisfiedProbes": 4,
+      "status": "implemented",
       "title": "Production identity gateway",
       "totalProbes": 4
     },
@@ -4656,9 +4648,9 @@
         "FileAssuraStore",
         "HumanApprovalEngine",
         "IdentityAssertionError",
-        "InMemoryAssertionReplayGuard"
+        "IdentityGateway"
       ],
-      "message": "14 exported engine class(es) are not instantiated in any composition root, so they are unreachable at runtime.",
+      "message": "16 exported engine class(es) are not instantiated in any composition root, so they are unreachable at runtime.",
       "rule": "runtime/unregistered-engine",
       "severity": "warning",
       "subject": "runtime"
@@ -4720,8 +4712,10 @@
       "HumanApprovalEngine",
       "IdentityAssertionError",
       "IdentityAssertionService",
+      "IdentityGateway",
+      "IdentityGatewayError",
       "IdentityService",
-      "InMemoryAssertionReplayGuard",
+      "InMemoryAssertionReplayStore",
       "InMemoryTrustStore",
       "InspectionEngine",
       "InvoiceClaimEngine",
@@ -4854,7 +4848,9 @@
       "FileAssuraStore",
       "HumanApprovalEngine",
       "IdentityAssertionError",
-      "InMemoryAssertionReplayGuard",
+      "IdentityGateway",
+      "IdentityGatewayError",
+      "InMemoryAssertionReplayStore",
       "InMemoryTrustStore",
       "PromptRegistryEngine"
     ]

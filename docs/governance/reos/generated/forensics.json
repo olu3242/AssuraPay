@@ -276,7 +276,9 @@
           "kind": "symbol",
           "matches": [
             "packages/identity/src/assertions.test.ts",
-            "packages/identity/src/assertions.ts"
+            "packages/identity/src/assertions.ts",
+            "packages/identity/src/gateway.test.ts",
+            "packages/identity/src/gateway.ts"
           ],
           "query": "createIdentityAssertion",
           "satisfied": true
@@ -285,7 +287,8 @@
           "kind": "symbol",
           "matches": [
             "packages/identity/src/assertions.test.ts",
-            "packages/identity/src/assertions.ts"
+            "packages/identity/src/assertions.ts",
+            "packages/identity/src/gateway.ts"
           ],
           "query": "verifyIdentityAssertion",
           "satisfied": true
@@ -308,7 +311,7 @@
     {
       "git": {
         "historicalCommits": [],
-        "reachableFromHead": false,
+        "reachableFromHead": true,
         "refsContaining": [],
         "removedFromHead": false
       },
@@ -318,32 +321,44 @@
       "probes": [
         {
           "kind": "path",
-          "matches": [],
+          "matches": [
+            "packages/identity/src/gateway.ts"
+          ],
           "query": "packages/identity/src/gateway.ts",
-          "satisfied": false
+          "satisfied": true
         },
         {
           "kind": "symbol",
-          "matches": [],
+          "matches": [
+            "apps/web/lib/trust-app.ts",
+            "packages/identity/src/assertions.ts",
+            "packages/identity/src/gateway.test.ts",
+            "packages/identity/src/gateway.ts"
+          ],
           "query": "IdentityGateway",
-          "satisfied": false
+          "satisfied": true
         },
         {
           "kind": "symbol",
-          "matches": [],
+          "matches": [
+            "packages/identity/src/gateway.test.ts",
+            "packages/identity/src/gateway.ts"
+          ],
           "query": "resolveRequestContext",
-          "satisfied": false
+          "satisfied": true
         },
         {
           "kind": "test",
-          "matches": [],
+          "matches": [
+            "packages/identity/src/gateway.test.ts"
+          ],
           "query": "packages/identity/src/gateway.test.ts",
-          "satisfied": false
+          "satisfied": true
         }
       ],
-      "rationale": "No evidence at HEAD, on any ref, or in history.",
-      "satisfiedProbes": 0,
-      "status": "missing",
+      "rationale": "All 4 evidence probes satisfied at HEAD.",
+      "satisfiedProbes": 4,
+      "status": "implemented",
       "title": "Production identity gateway",
       "totalProbes": 4
     },
@@ -390,14 +405,14 @@
       "totalProbes": 4
     }
   ],
-  "head": "6c6d2a494bfb3c75648349e02c4e0ca3ed924ea8",
+  "head": "b8f9211b132c3fc7dac046c84a8171f703e88fb0",
   "reosVersion": "1.0.0",
   "stage": "forensics",
   "summary": {
     "deferred": 0,
-    "implemented": 3,
+    "implemented": 4,
     "lost": 0,
-    "missing": 5,
+    "missing": 4,
     "partial": 0,
     "unreachable": 0
   }

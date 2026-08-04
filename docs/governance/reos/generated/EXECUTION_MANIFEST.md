@@ -10,9 +10,9 @@
 | Repository | assurapay |
 | Version | 0.1.0 |
 | Branch | claude/git-pull-cqc04u |
-| HEAD | 6c6d2a494bfb3c75648349e02c4e0ca3ed924ea8 |
+| HEAD | b8f9211b132c3fc7dac046c84a8171f703e88fb0 |
 | Worktree clean | no |
-| Manifest digest | c41e6403971e |
+| Manifest digest | c00eeb44804e |
 | REOS version | 1.0.0 |
 
 ## Architecture
@@ -26,9 +26,9 @@
 
 | Lifecycle | Count |
 | --- | --- |
-| missing | 4 |
+| missing | 3 |
 | planned | 2 |
-| certified | 3 |
+| certified | 4 |
 | released | 55 |
 | deferred | 4 |
 
@@ -110,8 +110,8 @@ from repository evidence: package presence, test files, and certification wiring
 | runtime.agent-registration | Agent Runtime registration | missing | missing | 0/3 | No evidence at HEAD, on any ref, or in history. |
 | settlement.non-custody-guard | Non-custody architectural guard | implemented | certified | 4/4 | All 4 evidence probes satisfied at HEAD. |
 | trust.identity-assertions | HMAC identity assertions | implemented | certified | 4/4 | All 4 evidence probes satisfied at HEAD. |
-| trust.identity-gateway | Production identity gateway | missing | planned | 0/4 | No evidence at HEAD, on any ref, or in history. |
-| trust.permission-enforcement | Permission enforcement middleware | missing | missing | 0/4 | No evidence at HEAD, on any ref, or in history. |
+| trust.identity-gateway | Production identity gateway | implemented | certified | 4/4 | All 4 evidence probes satisfied at HEAD. |
+| trust.permission-enforcement | Permission enforcement middleware | missing | planned | 0/4 | No evidence at HEAD, on any ref, or in history. |
 
 ## Reconciliation findings
 
@@ -132,16 +132,15 @@ from repository evidence: package presence, test files, and certification wiring
 | warning | catalog/unmapped-engine-package | packages/governance-core exports 5 engine class(es) but is not mapped to any catalog engine, so its scope is not represented in docs/ENGINE_CATALOG.md. |
 | warning | catalog/unmapped-engine-package | packages/workflow-intelligence exports 10 engine class(es) but is not mapped to any catalog engine, so its scope is not represented in docs/ENGINE_CATALOG.md. |
 | error | runtime/duplicate-abstraction | DependencyIntelligenceEngine is exported by 2 packages, which duplicates an abstraction. |
-| warning | runtime/unregistered-engine | 14 exported engine class(es) are not instantiated in any composition root, so they are unreachable at runtime. |
+| warning | runtime/unregistered-engine | 16 exported engine class(es) are not instantiated in any composition root, so they are unreachable at runtime. |
 
 ## Execution backlog
 
-6 open item(s). Highest-priority first.
+5 open item(s). Highest-priority first.
 
 | Capability | Title | Lifecycle | Priority | Executable | Blocked by | Blocks |
 | --- | --- | --- | --- | --- | --- | --- |
-| trust.identity-gateway | Production identity gateway | planned | 11 | yes | — | 4 |
-| trust.permission-enforcement | Permission enforcement middleware | missing | 12 | no | trust.identity-gateway | 3 |
+| trust.permission-enforcement | Permission enforcement middleware | planned | 12 | yes | — | 3 |
 | runtime.agent-registration | Agent Runtime registration | missing | 20 | no | trust.permission-enforcement | — |
 | persistence.postgres-repository | PostgreSQL repository implementation | missing | 40 | no | trust.permission-enforcement | 1 |
 | persistence.rls-certification | Row Level Security certification | missing | 41 | no | persistence.postgres-repository | — |

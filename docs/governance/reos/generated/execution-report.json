@@ -1,12 +1,12 @@
 {
-  "capability": "trust.identity-assertions",
+  "capability": "trust.identity-gateway",
   "capabilityLifecycle": "certified",
   "certification": {
     "available": true,
     "failedSteps": [],
     "passed": true
   },
-  "commit": "6c6d2a494bfb3c75648349e02c4e0ca3ed924ea8",
+  "commit": "b8f9211b132c3fc7dac046c84a8171f703e88fb0",
   "filesModified": [
     ".env.example",
     ".github/workflows/ci.yml",
@@ -18,6 +18,7 @@
     "docs/governance/execution-ledger/6c6d2a494bfb-trust.identity-assertions.json",
     "docs/governance/execution-ledger/INDEX.md",
     "docs/governance/execution-ledger/README.md",
+    "docs/governance/execution-ledger/b8f9211b132c-trust.identity-gateway.json",
     "docs/governance/execution-ledger/ec890b731dde-reos.execution-os.json",
     "docs/governance/reos/AGENT_PROTOCOL.md",
     "docs/governance/reos/EXECUTION_CONTRACT.md",
@@ -38,6 +39,8 @@
     "package.json",
     "packages/identity/src/assertions.test.ts",
     "packages/identity/src/assertions.ts",
+    "packages/identity/src/gateway.test.ts",
+    "packages/identity/src/gateway.ts",
     "packages/identity/src/index.ts",
     "packages/reos/bin/reos.ts",
     "packages/reos/package.json",
@@ -75,7 +78,7 @@
     "tsconfig.json",
     "vitest.config.ts"
   ],
-  "generatedAt": "2026-08-04T20:40:38.181Z",
+  "generatedAt": "2026-08-04T21:16:40.566Z",
   "governance": {
     "baselined": 16,
     "findings": [
@@ -242,9 +245,9 @@
           "FileAssuraStore",
           "HumanApprovalEngine",
           "IdentityAssertionError",
-          "InMemoryAssertionReplayGuard"
+          "IdentityGateway"
         ],
-        "message": "14 exported engine class(es) are not instantiated in any composition root, so they are unreachable at runtime. (baselined pre-existing violation)",
+        "message": "16 exported engine class(es) are not instantiated in any composition root, so they are unreachable at runtime. (baselined pre-existing violation)",
         "rule": "runtime/unregistered-engine",
         "severity": "warning",
         "subject": "runtime"
@@ -255,22 +258,21 @@
     "phase": 2,
     "resolved": []
   },
-  "ledgerEntryId": "6c6d2a494bfb-trust.identity-assertions",
+  "ledgerEntryId": "b8f9211b132c-trust.identity-gateway",
   "recommendedNextCapability": {
     "blockedBy": [],
     "blocks": [
       "persistence.postgres-repository",
       "persistence.rls-certification",
-      "runtime.agent-registration",
-      "trust.permission-enforcement"
+      "runtime.agent-registration"
     ],
     "dependsOn": [
-      "trust.identity-assertions"
+      "trust.identity-gateway"
     ],
     "executable": true,
-    "id": "trust.identity-gateway",
+    "id": "trust.permission-enforcement",
     "lifecycle": "planned",
-    "priority": 11,
+    "priority": 12,
     "requiresLiveInfrastructure": false,
     "scope": {
       "estimated": false,
@@ -278,37 +280,11 @@
       "tests": 1
     },
     "status": "missing",
-    "title": "Production identity gateway"
+    "title": "Permission enforcement middleware"
   },
   "remainingBacklog": [
     {
       "blockedBy": [],
-      "blocks": [
-        "persistence.postgres-repository",
-        "persistence.rls-certification",
-        "runtime.agent-registration",
-        "trust.permission-enforcement"
-      ],
-      "dependsOn": [
-        "trust.identity-assertions"
-      ],
-      "executable": true,
-      "id": "trust.identity-gateway",
-      "lifecycle": "planned",
-      "priority": 11,
-      "requiresLiveInfrastructure": false,
-      "scope": {
-        "estimated": false,
-        "files": 1,
-        "tests": 1
-      },
-      "status": "missing",
-      "title": "Production identity gateway"
-    },
-    {
-      "blockedBy": [
-        "trust.identity-gateway"
-      ],
       "blocks": [
         "persistence.postgres-repository",
         "persistence.rls-certification",
@@ -317,9 +293,9 @@
       "dependsOn": [
         "trust.identity-gateway"
       ],
-      "executable": false,
+      "executable": true,
       "id": "trust.permission-enforcement",
-      "lifecycle": "missing",
+      "lifecycle": "planned",
       "priority": 12,
       "requiresLiveInfrastructure": false,
       "scope": {
@@ -482,12 +458,12 @@
       "docs/governance/reos/generated/execution-manifest.json",
       "docs/governance/reos/generated/forensics.json"
     ],
-    "head": "6c6d2a494bfb3c75648349e02c4e0ca3ed924ea8"
+    "head": "b8f9211b132c3fc7dac046c84a8171f703e88fb0"
   },
   "stage": "report",
   "validation": [
     {
-      "checked": 139,
+      "checked": 141,
       "findings": [],
       "passed": true,
       "validator": "architecture"
@@ -506,13 +482,13 @@
       "validator": "dependencies"
     },
     {
-      "checked": 241,
+      "checked": 242,
       "findings": [],
       "passed": true,
       "validator": "security"
     },
     {
-      "checked": 54,
+      "checked": 57,
       "findings": [],
       "passed": true,
       "validator": "execution-contract"
