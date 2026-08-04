@@ -3288,7 +3288,7 @@
   "identity": {
     "branch": "claude/git-pull-cqc04u",
     "clean": false,
-    "head": "7208527889dab3f2fb0b0cbf3611ff9f91bfeb4f",
+    "head": "6f553a302e49e8d2227c2c447e29d4bd4cd35bb7",
     "repository": "assurapay",
     "version": "0.1.0"
   },
@@ -3364,7 +3364,7 @@
     "released": 55,
     "validated": 0
   },
-  "manifestDigest": "b18374456885",
+  "manifestDigest": "162809ca8c7a",
   "missingCapabilities": [
     "engine:08",
     "persistence.postgres-repository",
