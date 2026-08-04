@@ -163,6 +163,13 @@ describe('integration: validators run clean against the repository', () => {
     expect(outcome.passed).toBe(true);
   });
 
+  it('scans every package source, not only the barrel', () => {
+    // A boundary rule that only read src/index.ts would stop covering a package
+    // the moment it grew a second module.
+    const outcome = validateArchitecture(repoRoot, discovery);
+    expect(outcome.checked).toBeGreaterThan(discovery.packages.length * 2);
+  });
+
   it('passes dependency validation with no undeclared imports', () => {
     const outcome = validateDependencies(repoRoot, discovery);
     expect(

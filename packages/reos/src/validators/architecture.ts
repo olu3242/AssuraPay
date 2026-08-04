@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { readTextIfPresent } from '../util/fsx.ts';
+import { readTextIfPresent, walkFiles } from '../util/fsx.ts';
 import { sortBy } from '../util/serialize.ts';
 import type { DiscoverySnapshot, Finding, ValidationOutcome } from '../types.ts';
 
@@ -95,34 +95,41 @@ export function validateArchitecture(
   }
 
   for (const record of discovery.packages) {
-    const indexPath = path.join(repoRoot, record.directory, 'src/index.ts');
-    const text = readTextIfPresent(indexPath);
-    if (text === null) continue;
-    checked += 1;
+    // Every source file, not just the barrel: a package that grows a second
+    // module would otherwise carry unchecked imports across the boundary.
+    const sources = walkFiles(path.join(repoRoot, record.directory), repoRoot).filter(
+      (file) => /\.tsx?$/.test(file),
+    );
 
-    for (const specifier of collectImports(text)) {
-      // Deep imports bypass the package's public surface.
-      if (specifier.split('/').length > 2) {
-        findings.push({
-          rule: 'architecture/deep-import',
-          severity: 'error',
-          message: `${record.directory} imports "${specifier}"; only the package root is a supported entrypoint.`,
-          location: `${record.directory}/src/index.ts`,
-        });
-      }
+    for (const file of sources) {
+      const text = readTextIfPresent(path.join(repoRoot, file));
+      if (text === null) continue;
+      checked += 1;
 
-      if (
-        TRUST_FOUNDATION_PACKAGES.includes(record.directory) &&
-        !TRUST_ALLOWED_DEPENDENCIES.has(specifier)
-      ) {
-        findings.push({
-          rule: 'architecture/trust-boundary',
-          severity: 'error',
-          message:
-            `${record.directory} is a trust-foundation package (engines 01–05) and imports "${specifier}". ` +
-            'Trust packages may only depend on @assurapay/shared and @assurapay/database.',
-          location: `${record.directory}/src/index.ts`,
-        });
+      for (const specifier of collectImports(text)) {
+        // Deep imports bypass the package's public surface.
+        if (specifier.split('/').length > 2) {
+          findings.push({
+            rule: 'architecture/deep-import',
+            severity: 'error',
+            message: `${file} imports "${specifier}"; only the package root is a supported entrypoint.`,
+            location: file,
+          });
+        }
+
+        if (
+          TRUST_FOUNDATION_PACKAGES.includes(record.directory) &&
+          !TRUST_ALLOWED_DEPENDENCIES.has(specifier)
+        ) {
+          findings.push({
+            rule: 'architecture/trust-boundary',
+            severity: 'error',
+            message:
+              `${file} is in a trust-foundation package (engines 01–05) and imports "${specifier}". ` +
+              'Trust packages may only depend on @assurapay/shared and @assurapay/database.',
+            location: file,
+          });
+        }
       }
     }
   }
