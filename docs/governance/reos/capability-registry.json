@@ -75,8 +75,14 @@
           "packages/reos/bin/reos.ts",
           "docs/governance/reos/README.md"
         ],
-        "symbols": ["runPipeline", "resolveDependencies", "buildExecutionManifest"],
-        "tests": ["packages/reos/src/reos.test.ts"]
+        "symbols": [
+          "runPipeline",
+          "resolveDependencies",
+          "buildExecutionManifest"
+        ],
+        "tests": [
+          "packages/reos/src/reos.test.ts"
+        ]
       },
       "certify": "repo:certify",
       "notes": "Stages 1-7 plus the repo:* command surface."
@@ -86,11 +92,20 @@
       "title": "HMAC identity assertions",
       "kind": "platform",
       "priority": 10,
-      "dependsOn": ["reos.execution-os"],
+      "dependsOn": [
+        "reos.execution-os"
+      ],
       "evidence": {
-        "paths": ["packages/identity/src/assertions.ts"],
-        "symbols": ["createIdentityAssertion", "verifyIdentityAssertion"],
-        "tests": ["packages/identity/src/assertions.test.ts"]
+        "paths": [
+          "packages/identity/src/assertions.ts"
+        ],
+        "symbols": [
+          "createIdentityAssertion",
+          "verifyIdentityAssertion"
+        ],
+        "tests": [
+          "packages/identity/src/assertions.test.ts"
+        ]
       },
       "certify": "certify:identity",
       "notes": "Signed, replay-resistant assertions carrying subject, workspace and assurance level."
@@ -100,11 +115,20 @@
       "title": "Production identity gateway",
       "kind": "platform",
       "priority": 11,
-      "dependsOn": ["trust.identity-assertions"],
+      "dependsOn": [
+        "trust.identity-assertions"
+      ],
       "evidence": {
-        "paths": ["packages/identity/src/gateway.ts"],
-        "symbols": ["IdentityGateway", "resolveRequestContext"],
-        "tests": ["packages/identity/src/gateway.test.ts"]
+        "paths": [
+          "packages/identity/src/gateway.ts"
+        ],
+        "symbols": [
+          "IdentityGateway",
+          "resolveRequestContext"
+        ],
+        "tests": [
+          "packages/identity/src/gateway.test.ts"
+        ]
       },
       "certify": "certify:identity",
       "notes": "Turns a transport request into a verified RequestContext. Authentication never implies authorization."
@@ -114,11 +138,20 @@
       "title": "Permission enforcement middleware",
       "kind": "platform",
       "priority": 12,
-      "dependsOn": ["trust.identity-gateway"],
+      "dependsOn": [
+        "trust.identity-gateway"
+      ],
       "evidence": {
-        "paths": ["packages/permissions/src/enforcement.ts"],
-        "symbols": ["enforcePermission", "PermissionEnforcementError"],
-        "tests": ["packages/permissions/src/enforcement.test.ts"]
+        "paths": [
+          "packages/permissions/src/enforcement.ts"
+        ],
+        "symbols": [
+          "enforcePermission",
+          "PermissionEnforcementError"
+        ],
+        "tests": [
+          "packages/permissions/src/enforcement.test.ts"
+        ]
       },
       "certify": "certify:authorization",
       "notes": "Deny-by-default enforcement applied at the composition root, not inside engines."
@@ -128,11 +161,19 @@
       "title": "Agent Runtime registration",
       "kind": "platform",
       "priority": 20,
-      "dependsOn": ["trust.permission-enforcement"],
+      "dependsOn": [
+        "trust.permission-enforcement"
+      ],
       "evidence": {
-        "paths": ["apps/web/lib/agent-runtime-app.ts"],
-        "symbols": ["registerAgentRuntime"],
-        "tests": ["packages/agent-runtime/src/agent-runtime.registration.test.ts"]
+        "paths": [
+          "apps/web/lib/agent-runtime-app.ts"
+        ],
+        "symbols": [
+          "registerAgentRuntime"
+        ],
+        "tests": [
+          "packages/agent-runtime/src/agent-runtime.registration.test.ts"
+        ]
       },
       "certify": "certify:agent-runtime",
       "notes": "Wires @assurapay/agent-runtime into the web composition root; the package is currently unreferenced by apps/web."
@@ -142,11 +183,20 @@
       "title": "Non-custody architectural guard",
       "kind": "platform",
       "priority": 30,
-      "dependsOn": ["reos.execution-os"],
+      "dependsOn": [
+        "reos.execution-os"
+      ],
       "evidence": {
-        "paths": ["packages/reos/src/validators/security.ts"],
-        "symbols": ["validateSecurity", "CUSTODY_PRIMITIVES"],
-        "tests": ["packages/reos/src/reos.security.test.ts"]
+        "paths": [
+          "packages/reos/src/validators/security.ts"
+        ],
+        "symbols": [
+          "validateSecurity",
+          "CUSTODY_PRIMITIVES"
+        ],
+        "tests": [
+          "packages/reos/src/reos.security.test.ts"
+        ]
       },
       "certify": "repo:certify",
       "notes": "Static guard enforcing hard constraints 1 and 2 across every future change."
@@ -156,11 +206,19 @@
       "title": "PostgreSQL repository implementation",
       "kind": "platform",
       "priority": 40,
-      "dependsOn": ["trust.permission-enforcement"],
+      "dependsOn": [
+        "trust.permission-enforcement"
+      ],
       "evidence": {
-        "paths": ["packages/database/src/postgres-store.ts"],
-        "symbols": ["PostgresTrustStore"],
-        "tests": ["packages/database/src/postgres-store.integration.test.ts"]
+        "paths": [
+          "packages/database/src/postgres-store.ts"
+        ],
+        "symbols": [
+          "PostgresTrustStore"
+        ],
+        "tests": [
+          "packages/database/src/postgres-store.integration.test.ts"
+        ]
       },
       "certify": "certify:tenancy",
       "requiresLiveInfrastructure": true,
@@ -171,15 +229,51 @@
       "title": "Row Level Security certification",
       "kind": "platform",
       "priority": 41,
-      "dependsOn": ["persistence.postgres-repository"],
+      "dependsOn": [
+        "persistence.postgres-repository"
+      ],
       "evidence": {
-        "paths": ["packages/database/src/rls-certification.ts"],
-        "symbols": ["certifyRowLevelSecurity", "assertCrossTenantDenied"],
-        "tests": ["packages/database/src/rls-certification.integration.test.ts"]
+        "paths": [
+          "packages/database/src/rls-certification.ts"
+        ],
+        "symbols": [
+          "certifyRowLevelSecurity",
+          "assertCrossTenantDenied"
+        ],
+        "tests": [
+          "packages/database/src/rls-certification.integration.test.ts"
+        ]
       },
       "certify": "certify:tenancy",
       "requiresLiveInfrastructure": true,
       "notes": "Cross-tenant denial proof against a live Postgres instance with policies applied."
+    },
+    {
+      "id": "trust.route-permission-integration",
+      "title": "Route-level permission mapping",
+      "kind": "platform",
+      "priority": 30,
+      "dependsOn": [
+        "trust.permission-enforcement"
+      ],
+      "evidence": {
+        "paths": [
+          "apps/web/lib/route-permissions.ts"
+        ],
+        "symbols": [
+          "ROUTE_PERMISSION_REQUIREMENTS",
+          "requirementForRoute"
+        ],
+        "tests": [
+          "apps/web/lib/route-permissions.test.ts"
+        ]
+      },
+      "certify": "certify:authorization",
+      "scope": {
+        "files": 1,
+        "tests": 1
+      },
+      "notes": "Maps each existing API route to an explicit action/resource permission requirement so it calls authorizedContext instead of requestContext. Registered separately so the 146-route migration is never folded into unrelated runtime or agent work. Evidence shape may be revised when the capability is selected."
     }
   ]
 }

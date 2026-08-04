@@ -10,9 +10,9 @@
 | Repository | assurapay |
 | Version | 0.1.0 |
 | Branch | claude/git-pull-cqc04u |
-| HEAD | 6f553a302e49e8d2227c2c447e29d4bd4cd35bb7 |
+| HEAD | cbe143540c9dba8ae93680e2e7387e8d0d085f8b |
 | Worktree clean | no |
-| Manifest digest | 162809ca8c7a |
+| Manifest digest | 51713f5c2ba5 |
 | REOS version | 1.0.0 |
 
 ## Architecture
@@ -27,7 +27,7 @@
 | Lifecycle | Count |
 | --- | --- |
 | missing | 1 |
-| planned | 3 |
+| planned | 4 |
 | certified | 5 |
 | released | 55 |
 | deferred | 4 |
@@ -112,6 +112,7 @@ from repository evidence: package presence, test files, and certification wiring
 | trust.identity-assertions | HMAC identity assertions | implemented | certified | 4/4 | All 4 evidence probes satisfied at HEAD. |
 | trust.identity-gateway | Production identity gateway | implemented | certified | 4/4 | All 4 evidence probes satisfied at HEAD. |
 | trust.permission-enforcement | Permission enforcement middleware | implemented | certified | 4/4 | All 4 evidence probes satisfied at HEAD. |
+| trust.route-permission-integration | Route-level permission mapping | missing | planned | 0/4 | No evidence at HEAD, on any ref, or in history. |
 
 ## Reconciliation findings
 
@@ -136,11 +137,12 @@ from repository evidence: package presence, test files, and certification wiring
 
 ## Execution backlog
 
-4 open item(s). Highest-priority first.
+5 open item(s). Highest-priority first.
 
 | Capability | Title | Lifecycle | Priority | Executable | Blocked by | Blocks |
 | --- | --- | --- | --- | --- | --- | --- |
 | runtime.agent-registration | Agent Runtime registration | planned | 20 | yes | — | — |
+| trust.route-permission-integration | Route-level permission mapping | planned | 30 | yes | — | — |
 | persistence.postgres-repository | PostgreSQL repository implementation | planned | 40 | yes | — | 1 |
 | persistence.rls-certification | Row Level Security certification | missing | 41 | no | persistence.postgres-repository | — |
 | engine:08 | Engine 08 — Audit & Evidence Ledger | planned | 108 | yes | — | 52 |

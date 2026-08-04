@@ -414,16 +414,58 @@
       "status": "implemented",
       "title": "Permission enforcement middleware",
       "totalProbes": 4
+    },
+    {
+      "git": {
+        "historicalCommits": [],
+        "reachableFromHead": false,
+        "refsContaining": [],
+        "removedFromHead": false
+      },
+      "id": "trust.route-permission-integration",
+      "kind": "platform",
+      "onDefaultBranch": false,
+      "probes": [
+        {
+          "kind": "path",
+          "matches": [],
+          "query": "apps/web/lib/route-permissions.ts",
+          "satisfied": false
+        },
+        {
+          "kind": "symbol",
+          "matches": [],
+          "query": "ROUTE_PERMISSION_REQUIREMENTS",
+          "satisfied": false
+        },
+        {
+          "kind": "symbol",
+          "matches": [],
+          "query": "requirementForRoute",
+          "satisfied": false
+        },
+        {
+          "kind": "test",
+          "matches": [],
+          "query": "apps/web/lib/route-permissions.test.ts",
+          "satisfied": false
+        }
+      ],
+      "rationale": "No evidence at HEAD, on any ref, or in history.",
+      "satisfiedProbes": 0,
+      "status": "missing",
+      "title": "Route-level permission mapping",
+      "totalProbes": 4
     }
   ],
-  "head": "6f553a302e49e8d2227c2c447e29d4bd4cd35bb7",
+  "head": "cbe143540c9dba8ae93680e2e7387e8d0d085f8b",
   "reosVersion": "1.0.0",
   "stage": "forensics",
   "summary": {
     "deferred": 0,
     "implemented": 5,
     "lost": 0,
-    "missing": 3,
+    "missing": 4,
     "partial": 0,
     "unreachable": 0
   }

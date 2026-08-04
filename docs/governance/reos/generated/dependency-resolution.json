@@ -110,6 +110,25 @@
     },
     {
       "blockedBy": [],
+      "blocks": [],
+      "dependsOn": [
+        "trust.permission-enforcement"
+      ],
+      "executable": true,
+      "id": "trust.route-permission-integration",
+      "lifecycle": "planned",
+      "priority": 30,
+      "requiresLiveInfrastructure": false,
+      "scope": {
+        "estimated": true,
+        "files": 1,
+        "tests": 1
+      },
+      "status": "missing",
+      "title": "Route-level permission mapping"
+    },
+    {
+      "blockedBy": [],
       "blocks": [
         "persistence.rls-certification"
       ],
@@ -202,7 +221,7 @@
       "title": "Engine 08 — Audit & Evidence Ledger"
     }
   ],
-  "head": "6f553a302e49e8d2227c2c447e29d4bd4cd35bb7",
+  "head": "cbe143540c9dba8ae93680e2e7387e8d0d085f8b",
   "rejected": [
     {
       "id": "engine:08",
@@ -215,6 +234,10 @@
     {
       "id": "persistence.rls-certification",
       "reason": "Blocked by unmet dependencies: persistence.postgres-repository."
+    },
+    {
+      "id": "trust.route-permission-integration",
+      "reason": "Executable but lower priority than the selected capability (30)."
     }
   ],
   "reosVersion": "1.0.0",

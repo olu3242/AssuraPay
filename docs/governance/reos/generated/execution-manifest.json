@@ -2420,7 +2420,8 @@
         "settlement.non-custody-guard",
         "trust.identity-assertions",
         "trust.identity-gateway",
-        "trust.permission-enforcement"
+        "trust.permission-enforcement",
+        "trust.route-permission-integration"
       ],
       "dependsOn": [],
       "id": "reos.execution-os",
@@ -2451,7 +2452,8 @@
         "persistence.rls-certification",
         "runtime.agent-registration",
         "trust.identity-gateway",
-        "trust.permission-enforcement"
+        "trust.permission-enforcement",
+        "trust.route-permission-integration"
       ],
       "dependsOn": [
         "reos.execution-os"
@@ -2465,7 +2467,8 @@
         "persistence.postgres-repository",
         "persistence.rls-certification",
         "runtime.agent-registration",
-        "trust.permission-enforcement"
+        "trust.permission-enforcement",
+        "trust.route-permission-integration"
       ],
       "dependsOn": [
         "trust.identity-assertions"
@@ -2478,7 +2481,8 @@
       "blocks": [
         "persistence.postgres-repository",
         "persistence.rls-certification",
-        "runtime.agent-registration"
+        "runtime.agent-registration",
+        "trust.route-permission-integration"
       ],
       "dependsOn": [
         "trust.identity-gateway"
@@ -2486,6 +2490,15 @@
       "id": "trust.permission-enforcement",
       "lifecycle": "certified",
       "status": "implemented"
+    },
+    {
+      "blocks": [],
+      "dependsOn": [
+        "trust.permission-enforcement"
+      ],
+      "id": "trust.route-permission-integration",
+      "lifecycle": "planned",
+      "status": "missing"
     }
   ],
   "engines": [
@@ -3172,6 +3185,25 @@
     },
     {
       "blockedBy": [],
+      "blocks": [],
+      "dependsOn": [
+        "trust.permission-enforcement"
+      ],
+      "executable": true,
+      "id": "trust.route-permission-integration",
+      "lifecycle": "planned",
+      "priority": 30,
+      "requiresLiveInfrastructure": false,
+      "scope": {
+        "estimated": true,
+        "files": 1,
+        "tests": 1
+      },
+      "status": "missing",
+      "title": "Route-level permission mapping"
+    },
+    {
+      "blockedBy": [],
       "blocks": [
         "persistence.rls-certification"
       ],
@@ -3288,7 +3320,7 @@
   "identity": {
     "branch": "claude/git-pull-cqc04u",
     "clean": false,
-    "head": "6f553a302e49e8d2227c2c447e29d4bd4cd35bb7",
+    "head": "cbe143540c9dba8ae93680e2e7387e8d0d085f8b",
     "repository": "assurapay",
     "version": "0.1.0"
   },
@@ -3360,16 +3392,17 @@
     "implemented": 0,
     "implementing": 0,
     "missing": 1,
-    "planned": 3,
+    "planned": 4,
     "released": 55,
     "validated": 0
   },
-  "manifestDigest": "162809ca8c7a",
+  "manifestDigest": "51713f5c2ba5",
   "missingCapabilities": [
     "engine:08",
     "persistence.postgres-repository",
     "persistence.rls-certification",
-    "runtime.agent-registration"
+    "runtime.agent-registration",
+    "trust.route-permission-integration"
   ],
   "packages": [
     {
@@ -4468,6 +4501,48 @@
       "satisfiedProbes": 4,
       "status": "implemented",
       "title": "Permission enforcement middleware",
+      "totalProbes": 4
+    },
+    {
+      "git": {
+        "historicalCommits": [],
+        "reachableFromHead": false,
+        "refsContaining": [],
+        "removedFromHead": false
+      },
+      "id": "trust.route-permission-integration",
+      "kind": "platform",
+      "onDefaultBranch": false,
+      "probes": [
+        {
+          "kind": "path",
+          "matches": [],
+          "query": "apps/web/lib/route-permissions.ts",
+          "satisfied": false
+        },
+        {
+          "kind": "symbol",
+          "matches": [],
+          "query": "ROUTE_PERMISSION_REQUIREMENTS",
+          "satisfied": false
+        },
+        {
+          "kind": "symbol",
+          "matches": [],
+          "query": "requirementForRoute",
+          "satisfied": false
+        },
+        {
+          "kind": "test",
+          "matches": [],
+          "query": "apps/web/lib/route-permissions.test.ts",
+          "satisfied": false
+        }
+      ],
+      "rationale": "No evidence at HEAD, on any ref, or in history.",
+      "satisfiedProbes": 0,
+      "status": "missing",
+      "title": "Route-level permission mapping",
       "totalProbes": 4
     }
   ],

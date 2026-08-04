@@ -2548,14 +2548,18 @@
       ],
       "clean": false,
       "dirtyFiles": [
+        "docs/governance/reos/capability-registry.json",
+        "docs/governance/reos/generated/CERTIFICATION_REPORT.md",
+        "docs/governance/reos/generated/DEPENDENCY_RESOLUTION.md",
         "docs/governance/reos/generated/EXECUTION_MANIFEST.md",
+        "docs/governance/reos/generated/certification.json",
         "docs/governance/reos/generated/dependency-resolution.json",
         "docs/governance/reos/generated/discovery.json",
         "docs/governance/reos/generated/execution-manifest.json",
         "docs/governance/reos/generated/forensics.json"
       ],
-      "head": "6f553a302e49e8d2227c2c447e29d4bd4cd35bb7",
-      "headShort": "6f553a3",
+      "head": "cbe143540c9dba8ae93680e2e7387e8d0d085f8b",
+      "headShort": "cbe1435",
       "reflogAvailable": true,
       "remotes": [
         "origin"

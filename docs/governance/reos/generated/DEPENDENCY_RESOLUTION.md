@@ -23,6 +23,7 @@
 | Capability | Title | Lifecycle | Priority | Blocks | Live infra |
 | --- | --- | --- | --- | --- | --- |
 | runtime.agent-registration | Agent Runtime registration | planned | 20 | — | no |
+| trust.route-permission-integration | Route-level permission mapping | planned | 30 | — | no |
 | persistence.postgres-repository | PostgreSQL repository implementation | planned | 40 | 1 | yes |
 | engine:08 | Engine 08 — Audit & Evidence Ledger | planned | 108 | 52 | no |
 

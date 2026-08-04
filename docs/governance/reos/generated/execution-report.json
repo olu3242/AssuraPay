@@ -6,7 +6,7 @@
     "failedSteps": [],
     "passed": true
   },
-  "commit": "7208527889dab3f2fb0b0cbf3611ff9f91bfeb4f",
+  "commit": "cbe143540c9dba8ae93680e2e7387e8d0d085f8b",
   "filesModified": [
     ".env.example",
     ".github/workflows/ci.yml",
@@ -21,6 +21,7 @@
     "docs/governance/execution-ledger/INDEX.md",
     "docs/governance/execution-ledger/README.md",
     "docs/governance/execution-ledger/b8f9211b132c-trust.identity-gateway.json",
+    "docs/governance/execution-ledger/cbe143540c9d-trust.permission-enforcement.json",
     "docs/governance/execution-ledger/ec890b731dde-reos.execution-os.json",
     "docs/governance/reos/AGENT_PROTOCOL.md",
     "docs/governance/reos/EXECUTION_CONTRACT.md",
@@ -84,7 +85,7 @@
     "tsconfig.json",
     "vitest.config.ts"
   ],
-  "generatedAt": "2026-08-04T21:27:34.648Z",
+  "generatedAt": "2026-08-04T21:40:03.030Z",
   "governance": {
     "baselined": 16,
     "findings": [
@@ -264,7 +265,7 @@
     "phase": 2,
     "resolved": []
   },
-  "ledgerEntryId": "7208527889da-trust.permission-enforcement",
+  "ledgerEntryId": "cbe143540c9d-trust.permission-enforcement",
   "recommendedNextCapability": {
     "blockedBy": [],
     "blocks": [],
@@ -303,6 +304,25 @@
       },
       "status": "missing",
       "title": "Agent Runtime registration"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "dependsOn": [
+        "trust.permission-enforcement"
+      ],
+      "executable": true,
+      "id": "trust.route-permission-integration",
+      "lifecycle": "planned",
+      "priority": 30,
+      "requiresLiveInfrastructure": false,
+      "scope": {
+        "estimated": true,
+        "files": 1,
+        "tests": 1
+      },
+      "status": "missing",
+      "title": "Route-level permission mapping"
     },
     {
       "blockedBy": [],
@@ -424,6 +444,7 @@
     "branch": "claude/git-pull-cqc04u",
     "clean": false,
     "dirtyFiles": [
+      "docs/governance/reos/capability-registry.json",
       "docs/governance/reos/generated/CERTIFICATION_REPORT.md",
       "docs/governance/reos/generated/DEPENDENCY_RESOLUTION.md",
       "docs/governance/reos/generated/EXECUTION_MANIFEST.md",
@@ -433,7 +454,7 @@
       "docs/governance/reos/generated/execution-manifest.json",
       "docs/governance/reos/generated/forensics.json"
     ],
-    "head": "7208527889dab3f2fb0b0cbf3611ff9f91bfeb4f"
+    "head": "cbe143540c9dba8ae93680e2e7387e8d0d085f8b"
   },
   "stage": "report",
   "validation": [
@@ -463,7 +484,7 @@
       "validator": "security"
     },
     {
-      "checked": 63,
+      "checked": 64,
       "findings": [],
       "passed": true,
       "validator": "execution-contract"

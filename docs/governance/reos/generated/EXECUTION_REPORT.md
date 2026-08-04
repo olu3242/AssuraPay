@@ -7,16 +7,16 @@
 | Field | Value |
 | --- | --- |
 | Branch | claude/git-pull-cqc04u |
-| HEAD | 7208527889dab3f2fb0b0cbf3611ff9f91bfeb4f |
+| HEAD | cbe143540c9dba8ae93680e2e7387e8d0d085f8b |
 | Worktree clean | no |
-| Uncommitted files | 8 |
-| Generated at | 2026-08-04T21:27:34.648Z |
+| Uncommitted files | 9 |
+| Generated at | 2026-08-04T21:40:03.030Z |
 
 ## Capability implemented
 
 `trust.permission-enforcement` — lifecycle **certified**
 
-## Files modified (75)
+## Files modified (76)
 
 - `.env.example`
 - `.github/workflows/ci.yml`
@@ -31,6 +31,7 @@
 - `docs/governance/execution-ledger/INDEX.md`
 - `docs/governance/execution-ledger/README.md`
 - `docs/governance/execution-ledger/b8f9211b132c-trust.identity-gateway.json`
+- `docs/governance/execution-ledger/cbe143540c9d-trust.permission-enforcement.json`
 - `docs/governance/execution-ledger/ec890b731dde-reos.execution-os.json`
 - `docs/governance/reos/AGENT_PROTOCOL.md`
 - `docs/governance/reos/EXECUTION_CONTRACT.md`
@@ -101,7 +102,7 @@
 | architecture | pass | 143 | 0 | 0 |
 | dependencies | pass | 23 | 0 | 1 |
 | security | pass | 243 | 0 | 0 |
-| execution-contract | pass | 63 | 0 | 0 |
+| execution-contract | pass | 64 | 0 | 0 |
 
 ### Findings
 
@@ -117,11 +118,12 @@ No newly introduced violations.
 
 **PASSED** — every certification gate is green.
 
-## Remaining backlog (4)
+## Remaining backlog (5)
 
 | Capability | Status | Executable | Blocked by |
 | --- | --- | --- | --- |
 | runtime.agent-registration | missing | yes |  |
+| trust.route-permission-integration | missing | yes |  |
 | persistence.postgres-repository | missing | yes |  |
 | persistence.rls-certification | missing | no | persistence.postgres-repository |
 | engine:08 | missing | yes |  |
@@ -132,8 +134,8 @@ No newly introduced violations.
 
 ## Ledger
 
-Recorded as `7208527889da-trust.permission-enforcement` in `docs/governance/execution-ledger/`.
+Recorded as `cbe143540c9d-trust.permission-enforcement` in `docs/governance/execution-ledger/`.
 
 ## Commit
 
-`7208527889dab3f2fb0b0cbf3611ff9f91bfeb4f`
+`cbe143540c9dba8ae93680e2e7387e8d0d085f8b`
