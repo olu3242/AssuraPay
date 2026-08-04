@@ -1,0 +1,2776 @@
+{
+  "adrs": [],
+  "applications": [
+    {
+      "directory": "apps/web",
+      "framework": "next",
+      "name": "@assurapay/web",
+      "routes": 24,
+      "workspaceDependencies": [
+        "@assurapay/agreement-creation",
+        "@assurapay/agreement-intelligence",
+        "@assurapay/completion-assurance",
+        "@assurapay/database",
+        "@assurapay/domain",
+        "@assurapay/enterprise-analytics",
+        "@assurapay/enterprise-intelligence",
+        "@assurapay/execution-orchestration",
+        "@assurapay/governance-core",
+        "@assurapay/identity",
+        "@assurapay/legal",
+        "@assurapay/organizations",
+        "@assurapay/parties",
+        "@assurapay/performance-blueprint",
+        "@assurapay/performance-readiness",
+        "@assurapay/permissions",
+        "@assurapay/settlement-assurance",
+        "@assurapay/settlement-execution",
+        "@assurapay/shared",
+        "@assurapay/workflow-intelligence"
+      ]
+    }
+  ],
+  "certificationTargets": [
+    {
+      "command": "vitest run packages/performance-readiness/src/performance-readiness.test.ts --testNamePattern=26",
+      "packageDirectory": "packages/performance-readiness",
+      "script": "certify:acceptance-criteria",
+      "testNamePattern": "26"
+    },
+    {
+      "command": "vitest run packages/completion-assurance/src/completion-assurance.test.ts --testNamePattern=39",
+      "packageDirectory": "packages/completion-assurance",
+      "script": "certify:acceptance-decision",
+      "testNamePattern": "39"
+    },
+    {
+      "command": "vitest run packages/agent-runtime/src/agent-runtime.security.test.ts",
+      "packageDirectory": "packages/agent-runtime",
+      "script": "certify:agent-governance",
+      "testNamePattern": null
+    },
+    {
+      "command": "vitest run packages/agent-runtime/src/agent-runtime.integration.test.ts",
+      "packageDirectory": "packages/agent-runtime",
+      "script": "certify:agent-integration",
+      "testNamePattern": null
+    },
+    {
+      "command": "vitest run packages/agent-runtime/src/agent-runtime.performance.test.ts",
+      "packageDirectory": "packages/agent-runtime",
+      "script": "certify:agent-load",
+      "testNamePattern": null
+    },
+    {
+      "command": "vitest run packages/agent-runtime/src/agent-runtime.test.ts",
+      "packageDirectory": "packages/agent-runtime",
+      "script": "certify:agent-runtime",
+      "testNamePattern": null
+    },
+    {
+      "command": "vitest run packages/agreement-intelligence/src/agreement-intelligence.test.ts --testNamePattern=20",
+      "packageDirectory": "packages/agreement-intelligence",
+      "script": "certify:agreement-intelligence",
+      "testNamePattern": "20"
+    },
+    {
+      "command": "vitest run packages/enterprise-analytics/src/enterprise-analytics.test.ts --testNamePattern=60",
+      "packageDirectory": "packages/enterprise-analytics",
+      "script": "certify:ai-decision-support",
+      "testNamePattern": "60"
+    },
+    {
+      "command": "vitest run packages/agreement-creation/src/agreement-creation.test.ts --testNamePattern=14",
+      "packageDirectory": "packages/agreement-creation",
+      "script": "certify:approvals",
+      "testNamePattern": "14"
+    },
+    {
+      "command": "vitest run packages/agreement-creation/src/agreement-creation.test.ts --testNamePattern=11",
+      "packageDirectory": "packages/agreement-creation",
+      "script": "certify:authoring",
+      "testNamePattern": "11"
+    },
+    {
+      "command": "vitest run packages/permissions",
+      "packageDirectory": "packages/permissions",
+      "script": "certify:authorization",
+      "testNamePattern": null
+    },
+    {
+      "command": "npm run certify && npm run test:integration && npm run test:e2e && npm run build",
+      "packageDirectory": null,
+      "script": "certify:batch1",
+      "testNamePattern": null
+    },
+    {
+      "command": "npm run certify && npm run test:integration && npm run test:e2e && npm run build",
+      "packageDirectory": null,
+      "script": "certify:batch10",
+      "testNamePattern": null
+    },
+    {
+      "command": "npm run certify && npm run test:integration && npm run test:e2e && npm run build",
+      "packageDirectory": null,
+      "script": "certify:batch11",
+      "testNamePattern": null
+    },
+    {
+      "command": "npm run certify && npm run test:integration && npm run test:e2e && npm run build",
+      "packageDirectory": null,
+      "script": "certify:batch12",
+      "testNamePattern": null
+    },
+    {
+      "command": "npm run certify && npm run test:integration && npm run test:e2e && npm run build",
+      "packageDirectory": null,
+      "script": "certify:batch13",
+      "testNamePattern": null
+    },
+    {
+      "command": "npm run certify && npm run test:integration && npm run test:e2e && npm run build",
+      "packageDirectory": null,
+      "script": "certify:batch14",
+      "testNamePattern": null
+    },
+    {
+      "command": "npm run certify && npm run test:integration && npm run test:e2e && npm run build",
+      "packageDirectory": null,
+      "script": "certify:batch2-governance",
+      "testNamePattern": null
+    },
+    {
+      "command": "npm run certify && npm run test:integration && npm run test:e2e && npm run build",
+      "packageDirectory": null,
+      "script": "certify:batch3",
+      "testNamePattern": null
+    },
+    {
+      "command": "npm run certify && npm run test:integration && npm run test:e2e && npm run build",
+      "packageDirectory": null,
+      "script": "certify:batch4",
+      "testNamePattern": null
+    },
+    {
+      "command": "npm run certify && npm run test:integration && npm run test:e2e && npm run build",
+      "packageDirectory": null,
+      "script": "certify:batch5",
+      "testNamePattern": null
+    },
+    {
+      "command": "npm run certify && npm run test:integration && npm run test:e2e && npm run build",
+      "packageDirectory": null,
+      "script": "certify:batch6",
+      "testNamePattern": null
+    },
+    {
+      "command": "npm run certify && npm run test:integration && npm run test:e2e && npm run build",
+      "packageDirectory": null,
+      "script": "certify:batch7",
+      "testNamePattern": null
+    },
+    {
+      "command": "npm run certify && npm run test:integration && npm run test:e2e && npm run build",
+      "packageDirectory": null,
+      "script": "certify:batch8",
+      "testNamePattern": null
+    },
+    {
+      "command": "npm run certify && npm run test:integration && npm run test:e2e && npm run build",
+      "packageDirectory": null,
+      "script": "certify:batch9",
+      "testNamePattern": null
+    },
+    {
+      "command": "vitest run packages/governance-core/src/governance-core.test.ts --testNamePattern=09",
+      "packageDirectory": "packages/governance-core",
+      "script": "certify:certification",
+      "testNamePattern": "09"
+    },
+    {
+      "command": "vitest run packages/completion-assurance/src/completion-assurance.test.ts --testNamePattern=38",
+      "packageDirectory": "packages/completion-assurance",
+      "script": "certify:change-control",
+      "testNamePattern": "38"
+    },
+    {
+      "command": "vitest run packages/agreement-creation/src/agreement-creation.test.ts --testNamePattern=12",
+      "packageDirectory": "packages/agreement-creation",
+      "script": "certify:clauses",
+      "testNamePattern": "12"
+    },
+    {
+      "command": "vitest run packages/completion-assurance/src/completion-assurance.test.ts --testNamePattern=40",
+      "packageDirectory": "packages/completion-assurance",
+      "script": "certify:completion-certification",
+      "testNamePattern": "40"
+    },
+    {
+      "command": "vitest run packages/settlement-assurance/src/settlement-assurance.test.ts --testNamePattern=45",
+      "packageDirectory": "packages/settlement-assurance",
+      "script": "certify:conditional-release",
+      "testNamePattern": "45"
+    },
+    {
+      "command": "vitest run packages/agreement-intelligence/src/agreement-intelligence.test.ts --testNamePattern=16",
+      "packageDirectory": "packages/agreement-intelligence",
+      "script": "certify:contract-analysis",
+      "testNamePattern": "16"
+    },
+    {
+      "command": "vitest run packages/agreement-intelligence/src/agreement-intelligence.test.ts --testNamePattern=19",
+      "packageDirectory": "packages/agreement-intelligence",
+      "script": "certify:contract-repository",
+      "testNamePattern": "19"
+    },
+    {
+      "command": "vitest run packages/agreement-intelligence/src/agreement-intelligence.test.ts --testNamePattern=17",
+      "packageDirectory": "packages/agreement-intelligence",
+      "script": "certify:contract-risk",
+      "testNamePattern": "17"
+    },
+    {
+      "command": "vitest run packages/agreement-intelligence/src/agreement-intelligence.test.ts --testNamePattern=18",
+      "packageDirectory": "packages/agreement-intelligence",
+      "script": "certify:contract-version",
+      "testNamePattern": "18"
+    },
+    {
+      "command": "vitest run packages/performance-blueprint/src/performance-blueprint.test.ts --testNamePattern=25",
+      "packageDirectory": "packages/performance-blueprint",
+      "script": "certify:definition-of-done",
+      "testNamePattern": "25"
+    },
+    {
+      "command": "vitest run packages/performance-blueprint/src/performance-blueprint.test.ts --testNamePattern=23",
+      "packageDirectory": "packages/performance-blueprint",
+      "script": "certify:deliverables",
+      "testNamePattern": "23"
+    },
+    {
+      "command": "vitest run packages/performance-readiness/src/performance-readiness.test.ts --testNamePattern=28",
+      "packageDirectory": "packages/performance-readiness",
+      "script": "certify:dependency-intelligence",
+      "testNamePattern": "28"
+    },
+    {
+      "command": "vitest run packages/agreement-creation/src/agreement-creation.test.ts --testNamePattern=15",
+      "packageDirectory": "packages/agreement-creation",
+      "script": "certify:digital-execution",
+      "testNamePattern": "15"
+    },
+    {
+      "command": "vitest run packages/settlement-execution/src/settlement-execution.test.ts --testNamePattern=49",
+      "packageDirectory": "packages/settlement-execution",
+      "script": "certify:dispute-resolution",
+      "testNamePattern": "49"
+    },
+    {
+      "command": "vitest run packages/governance-core/src/governance-core.test.ts --testNamePattern=08",
+      "packageDirectory": "packages/governance-core",
+      "script": "certify:dod",
+      "testNamePattern": "08"
+    },
+    {
+      "command": "vitest run packages/enterprise-intelligence/src/enterprise-intelligence.test.ts --testNamePattern=53",
+      "packageDirectory": "packages/enterprise-intelligence",
+      "script": "certify:enterprise-kpi",
+      "testNamePattern": "53"
+    },
+    {
+      "command": "vitest run packages/settlement-assurance/src/settlement-assurance.test.ts --testNamePattern=44",
+      "packageDirectory": "packages/settlement-assurance",
+      "script": "certify:escrow-funding",
+      "testNamePattern": "44"
+    },
+    {
+      "command": "vitest run packages/execution-orchestration/src/execution-orchestration.test.ts --testNamePattern=33",
+      "packageDirectory": "packages/execution-orchestration",
+      "script": "certify:evidence-management",
+      "testNamePattern": "33"
+    },
+    {
+      "command": "vitest run packages/governance-core/src/governance-core.test.ts --testNamePattern=06",
+      "packageDirectory": "packages/governance-core",
+      "script": "certify:execution",
+      "testNamePattern": "06"
+    },
+    {
+      "command": "vitest run packages/enterprise-intelligence/src/enterprise-intelligence.test.ts --testNamePattern=51",
+      "packageDirectory": "packages/enterprise-intelligence",
+      "script": "certify:execution-assurance-index",
+      "testNamePattern": "51"
+    },
+    {
+      "command": "vitest run packages/execution-orchestration/src/execution-orchestration.test.ts --testNamePattern=31",
+      "packageDirectory": "packages/execution-orchestration",
+      "script": "certify:execution-orchestration",
+      "testNamePattern": "31"
+    },
+    {
+      "command": "vitest run packages/enterprise-intelligence/src/enterprise-intelligence.test.ts --testNamePattern=54",
+      "packageDirectory": "packages/enterprise-intelligence",
+      "script": "certify:executive-dashboard",
+      "testNamePattern": "54"
+    },
+    {
+      "command": "vitest run packages/settlement-execution/src/settlement-execution.test.ts --testNamePattern=50",
+      "packageDirectory": "packages/settlement-execution",
+      "script": "certify:final-settlement",
+      "testNamePattern": "50"
+    },
+    {
+      "command": "vitest run packages/settlement-execution/src/settlement-execution.test.ts --testNamePattern=46",
+      "packageDirectory": "packages/settlement-execution",
+      "script": "certify:financial-approval",
+      "testNamePattern": "46"
+    },
+    {
+      "command": "vitest run packages/settlement-assurance/src/settlement-assurance.test.ts --testNamePattern=42",
+      "packageDirectory": "packages/settlement-assurance",
+      "script": "certify:financial-entitlement",
+      "testNamePattern": "42"
+    },
+    {
+      "command": "vitest run packages/enterprise-analytics/src/enterprise-analytics.test.ts --testNamePattern=56",
+      "packageDirectory": "packages/enterprise-analytics",
+      "script": "certify:financial-payment-intelligence",
+      "testNamePattern": "56"
+    },
+    {
+      "command": "vitest run packages/identity",
+      "packageDirectory": "packages/identity",
+      "script": "certify:identity",
+      "testNamePattern": null
+    },
+    {
+      "command": "vitest run packages/completion-assurance/src/completion-assurance.test.ts --testNamePattern=36",
+      "packageDirectory": "packages/completion-assurance",
+      "script": "certify:inspection",
+      "testNamePattern": "36"
+    },
+    {
+      "command": "vitest run packages/settlement-assurance/src/settlement-assurance.test.ts --testNamePattern=43",
+      "packageDirectory": "packages/settlement-assurance",
+      "script": "certify:invoice-claim",
+      "testNamePattern": "43"
+    },
+    {
+      "command": "vitest run packages/completion-assurance/src/completion-assurance.test.ts --testNamePattern=37",
+      "packageDirectory": "packages/completion-assurance",
+      "script": "certify:issue-risk-capa",
+      "testNamePattern": "37"
+    },
+    {
+      "command": "vitest run packages/legal",
+      "packageDirectory": "packages/legal",
+      "script": "certify:legal",
+      "testNamePattern": null
+    },
+    {
+      "command": "vitest run packages/performance-blueprint/src/performance-blueprint.test.ts --testNamePattern=24",
+      "packageDirectory": "packages/performance-blueprint",
+      "script": "certify:milestone-planning",
+      "testNamePattern": "24"
+    },
+    {
+      "command": "vitest run packages/governance-core/src/governance-core.test.ts --testNamePattern=07",
+      "packageDirectory": "packages/governance-core",
+      "script": "certify:milestones",
+      "testNamePattern": "07"
+    },
+    {
+      "command": "vitest run packages/agreement-creation/src/agreement-creation.test.ts --testNamePattern=13",
+      "packageDirectory": "packages/agreement-creation",
+      "script": "certify:negotiation",
+      "testNamePattern": "13"
+    },
+    {
+      "command": "vitest run packages/settlement-assurance/src/settlement-assurance.non-custody.test.ts",
+      "packageDirectory": "packages/settlement-assurance",
+      "script": "certify:non-custody",
+      "testNamePattern": null
+    },
+    {
+      "command": "vitest run packages/settlement-execution/src/settlement-execution.non-custody.test.ts",
+      "packageDirectory": "packages/settlement-execution",
+      "script": "certify:non-custody-execution",
+      "testNamePattern": null
+    },
+    {
+      "command": "vitest run packages/parties",
+      "packageDirectory": "packages/parties",
+      "script": "certify:party-verification",
+      "testNamePattern": null
+    },
+    {
+      "command": "vitest run packages/settlement-assurance/src/settlement-assurance.test.ts --testNamePattern=41",
+      "packageDirectory": "packages/settlement-assurance",
+      "script": "certify:payment-eligibility",
+      "testNamePattern": "41"
+    },
+    {
+      "command": "vitest run packages/settlement-execution/src/settlement-execution.test.ts --testNamePattern=47",
+      "packageDirectory": "packages/settlement-execution",
+      "script": "certify:payment-execution",
+      "testNamePattern": "47"
+    },
+    {
+      "command": "vitest run packages/performance-readiness/src/performance-readiness.test.ts --testNamePattern=29",
+      "packageDirectory": "packages/performance-readiness",
+      "script": "certify:payment-trigger",
+      "testNamePattern": "29"
+    },
+    {
+      "command": "vitest run packages/governance-core/src/governance-core.test.ts --testNamePattern=10",
+      "packageDirectory": "packages/governance-core",
+      "script": "certify:payment-triggers",
+      "testNamePattern": "10"
+    },
+    {
+      "command": "vitest run packages/performance-readiness/src/performance-readiness.test.ts --testNamePattern=30",
+      "packageDirectory": "packages/performance-readiness",
+      "script": "certify:performance-baseline",
+      "testNamePattern": "30"
+    },
+    {
+      "command": "vitest run packages/performance-blueprint/src/performance-blueprint.test.ts --testNamePattern=21",
+      "packageDirectory": "packages/performance-blueprint",
+      "script": "certify:performance-blueprint",
+      "testNamePattern": "21"
+    },
+    {
+      "command": "vitest run packages/enterprise-analytics/src/enterprise-analytics.test.ts --testNamePattern=58",
+      "packageDirectory": "packages/enterprise-analytics",
+      "script": "certify:portfolio-analytics",
+      "testNamePattern": "58"
+    },
+    {
+      "command": "vitest run packages/enterprise-intelligence/src/enterprise-intelligence.test.ts --testNamePattern=55",
+      "packageDirectory": "packages/enterprise-intelligence",
+      "script": "certify:predictive-execution",
+      "testNamePattern": "55"
+    },
+    {
+      "command": "vitest run packages/execution-orchestration/src/execution-orchestration.test.ts --testNamePattern=32",
+      "packageDirectory": "packages/execution-orchestration",
+      "script": "certify:progress-measurement",
+      "testNamePattern": "32"
+    },
+    {
+      "command": "vitest run packages/execution-orchestration/src/execution-orchestration.test.ts --testNamePattern=35",
+      "packageDirectory": "packages/execution-orchestration",
+      "script": "certify:quality-assurance",
+      "testNamePattern": "35"
+    },
+    {
+      "command": "vitest run packages/settlement-execution/src/settlement-execution.test.ts --testNamePattern=48",
+      "packageDirectory": "packages/settlement-execution",
+      "script": "certify:reconciliation-ledger",
+      "testNamePattern": "48"
+    },
+    {
+      "command": "vitest run packages/enterprise-analytics/src/enterprise-analytics.test.ts --testNamePattern=59",
+      "packageDirectory": "packages/enterprise-analytics",
+      "script": "certify:renewal-relationship-intelligence",
+      "testNamePattern": "59"
+    },
+    {
+      "command": "vitest run packages/reos",
+      "packageDirectory": "packages/reos",
+      "script": "certify:reos",
+      "testNamePattern": null
+    },
+    {
+      "command": "vitest run packages/performance-blueprint/src/performance-blueprint.test.ts --testNamePattern=22",
+      "packageDirectory": "packages/performance-blueprint",
+      "script": "certify:scope-definition",
+      "testNamePattern": "22"
+    },
+    {
+      "command": "vitest run packages/enterprise-intelligence/src/enterprise-intelligence.test.ts --testNamePattern=52",
+      "packageDirectory": "packages/enterprise-intelligence",
+      "script": "certify:settlement-assurance-index",
+      "testNamePattern": "52"
+    },
+    {
+      "command": "vitest run packages/performance-readiness/src/performance-readiness.test.ts --testNamePattern=27",
+      "packageDirectory": "packages/performance-readiness",
+      "script": "certify:success-metrics",
+      "testNamePattern": "27"
+    },
+    {
+      "command": "vitest run packages/organizations packages/database/src/trust-migrations.integration.test.ts",
+      "packageDirectory": "packages/organizations",
+      "script": "certify:tenancy",
+      "testNamePattern": null
+    },
+    {
+      "command": "vitest run packages/execution-orchestration/src/execution-orchestration.test.ts --testNamePattern=34",
+      "packageDirectory": "packages/execution-orchestration",
+      "script": "certify:validation-acceptance-testing",
+      "testNamePattern": "34"
+    },
+    {
+      "command": "vitest run packages/enterprise-analytics/src/enterprise-analytics.test.ts --testNamePattern=57",
+      "packageDirectory": "packages/enterprise-analytics",
+      "script": "certify:vendor-customer-performance",
+      "testNamePattern": "57"
+    },
+    {
+      "command": "vitest run packages/workflow-intelligence",
+      "packageDirectory": "packages/workflow-intelligence",
+      "script": "certify:workflow-intelligence",
+      "testNamePattern": null
+    }
+  ],
+  "documentation": [
+    {
+      "category": "root",
+      "path": "docs/AI_STRATEGY.md",
+      "title": "AI Strategy — AssuraPay"
+    },
+    {
+      "category": "root",
+      "path": "docs/ARCHITECTURE.md",
+      "title": "Architecture — AssuraPay Execution Assurance Platform"
+    },
+    {
+      "category": "root",
+      "path": "docs/BRD.md",
+      "title": "Business Requirements Document — AssuraPay"
+    },
+    {
+      "category": "root",
+      "path": "docs/DATA_SCHEMA.md",
+      "title": "Canonical Data Architecture — AssuraPay"
+    },
+    {
+      "category": "root",
+      "path": "docs/ENGINE_CATALOG.md",
+      "title": "AssuraPay Engine Catalog — 60 Bounded Contexts"
+    },
+    {
+      "category": "root",
+      "path": "docs/GTM.md",
+      "title": "Go-To-Market Strategy — AssuraPay"
+    },
+    {
+      "category": "root",
+      "path": "docs/PRD.md",
+      "title": "Product Requirements Document — AssuraPay"
+    },
+    {
+      "category": "api",
+      "path": "docs/api/AGENT_RUNTIME_API.md",
+      "title": "Agent Runtime API Contracts"
+    },
+    {
+      "category": "api",
+      "path": "docs/api/WORKFLOW_INTELLIGENCE_API.md",
+      "title": "Workflow Intelligence API Reference"
+    },
+    {
+      "category": "architecture",
+      "path": "docs/architecture/AGENT_RUNTIME_ARCHITECTURE.md",
+      "title": "Agent Runtime Architecture — Engines 61–70"
+    },
+    {
+      "category": "architecture",
+      "path": "docs/architecture/AGREEMENT_CREATION_ARCHITECTURE.md",
+      "title": "Agreement Creation Architecture"
+    },
+    {
+      "category": "architecture",
+      "path": "docs/architecture/AGREEMENT_INTELLIGENCE_ARCHITECTURE.md",
+      "title": "Agreement Intelligence Architecture"
+    },
+    {
+      "category": "architecture",
+      "path": "docs/architecture/API_CATALOG.md",
+      "title": "API Catalog"
+    },
+    {
+      "category": "architecture",
+      "path": "docs/architecture/AUTHORIZATION_ARCHITECTURE.md",
+      "title": "Authorization Architecture"
+    },
+    {
+      "category": "architecture",
+      "path": "docs/architecture/COMPLETION_ASSURANCE_ARCHITECTURE.md",
+      "title": "Completion Assurance Architecture"
+    },
+    {
+      "category": "architecture",
+      "path": "docs/architecture/DEPENDENCY_GRAPH.md",
+      "title": "Dependency Graph"
+    },
+    {
+      "category": "architecture",
+      "path": "docs/architecture/ENGINE_TO_CODE_MAP.md",
+      "title": "Engine to Code Map"
+    },
+    {
+      "category": "architecture",
+      "path": "docs/architecture/ENTERPRISE_ANALYTICS_ARCHITECTURE.md",
+      "title": "Enterprise Analytics Architecture"
+    },
+    {
+      "category": "architecture",
+      "path": "docs/architecture/ENTERPRISE_INTELLIGENCE_ARCHITECTURE.md",
+      "title": "Enterprise Intelligence Architecture"
+    },
+    {
+      "category": "architecture",
+      "path": "docs/architecture/EVENT_CATALOG.md",
+      "title": "Event Catalog"
+    },
+    {
+      "category": "architecture",
+      "path": "docs/architecture/EXECUTION_ASSURANCE_ARCHITECTURE.md",
+      "title": "Execution Assurance Architecture"
+    },
+    {
+      "category": "architecture",
+      "path": "docs/architecture/EXECUTION_HEALTH_MODEL.md",
+      "title": "Execution Health Model"
+    },
+    {
+      "category": "architecture",
+      "path": "docs/architecture/EXECUTION_ORCHESTRATION_ARCHITECTURE.md",
+      "title": "Execution Orchestration Architecture"
+    },
+    {
+      "category": "architecture",
+      "path": "docs/architecture/GOVERNANCE_CORE_ARCHITECTURE.md",
+      "title": "Governance Core Architecture (Engines 06–10)"
+    },
+    {
+      "category": "architecture",
+      "path": "docs/architecture/IDENTITY_ARCHITECTURE.md",
+      "title": "Identity Architecture"
+    },
+    {
+      "category": "architecture",
+      "path": "docs/architecture/LEGAL_GOVERNANCE_ARCHITECTURE.md",
+      "title": "Legal Governance Architecture"
+    },
+    {
+      "category": "architecture",
+      "path": "docs/architecture/MULTI_TENANT_ARCHITECTURE.md",
+      "title": "Multi-Tenant Architecture"
+    },
+    {
+      "category": "architecture",
+      "path": "docs/architecture/PARTY_VERIFICATION_ARCHITECTURE.md",
+      "title": "Party Verification Architecture"
+    },
+    {
+      "category": "architecture",
+      "path": "docs/architecture/PERFORMANCE_BLUEPRINT_ARCHITECTURE.md",
+      "title": "Performance Blueprint Architecture"
+    },
+    {
+      "category": "architecture",
+      "path": "docs/architecture/PERFORMANCE_READINESS_ARCHITECTURE.md",
+      "title": "Performance Readiness Architecture"
+    },
+    {
+      "category": "architecture",
+      "path": "docs/architecture/SETTLEMENT_ASSURANCE_ARCHITECTURE.md",
+      "title": "Settlement Assurance Architecture"
+    },
+    {
+      "category": "architecture",
+      "path": "docs/architecture/SETTLEMENT_EXECUTION_ARCHITECTURE.md",
+      "title": "Settlement Execution Architecture"
+    },
+    {
+      "category": "architecture",
+      "path": "docs/architecture/TARGET_ARCHITECTURE.md",
+      "title": "Target Architecture"
+    },
+    {
+      "category": "architecture",
+      "path": "docs/architecture/TRUST_FOUNDATION_ADRS.md",
+      "title": "Trust Foundation Architecture Decisions"
+    },
+    {
+      "category": "architecture",
+      "path": "docs/architecture/WORKFLOW_DEPENDENCY_MODEL.md",
+      "title": "Workflow Dependency Model"
+    },
+    {
+      "category": "architecture",
+      "path": "docs/architecture/WORKFLOW_INTELLIGENCE_ARCHITECTURE.md",
+      "title": "Workflow Intelligence Architecture — Engines 71–80"
+    },
+    {
+      "category": "audit",
+      "path": "docs/audit/ASSURAPAY_GAP_MATRIX.md",
+      "title": "AssuraPay Maturity Matrix"
+    },
+    {
+      "category": "audit",
+      "path": "docs/audit/BATCH_10_SETTLEMENT_EXECUTION_BASELINE.md",
+      "title": "Batch 10 Settlement Execution Baseline"
+    },
+    {
+      "category": "audit",
+      "path": "docs/audit/BATCH_10_SETTLEMENT_EXECUTION_GAP_MATRIX.md",
+      "title": "Batch 10 Settlement Execution Gap Matrix"
+    },
+    {
+      "category": "audit",
+      "path": "docs/audit/BATCH_10_SETTLEMENT_EXECUTION_IMPLEMENTATION_REPORT.md",
+      "title": "Batch 10 Settlement Execution Implementation Report"
+    },
+    {
+      "category": "audit",
+      "path": "docs/audit/BATCH_11_ENTERPRISE_INTELLIGENCE_BASELINE.md",
+      "title": "Batch 11 Enterprise Intelligence Baseline"
+    },
+    {
+      "category": "audit",
+      "path": "docs/audit/BATCH_11_ENTERPRISE_INTELLIGENCE_GAP_MATRIX.md",
+      "title": "Batch 11 Enterprise Intelligence Gap Matrix"
+    },
+    {
+      "category": "audit",
+      "path": "docs/audit/BATCH_11_ENTERPRISE_INTELLIGENCE_IMPLEMENTATION_REPORT.md",
+      "title": "Batch 11 Enterprise Intelligence Implementation Report"
+    },
+    {
+      "category": "audit",
+      "path": "docs/audit/BATCH_12_ENTERPRISE_ANALYTICS_BASELINE.md",
+      "title": "Batch 12 Enterprise Analytics Baseline"
+    },
+    {
+      "category": "audit",
+      "path": "docs/audit/BATCH_12_ENTERPRISE_ANALYTICS_GAP_MATRIX.md",
+      "title": "Batch 12 Enterprise Analytics Gap Matrix"
+    },
+    {
+      "category": "audit",
+      "path": "docs/audit/BATCH_12_ENTERPRISE_ANALYTICS_IMPLEMENTATION_REPORT.md",
+      "title": "Batch 12 Enterprise Analytics Implementation Report"
+    },
+    {
+      "category": "audit",
+      "path": "docs/audit/BATCH_13_AGENT_RUNTIME_BASELINE.md",
+      "title": "Batch 13 Agent Runtime Baseline"
+    },
+    {
+      "category": "audit",
+      "path": "docs/audit/BATCH_13_AGENT_RUNTIME_GAP_MATRIX.md",
+      "title": "Batch 13 Agent Runtime Gap Matrix"
+    },
+    {
+      "category": "audit",
+      "path": "docs/audit/BATCH_13_AGENT_RUNTIME_IMPLEMENTATION_REPORT.md",
+      "title": "Batch 13 Agent Runtime Implementation Report"
+    },
+    {
+      "category": "audit",
+      "path": "docs/audit/BATCH_14_WORKFLOW_INTELLIGENCE_BASELINE.md",
+      "title": "Batch 14 Workflow Intelligence Baseline"
+    },
+    {
+      "category": "audit",
+      "path": "docs/audit/BATCH_14_WORKFLOW_INTELLIGENCE_GAP_MATRIX.md",
+      "title": "Batch 14 Workflow Intelligence Gap Matrix"
+    },
+    {
+      "category": "audit",
+      "path": "docs/audit/BATCH_14_WORKFLOW_INTELLIGENCE_IMPLEMENTATION_REPORT.md",
+      "title": "Batch 14 Workflow Intelligence Implementation Report"
+    },
+    {
+      "category": "audit",
+      "path": "docs/audit/BATCH_1_TRUST_FOUNDATION_BASELINE.md",
+      "title": "Batch 1 Trust Foundation Baseline"
+    },
+    {
+      "category": "audit",
+      "path": "docs/audit/BATCH_1_TRUST_FOUNDATION_GAP_MATRIX.md",
+      "title": "Batch 1 Trust Foundation Gap Matrix"
+    },
+    {
+      "category": "audit",
+      "path": "docs/audit/BATCH_1_TRUST_FOUNDATION_IMPLEMENTATION_REPORT.md",
+      "title": "Batch 1 Trust Foundation Implementation Report"
+    },
+    {
+      "category": "audit",
+      "path": "docs/audit/BATCH_2_BASELINE.md",
+      "title": "Batch 2 Baseline"
+    },
+    {
+      "category": "audit",
+      "path": "docs/audit/BATCH_2_GOVERNANCE_CORE_IMPLEMENTATION_REPORT.md",
+      "title": "Batch 2 Governance Core Implementation Report"
+    },
+    {
+      "category": "audit",
+      "path": "docs/audit/BATCH_3_AGREEMENT_CREATION_BASELINE.md",
+      "title": "Batch 3 Agreement Creation Baseline"
+    },
+    {
+      "category": "audit",
+      "path": "docs/audit/BATCH_3_AGREEMENT_CREATION_GAP_MATRIX.md",
+      "title": "Batch 3 Agreement Creation Gap Matrix"
+    },
+    {
+      "category": "audit",
+      "path": "docs/audit/BATCH_3_AGREEMENT_CREATION_IMPLEMENTATION_REPORT.md",
+      "title": "Batch 3 Agreement Creation Implementation Report"
+    },
+    {
+      "category": "audit",
+      "path": "docs/audit/BATCH_3_BASELINE.md",
+      "title": "Batch 3 Baseline"
+    },
+    {
+      "category": "audit",
+      "path": "docs/audit/BATCH_4_AGREEMENT_INTELLIGENCE_BASELINE.md",
+      "title": "Batch 4 Agreement Intelligence Baseline"
+    },
+    {
+      "category": "audit",
+      "path": "docs/audit/BATCH_4_AGREEMENT_INTELLIGENCE_GAP_MATRIX.md",
+      "title": "Batch 4 Agreement Intelligence Gap Matrix"
+    },
+    {
+      "category": "audit",
+      "path": "docs/audit/BATCH_4_AGREEMENT_INTELLIGENCE_IMPLEMENTATION_REPORT.md",
+      "title": "Batch 4 Agreement Intelligence Implementation Report"
+    },
+    {
+      "category": "audit",
+      "path": "docs/audit/BATCH_4_VALIDATION_REPAIR_BASELINE.md",
+      "title": "Batch 4 Validation Repair Baseline"
+    },
+    {
+      "category": "audit",
+      "path": "docs/audit/BATCH_4_VALIDATION_REPAIR_REPORT.md",
+      "title": "Batch 4 Validation Repair Report"
+    },
+    {
+      "category": "audit",
+      "path": "docs/audit/BATCH_5_PERFORMANCE_BLUEPRINT_BASELINE.md",
+      "title": "Batch 5 Performance Blueprint Baseline"
+    },
+    {
+      "category": "audit",
+      "path": "docs/audit/BATCH_5_PERFORMANCE_BLUEPRINT_GAP_MATRIX.md",
+      "title": "Batch 5 Performance Blueprint Gap Matrix"
+    },
+    {
+      "category": "audit",
+      "path": "docs/audit/BATCH_5_PERFORMANCE_BLUEPRINT_IMPLEMENTATION_REPORT.md",
+      "title": "Batch 5 Performance Blueprint Implementation Report"
+    },
+    {
+      "category": "audit",
+      "path": "docs/audit/BATCH_6_PERFORMANCE_READINESS_BASELINE.md",
+      "title": "Batch 6 Performance Readiness Baseline"
+    },
+    {
+      "category": "audit",
+      "path": "docs/audit/BATCH_6_PERFORMANCE_READINESS_GAP_MATRIX.md",
+      "title": "Batch 6 Performance Readiness Gap Matrix"
+    },
+    {
+      "category": "audit",
+      "path": "docs/audit/BATCH_6_PERFORMANCE_READINESS_IMPLEMENTATION_REPORT.md",
+      "title": "Batch 6 Performance Readiness Implementation Report"
+    },
+    {
+      "category": "audit",
+      "path": "docs/audit/BATCH_7_EXECUTION_ORCHESTRATION_BASELINE.md",
+      "title": "Batch 7 Execution Orchestration Baseline"
+    },
+    {
+      "category": "audit",
+      "path": "docs/audit/BATCH_7_EXECUTION_ORCHESTRATION_GAP_MATRIX.md",
+      "title": "Batch 7 Execution Orchestration Gap Matrix"
+    },
+    {
+      "category": "audit",
+      "path": "docs/audit/BATCH_7_EXECUTION_ORCHESTRATION_IMPLEMENTATION_REPORT.md",
+      "title": "Batch 7 Execution Orchestration Implementation Report"
+    },
+    {
+      "category": "audit",
+      "path": "docs/audit/BATCH_8_COMPLETION_ASSURANCE_BASELINE.md",
+      "title": "Batch 8 Completion Assurance Baseline"
+    },
+    {
+      "category": "audit",
+      "path": "docs/audit/BATCH_8_COMPLETION_ASSURANCE_GAP_MATRIX.md",
+      "title": "Batch 8 Completion Assurance Gap Matrix"
+    },
+    {
+      "category": "audit",
+      "path": "docs/audit/BATCH_8_COMPLETION_ASSURANCE_IMPLEMENTATION_REPORT.md",
+      "title": "Batch 8 Completion Assurance Implementation Report"
+    },
+    {
+      "category": "audit",
+      "path": "docs/audit/BATCH_9_SETTLEMENT_ASSURANCE_BASELINE.md",
+      "title": "Batch 9 Settlement Assurance Baseline"
+    },
+    {
+      "category": "audit",
+      "path": "docs/audit/BATCH_9_SETTLEMENT_ASSURANCE_GAP_MATRIX.md",
+      "title": "Batch 9 Settlement Assurance Gap Matrix"
+    },
+    {
+      "category": "audit",
+      "path": "docs/audit/BATCH_9_SETTLEMENT_ASSURANCE_IMPLEMENTATION_REPORT.md",
+      "title": "Batch 9 Settlement Assurance Implementation Report"
+    },
+    {
+      "category": "audit",
+      "path": "docs/audit/BUILD_RUNTIME_REPORT.md",
+      "title": "AssuraPay Build Runtime Report"
+    },
+    {
+      "category": "audit",
+      "path": "docs/audit/CURRENT_STATE_ASSESSMENT.md",
+      "title": "Current State Assessment"
+    },
+    {
+      "category": "certification",
+      "path": "docs/certification/AUTHORIZATION_CERTIFICATION.md",
+      "title": "Authorization Certification"
+    },
+    {
+      "category": "certification",
+      "path": "docs/certification/BATCH_10_SETTLEMENT_EXECUTION_CERTIFICATION.md",
+      "title": "Batch 10 Settlement Execution Certification"
+    },
+    {
+      "category": "certification",
+      "path": "docs/certification/BATCH_11_ENTERPRISE_INTELLIGENCE_CERTIFICATION.md",
+      "title": "Batch 11 Enterprise Intelligence Certification"
+    },
+    {
+      "category": "certification",
+      "path": "docs/certification/BATCH_12_ENTERPRISE_ANALYTICS_CERTIFICATION.md",
+      "title": "Batch 12 Enterprise Analytics Certification"
+    },
+    {
+      "category": "certification",
+      "path": "docs/certification/BATCH_13_AGENT_RUNTIME_CERTIFICATION.md",
+      "title": "Batch 13 Agent Runtime Certification"
+    },
+    {
+      "category": "certification",
+      "path": "docs/certification/BATCH_14_WORKFLOW_INTELLIGENCE_CERTIFICATION.md",
+      "title": "Batch 14 Workflow Intelligence Certification"
+    },
+    {
+      "category": "certification",
+      "path": "docs/certification/BATCH_1_TRUST_FOUNDATION_CERTIFICATION.md",
+      "title": "Batch 1 Trust Foundation Certification"
+    },
+    {
+      "category": "certification",
+      "path": "docs/certification/BATCH_2_GOVERNANCE_CORE_CERTIFICATION.md",
+      "title": "Batch 2 Governance Core Certification"
+    },
+    {
+      "category": "certification",
+      "path": "docs/certification/BATCH_3_AGREEMENT_CREATION_CERTIFICATION.md",
+      "title": "Batch 3 Agreement Creation Certification"
+    },
+    {
+      "category": "certification",
+      "path": "docs/certification/BATCH_4_AGREEMENT_INTELLIGENCE_CERTIFICATION.md",
+      "title": "Batch 4 Agreement Intelligence Certification"
+    },
+    {
+      "category": "certification",
+      "path": "docs/certification/BATCH_5_PERFORMANCE_BLUEPRINT_CERTIFICATION.md",
+      "title": "Batch 5 Performance Blueprint Certification"
+    },
+    {
+      "category": "certification",
+      "path": "docs/certification/BATCH_6_PERFORMANCE_READINESS_CERTIFICATION.md",
+      "title": "Batch 6 Performance Readiness Certification"
+    },
+    {
+      "category": "certification",
+      "path": "docs/certification/BATCH_7_EXECUTION_ORCHESTRATION_CERTIFICATION.md",
+      "title": "Batch 7 Execution Orchestration Certification"
+    },
+    {
+      "category": "certification",
+      "path": "docs/certification/BATCH_8_COMPLETION_ASSURANCE_CERTIFICATION.md",
+      "title": "Batch 8 Completion Assurance Certification"
+    },
+    {
+      "category": "certification",
+      "path": "docs/certification/BATCH_9_SETTLEMENT_ASSURANCE_CERTIFICATION.md",
+      "title": "Batch 9 Settlement Assurance Certification"
+    },
+    {
+      "category": "certification",
+      "path": "docs/certification/BUILD_RUNTIME_CERTIFICATION.md",
+      "title": "Platform Build & Dependency Governance Certification"
+    },
+    {
+      "category": "certification",
+      "path": "docs/certification/IDENTITY_CERTIFICATION.md",
+      "title": "Identity Certification"
+    },
+    {
+      "category": "certification",
+      "path": "docs/certification/LEGAL_GOVERNANCE_CERTIFICATION.md",
+      "title": "Legal Governance Certification"
+    },
+    {
+      "category": "certification",
+      "path": "docs/certification/PARTY_VERIFICATION_CERTIFICATION.md",
+      "title": "Party Verification Certification"
+    },
+    {
+      "category": "certification",
+      "path": "docs/certification/TENANT_ISOLATION_CERTIFICATION.md",
+      "title": "Tenant Isolation Certification"
+    },
+    {
+      "category": "governance",
+      "path": "docs/governance/reos/AGENT_PROTOCOL.md",
+      "title": "REOS Agent Protocol"
+    },
+    {
+      "category": "governance",
+      "path": "docs/governance/reos/EXECUTION_CONTRACT.md",
+      "title": "REOS Execution Contract"
+    },
+    {
+      "category": "governance",
+      "path": "docs/governance/reos/README.md",
+      "title": "Repository Execution Operating System (REOS)"
+    },
+    {
+      "category": "governance",
+      "path": "docs/governance/reos/generated/CERTIFICATION_REPORT.md",
+      "title": "Certification Report"
+    },
+    {
+      "category": "governance",
+      "path": "docs/governance/reos/generated/DEPENDENCY_RESOLUTION.md",
+      "title": "Dependency Resolution Report"
+    },
+    {
+      "category": "governance",
+      "path": "docs/governance/reos/generated/EXECUTION_MANIFEST.md",
+      "title": "Repository Execution Manifest"
+    },
+    {
+      "category": "governance",
+      "path": "docs/governance/reos/generated/EXECUTION_REPORT.md",
+      "title": "Execution Report"
+    },
+    {
+      "category": "guides",
+      "path": "docs/guides/SLA_INTELLIGENCE_GUIDE.md",
+      "title": "SLA Intelligence Guide"
+    },
+    {
+      "category": "migration",
+      "path": "docs/migration/BATCH_13_AGENT_RUNTIME_MIGRATION_NOTES.md",
+      "title": "Batch 13 Migration Notes"
+    },
+    {
+      "category": "migration",
+      "path": "docs/migration/BATCH_14_WORKFLOW_INTELLIGENCE_MIGRATION_NOTES.md",
+      "title": "Batch 14 Migration Notes"
+    },
+    {
+      "category": "operations",
+      "path": "docs/operations/AGENT_RUNTIME_OPERATIONAL_GUIDE.md",
+      "title": "Agent Runtime Operational Guide"
+    },
+    {
+      "category": "product",
+      "path": "docs/product/EXECUTION_ASSURANCE_MATURITY_MODEL.md",
+      "title": "AssuraPay Execution Assurance Maturity Model"
+    },
+    {
+      "category": "product",
+      "path": "docs/product/IMPLEMENTATION_ROADMAP.md",
+      "title": "Implementation Roadmap"
+    },
+    {
+      "category": "product",
+      "path": "docs/product/MVP_SCOPE.md",
+      "title": "MVP Scope"
+    },
+    {
+      "category": "runtime",
+      "path": "docs/runtime/AGENT_RUNTIME_GUIDE.md",
+      "title": "Agent Runtime Guide"
+    },
+    {
+      "category": "runtime",
+      "path": "docs/runtime/WORKFLOW_INTELLIGENCE_RUNTIME_GUIDE.md",
+      "title": "Workflow Intelligence Runtime Guide"
+    },
+    {
+      "category": "security",
+      "path": "docs/security/AGENT_RUNTIME_SECURITY.md",
+      "title": "Agent Runtime Security"
+    },
+    {
+      "category": "security",
+      "path": "docs/security/AGREEMENT_CREATION_SECURITY.md",
+      "title": "Agreement Creation Security"
+    },
+    {
+      "category": "security",
+      "path": "docs/security/AGREEMENT_INTELLIGENCE_SECURITY.md",
+      "title": "Agreement Intelligence Security"
+    },
+    {
+      "category": "security",
+      "path": "docs/security/COMPLETION_ASSURANCE_SECURITY.md",
+      "title": "Completion Assurance Security"
+    },
+    {
+      "category": "security",
+      "path": "docs/security/DEPENDENCY_GOVERNANCE_REPORT.md",
+      "title": "Dependency Governance Report"
+    },
+    {
+      "category": "security",
+      "path": "docs/security/ENTERPRISE_ANALYTICS_SECURITY.md",
+      "title": "Enterprise Analytics Security"
+    },
+    {
+      "category": "security",
+      "path": "docs/security/ENTERPRISE_INTELLIGENCE_SECURITY.md",
+      "title": "Enterprise Intelligence Security"
+    },
+    {
+      "category": "security",
+      "path": "docs/security/EXECUTION_ORCHESTRATION_SECURITY.md",
+      "title": "Execution Orchestration Security"
+    },
+    {
+      "category": "security",
+      "path": "docs/security/IDENTITY_SECURITY_MODEL.md",
+      "title": "Identity Security Model"
+    },
+    {
+      "category": "security",
+      "path": "docs/security/LEGAL_DATA_SECURITY.md",
+      "title": "Legal Data Security"
+    },
+    {
+      "category": "security",
+      "path": "docs/security/PARTY_DATA_SECURITY.md",
+      "title": "Party Data Security"
+    },
+    {
+      "category": "security",
+      "path": "docs/security/PERFORMANCE_BLUEPRINT_SECURITY.md",
+      "title": "Performance Blueprint Security"
+    },
+    {
+      "category": "security",
+      "path": "docs/security/PERFORMANCE_READINESS_SECURITY.md",
+      "title": "Performance Readiness Security"
+    },
+    {
+      "category": "security",
+      "path": "docs/security/PERMISSION_MODEL.md",
+      "title": "Permission Model"
+    },
+    {
+      "category": "security",
+      "path": "docs/security/PNPM_POLICY_REPORT.md",
+      "title": "pnpm Build-Script Policy Report"
+    },
+    {
+      "category": "security",
+      "path": "docs/security/SETTLEMENT_ASSURANCE_SECURITY.md",
+      "title": "Settlement Assurance Security"
+    },
+    {
+      "category": "security",
+      "path": "docs/security/SETTLEMENT_EXECUTION_SECURITY.md",
+      "title": "Settlement Execution Security"
+    },
+    {
+      "category": "security",
+      "path": "docs/security/TENANT_ISOLATION_MODEL.md",
+      "title": "Tenant Isolation Model"
+    },
+    {
+      "category": "security",
+      "path": "docs/security/WORKFLOW_INTELLIGENCE_SECURITY.md",
+      "title": "Workflow Intelligence Security"
+    }
+  ],
+  "engines": [
+    {
+      "declaredStatus": "Conditionally implemented",
+      "id": "01",
+      "name": "Identity & Digital Trust",
+      "responsibility": "Authentication, MFA, SSO, device trust, sessions, identity assurance",
+      "wave": 1,
+      "waveName": "Trust Foundation"
+    },
+    {
+      "declaredStatus": "Conditionally implemented",
+      "id": "02",
+      "name": "Organization & Multi-Tenant",
+      "responsibility": "Personal and organization workspaces, hierarchy, membership, tenant isolation",
+      "wave": 1,
+      "waveName": "Trust Foundation"
+    },
+    {
+      "declaredStatus": "Conditionally implemented",
+      "id": "03",
+      "name": "Roles, Permissions & Governance",
+      "responsibility": "RBAC, ABAC, record/field access, delegation, authority, segregation of duties",
+      "wave": 1,
+      "waveName": "Trust Foundation"
+    },
+    {
+      "declaredStatus": "Conditionally implemented",
+      "id": "04",
+      "name": "Party Verification",
+      "responsibility": "KYC/KYB, company, director, tax, licence, insurance, beneficiary verification",
+      "wave": 1,
+      "waveName": "Trust Foundation"
+    },
+    {
+      "declaredStatus": "Conditionally implemented",
+      "id": "05",
+      "name": "Legal Governance",
+      "responsibility": "Terms, privacy, consent, jurisdiction, legal holds, signature policy packs",
+      "wave": 1,
+      "waveName": "Trust Foundation"
+    },
+    {
+      "declaredStatus": "Deferred",
+      "id": "06",
+      "name": "Third-Party Risk",
+      "responsibility": "Vendor, cyber, financial, AML, ESG and resilience risk",
+      "wave": 1,
+      "waveName": "Trust Foundation"
+    },
+    {
+      "declaredStatus": "Deferred",
+      "id": "07",
+      "name": "Compliance Foundation",
+      "responsibility": "Configurable privacy, AML, sanctions, quality and internal-policy controls",
+      "wave": 1,
+      "waveName": "Trust Foundation"
+    },
+    {
+      "declaredStatus": "Foundation only",
+      "id": "08",
+      "name": "Audit & Evidence Ledger",
+      "responsibility": "Append-only decisions, approvals, signatures, evidence and financial audit",
+      "wave": 1,
+      "waveName": "Trust Foundation"
+    },
+    {
+      "declaredStatus": "Deferred",
+      "id": "09",
+      "name": "Notification & Communication",
+      "responsibility": "Email, SMS, WhatsApp, push, in-app, webhooks and delivery evidence",
+      "wave": 1,
+      "waveName": "Trust Foundation"
+    },
+    {
+      "declaredStatus": "Deferred",
+      "id": "10",
+      "name": "Enterprise Configuration",
+      "responsibility": "Profiles, inheritance, object/field controls, workflows, rules and policy packs",
+      "wave": 1,
+      "waveName": "Trust Foundation"
+    },
+    {
+      "declaredStatus": null,
+      "id": "11",
+      "name": "Contract Authoring",
+      "responsibility": "Templates, variables, clauses, collaborative and AI-assisted drafting",
+      "wave": 2,
+      "waveName": "Agreement Intelligence"
+    },
+    {
+      "declaredStatus": null,
+      "id": "12",
+      "name": "Clause Intelligence",
+      "responsibility": "Clause library, versions, deviations, risk and performance intelligence",
+      "wave": 2,
+      "waveName": "Agreement Intelligence"
+    },
+    {
+      "declaredStatus": null,
+      "id": "13",
+      "name": "Negotiation",
+      "responsibility": "Redlines, counteroffers, comparison, comments and analytics",
+      "wave": 2,
+      "waveName": "Agreement Intelligence"
+    },
+    {
+      "declaredStatus": null,
+      "id": "14",
+      "name": "Approval Workflow",
+      "responsibility": "Sequential, parallel, conditional and threshold approvals",
+      "wave": 2,
+      "waveName": "Agreement Intelligence"
+    },
+    {
+      "declaredStatus": null,
+      "id": "15",
+      "name": "Digital Execution",
+      "responsibility": "Signatures, witnesses, authority checks and execution certificates",
+      "wave": 2,
+      "waveName": "Agreement Intelligence"
+    },
+    {
+      "declaredStatus": null,
+      "id": "16",
+      "name": "AI Contract Analysis",
+      "responsibility": "Completeness, ambiguity, compliance, missing clauses and obligation analysis",
+      "wave": 2,
+      "waveName": "Agreement Intelligence"
+    },
+    {
+      "declaredStatus": null,
+      "id": "17",
+      "name": "Contract Risk",
+      "responsibility": "Legal, financial, operational, regulatory and execution risk scoring",
+      "wave": 2,
+      "waveName": "Agreement Intelligence"
+    },
+    {
+      "declaredStatus": null,
+      "id": "18",
+      "name": "Contract Version",
+      "responsibility": "Immutable draft, executed, amended, restated and superseded versions",
+      "wave": 2,
+      "waveName": "Agreement Intelligence"
+    },
+    {
+      "declaredStatus": null,
+      "id": "19",
+      "name": "Contract Repository",
+      "responsibility": "Secure storage, OCR, search, semantic retrieval, tags, retention and holds",
+      "wave": 2,
+      "waveName": "Agreement Intelligence"
+    },
+    {
+      "declaredStatus": null,
+      "id": "20",
+      "name": "Agreement Intelligence",
+      "responsibility": "Structured extraction of parties, obligations, milestones, KPIs and payment triggers",
+      "wave": 2,
+      "waveName": "Agreement Intelligence"
+    },
+    {
+      "declaredStatus": null,
+      "id": "21",
+      "name": "Performance Blueprint",
+      "responsibility": "Canonical executable plan derived from the agreement",
+      "wave": 3,
+      "waveName": "Performance Blueprint"
+    },
+    {
+      "declaredStatus": null,
+      "id": "22",
+      "name": "Scope Definition",
+      "responsibility": "Included/excluded work, assumptions, constraints and ownership",
+      "wave": 3,
+      "waveName": "Performance Blueprint"
+    },
+    {
+      "declaredStatus": null,
+      "id": "23",
+      "name": "Deliverables",
+      "responsibility": "Quantity, quality, owner, due date, acceptance and evidence requirements",
+      "wave": 3,
+      "waveName": "Performance Blueprint"
+    },
+    {
+      "declaredStatus": null,
+      "id": "24",
+      "name": "Milestone Planning",
+      "responsibility": "Sequencing, dependencies, critical path, schedule, budget and value allocation",
+      "wave": 3,
+      "waveName": "Performance Blueprint"
+    },
+    {
+      "declaredStatus": null,
+      "id": "25",
+      "name": "Definition of Done",
+      "responsibility": "Deliverables, criteria, evidence, quality, compliance, risk and payment gates",
+      "wave": 3,
+      "waveName": "Performance Blueprint"
+    },
+    {
+      "declaredStatus": null,
+      "id": "26",
+      "name": "Acceptance Criteria",
+      "responsibility": "Measurable tests, tolerances, methods, validators and retest rules",
+      "wave": 3,
+      "waveName": "Performance Blueprint"
+    },
+    {
+      "declaredStatus": null,
+      "id": "27",
+      "name": "Success Metrics",
+      "responsibility": "Milestone KPIs, SLA, quality, timeliness, outcome and cost measures",
+      "wave": 3,
+      "waveName": "Performance Blueprint"
+    },
+    {
+      "declaredStatus": null,
+      "id": "28",
+      "name": "Dependency Intelligence",
+      "responsibility": "Internal, external, vendor, customer, regulatory and funding dependencies",
+      "wave": 3,
+      "waveName": "Performance Blueprint"
+    },
+    {
+      "declaredStatus": null,
+      "id": "29",
+      "name": "Payment Trigger",
+      "responsibility": "Contractual rules determining payment eligibility",
+      "wave": 3,
+      "waveName": "Performance Blueprint"
+    },
+    {
+      "declaredStatus": null,
+      "id": "30",
+      "name": "Performance Baseline",
+      "responsibility": "Planned versus actual time, cost, scope, quality, risk and resources",
+      "wave": 3,
+      "waveName": "Performance Blueprint"
+    },
+    {
+      "declaredStatus": null,
+      "id": "31",
+      "name": "Execution Orchestration",
+      "responsibility": "Workspaces, activation, work items, assignment, suspension and submission",
+      "wave": 4,
+      "waveName": "Execution Assurance"
+    },
+    {
+      "declaredStatus": null,
+      "id": "32",
+      "name": "Progress Measurement",
+      "responsibility": "Declared, evidenced, validated, accepted and financially earned progress",
+      "wave": 4,
+      "waveName": "Execution Assurance"
+    },
+    {
+      "declaredStatus": null,
+      "id": "33",
+      "name": "Evidence Management",
+      "responsibility": "Requirements, uploads, packages, hashes, chain of custody and verification",
+      "wave": 4,
+      "waveName": "Execution Assurance"
+    },
+    {
+      "declaredStatus": null,
+      "id": "34",
+      "name": "Validation & Acceptance Testing",
+      "responsibility": "Manual/automated tests, pass/fail, conditional pass, waiver and retest",
+      "wave": 4,
+      "waveName": "Execution Assurance"
+    },
+    {
+      "declaredStatus": null,
+      "id": "35",
+      "name": "Quality Assurance",
+      "responsibility": "Quality plans, defects, root cause, rework and quality gates",
+      "wave": 4,
+      "waveName": "Execution Assurance"
+    },
+    {
+      "declaredStatus": null,
+      "id": "36",
+      "name": "Inspection & Field Verification",
+      "responsibility": "Scheduling, checklists, field evidence, findings and reinspection",
+      "wave": 4,
+      "waveName": "Execution Assurance"
+    },
+    {
+      "declaredStatus": null,
+      "id": "37",
+      "name": "Issue, Risk & Corrective Action",
+      "responsibility": "Issues, escalation, CAPA, blockers and resolution verification",
+      "wave": 4,
+      "waveName": "Execution Assurance"
+    },
+    {
+      "declaredStatus": null,
+      "id": "38",
+      "name": "Change Control",
+      "responsibility": "Scope, schedule, cost, criteria, evidence and payment-trigger changes",
+      "wave": 4,
+      "waveName": "Execution Assurance"
+    },
+    {
+      "declaredStatus": null,
+      "id": "39",
+      "name": "Acceptance & Decision",
+      "responsibility": "Full, partial, conditional, provisional, rejected and deferred acceptance",
+      "wave": 4,
+      "waveName": "Execution Assurance"
+    },
+    {
+      "declaredStatus": null,
+      "id": "40",
+      "name": "Completion Certification",
+      "responsibility": "Digitally verifiable milestone completion certificate",
+      "wave": 4,
+      "waveName": "Execution Assurance"
+    },
+    {
+      "declaredStatus": null,
+      "id": "41",
+      "name": "Payment Eligibility",
+      "responsibility": "Confirms certified work satisfies the applicable payment trigger",
+      "wave": 5,
+      "waveName": "Settlement Assurance"
+    },
+    {
+      "declaredStatus": null,
+      "id": "42",
+      "name": "Financial Entitlement",
+      "responsibility": "Calculates gross earned, variations, retention, tax, penalties and net payable",
+      "wave": 5,
+      "waveName": "Settlement Assurance"
+    },
+    {
+      "declaredStatus": null,
+      "id": "43",
+      "name": "Invoice & Claim Management",
+      "responsibility": "Invoices, claims, matching, duplicate detection and approval",
+      "wave": 5,
+      "waveName": "Settlement Assurance"
+    },
+    {
+      "declaredStatus": null,
+      "id": "44",
+      "name": "Escrow & Funding Assurance",
+      "responsibility": "External custody references, funding commitments and fund reservations",
+      "wave": 5,
+      "waveName": "Settlement Assurance"
+    },
+    {
+      "declaredStatus": null,
+      "id": "45",
+      "name": "Conditional Release Orchestration",
+      "responsibility": "Evaluates conditions and coordinates full, partial and staged release",
+      "wave": 5,
+      "waveName": "Settlement Assurance"
+    },
+    {
+      "declaredStatus": null,
+      "id": "46",
+      "name": "Financial Approval & Authority",
+      "responsibility": "Thresholds, dual approval, treasury, finance and segregation controls",
+      "wave": 5,
+      "waveName": "Settlement Assurance"
+    },
+    {
+      "declaredStatus": null,
+      "id": "47",
+      "name": "Payment Execution & Treasury Integration",
+      "responsibility": "Idempotent provider instructions, status, retries, returns and reversals",
+      "wave": 5,
+      "waveName": "Settlement Assurance"
+    },
+    {
+      "declaredStatus": null,
+      "id": "48",
+      "name": "Reconciliation & Financial Ledger",
+      "responsibility": "Append-only settlement ledger, external matching and exceptions",
+      "wave": 5,
+      "waveName": "Settlement Assurance"
+    },
+    {
+      "declaredStatus": null,
+      "id": "49",
+      "name": "Dispute, Claim & Appeal Resolution",
+      "responsibility": "Evidence, positions, holds, decisions, mediation and appeals",
+      "wave": 5,
+      "waveName": "Settlement Assurance"
+    },
+    {
+      "declaredStatus": null,
+      "id": "50",
+      "name": "Final Settlement & Financial Closure",
+      "responsibility": "Final account, outstanding balances and financial closure certificate",
+      "wave": 5,
+      "waveName": "Settlement Assurance"
+    },
+    {
+      "declaredStatus": null,
+      "id": "51",
+      "name": "Execution Assurance Index",
+      "responsibility": "Composite execution score with mandatory-gate overrides",
+      "wave": 6,
+      "waveName": "Enterprise Intelligence"
+    },
+    {
+      "declaredStatus": null,
+      "id": "52",
+      "name": "Settlement Assurance Index",
+      "responsibility": "Composite financial assurance score with hold overrides",
+      "wave": 6,
+      "waveName": "Enterprise Intelligence"
+    },
+    {
+      "declaredStatus": null,
+      "id": "53",
+      "name": "Enterprise KPI",
+      "responsibility": "Configurable portfolio, execution, evidence, risk, payment and settlement KPIs",
+      "wave": 6,
+      "waveName": "Enterprise Intelligence"
+    },
+    {
+      "declaredStatus": null,
+      "id": "54",
+      "name": "Executive Dashboard",
+      "responsibility": "Role-aware dashboards backed by governed analytical views",
+      "wave": 6,
+      "waveName": "Enterprise Intelligence"
+    },
+    {
+      "declaredStatus": null,
+      "id": "55",
+      "name": "Predictive Execution Intelligence",
+      "responsibility": "Delay, quality, evidence and certification forecasts",
+      "wave": 6,
+      "waveName": "Enterprise Intelligence"
+    },
+    {
+      "declaredStatus": null,
+      "id": "56",
+      "name": "Financial & Payment Intelligence",
+      "responsibility": "Funding, release, payment, leakage and reconciliation predictions",
+      "wave": 6,
+      "waveName": "Enterprise Intelligence"
+    },
+    {
+      "declaredStatus": null,
+      "id": "57",
+      "name": "Vendor & Customer Performance",
+      "responsibility": "Two-sided accountability and relationship performance",
+      "wave": 6,
+      "waveName": "Enterprise Intelligence"
+    },
+    {
+      "declaredStatus": null,
+      "id": "58",
+      "name": "Portfolio Analytics",
+      "responsibility": "At-risk, blocked, unpaid, disputed, retained and concentrated value",
+      "wave": 6,
+      "waveName": "Enterprise Intelligence"
+    },
+    {
+      "declaredStatus": null,
+      "id": "59",
+      "name": "Renewal & Relationship Intelligence",
+      "responsibility": "Renewal readiness, performance history and renegotiation intelligence",
+      "wave": 6,
+      "waveName": "Enterprise Intelligence"
+    },
+    {
+      "declaredStatus": null,
+      "id": "60",
+      "name": "AI Decision Support & Continuous Improvement",
+      "responsibility": "Gateway, registries, evaluation, drift, feedback and governed recommendations",
+      "wave": 6,
+      "waveName": "Enterprise Intelligence"
+    }
+  ],
+  "migrations": [
+    {
+      "declaresPolicies": 0,
+      "declaresRowLevelSecurity": false,
+      "id": "202608010001",
+      "name": "initial_assurapay_schema",
+      "path": "supabase/migrations/202608010001_initial_assurapay_schema.sql"
+    },
+    {
+      "declaresPolicies": 0,
+      "declaresRowLevelSecurity": false,
+      "id": "202608020001",
+      "name": "identity_sessions",
+      "path": "supabase/migrations/202608020001_identity_sessions.sql"
+    },
+    {
+      "declaresPolicies": 0,
+      "declaresRowLevelSecurity": false,
+      "id": "202608020002",
+      "name": "workspaces_organizations",
+      "path": "supabase/migrations/202608020002_workspaces_organizations.sql"
+    },
+    {
+      "declaresPolicies": 0,
+      "declaresRowLevelSecurity": false,
+      "id": "202608020003",
+      "name": "permissions_governance",
+      "path": "supabase/migrations/202608020003_permissions_governance.sql"
+    },
+    {
+      "declaresPolicies": 0,
+      "declaresRowLevelSecurity": false,
+      "id": "202608020004",
+      "name": "parties_verification",
+      "path": "supabase/migrations/202608020004_parties_verification.sql"
+    },
+    {
+      "declaresPolicies": 0,
+      "declaresRowLevelSecurity": false,
+      "id": "202608020005",
+      "name": "legal_governance",
+      "path": "supabase/migrations/202608020005_legal_governance.sql"
+    },
+    {
+      "declaresPolicies": 9,
+      "declaresRowLevelSecurity": true,
+      "id": "202608020006",
+      "name": "trust_rls_audit_outbox",
+      "path": "supabase/migrations/202608020006_trust_rls_audit_outbox.sql"
+    },
+    {
+      "declaresPolicies": 11,
+      "declaresRowLevelSecurity": true,
+      "id": "202608030001",
+      "name": "governance_core",
+      "path": "supabase/migrations/202608030001_governance_core.sql"
+    },
+    {
+      "declaresPolicies": 1,
+      "declaresRowLevelSecurity": true,
+      "id": "202608030002",
+      "name": "agreement_creation",
+      "path": "supabase/migrations/202608030002_agreement_creation.sql"
+    },
+    {
+      "declaresPolicies": 1,
+      "declaresRowLevelSecurity": true,
+      "id": "202608030003",
+      "name": "agreement_intelligence",
+      "path": "supabase/migrations/202608030003_agreement_intelligence.sql"
+    },
+    {
+      "declaresPolicies": 1,
+      "declaresRowLevelSecurity": true,
+      "id": "202608030004",
+      "name": "performance_blueprint",
+      "path": "supabase/migrations/202608030004_performance_blueprint.sql"
+    },
+    {
+      "declaresPolicies": 1,
+      "declaresRowLevelSecurity": true,
+      "id": "202608030005",
+      "name": "performance_readiness",
+      "path": "supabase/migrations/202608030005_performance_readiness.sql"
+    },
+    {
+      "declaresPolicies": 1,
+      "declaresRowLevelSecurity": true,
+      "id": "202608030006",
+      "name": "execution_orchestration",
+      "path": "supabase/migrations/202608030006_execution_orchestration.sql"
+    },
+    {
+      "declaresPolicies": 1,
+      "declaresRowLevelSecurity": true,
+      "id": "202608030007",
+      "name": "completion_assurance",
+      "path": "supabase/migrations/202608030007_completion_assurance.sql"
+    },
+    {
+      "declaresPolicies": 1,
+      "declaresRowLevelSecurity": true,
+      "id": "202608030008",
+      "name": "settlement_assurance",
+      "path": "supabase/migrations/202608030008_settlement_assurance.sql"
+    },
+    {
+      "declaresPolicies": 1,
+      "declaresRowLevelSecurity": true,
+      "id": "202608030009",
+      "name": "settlement_execution",
+      "path": "supabase/migrations/202608030009_settlement_execution.sql"
+    },
+    {
+      "declaresPolicies": 1,
+      "declaresRowLevelSecurity": true,
+      "id": "202608030010",
+      "name": "enterprise_intelligence",
+      "path": "supabase/migrations/202608030010_enterprise_intelligence.sql"
+    },
+    {
+      "declaresPolicies": 1,
+      "declaresRowLevelSecurity": true,
+      "id": "202608030011",
+      "name": "enterprise_analytics",
+      "path": "supabase/migrations/202608030011_enterprise_analytics.sql"
+    },
+    {
+      "declaresPolicies": 1,
+      "declaresRowLevelSecurity": true,
+      "id": "202608030012",
+      "name": "agent_runtime",
+      "path": "supabase/migrations/202608030012_agent_runtime.sql"
+    },
+    {
+      "declaresPolicies": 1,
+      "declaresRowLevelSecurity": true,
+      "id": "202608030013",
+      "name": "workflow_intelligence",
+      "path": "supabase/migrations/202608030013_workflow_intelligence.sql"
+    }
+  ],
+  "packages": [
+    {
+      "directory": "packages/agent-runtime",
+      "exportedClasses": [
+        "AgentGovernanceEngine",
+        "AgentRegistryEngine",
+        "AgentRuntimeEngine",
+        "AgentTelemetryEngine",
+        "AiGatewayEngine",
+        "CapabilityRegistryEngine",
+        "ContextEngine",
+        "ExecutionMemoryEngine",
+        "HumanApprovalEngine",
+        "PromptRegistryEngine"
+      ],
+      "externalDependencies": [],
+      "main": "src/index.ts",
+      "moduleType": null,
+      "name": "@assurapay/agent-runtime",
+      "sourceFiles": 1,
+      "sourceLines": 998,
+      "testFiles": [
+        "packages/agent-runtime/src/agent-runtime.e2e.test.ts",
+        "packages/agent-runtime/src/agent-runtime.integration.test.ts",
+        "packages/agent-runtime/src/agent-runtime.performance.test.ts",
+        "packages/agent-runtime/src/agent-runtime.security.test.ts",
+        "packages/agent-runtime/src/agent-runtime.test.ts"
+      ],
+      "tests": {
+        "e2e": 1,
+        "integration": 1,
+        "performance": 1,
+        "security": 1,
+        "unit": 1
+      },
+      "workspaceDependencies": [
+        "@assurapay/database",
+        "@assurapay/shared"
+      ]
+    },
+    {
+      "directory": "packages/agreement-creation",
+      "exportedClasses": [
+        "ApprovalWorkflowEngine",
+        "ClauseIntelligenceEngine",
+        "ContractAuthoringEngine",
+        "DigitalExecutionEngine",
+        "NegotiationEngine"
+      ],
+      "externalDependencies": [],
+      "main": "src/index.ts",
+      "moduleType": null,
+      "name": "@assurapay/agreement-creation",
+      "sourceFiles": 1,
+      "sourceLines": 905,
+      "testFiles": [
+        "packages/agreement-creation/src/agreement-creation.e2e.test.ts",
+        "packages/agreement-creation/src/agreement-creation.integration.test.ts",
+        "packages/agreement-creation/src/agreement-creation.test.ts"
+      ],
+      "tests": {
+        "e2e": 1,
+        "integration": 1,
+        "performance": 0,
+        "security": 0,
+        "unit": 1
+      },
+      "workspaceDependencies": [
+        "@assurapay/database",
+        "@assurapay/shared"
+      ]
+    },
+    {
+      "directory": "packages/agreement-intelligence",
+      "exportedClasses": [
+        "AgreementIntelligenceEngine",
+        "ContractAnalysisEngine",
+        "ContractRepositoryEngine",
+        "ContractRiskEngine",
+        "ContractVersionEngine"
+      ],
+      "externalDependencies": [],
+      "main": "src/index.ts",
+      "moduleType": null,
+      "name": "@assurapay/agreement-intelligence",
+      "sourceFiles": 1,
+      "sourceLines": 9,
+      "testFiles": [
+        "packages/agreement-intelligence/src/agreement-intelligence.e2e.test.ts",
+        "packages/agreement-intelligence/src/agreement-intelligence.integration.test.ts",
+        "packages/agreement-intelligence/src/agreement-intelligence.test.ts"
+      ],
+      "tests": {
+        "e2e": 1,
+        "integration": 1,
+        "performance": 0,
+        "security": 0,
+        "unit": 1
+      },
+      "workspaceDependencies": [
+        "@assurapay/database",
+        "@assurapay/shared"
+      ]
+    },
+    {
+      "directory": "packages/completion-assurance",
+      "exportedClasses": [
+        "AcceptanceDecisionEngine",
+        "ChangeControlEngine",
+        "CompletionCertificationEngine",
+        "InspectionEngine",
+        "IssueRiskCorrectiveActionEngine"
+      ],
+      "externalDependencies": [],
+      "main": "src/index.ts",
+      "moduleType": null,
+      "name": "@assurapay/completion-assurance",
+      "sourceFiles": 1,
+      "sourceLines": 452,
+      "testFiles": [
+        "packages/completion-assurance/src/completion-assurance.e2e.test.ts",
+        "packages/completion-assurance/src/completion-assurance.integration.test.ts",
+        "packages/completion-assurance/src/completion-assurance.test.ts"
+      ],
+      "tests": {
+        "e2e": 1,
+        "integration": 1,
+        "performance": 0,
+        "security": 0,
+        "unit": 1
+      },
+      "workspaceDependencies": [
+        "@assurapay/database",
+        "@assurapay/shared"
+      ]
+    },
+    {
+      "directory": "packages/database",
+      "exportedClasses": [
+        "FileAssuraStore",
+        "InMemoryTrustStore"
+      ],
+      "externalDependencies": [],
+      "main": "src/index.ts",
+      "moduleType": null,
+      "name": "@assurapay/database",
+      "sourceFiles": 2,
+      "sourceLines": 319,
+      "testFiles": [
+        "packages/database/src/trust-migrations.integration.test.ts"
+      ],
+      "tests": {
+        "e2e": 0,
+        "integration": 1,
+        "performance": 0,
+        "security": 0,
+        "unit": 0
+      },
+      "workspaceDependencies": [
+        "@assurapay/shared"
+      ]
+    },
+    {
+      "directory": "packages/domain",
+      "exportedClasses": [
+        "AssuraPayService"
+      ],
+      "externalDependencies": [],
+      "main": "src/index.ts",
+      "moduleType": null,
+      "name": "@assurapay/domain",
+      "sourceFiles": 4,
+      "sourceLines": 1181,
+      "testFiles": [
+        "packages/domain/src/services/assurapay-service.test.ts",
+        "packages/domain/src/services/batch2-remediation.test.ts",
+        "packages/domain/src/services/batch4-extensions.test.ts",
+        "packages/domain/src/services/batch4-intelligence.test.ts",
+        "packages/domain/src/services/intelligence-foundation.test.ts",
+        "packages/domain/src/services/settlement-assurance.test.ts",
+        "packages/domain/src/trust-foundation.e2e.test.ts"
+      ],
+      "tests": {
+        "e2e": 1,
+        "integration": 0,
+        "performance": 0,
+        "security": 0,
+        "unit": 6
+      },
+      "workspaceDependencies": [
+        "@assurapay/database",
+        "@assurapay/identity",
+        "@assurapay/legal",
+        "@assurapay/organizations",
+        "@assurapay/parties",
+        "@assurapay/permissions",
+        "@assurapay/shared"
+      ]
+    },
+    {
+      "directory": "packages/enterprise-analytics",
+      "exportedClasses": [
+        "AiDecisionSupportEngine",
+        "FinancialPaymentIntelligenceEngine",
+        "PortfolioAnalyticsEngine",
+        "RenewalRelationshipIntelligenceEngine",
+        "VendorCustomerPerformanceEngine"
+      ],
+      "externalDependencies": [],
+      "main": "src/index.ts",
+      "moduleType": null,
+      "name": "@assurapay/enterprise-analytics",
+      "sourceFiles": 1,
+      "sourceLines": 505,
+      "testFiles": [
+        "packages/enterprise-analytics/src/enterprise-analytics.e2e.test.ts",
+        "packages/enterprise-analytics/src/enterprise-analytics.integration.test.ts",
+        "packages/enterprise-analytics/src/enterprise-analytics.test.ts"
+      ],
+      "tests": {
+        "e2e": 1,
+        "integration": 1,
+        "performance": 0,
+        "security": 0,
+        "unit": 1
+      },
+      "workspaceDependencies": [
+        "@assurapay/database",
+        "@assurapay/shared"
+      ]
+    },
+    {
+      "directory": "packages/enterprise-intelligence",
+      "exportedClasses": [
+        "EnterpriseKpiEngine",
+        "ExecutionAssuranceIndexEngine",
+        "ExecutiveDashboardEngine",
+        "PredictiveExecutionIntelligenceEngine",
+        "SettlementAssuranceIndexEngine"
+      ],
+      "externalDependencies": [],
+      "main": "src/index.ts",
+      "moduleType": null,
+      "name": "@assurapay/enterprise-intelligence",
+      "sourceFiles": 1,
+      "sourceLines": 348,
+      "testFiles": [
+        "packages/enterprise-intelligence/src/enterprise-intelligence.e2e.test.ts",
+        "packages/enterprise-intelligence/src/enterprise-intelligence.integration.test.ts",
+        "packages/enterprise-intelligence/src/enterprise-intelligence.test.ts"
+      ],
+      "tests": {
+        "e2e": 1,
+        "integration": 1,
+        "performance": 0,
+        "security": 0,
+        "unit": 1
+      },
+      "workspaceDependencies": [
+        "@assurapay/database",
+        "@assurapay/shared"
+      ]
+    },
+    {
+      "directory": "packages/execution-orchestration",
+      "exportedClasses": [
+        "EvidenceManagementEngine",
+        "ExecutionOrchestrationEngine",
+        "ProgressMeasurementEngine",
+        "QualityAssuranceEngine",
+        "ValidationAcceptanceTestingEngine"
+      ],
+      "externalDependencies": [],
+      "main": "src/index.ts",
+      "moduleType": null,
+      "name": "@assurapay/execution-orchestration",
+      "sourceFiles": 1,
+      "sourceLines": 500,
+      "testFiles": [
+        "packages/execution-orchestration/src/execution-orchestration.e2e.test.ts",
+        "packages/execution-orchestration/src/execution-orchestration.integration.test.ts",
+        "packages/execution-orchestration/src/execution-orchestration.test.ts"
+      ],
+      "tests": {
+        "e2e": 1,
+        "integration": 1,
+        "performance": 0,
+        "security": 0,
+        "unit": 1
+      },
+      "workspaceDependencies": [
+        "@assurapay/database",
+        "@assurapay/shared"
+      ]
+    },
+    {
+      "directory": "packages/governance-core",
+      "exportedClasses": [
+        "CertificationEngine",
+        "DefinitionOfDoneEngine",
+        "ExecutionEngine",
+        "MilestoneEngine",
+        "PaymentTriggerEngine"
+      ],
+      "externalDependencies": [],
+      "main": "src/index.ts",
+      "moduleType": null,
+      "name": "@assurapay/governance-core",
+      "sourceFiles": 1,
+      "sourceLines": 849,
+      "testFiles": [
+        "packages/governance-core/src/governance-core.e2e.test.ts",
+        "packages/governance-core/src/governance-core.integration.test.ts",
+        "packages/governance-core/src/governance-core.test.ts"
+      ],
+      "tests": {
+        "e2e": 1,
+        "integration": 1,
+        "performance": 0,
+        "security": 0,
+        "unit": 1
+      },
+      "workspaceDependencies": [
+        "@assurapay/database",
+        "@assurapay/shared"
+      ]
+    },
+    {
+      "directory": "packages/identity",
+      "exportedClasses": [
+        "IdentityService"
+      ],
+      "externalDependencies": [],
+      "main": "src/index.ts",
+      "moduleType": null,
+      "name": "@assurapay/identity",
+      "sourceFiles": 1,
+      "sourceLines": 34,
+      "testFiles": [
+        "packages/identity/src/identity.test.ts"
+      ],
+      "tests": {
+        "e2e": 0,
+        "integration": 0,
+        "performance": 0,
+        "security": 0,
+        "unit": 1
+      },
+      "workspaceDependencies": [
+        "@assurapay/database",
+        "@assurapay/shared"
+      ]
+    },
+    {
+      "directory": "packages/legal",
+      "exportedClasses": [
+        "LegalService"
+      ],
+      "externalDependencies": [],
+      "main": "src/index.ts",
+      "moduleType": null,
+      "name": "@assurapay/legal",
+      "sourceFiles": 1,
+      "sourceLines": 28,
+      "testFiles": [
+        "packages/legal/src/legal.test.ts"
+      ],
+      "tests": {
+        "e2e": 0,
+        "integration": 0,
+        "performance": 0,
+        "security": 0,
+        "unit": 1
+      },
+      "workspaceDependencies": [
+        "@assurapay/database",
+        "@assurapay/shared"
+      ]
+    },
+    {
+      "directory": "packages/organizations",
+      "exportedClasses": [
+        "OrganizationService"
+      ],
+      "externalDependencies": [],
+      "main": "src/index.ts",
+      "moduleType": null,
+      "name": "@assurapay/organizations",
+      "sourceFiles": 1,
+      "sourceLines": 23,
+      "testFiles": [
+        "packages/organizations/src/organizations.test.ts"
+      ],
+      "tests": {
+        "e2e": 0,
+        "integration": 0,
+        "performance": 0,
+        "security": 0,
+        "unit": 1
+      },
+      "workspaceDependencies": [
+        "@assurapay/database",
+        "@assurapay/shared"
+      ]
+    },
+    {
+      "directory": "packages/parties",
+      "exportedClasses": [
+        "DeterministicVerificationProvider",
+        "PartyService"
+      ],
+      "externalDependencies": [],
+      "main": "src/index.ts",
+      "moduleType": null,
+      "name": "@assurapay/parties",
+      "sourceFiles": 1,
+      "sourceLines": 20,
+      "testFiles": [
+        "packages/parties/src/parties.test.ts"
+      ],
+      "tests": {
+        "e2e": 0,
+        "integration": 0,
+        "performance": 0,
+        "security": 0,
+        "unit": 1
+      },
+      "workspaceDependencies": [
+        "@assurapay/database",
+        "@assurapay/shared"
+      ]
+    },
+    {
+      "directory": "packages/performance-blueprint",
+      "exportedClasses": [
+        "DefinitionOfDonePackageEngine",
+        "DeliverablesEngine",
+        "MilestonePlanningEngine",
+        "PerformanceBlueprintEngine",
+        "ScopeDefinitionEngine"
+      ],
+      "externalDependencies": [],
+      "main": "src/index.ts",
+      "moduleType": null,
+      "name": "@assurapay/performance-blueprint",
+      "sourceFiles": 1,
+      "sourceLines": 452,
+      "testFiles": [
+        "packages/performance-blueprint/src/performance-blueprint.e2e.test.ts",
+        "packages/performance-blueprint/src/performance-blueprint.integration.test.ts",
+        "packages/performance-blueprint/src/performance-blueprint.test.ts"
+      ],
+      "tests": {
+        "e2e": 1,
+        "integration": 1,
+        "performance": 0,
+        "security": 0,
+        "unit": 1
+      },
+      "workspaceDependencies": [
+        "@assurapay/database",
+        "@assurapay/shared"
+      ]
+    },
+    {
+      "directory": "packages/performance-readiness",
+      "exportedClasses": [
+        "AcceptanceCriteriaEngine",
+        "DependencyIntelligenceEngine",
+        "PaymentTriggerRuleEngine",
+        "PerformanceBaselineEngine",
+        "SuccessMetricsEngine"
+      ],
+      "externalDependencies": [],
+      "main": "src/index.ts",
+      "moduleType": null,
+      "name": "@assurapay/performance-readiness",
+      "sourceFiles": 1,
+      "sourceLines": 418,
+      "testFiles": [
+        "packages/performance-readiness/src/performance-readiness.e2e.test.ts",
+        "packages/performance-readiness/src/performance-readiness.integration.test.ts",
+        "packages/performance-readiness/src/performance-readiness.test.ts"
+      ],
+      "tests": {
+        "e2e": 1,
+        "integration": 1,
+        "performance": 0,
+        "security": 0,
+        "unit": 1
+      },
+      "workspaceDependencies": [
+        "@assurapay/database",
+        "@assurapay/shared"
+      ]
+    },
+    {
+      "directory": "packages/permissions",
+      "exportedClasses": [
+        "PermissionService"
+      ],
+      "externalDependencies": [],
+      "main": "src/index.ts",
+      "moduleType": null,
+      "name": "@assurapay/permissions",
+      "sourceFiles": 1,
+      "sourceLines": 23,
+      "testFiles": [
+        "packages/permissions/src/permissions.test.ts"
+      ],
+      "tests": {
+        "e2e": 0,
+        "integration": 0,
+        "performance": 0,
+        "security": 0,
+        "unit": 1
+      },
+      "workspaceDependencies": [
+        "@assurapay/database",
+        "@assurapay/shared"
+      ]
+    },
+    {
+      "directory": "packages/reos",
+      "exportedClasses": [],
+      "externalDependencies": [],
+      "main": "src/index.ts",
+      "moduleType": "module",
+      "name": "@assurapay/reos",
+      "sourceFiles": 21,
+      "sourceLines": 3231,
+      "testFiles": [
+        "packages/reos/src/reos.e2e.test.ts",
+        "packages/reos/src/reos.integration.test.ts",
+        "packages/reos/src/reos.security.test.ts",
+        "packages/reos/src/reos.test.ts"
+      ],
+      "tests": {
+        "e2e": 1,
+        "integration": 1,
+        "performance": 0,
+        "security": 1,
+        "unit": 1
+      },
+      "workspaceDependencies": []
+    },
+    {
+      "directory": "packages/settlement-assurance",
+      "exportedClasses": [
+        "ConditionalReleaseOrchestrationEngine",
+        "EscrowFundingAssuranceEngine",
+        "FinancialEntitlementEngine",
+        "InvoiceClaimEngine",
+        "PaymentEligibilityEngine"
+      ],
+      "externalDependencies": [],
+      "main": "src/index.ts",
+      "moduleType": null,
+      "name": "@assurapay/settlement-assurance",
+      "sourceFiles": 1,
+      "sourceLines": 492,
+      "testFiles": [
+        "packages/settlement-assurance/src/settlement-assurance.e2e.test.ts",
+        "packages/settlement-assurance/src/settlement-assurance.integration.test.ts",
+        "packages/settlement-assurance/src/settlement-assurance.non-custody.test.ts",
+        "packages/settlement-assurance/src/settlement-assurance.test.ts"
+      ],
+      "tests": {
+        "e2e": 1,
+        "integration": 1,
+        "performance": 0,
+        "security": 0,
+        "unit": 2
+      },
+      "workspaceDependencies": [
+        "@assurapay/database",
+        "@assurapay/shared"
+      ]
+    },
+    {
+      "directory": "packages/settlement-execution",
+      "exportedClasses": [
+        "DisputeResolutionEngine",
+        "FinalSettlementEngine",
+        "FinancialApprovalAuthorityEngine",
+        "PaymentExecutionEngine",
+        "ReconciliationLedgerEngine"
+      ],
+      "externalDependencies": [],
+      "main": "src/index.ts",
+      "moduleType": null,
+      "name": "@assurapay/settlement-execution",
+      "sourceFiles": 1,
+      "sourceLines": 630,
+      "testFiles": [
+        "packages/settlement-execution/src/settlement-execution.e2e.test.ts",
+        "packages/settlement-execution/src/settlement-execution.integration.test.ts",
+        "packages/settlement-execution/src/settlement-execution.non-custody.test.ts",
+        "packages/settlement-execution/src/settlement-execution.test.ts"
+      ],
+      "tests": {
+        "e2e": 1,
+        "integration": 1,
+        "performance": 0,
+        "security": 0,
+        "unit": 2
+      },
+      "workspaceDependencies": [
+        "@assurapay/database",
+        "@assurapay/shared"
+      ]
+    },
+    {
+      "directory": "packages/shared",
+      "exportedClasses": [],
+      "externalDependencies": [],
+      "main": "src/index.ts",
+      "moduleType": null,
+      "name": "@assurapay/shared",
+      "sourceFiles": 2,
+      "sourceLines": 437,
+      "testFiles": [],
+      "tests": {
+        "e2e": 0,
+        "integration": 0,
+        "performance": 0,
+        "security": 0,
+        "unit": 0
+      },
+      "workspaceDependencies": []
+    },
+    {
+      "directory": "packages/workflow-intelligence",
+      "exportedClasses": [
+        "BottleneckDetectionEngine",
+        "DependencyIntelligenceEngine",
+        "EscalationIntelligenceEngine",
+        "ExceptionManagementEngine",
+        "ExecutionHealthEngine",
+        "PredictiveRiskIntelligenceEngine",
+        "ResourceIntelligenceEngine",
+        "ScheduleOptimizationEngine",
+        "SlaIntelligenceEngine",
+        "WorkflowIntelligenceEngine"
+      ],
+      "externalDependencies": [],
+      "main": "src/index.ts",
+      "moduleType": null,
+      "name": "@assurapay/workflow-intelligence",
+      "sourceFiles": 1,
+      "sourceLines": 581,
+      "testFiles": [
+        "packages/workflow-intelligence/src/workflow-intelligence.e2e.test.ts",
+        "packages/workflow-intelligence/src/workflow-intelligence.integration.test.ts",
+        "packages/workflow-intelligence/src/workflow-intelligence.performance.test.ts",
+        "packages/workflow-intelligence/src/workflow-intelligence.security.test.ts",
+        "packages/workflow-intelligence/src/workflow-intelligence.test.ts"
+      ],
+      "tests": {
+        "e2e": 1,
+        "integration": 1,
+        "performance": 1,
+        "security": 1,
+        "unit": 1
+      },
+      "workspaceDependencies": [
+        "@assurapay/database",
+        "@assurapay/shared"
+      ]
+    }
+  ],
+  "reosVersion": "1.0.0",
+  "repository": {
+    "git": {
+      "branch": "claude/git-pull-cqc04u",
+      "branches": [
+        "claude/git-pull-cqc04u",
+        "origin/claude/git-pull-cqc04u",
+        "origin/claude/implementation-02q40a",
+        "origin/feat/engines-01-05-trust-foundation",
+        "origin/feat/engines-06-10-governance-core",
+        "origin/feat/engines-61-70-agent-runtime",
+        "origin/main"
+      ],
+      "clean": false,
+      "dirtyFiles": [
+        "ANIFEST.md",
+        "LAUDE.md",
+        "ackage.json",
+        "ackages/workflow-intelligence/package.json",
+        "docs/governance/",
+        "github/workflows/ci.yml",
+        "itest.config.ts",
+        "npm-lock.yaml",
+        "packages/reos/",
+        "sconfig.json"
+      ],
+      "head": "cf5aea478ca38d1c6abf19bc21794f7de24f8c98",
+      "headShort": "cf5aea4",
+      "reflogAvailable": true,
+      "remotes": [
+        "origin"
+      ],
+      "tags": [
+        "rc-engine-60"
+      ],
+      "upstream": null
+    },
+    "name": "assurapay",
+    "packageManager": "pnpm@11.3.0",
+    "version": "0.1.0"
+  },
+  "runtime": {
+    "duplicatedEngines": [
+      "DependencyIntelligenceEngine"
+    ],
+    "exportedEngines": [
+      "AcceptanceCriteriaEngine",
+      "AcceptanceDecisionEngine",
+      "AgentGovernanceEngine",
+      "AgentRegistryEngine",
+      "AgentRuntimeEngine",
+      "AgentTelemetryEngine",
+      "AgreementIntelligenceEngine",
+      "AiDecisionSupportEngine",
+      "AiGatewayEngine",
+      "ApprovalWorkflowEngine",
+      "AssuraPayService",
+      "BottleneckDetectionEngine",
+      "CapabilityRegistryEngine",
+      "CertificationEngine",
+      "ChangeControlEngine",
+      "ClauseIntelligenceEngine",
+      "CompletionCertificationEngine",
+      "ConditionalReleaseOrchestrationEngine",
+      "ContextEngine",
+      "ContractAnalysisEngine",
+      "ContractAuthoringEngine",
+      "ContractRepositoryEngine",
+      "ContractRiskEngine",
+      "ContractVersionEngine",
+      "DefinitionOfDoneEngine",
+      "DefinitionOfDonePackageEngine",
+      "DeliverablesEngine",
+      "DependencyIntelligenceEngine",
+      "DeterministicVerificationProvider",
+      "DigitalExecutionEngine",
+      "DisputeResolutionEngine",
+      "EnterpriseKpiEngine",
+      "EscalationIntelligenceEngine",
+      "EscrowFundingAssuranceEngine",
+      "EvidenceManagementEngine",
+      "ExceptionManagementEngine",
+      "ExecutionAssuranceIndexEngine",
+      "ExecutionEngine",
+      "ExecutionHealthEngine",
+      "ExecutionMemoryEngine",
+      "ExecutionOrchestrationEngine",
+      "ExecutiveDashboardEngine",
+      "FileAssuraStore",
+      "FinalSettlementEngine",
+      "FinancialApprovalAuthorityEngine",
+      "FinancialEntitlementEngine",
+      "FinancialPaymentIntelligenceEngine",
+      "HumanApprovalEngine",
+      "IdentityService",
+      "InMemoryTrustStore",
+      "InspectionEngine",
+      "InvoiceClaimEngine",
+      "IssueRiskCorrectiveActionEngine",
+      "LegalService",
+      "MilestoneEngine",
+      "MilestonePlanningEngine",
+      "NegotiationEngine",
+      "OrganizationService",
+      "PartyService",
+      "PaymentEligibilityEngine",
+      "PaymentExecutionEngine",
+      "PaymentTriggerEngine",
+      "PaymentTriggerRuleEngine",
+      "PerformanceBaselineEngine",
+      "PerformanceBlueprintEngine",
+      "PermissionService",
+      "PortfolioAnalyticsEngine",
+      "PredictiveExecutionIntelligenceEngine",
+      "PredictiveRiskIntelligenceEngine",
+      "ProgressMeasurementEngine",
+      "PromptRegistryEngine",
+      "QualityAssuranceEngine",
+      "ReconciliationLedgerEngine",
+      "RenewalRelationshipIntelligenceEngine",
+      "ResourceIntelligenceEngine",
+      "ScheduleOptimizationEngine",
+      "ScopeDefinitionEngine",
+      "SettlementAssuranceIndexEngine",
+      "SlaIntelligenceEngine",
+      "SuccessMetricsEngine",
+      "ValidationAcceptanceTestingEngine",
+      "VendorCustomerPerformanceEngine",
+      "WorkflowIntelligenceEngine"
+    ],
+    "registrations": [
+      {
+        "compositionRoot": "apps/web/lib/assurapay-app.ts",
+        "registeredEngines": [
+          "AssuraPayService"
+        ]
+      },
+      {
+        "compositionRoot": "apps/web/lib/trust-app.ts",
+        "registeredEngines": [
+          "AcceptanceCriteriaEngine",
+          "AcceptanceDecisionEngine",
+          "AgreementIntelligenceEngine",
+          "AiDecisionSupportEngine",
+          "ApprovalWorkflowEngine",
+          "BottleneckDetectionEngine",
+          "CertificationEngine",
+          "ChangeControlEngine",
+          "ClauseIntelligenceEngine",
+          "CompletionCertificationEngine",
+          "ConditionalReleaseOrchestrationEngine",
+          "ContractAnalysisEngine",
+          "ContractAuthoringEngine",
+          "ContractRepositoryEngine",
+          "ContractRiskEngine",
+          "ContractVersionEngine",
+          "DefinitionOfDoneEngine",
+          "DefinitionOfDonePackageEngine",
+          "DeliverablesEngine",
+          "DependencyIntelligenceEngine",
+          "DeterministicVerificationProvider",
+          "DigitalExecutionEngine",
+          "DisputeResolutionEngine",
+          "EnterpriseKpiEngine",
+          "EscalationIntelligenceEngine",
+          "EscrowFundingAssuranceEngine",
+          "EvidenceManagementEngine",
+          "ExceptionManagementEngine",
+          "ExecutionAssuranceIndexEngine",
+          "ExecutionEngine",
+          "ExecutionHealthEngine",
+          "ExecutionOrchestrationEngine",
+          "ExecutiveDashboardEngine",
+          "FinalSettlementEngine",
+          "FinancialApprovalAuthorityEngine",
+          "FinancialEntitlementEngine",
+          "FinancialPaymentIntelligenceEngine",
+          "IdentityService",
+          "InspectionEngine",
+          "InvoiceClaimEngine",
+          "IssueRiskCorrectiveActionEngine",
+          "LegalService",
+          "MilestoneEngine",
+          "MilestonePlanningEngine",
+          "NegotiationEngine",
+          "OrganizationService",
+          "PartyService",
+          "PaymentEligibilityEngine",
+          "PaymentExecutionEngine",
+          "PaymentTriggerEngine",
+          "PaymentTriggerRuleEngine",
+          "PerformanceBaselineEngine",
+          "PerformanceBlueprintEngine",
+          "PermissionService",
+          "PortfolioAnalyticsEngine",
+          "PredictiveExecutionIntelligenceEngine",
+          "PredictiveRiskIntelligenceEngine",
+          "ProgressMeasurementEngine",
+          "QualityAssuranceEngine",
+          "ReconciliationLedgerEngine",
+          "RenewalRelationshipIntelligenceEngine",
+          "ResourceIntelligenceEngine",
+          "ScheduleOptimizationEngine",
+          "ScopeDefinitionEngine",
+          "SettlementAssuranceIndexEngine",
+          "SlaIntelligenceEngine",
+          "SuccessMetricsEngine",
+          "ValidationAcceptanceTestingEngine",
+          "VendorCustomerPerformanceEngine",
+          "WorkflowDependencyIntelligenceEngine",
+          "WorkflowIntelligenceEngine"
+        ]
+      }
+    ],
+    "unregisteredEngines": [
+      "AgentGovernanceEngine",
+      "AgentRegistryEngine",
+      "AgentRuntimeEngine",
+      "AgentTelemetryEngine",
+      "AiGatewayEngine",
+      "CapabilityRegistryEngine",
+      "ContextEngine",
+      "ExecutionMemoryEngine",
+      "FileAssuraStore",
+      "HumanApprovalEngine",
+      "InMemoryTrustStore",
+      "PromptRegistryEngine"
+    ]
+  },
+  "stage": "discover",
+  "tests": {
+    "byKind": {
+      "e2e": 15,
+      "integration": 15,
+      "performance": 2,
+      "security": 3,
+      "unit": 27
+    },
+    "files": 62
+  },
+  "totals": {
+    "applications": 1,
+    "documents": 138,
+    "engines": 60,
+    "migrations": 20,
+    "packages": 22,
+    "testFiles": 62
+  },
+  "workflows": [
+    {
+      "jobs": [
+        "verify"
+      ],
+      "name": "AssuraPay CI",
+      "nodeVersion": "22",
+      "path": ".github/workflows/ci.yml",
+      "triggers": [
+        "pull_request",
+        "push"
+      ]
+    }
+  ]
+}

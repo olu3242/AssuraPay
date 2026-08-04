@@ -1,0 +1,180 @@
+{
+  "awaitingInfrastructure": [
+    "persistence.postgres-repository",
+    "persistence.rls-certification"
+  ],
+  "blocked": [
+    {
+      "blockedBy": [
+        "trust.identity-assertions"
+      ],
+      "executable": false,
+      "id": "trust.identity-gateway",
+      "priority": 11,
+      "requiresLiveInfrastructure": false,
+      "status": "missing",
+      "title": "Production identity gateway"
+    },
+    {
+      "blockedBy": [
+        "trust.identity-gateway"
+      ],
+      "executable": false,
+      "id": "trust.permission-enforcement",
+      "priority": 12,
+      "requiresLiveInfrastructure": false,
+      "status": "missing",
+      "title": "Permission enforcement middleware"
+    },
+    {
+      "blockedBy": [
+        "trust.permission-enforcement"
+      ],
+      "executable": false,
+      "id": "runtime.agent-registration",
+      "priority": 20,
+      "requiresLiveInfrastructure": false,
+      "status": "missing",
+      "title": "Agent Runtime registration"
+    },
+    {
+      "blockedBy": [
+        "trust.permission-enforcement"
+      ],
+      "executable": false,
+      "id": "persistence.postgres-repository",
+      "priority": 40,
+      "requiresLiveInfrastructure": true,
+      "status": "missing",
+      "title": "PostgreSQL repository implementation"
+    },
+    {
+      "blockedBy": [
+        "persistence.postgres-repository"
+      ],
+      "executable": false,
+      "id": "persistence.rls-certification",
+      "priority": 41,
+      "requiresLiveInfrastructure": true,
+      "status": "missing",
+      "title": "Row Level Security certification"
+    }
+  ],
+  "completed": [
+    "engine:01",
+    "engine:02",
+    "engine:03",
+    "engine:04",
+    "engine:05",
+    "engine:11",
+    "engine:12",
+    "engine:13",
+    "engine:14",
+    "engine:15",
+    "engine:16",
+    "engine:17",
+    "engine:18",
+    "engine:19",
+    "engine:20",
+    "engine:21",
+    "engine:22",
+    "engine:23",
+    "engine:24",
+    "engine:25",
+    "engine:26",
+    "engine:27",
+    "engine:28",
+    "engine:29",
+    "engine:30",
+    "engine:31",
+    "engine:32",
+    "engine:33",
+    "engine:34",
+    "engine:35",
+    "engine:36",
+    "engine:37",
+    "engine:38",
+    "engine:39",
+    "engine:40",
+    "engine:41",
+    "engine:42",
+    "engine:43",
+    "engine:44",
+    "engine:45",
+    "engine:46",
+    "engine:47",
+    "engine:48",
+    "engine:49",
+    "engine:50",
+    "engine:51",
+    "engine:52",
+    "engine:53",
+    "engine:54",
+    "engine:55",
+    "engine:56",
+    "engine:57",
+    "engine:58",
+    "engine:59",
+    "engine:60",
+    "reos.execution-os",
+    "settlement.non-custody-guard"
+  ],
+  "executable": [
+    {
+      "blockedBy": [],
+      "executable": true,
+      "id": "trust.identity-assertions",
+      "priority": 10,
+      "requiresLiveInfrastructure": false,
+      "status": "missing",
+      "title": "HMAC identity assertions"
+    },
+    {
+      "blockedBy": [],
+      "executable": true,
+      "id": "engine:08",
+      "priority": 108,
+      "requiresLiveInfrastructure": false,
+      "status": "missing",
+      "title": "Engine 08 — Audit & Evidence Ledger"
+    }
+  ],
+  "head": "cf5aea478ca38d1c6abf19bc21794f7de24f8c98",
+  "rejected": [
+    {
+      "id": "engine:08",
+      "reason": "Executable but lower priority than the selected capability (108)."
+    },
+    {
+      "id": "persistence.postgres-repository",
+      "reason": "Blocked by unmet dependencies: trust.permission-enforcement."
+    },
+    {
+      "id": "persistence.rls-certification",
+      "reason": "Blocked by unmet dependencies: persistence.postgres-repository."
+    },
+    {
+      "id": "runtime.agent-registration",
+      "reason": "Blocked by unmet dependencies: trust.permission-enforcement."
+    },
+    {
+      "id": "trust.identity-gateway",
+      "reason": "Blocked by unmet dependencies: trust.identity-assertions."
+    },
+    {
+      "id": "trust.permission-enforcement",
+      "reason": "Blocked by unmet dependencies: trust.identity-gateway."
+    }
+  ],
+  "reosVersion": "1.0.0",
+  "selected": {
+    "blockedBy": [],
+    "executable": true,
+    "id": "trust.identity-assertions",
+    "priority": 10,
+    "requiresLiveInfrastructure": false,
+    "status": "missing",
+    "title": "HMAC identity assertions"
+  },
+  "stage": "dependencies"
+}
