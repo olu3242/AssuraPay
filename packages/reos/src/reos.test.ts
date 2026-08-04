@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 import {
   buildBacklog,
   buildEngineNodes,
+  computeBlocks,
   classifyStatus,
   classifyTestFile,
   detectCycles,
@@ -99,6 +100,26 @@ describe('REOS stage 1 — discovery parsing', () => {
     expect(parseCanonicalChain('no chain here')).toEqual([]);
     expect(parseCanonicalChain(null)).toEqual([]);
   });
+
+  it('picks the canonical chain over an earlier unrelated arrow-chain', () => {
+    // CLAUDE.md documents the capability lifecycle as a backticked arrow-chain
+    // too, and it appears first. The parser must anchor on the phrase.
+    const claudeMd = [
+      'Capability lifecycle is `missing → planned → implemented`.',
+      '',
+      'The canonical chain is `Contract → Milestone → ReleaseRequest`.',
+    ].join('\n');
+
+    expect(parseCanonicalChain(claudeMd)).toEqual([
+      'Contract',
+      'Milestone',
+      'ReleaseRequest',
+    ]);
+  });
+
+  it('falls back to the first arrow-chain when the anchor phrase is absent', () => {
+    expect(parseCanonicalChain('Chain: `A → B`.')).toEqual(['A', 'B']);
+  });
 });
 
 describe('REOS stage 2 — forensics classification', () => {
@@ -154,6 +175,9 @@ describe('REOS stage 4 — dependency resolution rules', () => {
     priority: 10,
     dependsOn: [],
     requiresLiveInfrastructure: false,
+    onDefaultBranch: false,
+    certifyScript: null,
+    scope: { files: 0, tests: 0, estimated: false },
     ...overrides,
   });
 
@@ -242,6 +266,7 @@ describe('REOS stage 4 — dependency resolution rules', () => {
         wave: 1,
         declaredStatus: null,
         observedStatus: 'implemented',
+        lifecycle: 'implemented',
         packageDirectory: 'packages/one',
         certificationScript: 'certify:one',
         divergent: false,
@@ -252,6 +277,7 @@ describe('REOS stage 4 — dependency resolution rules', () => {
         wave: 1,
         declaredStatus: 'Deferred',
         observedStatus: 'deferred',
+        lifecycle: 'deferred',
         packageDirectory: null,
         certificationScript: null,
         divergent: false,
@@ -262,6 +288,7 @@ describe('REOS stage 4 — dependency resolution rules', () => {
         wave: 1,
         declaredStatus: null,
         observedStatus: 'missing',
+        lifecycle: 'missing',
         packageDirectory: null,
         certificationScript: null,
         divergent: false,
@@ -271,6 +298,56 @@ describe('REOS stage 4 — dependency resolution rules', () => {
     const nodes = buildEngineNodes(engines);
     // Engine 03 depends on 01, not on the deferred 02.
     expect(nodes[2]).toMatchObject({ id: 'engine:03', dependsOn: ['engine:01'] });
+  });
+
+  it('marks an engine as on the default branch when its package is released there', () => {
+    const engines: EngineReconciliation[] = [
+      {
+        id: '01',
+        name: 'Shipped',
+        wave: 1,
+        declaredStatus: null,
+        observedStatus: 'implemented',
+        lifecycle: 'implemented',
+        packageDirectory: 'packages/shipped',
+        certificationScript: 'certify:shipped',
+        divergent: false,
+      },
+      {
+        id: '02',
+        name: 'Unshipped',
+        wave: 1,
+        declaredStatus: null,
+        observedStatus: 'implemented',
+        lifecycle: 'implemented',
+        packageDirectory: 'packages/unshipped',
+        certificationScript: 'certify:unshipped',
+        divergent: false,
+      },
+    ];
+
+    const nodes = buildEngineNodes(engines, new Set(['packages/shipped']));
+    expect(nodes[0].onDefaultBranch).toBe(true);
+    expect(nodes[1].onDefaultBranch).toBe(false);
+  });
+
+  it('treats an engine with no package as not released', () => {
+    const engines: EngineReconciliation[] = [
+      {
+        id: '06',
+        name: 'Deferred',
+        wave: 1,
+        declaredStatus: 'Deferred',
+        observedStatus: 'deferred',
+        lifecycle: 'deferred',
+        packageDirectory: null,
+        certificationScript: null,
+        divergent: false,
+      },
+    ];
+    expect(buildEngineNodes(engines, new Set(['packages/x']))[0].onDefaultBranch).toBe(
+      false,
+    );
   });
 });
 
@@ -373,5 +450,52 @@ describe('REOS porcelain parsing', () => {
     expect(parsePorcelainPaths('')).toEqual([]);
     expect(parsePorcelainPaths('\n\n')).toEqual([]);
     expect(parsePorcelainPaths(' M ')).toEqual([]);
+  });
+});
+
+describe('REOS reverse dependency closure', () => {
+  const node = (id: string, dependsOn: string[]): CapabilityNode => ({
+    id,
+    title: id,
+    kind: 'platform',
+    status: 'missing',
+    priority: 1,
+    dependsOn,
+    requiresLiveInfrastructure: false,
+    onDefaultBranch: false,
+    certifyScript: null,
+    scope: { files: 0, tests: 0, estimated: false },
+  });
+
+  it('reports transitive dependents, not only direct ones', () => {
+    const blocks = computeBlocks([
+      node('a', []),
+      node('b', ['a']),
+      node('c', ['b']),
+      node('d', ['c']),
+    ]);
+    expect(blocks.get('a')).toEqual(['b', 'c', 'd']);
+    expect(blocks.get('c')).toEqual(['d']);
+    expect(blocks.get('d')).toBeUndefined();
+  });
+
+  it('deduplicates a diamond', () => {
+    const blocks = computeBlocks([
+      node('a', []),
+      node('b', ['a']),
+      node('c', ['a']),
+      node('d', ['b', 'c']),
+    ]);
+    expect(blocks.get('a')).toEqual(['b', 'c', 'd']);
+  });
+
+  it('terminates on a dependency cycle and excludes the node itself', () => {
+    const blocks = computeBlocks([node('a', ['b']), node('b', ['a'])]);
+    expect(blocks.get('a')).toEqual(['b']);
+    expect(blocks.get('b')).toEqual(['a']);
+  });
+
+  it('gives an isolated node no dependents', () => {
+    expect(computeBlocks([node('solo', [])]).size).toBe(0);
   });
 });
