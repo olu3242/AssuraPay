@@ -107,9 +107,11 @@ describe('integration: stage 3 reconciles the engine catalog', () => {
 
   it('reconciles all 60 engines and maps them to packages where they exist', () => {
     expect(manifest.engines).toHaveLength(60);
-    // Engines 01-05 and 11-60 map to packages; 06-10 are deferred trust engines.
+    // Engines 01-05, 08 and 11-60 map to packages. 06, 07, 09 and 10 remain
+    // deferred; 08 was declared "Foundation only" and is now implemented, which is
+    // why this figure is 56 rather than 55.
     const mapped = manifest.engines.filter((engine) => engine.packageDirectory !== null);
-    expect(mapped.length).toBe(55);
+    expect(mapped.length).toBe(56);
   });
 
   it('reads the canonical chain from CLAUDE.md', () => {

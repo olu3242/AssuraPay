@@ -10,14 +10,14 @@
 | Repository | assurapay |
 | Version | 0.1.0 |
 | Branch | claude/git-pull-cqc04u |
-| HEAD | 08c0f3b719fedea235d857644b3f1a7395ba066c |
+| HEAD | c8455eba011088436b15f9a12f1121d430f8f69e |
 | Worktree clean | no |
-| Manifest digest | 41c7dd8329ba |
+| Manifest digest | cd854700205a |
 | REOS version | 1.0.0 |
 
 ## Architecture
 
-- Packages: 22
+- Packages: 23
 - Applications: 1
 - Waves: 6
 - Canonical chain: Contract → PerformanceBlueprint → Milestone → DefinitionOfDonePackage → ExecutionWorkspace → CompletionCertificate → PaymentEligibility → FinancialEntitlement → ReleaseRequest → PaymentInstruction → ReconciliationRecord
@@ -27,8 +27,8 @@
 | Lifecycle | Count |
 | --- | --- |
 | missing | 1 |
-| planned | 2 |
-| certified | 6 |
+| planned | 1 |
+| certified | 7 |
 | released | 60 |
 | deferred | 4 |
 
@@ -46,7 +46,7 @@ from repository evidence: package presence, test files, and certification wiring
 | 05 | Legal Governance | 1 | Conditionally implemented | implemented | released | packages/legal | **yes** |
 | 06 | Third-Party Risk | 1 | Deferred | deferred | deferred | — | no |
 | 07 | Compliance Foundation | 1 | Deferred | deferred | deferred | — | no |
-| 08 | Audit & Evidence Ledger | 1 | Foundation only | missing | planned | — | **yes** |
+| 08 | Audit & Evidence Ledger | 1 | Conditionally implemented | implemented | certified | packages/audit-ledger | **yes** |
 | 09 | Notification & Communication | 1 | Deferred | deferred | deferred | — | no |
 | 10 | Enterprise Configuration | 1 | Deferred | deferred | deferred | — | no |
 | 11 | Contract Authoring | 2 | — | implemented | released | packages/agreement-creation | no |
@@ -123,7 +123,7 @@ from repository evidence: package presence, test files, and certification wiring
 | Severity | Rule | Finding |
 | --- | --- | --- |
 | warning | catalog/certification-numbering-collision | certify:certification certifies packages/governance-core using batch number 09, but catalog engine 09 (Notification & Communication) maps to no implementation package. The certify:* batch numbering and the catalog engine numbering are two different identifier spaces using the same numbers. |
-| warning | catalog/certification-numbering-collision | certify:dod certifies packages/governance-core using batch number 08, but catalog engine 08 (Audit & Evidence Ledger) maps to no implementation package. The certify:* batch numbering and the catalog engine numbering are two different identifier spaces using the same numbers. |
+| warning | catalog/certification-numbering-collision | certify:dod certifies packages/governance-core using batch number 08, but catalog engine 08 (Audit & Evidence Ledger) maps to packages/audit-ledger. The certify:* batch numbering and the catalog engine numbering are two different identifier spaces using the same numbers. |
 | warning | catalog/certification-numbering-collision | certify:execution certifies packages/governance-core using batch number 06, but catalog engine 06 (Third-Party Risk) maps to no implementation package. The certify:* batch numbering and the catalog engine numbering are two different identifier spaces using the same numbers. |
 | warning | catalog/certification-numbering-collision | certify:milestones certifies packages/governance-core using batch number 07, but catalog engine 07 (Compliance Foundation) maps to no implementation package. The certify:* batch numbering and the catalog engine numbering are two different identifier spaces using the same numbers. |
 | warning | catalog/certification-numbering-collision | certify:payment-triggers certifies packages/governance-core using batch number 10, but catalog engine 10 (Enterprise Configuration) maps to no implementation package. The certify:* batch numbering and the catalog engine numbering are two different identifier spaces using the same numbers. |
@@ -132,7 +132,7 @@ from repository evidence: package presence, test files, and certification wiring
 | warning | catalog/status-divergence | Engine 03 (Roles, Permissions & Governance) is declared "Conditionally implemented" but repository evidence shows "implemented". |
 | warning | catalog/status-divergence | Engine 04 (Party Verification) is declared "Conditionally implemented" but repository evidence shows "implemented". |
 | warning | catalog/status-divergence | Engine 05 (Legal Governance) is declared "Conditionally implemented" but repository evidence shows "implemented". |
-| warning | catalog/status-divergence | Engine 08 (Audit & Evidence Ledger) is declared "Foundation only" but repository evidence shows "missing". |
+| warning | catalog/status-divergence | Engine 08 (Audit & Evidence Ledger) is declared "Conditionally implemented" but repository evidence shows "implemented". |
 | warning | catalog/unmapped-engine-package | packages/agent-runtime exports 10 engine class(es) but is not mapped to any catalog engine, so its scope is not represented in docs/ENGINE_CATALOG.md. |
 | warning | catalog/unmapped-engine-package | packages/governance-core exports 5 engine class(es) but is not mapped to any catalog engine, so its scope is not represented in docs/ENGINE_CATALOG.md. |
 | warning | catalog/unmapped-engine-package | packages/workflow-intelligence exports 10 engine class(es) but is not mapped to any catalog engine, so its scope is not represented in docs/ENGINE_CATALOG.md. |
@@ -140,15 +140,14 @@ from repository evidence: package presence, test files, and certification wiring
 
 ## Execution backlog
 
-3 open item(s). Highest-priority first.
+2 open item(s). Highest-priority first.
 
 | Capability | Title | Lifecycle | Priority | Executable | Blocked by | Blocks |
 | --- | --- | --- | --- | --- | --- | --- |
 | persistence.postgres-repository | PostgreSQL repository implementation | planned | 40 | yes | — | 1 |
 | persistence.rls-certification | Row Level Security certification | missing | 41 | no | persistence.postgres-repository | — |
-| engine:08 | Engine 08 — Audit & Evidence Ledger | planned | 108 | yes | — | 52 |
 
 ## Certification coverage
 
-- Certification scripts: 82
+- Certification scripts: 83
 - Packages without a certification script: packages/database, packages/domain, packages/shared

@@ -9,6 +9,7 @@
         "@assurapay/agent-runtime",
         "@assurapay/agreement-creation",
         "@assurapay/agreement-intelligence",
+        "@assurapay/audit-ledger",
         "@assurapay/completion-assurance",
         "@assurapay/database",
         "@assurapay/domain",
@@ -45,7 +46,7 @@
       "PaymentInstruction",
       "ReconciliationRecord"
     ],
-    "packageCount": 22,
+    "packageCount": 23,
     "waves": [
       {
         "engines": [
@@ -156,6 +157,7 @@
       "certify:agreement-intelligence",
       "certify:ai-decision-support",
       "certify:approvals",
+      "certify:audit-ledger",
       "certify:authoring",
       "certify:authorization",
       "certify:batch1",
@@ -230,7 +232,7 @@
       "certify:vendor-customer-performance",
       "certify:workflow-intelligence"
     ],
-    "targets": 82,
+    "targets": 83,
     "unscripted": [
       "packages/database",
       "packages/domain",
@@ -648,8 +650,8 @@
         "engine:05"
       ],
       "id": "engine:08",
-      "lifecycle": "planned",
-      "status": "missing"
+      "lifecycle": "certified",
+      "status": "implemented"
     },
     {
       "blocks": [],
@@ -2647,14 +2649,14 @@
       "wave": 1
     },
     {
-      "certificationScript": "certify:batch1",
-      "declaredStatus": "Foundation only",
+      "certificationScript": "certify:audit-ledger",
+      "declaredStatus": "Conditionally implemented",
       "divergent": true,
       "id": "08",
-      "lifecycle": "planned",
+      "lifecycle": "certified",
       "name": "Audit & Evidence Ledger",
-      "observedStatus": "missing",
-      "packageDirectory": null,
+      "observedStatus": "implemented",
+      "packageDirectory": "packages/audit-ledger",
       "wave": 1
     },
     {
@@ -3272,84 +3274,12 @@
       },
       "status": "missing",
       "title": "Row Level Security certification"
-    },
-    {
-      "blockedBy": [],
-      "blocks": [
-        "engine:09",
-        "engine:10",
-        "engine:11",
-        "engine:12",
-        "engine:13",
-        "engine:14",
-        "engine:15",
-        "engine:16",
-        "engine:17",
-        "engine:18",
-        "engine:19",
-        "engine:20",
-        "engine:21",
-        "engine:22",
-        "engine:23",
-        "engine:24",
-        "engine:25",
-        "engine:26",
-        "engine:27",
-        "engine:28",
-        "engine:29",
-        "engine:30",
-        "engine:31",
-        "engine:32",
-        "engine:33",
-        "engine:34",
-        "engine:35",
-        "engine:36",
-        "engine:37",
-        "engine:38",
-        "engine:39",
-        "engine:40",
-        "engine:41",
-        "engine:42",
-        "engine:43",
-        "engine:44",
-        "engine:45",
-        "engine:46",
-        "engine:47",
-        "engine:48",
-        "engine:49",
-        "engine:50",
-        "engine:51",
-        "engine:52",
-        "engine:53",
-        "engine:54",
-        "engine:55",
-        "engine:56",
-        "engine:57",
-        "engine:58",
-        "engine:59",
-        "engine:60"
-      ],
-      "dependsOn": [
-        "engine:05"
-      ],
-      "executable": true,
-      "id": "engine:08",
-      "lifecycle": "planned",
-      "priority": 108,
-      "requiresLiveInfrastructure": false,
-      "scope": {
-        "estimated": false,
-        "files": 0,
-        "tests": 0
-      },
-      "status": "missing",
-      "title": "Engine 08 — Audit & Evidence Ledger"
     }
   ],
   "identity": {
     "branch": "claude/git-pull-cqc04u",
     "clean": false,
-    "head": "08c0f3b719fedea235d857644b3f1a7395ba066c",
+    "head": "c8455eba011088436b15f9a12f1121d430f8f69e",
     "repository": "assurapay",
     "version": "0.1.0"
   },
@@ -3359,6 +3289,7 @@
     "engine:03",
     "engine:04",
     "engine:05",
+    "engine:08",
     "engine:11",
     "engine:12",
     "engine:13",
@@ -3422,18 +3353,17 @@
     "trust.session-assertion-issuance"
   ],
   "lifecycleSummary": {
-    "certified": 6,
+    "certified": 7,
     "deferred": 4,
     "implemented": 0,
     "implementing": 0,
     "missing": 1,
-    "planned": 2,
+    "planned": 1,
     "released": 60,
     "validated": 0
   },
-  "manifestDigest": "41c7dd8329ba",
+  "manifestDigest": "cd854700205a",
   "missingCapabilities": [
-    "engine:08",
     "persistence.postgres-repository",
     "persistence.rls-certification"
   ],
@@ -3534,6 +3464,33 @@
       "tests": {
         "e2e": 1,
         "integration": 1,
+        "performance": 0,
+        "security": 0,
+        "unit": 1
+      },
+      "workspaceDependencies": [
+        "@assurapay/database",
+        "@assurapay/shared"
+      ]
+    },
+    {
+      "directory": "packages/audit-ledger",
+      "exportedClasses": [
+        "AuditLedgerEngine",
+        "EvidenceLedgerError"
+      ],
+      "externalDependencies": [],
+      "main": "src/index.ts",
+      "moduleType": null,
+      "name": "@assurapay/audit-ledger",
+      "sourceFiles": 1,
+      "sourceLines": 384,
+      "testFiles": [
+        "packages/audit-ledger/src/audit-ledger.test.ts"
+      ],
+      "tests": {
+        "e2e": 0,
+        "integration": 0,
         "performance": 0,
         "security": 0,
         "unit": 1
@@ -5078,7 +5035,7 @@
         "vitest run packages/governance-core/src/governance-core.test.ts --testNamePattern=08"
       ],
       "location": "package.json",
-      "message": "certify:dod certifies packages/governance-core using batch number 08, but catalog engine 08 (Audit & Evidence Ledger) maps to no implementation package. The certify:* batch numbering and the catalog engine numbering are two different identifier spaces using the same numbers.",
+      "message": "certify:dod certifies packages/governance-core using batch number 08, but catalog engine 08 (Audit & Evidence Ledger) maps to packages/audit-ledger. The certify:* batch numbering and the catalog engine numbering are two different identifier spaces using the same numbers.",
       "rule": "catalog/certification-numbering-collision",
       "severity": "warning",
       "subject": "certify:dod"
@@ -5150,7 +5107,7 @@
     },
     {
       "location": "docs/ENGINE_CATALOG.md",
-      "message": "Engine 08 (Audit & Evidence Ledger) is declared \"Foundation only\" but repository evidence shows \"missing\".",
+      "message": "Engine 08 (Audit & Evidence Ledger) is declared \"Conditionally implemented\" but repository evidence shows \"implemented\".",
       "rule": "catalog/status-divergence",
       "severity": "warning",
       "subject": "engine:08"
@@ -5230,6 +5187,7 @@
       "AiDecisionSupportEngine",
       "AiGatewayEngine",
       "ApprovalWorkflowEngine",
+      "AuditLedgerEngine",
       "BottleneckDetectionEngine",
       "CapabilityRegistryEngine",
       "CertificationEngine",
@@ -5310,6 +5268,7 @@
           "AgreementIntelligenceEngine",
           "AiDecisionSupportEngine",
           "ApprovalWorkflowEngine",
+          "AuditLedgerEngine",
           "BottleneckDetectionEngine",
           "CertificationEngine",
           "ChangeControlEngine",

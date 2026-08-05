@@ -11,6 +11,7 @@
     "@assurapay/agent-runtime": "workspace:*",
     "@assurapay/agreement-creation": "workspace:*",
     "@assurapay/agreement-intelligence": "workspace:*",
+    "@assurapay/audit-ledger": "workspace:*",
     "@assurapay/completion-assurance": "workspace:*",
     "@assurapay/database": "workspace:*",
     "@assurapay/domain": "workspace:*",

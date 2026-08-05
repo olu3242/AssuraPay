@@ -1,12 +1,12 @@
 {
-  "capability": "trust.grant-administration-api",
+  "capability": "engine:08",
   "capabilityLifecycle": "certified",
   "certification": {
     "available": true,
     "failedSteps": [],
     "passed": true
   },
-  "commit": "08c0f3b719fedea235d857644b3f1a7395ba066c",
+  "commit": "c8455eba011088436b15f9a12f1121d430f8f69e",
   "filesModified": [
     ".env.example",
     "apps/web/app/api/v1/acceptance-criteria/[id]/confirm/route.ts",
@@ -183,6 +183,7 @@
     "docs/governance/execution-ledger/5e28a08ff19b-runtime.agent-registration.json",
     "docs/governance/execution-ledger/99a6077fe5da-trust.permission-grant-catalogue.json",
     "docs/governance/execution-ledger/INDEX.md",
+    "docs/governance/execution-ledger/c8455eba0110-engine_08.json",
     "docs/governance/reos/capability-registry.json",
     "docs/governance/reos/generated/CERTIFICATION_REPORT.md",
     "docs/governance/reos/generated/DEPENDENCY_RESOLUTION.md",
@@ -199,6 +200,9 @@
     "packages/agent-runtime/src/agent-runtime.registration.test.ts",
     "packages/agent-runtime/src/index.ts",
     "packages/agent-runtime/src/registration.ts",
+    "packages/audit-ledger/package.json",
+    "packages/audit-ledger/src/audit-ledger.test.ts",
+    "packages/audit-ledger/src/index.ts",
     "packages/identity/src/index.ts",
     "packages/identity/src/issuance.test.ts",
     "packages/identity/src/issuance.ts",
@@ -209,9 +213,11 @@
     "packages/permissions/src/index.ts",
     "packages/reos/src/reos.integration.test.ts",
     "packages/reos/src/stages/discover.ts",
-    "pnpm-lock.yaml"
+    "pnpm-lock.yaml",
+    "tsconfig.json",
+    "vitest.config.ts"
   ],
-  "generatedAt": "2026-08-05T11:17:26.094Z",
+  "generatedAt": "2026-08-05T11:25:37.391Z",
   "governance": {
     "baselined": 15,
     "findings": [
@@ -230,7 +236,7 @@
           "vitest run packages/governance-core/src/governance-core.test.ts --testNamePattern=08"
         ],
         "location": "package.json",
-        "message": "certify:dod certifies packages/governance-core using batch number 08, but catalog engine 08 (Audit & Evidence Ledger) maps to no implementation package. The certify:* batch numbering and the catalog engine numbering are two different identifier spaces using the same numbers. (baselined pre-existing violation)",
+        "message": "certify:dod certifies packages/governance-core using batch number 08, but catalog engine 08 (Audit & Evidence Ledger) maps to packages/audit-ledger. The certify:* batch numbering and the catalog engine numbering are two different identifier spaces using the same numbers. (baselined pre-existing violation)",
         "rule": "catalog/certification-numbering-collision",
         "severity": "warning",
         "subject": "certify:dod"
@@ -302,7 +308,7 @@
       },
       {
         "location": "docs/ENGINE_CATALOG.md",
-        "message": "Engine 08 (Audit & Evidence Ledger) is declared \"Foundation only\" but repository evidence shows \"missing\". (baselined pre-existing violation)",
+        "message": "Engine 08 (Audit & Evidence Ledger) is declared \"Conditionally implemented\" but repository evidence shows \"implemented\". (baselined pre-existing violation)",
         "rule": "catalog/status-divergence",
         "severity": "warning",
         "subject": "engine:08"
@@ -371,78 +377,27 @@
     "phase": 2,
     "resolved": []
   },
-  "ledgerEntryId": "08c0f3b719fe-trust.grant-administration-api",
+  "ledgerEntryId": "c8455eba0110-engine_08",
   "recommendedNextCapability": {
     "blockedBy": [],
     "blocks": [
-      "engine:09",
-      "engine:10",
-      "engine:11",
-      "engine:12",
-      "engine:13",
-      "engine:14",
-      "engine:15",
-      "engine:16",
-      "engine:17",
-      "engine:18",
-      "engine:19",
-      "engine:20",
-      "engine:21",
-      "engine:22",
-      "engine:23",
-      "engine:24",
-      "engine:25",
-      "engine:26",
-      "engine:27",
-      "engine:28",
-      "engine:29",
-      "engine:30",
-      "engine:31",
-      "engine:32",
-      "engine:33",
-      "engine:34",
-      "engine:35",
-      "engine:36",
-      "engine:37",
-      "engine:38",
-      "engine:39",
-      "engine:40",
-      "engine:41",
-      "engine:42",
-      "engine:43",
-      "engine:44",
-      "engine:45",
-      "engine:46",
-      "engine:47",
-      "engine:48",
-      "engine:49",
-      "engine:50",
-      "engine:51",
-      "engine:52",
-      "engine:53",
-      "engine:54",
-      "engine:55",
-      "engine:56",
-      "engine:57",
-      "engine:58",
-      "engine:59",
-      "engine:60"
+      "persistence.rls-certification"
     ],
     "dependsOn": [
-      "engine:05"
+      "trust.permission-enforcement"
     ],
     "executable": true,
-    "id": "engine:08",
+    "id": "persistence.postgres-repository",
     "lifecycle": "planned",
-    "priority": 108,
-    "requiresLiveInfrastructure": false,
+    "priority": 40,
+    "requiresLiveInfrastructure": true,
     "scope": {
       "estimated": false,
-      "files": 0,
-      "tests": 0
+      "files": 1,
+      "tests": 1
     },
     "status": "missing",
-    "title": "Engine 08 — Audit & Evidence Ledger"
+    "title": "PostgreSQL repository implementation"
   },
   "remainingBacklog": [
     {
@@ -486,78 +441,6 @@
       },
       "status": "missing",
       "title": "Row Level Security certification"
-    },
-    {
-      "blockedBy": [],
-      "blocks": [
-        "engine:09",
-        "engine:10",
-        "engine:11",
-        "engine:12",
-        "engine:13",
-        "engine:14",
-        "engine:15",
-        "engine:16",
-        "engine:17",
-        "engine:18",
-        "engine:19",
-        "engine:20",
-        "engine:21",
-        "engine:22",
-        "engine:23",
-        "engine:24",
-        "engine:25",
-        "engine:26",
-        "engine:27",
-        "engine:28",
-        "engine:29",
-        "engine:30",
-        "engine:31",
-        "engine:32",
-        "engine:33",
-        "engine:34",
-        "engine:35",
-        "engine:36",
-        "engine:37",
-        "engine:38",
-        "engine:39",
-        "engine:40",
-        "engine:41",
-        "engine:42",
-        "engine:43",
-        "engine:44",
-        "engine:45",
-        "engine:46",
-        "engine:47",
-        "engine:48",
-        "engine:49",
-        "engine:50",
-        "engine:51",
-        "engine:52",
-        "engine:53",
-        "engine:54",
-        "engine:55",
-        "engine:56",
-        "engine:57",
-        "engine:58",
-        "engine:59",
-        "engine:60"
-      ],
-      "dependsOn": [
-        "engine:05"
-      ],
-      "executable": true,
-      "id": "engine:08",
-      "lifecycle": "planned",
-      "priority": 108,
-      "requiresLiveInfrastructure": false,
-      "scope": {
-        "estimated": false,
-        "files": 0,
-        "tests": 0
-      },
-      "status": "missing",
-      "title": "Engine 08 — Audit & Evidence Ledger"
     }
   ],
   "reosVersion": "1.0.0",
@@ -565,12 +448,9 @@
     "branch": "claude/git-pull-cqc04u",
     "clean": false,
     "dirtyFiles": [
-      "apps/web/app/api/v1/roles/assignments/route.ts",
-      "apps/web/app/api/v1/roles/route.ts",
-      "apps/web/app/api/v1/workspaces/[id]/found/route.ts",
-      "apps/web/lib/grant-administration.test.ts",
-      "apps/web/lib/grant-administration.ts",
-      "apps/web/lib/route-permissions.ts",
+      "apps/web/lib/trust-app.ts",
+      "apps/web/package.json",
+      "docs/ENGINE_CATALOG.md",
       "docs/governance/reos/capability-registry.json",
       "docs/governance/reos/generated/CERTIFICATION_REPORT.md",
       "docs/governance/reos/generated/DEPENDENCY_RESOLUTION.md",
@@ -580,32 +460,39 @@
       "docs/governance/reos/generated/discovery.json",
       "docs/governance/reos/generated/execution-manifest.json",
       "docs/governance/reos/generated/forensics.json",
-      "packages/permissions/src/catalogue.ts"
+      "package.json",
+      "packages/audit-ledger/package.json",
+      "packages/audit-ledger/src/audit-ledger.test.ts",
+      "packages/audit-ledger/src/index.ts",
+      "packages/reos/src/reos.integration.test.ts",
+      "pnpm-lock.yaml",
+      "tsconfig.json",
+      "vitest.config.ts"
     ],
-    "head": "08c0f3b719fedea235d857644b3f1a7395ba066c"
+    "head": "c8455eba011088436b15f9a12f1121d430f8f69e"
   },
   "stage": "report",
   "validation": [
     {
-      "checked": 149,
+      "checked": 152,
       "findings": [],
       "passed": true,
       "validator": "architecture"
     },
     {
-      "checked": 23,
+      "checked": 24,
       "findings": [],
       "passed": true,
       "validator": "dependencies"
     },
     {
-      "checked": 253,
+      "checked": 254,
       "findings": [],
       "passed": true,
       "validator": "security"
     },
     {
-      "checked": 190,
+      "checked": 196,
       "findings": [],
       "passed": true,
       "validator": "execution-contract"

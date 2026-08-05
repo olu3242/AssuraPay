@@ -129,6 +129,7 @@ import {
   WorkflowIntelligenceEngine,
   deterministicRiskPredictionGateway,
 } from '@assurapay/workflow-intelligence';
+import { AuditLedgerEngine } from '@assurapay/audit-ledger';
 import { RouteAccessError, requirementForRoute } from './route-permissions';
 
 const globalTrust = globalThis as typeof globalThis & {
@@ -184,6 +185,9 @@ export function getIdentityGateway(): IdentityGateway {
 }
 export const trust = {
   identity: new IdentityService(trustStore),
+  // Engine 08. It reads the chain the store writes and never rewrites it, so it is
+  // safe to share one instance across every request.
+  auditLedger: new AuditLedgerEngine(trustStore),
   organizations: new OrganizationService(trustStore),
   permissions: new PermissionService(trustStore),
   parties: new PartyService(trustStore, [

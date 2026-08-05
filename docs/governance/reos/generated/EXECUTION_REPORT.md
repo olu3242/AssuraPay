@@ -7,16 +7,16 @@
 | Field | Value |
 | --- | --- |
 | Branch | claude/git-pull-cqc04u |
-| HEAD | 08c0f3b719fedea235d857644b3f1a7395ba066c |
+| HEAD | c8455eba011088436b15f9a12f1121d430f8f69e |
 | Worktree clean | no |
-| Uncommitted files | 16 |
-| Generated at | 2026-08-05T11:17:26.094Z |
+| Uncommitted files | 20 |
+| Generated at | 2026-08-05T11:25:37.391Z |
 
 ## Capability implemented
 
-`trust.grant-administration-api` — lifecycle **certified**
+`engine:08` — lifecycle **certified**
 
-## Files modified (202)
+## Files modified (208)
 
 - `.env.example`
 - `apps/web/app/api/v1/acceptance-criteria/[id]/confirm/route.ts`
@@ -193,6 +193,7 @@
 - `docs/governance/execution-ledger/5e28a08ff19b-runtime.agent-registration.json`
 - `docs/governance/execution-ledger/99a6077fe5da-trust.permission-grant-catalogue.json`
 - `docs/governance/execution-ledger/INDEX.md`
+- `docs/governance/execution-ledger/c8455eba0110-engine_08.json`
 - `docs/governance/reos/capability-registry.json`
 - `docs/governance/reos/generated/CERTIFICATION_REPORT.md`
 - `docs/governance/reos/generated/DEPENDENCY_RESOLUTION.md`
@@ -209,6 +210,9 @@
 - `packages/agent-runtime/src/agent-runtime.registration.test.ts`
 - `packages/agent-runtime/src/index.ts`
 - `packages/agent-runtime/src/registration.ts`
+- `packages/audit-ledger/package.json`
+- `packages/audit-ledger/src/audit-ledger.test.ts`
+- `packages/audit-ledger/src/index.ts`
 - `packages/identity/src/index.ts`
 - `packages/identity/src/issuance.test.ts`
 - `packages/identity/src/issuance.ts`
@@ -220,15 +224,17 @@
 - `packages/reos/src/reos.integration.test.ts`
 - `packages/reos/src/stages/discover.ts`
 - `pnpm-lock.yaml`
+- `tsconfig.json`
+- `vitest.config.ts`
 
 ## Validation
 
 | Validator | Result | Checked | Errors | Warnings |
 | --- | --- | --- | --- | --- |
-| architecture | pass | 149 | 0 | 0 |
-| dependencies | pass | 23 | 0 | 0 |
-| security | pass | 253 | 0 | 0 |
-| execution-contract | pass | 190 | 0 | 0 |
+| architecture | pass | 152 | 0 | 0 |
+| dependencies | pass | 24 | 0 | 0 |
+| security | pass | 254 | 0 | 0 |
+| execution-contract | pass | 196 | 0 | 0 |
 
 ## Governance
 
@@ -240,22 +246,21 @@ No newly introduced violations.
 
 **PASSED** — every certification gate is green.
 
-## Remaining backlog (3)
+## Remaining backlog (2)
 
 | Capability | Status | Executable | Blocked by |
 | --- | --- | --- | --- |
 | persistence.postgres-repository | missing | yes |  |
 | persistence.rls-certification | missing | no | persistence.postgres-repository |
-| engine:08 | missing | yes |  |
 
 ## Recommended next capability
 
-`engine:08` — Engine 08 — Audit & Evidence Ledger
+`persistence.postgres-repository` — PostgreSQL repository implementation
 
 ## Ledger
 
-Recorded as `08c0f3b719fe-trust.grant-administration-api` in `docs/governance/execution-ledger/`.
+Recorded as `c8455eba0110-engine_08` in `docs/governance/execution-ledger/`.
 
 ## Commit
 
-`08c0f3b719fedea235d857644b3f1a7395ba066c`
+`c8455eba011088436b15f9a12f1121d430f8f69e`

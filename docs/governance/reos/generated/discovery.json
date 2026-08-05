@@ -10,6 +10,7 @@
         "@assurapay/agent-runtime",
         "@assurapay/agreement-creation",
         "@assurapay/agreement-intelligence",
+        "@assurapay/audit-ledger",
         "@assurapay/completion-assurance",
         "@assurapay/database",
         "@assurapay/domain",
@@ -85,6 +86,12 @@
       "packageDirectory": "packages/agreement-creation",
       "script": "certify:approvals",
       "testNamePattern": "14"
+    },
+    {
+      "command": "vitest run packages/audit-ledger",
+      "packageDirectory": "packages/audit-ledger",
+      "script": "certify:audit-ledger",
+      "testNamePattern": null
     },
     {
       "command": "vitest run packages/agreement-creation/src/agreement-creation.test.ts --testNamePattern=11",
@@ -1285,10 +1292,10 @@
       "waveName": "Trust Foundation"
     },
     {
-      "declaredStatus": "Foundation only",
+      "declaredStatus": "Conditionally implemented",
       "id": "08",
       "name": "Audit & Evidence Ledger",
-      "responsibility": "Append-only decisions, approvals, signatures, evidence and financial audit",
+      "responsibility": "Append-only decisions, approvals, signatures, evidence and financial audit; hash-chain verification and snapshot comparison",
       "wave": 1,
       "waveName": "Trust Foundation"
     },
@@ -1958,6 +1965,33 @@
       ]
     },
     {
+      "directory": "packages/audit-ledger",
+      "exportedClasses": [
+        "AuditLedgerEngine",
+        "EvidenceLedgerError"
+      ],
+      "externalDependencies": [],
+      "main": "src/index.ts",
+      "moduleType": null,
+      "name": "@assurapay/audit-ledger",
+      "sourceFiles": 1,
+      "sourceLines": 384,
+      "testFiles": [
+        "packages/audit-ledger/src/audit-ledger.test.ts"
+      ],
+      "tests": {
+        "e2e": 0,
+        "integration": 0,
+        "performance": 0,
+        "security": 0,
+        "unit": 1
+      },
+      "workspaceDependencies": [
+        "@assurapay/database",
+        "@assurapay/shared"
+      ]
+    },
+    {
       "directory": "packages/completion-assurance",
       "exportedClasses": [
         "AcceptanceDecisionEngine",
@@ -2555,12 +2589,9 @@
       ],
       "clean": false,
       "dirtyFiles": [
-        "apps/web/app/api/v1/roles/assignments/route.ts",
-        "apps/web/app/api/v1/roles/route.ts",
-        "apps/web/app/api/v1/workspaces/[id]/found/route.ts",
-        "apps/web/lib/grant-administration.test.ts",
-        "apps/web/lib/grant-administration.ts",
-        "apps/web/lib/route-permissions.ts",
+        "apps/web/lib/trust-app.ts",
+        "apps/web/package.json",
+        "docs/ENGINE_CATALOG.md",
         "docs/governance/reos/capability-registry.json",
         "docs/governance/reos/generated/CERTIFICATION_REPORT.md",
         "docs/governance/reos/generated/DEPENDENCY_RESOLUTION.md",
@@ -2570,10 +2601,17 @@
         "docs/governance/reos/generated/discovery.json",
         "docs/governance/reos/generated/execution-manifest.json",
         "docs/governance/reos/generated/forensics.json",
-        "packages/permissions/src/catalogue.ts"
+        "package.json",
+        "packages/audit-ledger/package.json",
+        "packages/audit-ledger/src/audit-ledger.test.ts",
+        "packages/audit-ledger/src/index.ts",
+        "packages/reos/src/reos.integration.test.ts",
+        "pnpm-lock.yaml",
+        "tsconfig.json",
+        "vitest.config.ts"
       ],
-      "head": "08c0f3b719fedea235d857644b3f1a7395ba066c",
-      "headShort": "08c0f3b",
+      "head": "c8455eba011088436b15f9a12f1121d430f8f69e",
+      "headShort": "c8455eb",
       "reflogAvailable": true,
       "remotes": [
         "origin"
@@ -2603,6 +2641,7 @@
       "AiDecisionSupportEngine",
       "AiGatewayEngine",
       "ApprovalWorkflowEngine",
+      "AuditLedgerEngine",
       "BottleneckDetectionEngine",
       "CapabilityRegistryEngine",
       "CertificationEngine",
@@ -2683,6 +2722,7 @@
           "AgreementIntelligenceEngine",
           "AiDecisionSupportEngine",
           "ApprovalWorkflowEngine",
+          "AuditLedgerEngine",
           "BottleneckDetectionEngine",
           "CertificationEngine",
           "ChangeControlEngine",
@@ -2762,17 +2802,17 @@
       "integration": 15,
       "performance": 2,
       "security": 3,
-      "unit": 35
+      "unit": 36
     },
-    "files": 70
+    "files": 71
   },
   "totals": {
     "applications": 1,
     "documents": 140,
     "engines": 60,
     "migrations": 20,
-    "packages": 22,
-    "testFiles": 70
+    "packages": 23,
+    "testFiles": 71
   },
   "workflows": [
     {
