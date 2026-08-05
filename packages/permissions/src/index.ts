@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 
 export * from './enforcement';
+export * from './catalogue';
 
 import type { RequestContext, TrustPersistence } from '@assurapay/shared';
 import { maskValue, requireActiveWorkspace } from '@assurapay/shared';
