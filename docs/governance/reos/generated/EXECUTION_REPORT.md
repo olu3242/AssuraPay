@@ -7,110 +7,50 @@
 | Field | Value |
 | --- | --- |
 | Branch | claude/git-pull-cqc04u |
-| HEAD | cbe143540c9dba8ae93680e2e7387e8d0d085f8b |
+| HEAD | 5e28a08ff19b0bbc230d6b8024f2e39fc751a6e1 |
 | Worktree clean | no |
-| Uncommitted files | 9 |
-| Generated at | 2026-08-04T21:40:03.030Z |
+| Uncommitted files | 8 |
+| Generated at | 2026-08-05T03:11:38.576Z |
 
 ## Capability implemented
 
-`trust.permission-enforcement` — lifecycle **certified**
+`runtime.agent-registration` — lifecycle **certified**
 
-## Files modified (76)
+## Files modified (20)
 
 - `.env.example`
-- `.github/workflows/ci.yml`
-- `CLAUDE.md`
-- `MANIFEST.md`
-- `apps/web/lib/trust-app.ts`
-- `apps/web/tsconfig.json`
-- `docs/certification/AUTHORIZATION_CERTIFICATION.md`
-- `docs/certification/IDENTITY_CERTIFICATION.md`
-- `docs/governance/execution-ledger/6c6d2a494bfb-trust.identity-assertions.json`
-- `docs/governance/execution-ledger/7208527889da-trust.permission-enforcement.json`
+- `apps/web/lib/agent-runtime-app.ts`
+- `apps/web/package.json`
+- `docs/governance/execution-ledger/5e28a08ff19b-runtime.agent-registration.json`
 - `docs/governance/execution-ledger/INDEX.md`
-- `docs/governance/execution-ledger/README.md`
-- `docs/governance/execution-ledger/b8f9211b132c-trust.identity-gateway.json`
-- `docs/governance/execution-ledger/cbe143540c9d-trust.permission-enforcement.json`
-- `docs/governance/execution-ledger/ec890b731dde-reos.execution-os.json`
-- `docs/governance/reos/AGENT_PROTOCOL.md`
-- `docs/governance/reos/EXECUTION_CONTRACT.md`
-- `docs/governance/reos/README.md`
-- `docs/governance/reos/capability-registry.json`
 - `docs/governance/reos/generated/CERTIFICATION_REPORT.md`
 - `docs/governance/reos/generated/DEPENDENCY_RESOLUTION.md`
 - `docs/governance/reos/generated/EXECUTION_MANIFEST.md`
-- `docs/governance/reos/generated/EXECUTION_REPORT.md`
 - `docs/governance/reos/generated/certification.json`
 - `docs/governance/reos/generated/dependency-resolution.json`
 - `docs/governance/reos/generated/discovery.json`
 - `docs/governance/reos/generated/execution-manifest.json`
-- `docs/governance/reos/generated/execution-report.json`
 - `docs/governance/reos/generated/forensics.json`
 - `docs/governance/reos/governance-policy.json`
-- `docs/security/IDENTITY_SECURITY_MODEL.md`
-- `docs/security/PERMISSION_MODEL.md`
-- `package.json`
-- `packages/identity/src/assertions.test.ts`
-- `packages/identity/src/assertions.ts`
-- `packages/identity/src/gateway.test.ts`
-- `packages/identity/src/gateway.ts`
-- `packages/identity/src/index.ts`
-- `packages/permissions/src/enforcement.test.ts`
-- `packages/permissions/src/enforcement.ts`
-- `packages/permissions/src/index.ts`
-- `packages/reos/bin/reos.ts`
-- `packages/reos/package.json`
-- `packages/reos/src/backlog.ts`
-- `packages/reos/src/governance.ts`
-- `packages/reos/src/index.ts`
-- `packages/reos/src/ledger.ts`
-- `packages/reos/src/lifecycle.ts`
-- `packages/reos/src/paths.ts`
-- `packages/reos/src/pipeline.ts`
-- `packages/reos/src/reos.e2e.test.ts`
-- `packages/reos/src/reos.governance.test.ts`
+- `packages/agent-runtime/src/agent-runtime.registration.test.ts`
+- `packages/agent-runtime/src/index.ts`
+- `packages/agent-runtime/src/registration.ts`
 - `packages/reos/src/reos.integration.test.ts`
-- `packages/reos/src/reos.ledger.test.ts`
-- `packages/reos/src/reos.security.test.ts`
-- `packages/reos/src/reos.test.ts`
-- `packages/reos/src/stages/certify.ts`
-- `packages/reos/src/stages/dependencies.ts`
 - `packages/reos/src/stages/discover.ts`
-- `packages/reos/src/stages/forensics.ts`
-- `packages/reos/src/stages/manifest.ts`
-- `packages/reos/src/stages/report.ts`
-- `packages/reos/src/types.ts`
-- `packages/reos/src/util/exec.ts`
-- `packages/reos/src/util/fsx.ts`
-- `packages/reos/src/util/git.ts`
-- `packages/reos/src/util/serialize.ts`
-- `packages/reos/src/validators/architecture.ts`
-- `packages/reos/src/validators/contract.ts`
-- `packages/reos/src/validators/dependency.ts`
-- `packages/reos/src/validators/exemption.ts`
-- `packages/reos/src/validators/security.ts`
-- `packages/workflow-intelligence/package.json`
 - `pnpm-lock.yaml`
-- `tsconfig.json`
-- `vitest.config.ts`
 
 ## Validation
 
 | Validator | Result | Checked | Errors | Warnings |
 | --- | --- | --- | --- | --- |
-| architecture | pass | 143 | 0 | 0 |
-| dependencies | pass | 23 | 0 | 1 |
-| security | pass | 243 | 0 | 0 |
-| execution-contract | pass | 64 | 0 | 0 |
-
-### Findings
-
-- **warning** `dependency/orphaned-engine-package` (packages/agent-runtime/package.json) — packages/agent-runtime exports engine classes but no package or application depends on it, so nothing can reach it at runtime.
+| architecture | pass | 145 | 0 | 0 |
+| dependencies | pass | 23 | 0 | 0 |
+| security | pass | 245 | 0 | 0 |
+| execution-contract | pass | 9 | 0 | 0 |
 
 ## Governance
 
-Phase 2. 16 baselined, 0 newly introduced, 0 baseline entry/-ies now stale.
+Phase 2. 15 baselined, 0 newly introduced, 0 baseline entry/-ies now stale.
 
 No newly introduced violations.
 
@@ -118,11 +58,10 @@ No newly introduced violations.
 
 **PASSED** — every certification gate is green.
 
-## Remaining backlog (5)
+## Remaining backlog (4)
 
 | Capability | Status | Executable | Blocked by |
 | --- | --- | --- | --- |
-| runtime.agent-registration | missing | yes |  |
 | trust.route-permission-integration | missing | yes |  |
 | persistence.postgres-repository | missing | yes |  |
 | persistence.rls-certification | missing | no | persistence.postgres-repository |
@@ -130,12 +69,12 @@ No newly introduced violations.
 
 ## Recommended next capability
 
-`runtime.agent-registration` — Agent Runtime registration
+`trust.route-permission-integration` — Route-level permission mapping
 
 ## Ledger
 
-Recorded as `cbe143540c9d-trust.permission-enforcement` in `docs/governance/execution-ledger/`.
+Recorded as `5e28a08ff19b-runtime.agent-registration` in `docs/governance/execution-ledger/`.
 
 ## Commit
 
-`cbe143540c9dba8ae93680e2e7387e8d0d085f8b`
+`5e28a08ff19b0bbc230d6b8024f2e39fc751a6e1`

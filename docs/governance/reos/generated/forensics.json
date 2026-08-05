@@ -87,7 +87,7 @@
       },
       "id": "reos.execution-os",
       "kind": "platform",
-      "onDefaultBranch": false,
+      "onDefaultBranch": true,
       "probes": [
         {
           "kind": "path",
@@ -163,7 +163,7 @@
     {
       "git": {
         "historicalCommits": [],
-        "reachableFromHead": false,
+        "reachableFromHead": true,
         "refsContaining": [],
         "removedFromHead": false
       },
@@ -173,26 +173,34 @@
       "probes": [
         {
           "kind": "path",
-          "matches": [],
+          "matches": [
+            "apps/web/lib/agent-runtime-app.ts"
+          ],
           "query": "apps/web/lib/agent-runtime-app.ts",
-          "satisfied": false
+          "satisfied": true
         },
         {
           "kind": "symbol",
-          "matches": [],
+          "matches": [
+            "apps/web/lib/agent-runtime-app.ts",
+            "packages/agent-runtime/src/agent-runtime.registration.test.ts",
+            "packages/agent-runtime/src/registration.ts"
+          ],
           "query": "registerAgentRuntime",
-          "satisfied": false
+          "satisfied": true
         },
         {
           "kind": "test",
-          "matches": [],
+          "matches": [
+            "packages/agent-runtime/src/agent-runtime.registration.test.ts"
+          ],
           "query": "packages/agent-runtime/src/agent-runtime.registration.test.ts",
-          "satisfied": false
+          "satisfied": true
         }
       ],
-      "rationale": "No evidence at HEAD, on any ref, or in history.",
-      "satisfiedProbes": 0,
-      "status": "missing",
+      "rationale": "All 3 evidence probes satisfied at HEAD.",
+      "satisfiedProbes": 3,
+      "status": "implemented",
       "title": "Agent Runtime registration",
       "totalProbes": 3
     },
@@ -205,7 +213,7 @@
       },
       "id": "settlement.non-custody-guard",
       "kind": "platform",
-      "onDefaultBranch": false,
+      "onDefaultBranch": true,
       "probes": [
         {
           "kind": "path",
@@ -262,7 +270,7 @@
       },
       "id": "trust.identity-assertions",
       "kind": "platform",
-      "onDefaultBranch": false,
+      "onDefaultBranch": true,
       "probes": [
         {
           "kind": "path",
@@ -317,7 +325,7 @@
       },
       "id": "trust.identity-gateway",
       "kind": "platform",
-      "onDefaultBranch": false,
+      "onDefaultBranch": true,
       "probes": [
         {
           "kind": "path",
@@ -371,7 +379,7 @@
       },
       "id": "trust.permission-enforcement",
       "kind": "platform",
-      "onDefaultBranch": false,
+      "onDefaultBranch": true,
       "probes": [
         {
           "kind": "path",
@@ -458,14 +466,14 @@
       "totalProbes": 4
     }
   ],
-  "head": "cbe143540c9dba8ae93680e2e7387e8d0d085f8b",
+  "head": "5e28a08ff19b0bbc230d6b8024f2e39fc751a6e1",
   "reosVersion": "1.0.0",
   "stage": "forensics",
   "summary": {
     "deferred": 0,
-    "implemented": 5,
+    "implemented": 6,
     "lost": 0,
-    "missing": 4,
+    "missing": 3,
     "partial": 0,
     "unreachable": 0
   }

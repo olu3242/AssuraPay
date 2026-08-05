@@ -10,9 +10,9 @@
 | Repository | assurapay |
 | Version | 0.1.0 |
 | Branch | claude/git-pull-cqc04u |
-| HEAD | cbe143540c9dba8ae93680e2e7387e8d0d085f8b |
+| HEAD | 5e28a08ff19b0bbc230d6b8024f2e39fc751a6e1 |
 | Worktree clean | no |
-| Manifest digest | 51713f5c2ba5 |
+| Manifest digest | 0be178ce2a7d |
 | REOS version | 1.0.0 |
 
 ## Architecture
@@ -27,9 +27,9 @@
 | Lifecycle | Count |
 | --- | --- |
 | missing | 1 |
-| planned | 4 |
-| certified | 5 |
-| released | 55 |
+| planned | 3 |
+| certified | 1 |
+| released | 60 |
 | deferred | 4 |
 
 ## Engine reconciliation
@@ -106,12 +106,12 @@ from repository evidence: package presence, test files, and certification wiring
 | --- | --- | --- | --- | --- | --- |
 | persistence.postgres-repository | PostgreSQL repository implementation | missing | planned | 0/3 | No evidence at HEAD, on any ref, or in history. |
 | persistence.rls-certification | Row Level Security certification | missing | missing | 0/4 | No evidence at HEAD, on any ref, or in history. |
-| reos.execution-os | Repository Execution Operating System | implemented | certified | 7/7 | All 7 evidence probes satisfied at HEAD. |
-| runtime.agent-registration | Agent Runtime registration | missing | planned | 0/3 | No evidence at HEAD, on any ref, or in history. |
-| settlement.non-custody-guard | Non-custody architectural guard | implemented | certified | 4/4 | All 4 evidence probes satisfied at HEAD. |
-| trust.identity-assertions | HMAC identity assertions | implemented | certified | 4/4 | All 4 evidence probes satisfied at HEAD. |
-| trust.identity-gateway | Production identity gateway | implemented | certified | 4/4 | All 4 evidence probes satisfied at HEAD. |
-| trust.permission-enforcement | Permission enforcement middleware | implemented | certified | 4/4 | All 4 evidence probes satisfied at HEAD. |
+| reos.execution-os | Repository Execution Operating System | implemented | released | 7/7 | All 7 evidence probes satisfied at HEAD. |
+| runtime.agent-registration | Agent Runtime registration | implemented | certified | 3/3 | All 3 evidence probes satisfied at HEAD. |
+| settlement.non-custody-guard | Non-custody architectural guard | implemented | released | 4/4 | All 4 evidence probes satisfied at HEAD. |
+| trust.identity-assertions | HMAC identity assertions | implemented | released | 4/4 | All 4 evidence probes satisfied at HEAD. |
+| trust.identity-gateway | Production identity gateway | implemented | released | 4/4 | All 4 evidence probes satisfied at HEAD. |
+| trust.permission-enforcement | Permission enforcement middleware | implemented | released | 4/4 | All 4 evidence probes satisfied at HEAD. |
 | trust.route-permission-integration | Route-level permission mapping | missing | planned | 0/4 | No evidence at HEAD, on any ref, or in history. |
 
 ## Reconciliation findings
@@ -133,15 +133,13 @@ from repository evidence: package presence, test files, and certification wiring
 | warning | catalog/unmapped-engine-package | packages/governance-core exports 5 engine class(es) but is not mapped to any catalog engine, so its scope is not represented in docs/ENGINE_CATALOG.md. |
 | warning | catalog/unmapped-engine-package | packages/workflow-intelligence exports 10 engine class(es) but is not mapped to any catalog engine, so its scope is not represented in docs/ENGINE_CATALOG.md. |
 | error | runtime/duplicate-abstraction | DependencyIntelligenceEngine is exported by 2 packages, which duplicates an abstraction. |
-| warning | runtime/unregistered-engine | 18 exported engine class(es) are not instantiated in any composition root, so they are unreachable at runtime. |
 
 ## Execution backlog
 
-5 open item(s). Highest-priority first.
+4 open item(s). Highest-priority first.
 
 | Capability | Title | Lifecycle | Priority | Executable | Blocked by | Blocks |
 | --- | --- | --- | --- | --- | --- | --- |
-| runtime.agent-registration | Agent Runtime registration | planned | 20 | yes | — | — |
 | trust.route-permission-integration | Route-level permission mapping | planned | 30 | yes | — | — |
 | persistence.postgres-repository | PostgreSQL repository implementation | planned | 40 | yes | — | 1 |
 | persistence.rls-certification | Row Level Security certification | missing | 41 | no | persistence.postgres-repository | — |

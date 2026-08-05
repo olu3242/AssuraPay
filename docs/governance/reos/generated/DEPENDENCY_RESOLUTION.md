@@ -6,23 +6,22 @@
 
 | Field | Value |
 | --- | --- |
-| Capability | runtime.agent-registration |
-| Title | Agent Runtime registration |
+| Capability | trust.route-permission-integration |
+| Title | Route-level permission mapping |
 | Current status | missing |
 | Lifecycle | planned |
-| Priority | 20 |
-| Reason | Highest-priority executable capability (priority 20, lifecycle planned) |
+| Priority | 30 |
+| Reason | Highest-priority executable capability (priority 30, lifecycle planned) |
 | Depends on | trust.permission-enforcement |
 | Unmet dependencies | none |
 | Blocks (transitive) | — |
-| Declared scope | 1 file(s), 1 test suite(s) |
+| Declared scope | 1 file(s), 1 test suite(s) (registry estimate) |
 | Requires live infrastructure | no |
 
 ## Executable queue
 
 | Capability | Title | Lifecycle | Priority | Blocks | Live infra |
 | --- | --- | --- | --- | --- | --- |
-| runtime.agent-registration | Agent Runtime registration | planned | 20 | — | no |
 | trust.route-permission-integration | Route-level permission mapping | planned | 30 | — | no |
 | persistence.postgres-repository | PostgreSQL repository implementation | planned | 40 | 1 | yes |
 | engine:08 | Engine 08 — Audit & Evidence Ledger | planned | 108 | 52 | no |
@@ -38,7 +37,7 @@
 - persistence.postgres-repository
 - persistence.rls-certification
 
-## Completed (60)
+## Completed (61)
 
 - engine:01
 - engine:02
@@ -96,6 +95,7 @@
 - engine:59
 - engine:60
 - reos.execution-os
+- runtime.agent-registration
 - settlement.non-custody-guard
 - trust.identity-assertions
 - trust.identity-gateway

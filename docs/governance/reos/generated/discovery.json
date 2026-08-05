@@ -7,6 +7,7 @@
       "name": "@assurapay/web",
       "routes": 24,
       "workspaceDependencies": [
+        "@assurapay/agent-runtime",
         "@assurapay/agreement-creation",
         "@assurapay/agreement-intelligence",
         "@assurapay/completion-assurance",
@@ -1857,6 +1858,7 @@
         "AgentGovernanceEngine",
         "AgentRegistryEngine",
         "AgentRuntimeEngine",
+        "AgentRuntimeRegistrationError",
         "AgentTelemetryEngine",
         "AiGatewayEngine",
         "CapabilityRegistryEngine",
@@ -1869,12 +1871,13 @@
       "main": "src/index.ts",
       "moduleType": null,
       "name": "@assurapay/agent-runtime",
-      "sourceFiles": 1,
-      "sourceLines": 998,
+      "sourceFiles": 2,
+      "sourceLines": 1205,
       "testFiles": [
         "packages/agent-runtime/src/agent-runtime.e2e.test.ts",
         "packages/agent-runtime/src/agent-runtime.integration.test.ts",
         "packages/agent-runtime/src/agent-runtime.performance.test.ts",
+        "packages/agent-runtime/src/agent-runtime.registration.test.ts",
         "packages/agent-runtime/src/agent-runtime.security.test.ts",
         "packages/agent-runtime/src/agent-runtime.test.ts"
       ],
@@ -1883,7 +1886,7 @@
         "integration": 1,
         "performance": 1,
         "security": 1,
-        "unit": 1
+        "unit": 2
       },
       "workspaceDependencies": [
         "@assurapay/database",
@@ -2390,7 +2393,7 @@
       "moduleType": "module",
       "name": "@assurapay/reos",
       "sourceFiles": 24,
-      "sourceLines": 4149,
+      "sourceLines": 4164,
       "testFiles": [
         "packages/reos/src/reos.e2e.test.ts",
         "packages/reos/src/reos.governance.test.ts",
@@ -2548,7 +2551,6 @@
       ],
       "clean": false,
       "dirtyFiles": [
-        "docs/governance/reos/capability-registry.json",
         "docs/governance/reos/generated/CERTIFICATION_REPORT.md",
         "docs/governance/reos/generated/DEPENDENCY_RESOLUTION.md",
         "docs/governance/reos/generated/EXECUTION_MANIFEST.md",
@@ -2558,16 +2560,17 @@
         "docs/governance/reos/generated/execution-manifest.json",
         "docs/governance/reos/generated/forensics.json"
       ],
-      "head": "cbe143540c9dba8ae93680e2e7387e8d0d085f8b",
-      "headShort": "cbe1435",
+      "head": "5e28a08ff19b0bbc230d6b8024f2e39fc751a6e1",
+      "headShort": "5e28a08",
       "reflogAvailable": true,
       "remotes": [
         "origin"
       ],
       "tags": [
+        "platform-trust-foundation",
         "rc-engine-60"
       ],
-      "upstream": "origin/claude/git-pull-cqc04u"
+      "upstream": "origin/main"
     },
     "name": "assurapay",
     "packageManager": "pnpm@11.3.0",
@@ -2588,7 +2591,6 @@
       "AiDecisionSupportEngine",
       "AiGatewayEngine",
       "ApprovalWorkflowEngine",
-      "AssuraPayService",
       "BottleneckDetectionEngine",
       "CapabilityRegistryEngine",
       "CertificationEngine",
@@ -2606,7 +2608,6 @@
       "DefinitionOfDonePackageEngine",
       "DeliverablesEngine",
       "DependencyIntelligenceEngine",
-      "DeterministicVerificationProvider",
       "DigitalExecutionEngine",
       "DisputeResolutionEngine",
       "EnterpriseKpiEngine",
@@ -2620,36 +2621,23 @@
       "ExecutionMemoryEngine",
       "ExecutionOrchestrationEngine",
       "ExecutiveDashboardEngine",
-      "FileAssuraStore",
       "FinalSettlementEngine",
       "FinancialApprovalAuthorityEngine",
       "FinancialEntitlementEngine",
       "FinancialPaymentIntelligenceEngine",
       "HumanApprovalEngine",
-      "IdentityAssertionError",
-      "IdentityAssertionService",
-      "IdentityGateway",
-      "IdentityGatewayError",
-      "IdentityService",
-      "InMemoryAssertionReplayStore",
-      "InMemoryTrustStore",
       "InspectionEngine",
       "InvoiceClaimEngine",
       "IssueRiskCorrectiveActionEngine",
-      "LegalService",
       "MilestoneEngine",
       "MilestonePlanningEngine",
       "NegotiationEngine",
-      "OrganizationService",
-      "PartyService",
       "PaymentEligibilityEngine",
       "PaymentExecutionEngine",
       "PaymentTriggerEngine",
       "PaymentTriggerRuleEngine",
       "PerformanceBaselineEngine",
       "PerformanceBlueprintEngine",
-      "PermissionEnforcementError",
-      "PermissionService",
       "PortfolioAnalyticsEngine",
       "PredictiveExecutionIntelligenceEngine",
       "PredictiveRiskIntelligenceEngine",
@@ -2664,7 +2652,6 @@
       "SettlementAssuranceIndexEngine",
       "SlaIntelligenceEngine",
       "SuccessMetricsEngine",
-      "TrustStoreMembershipReader",
       "ValidationAcceptanceTestingEngine",
       "VendorCustomerPerformanceEngine",
       "WorkflowIntelligenceEngine"
@@ -2754,26 +2741,7 @@
         ]
       }
     ],
-    "unregisteredEngines": [
-      "AgentGovernanceEngine",
-      "AgentRegistryEngine",
-      "AgentRuntimeEngine",
-      "AgentTelemetryEngine",
-      "AiGatewayEngine",
-      "CapabilityRegistryEngine",
-      "ContextEngine",
-      "ExecutionMemoryEngine",
-      "FileAssuraStore",
-      "HumanApprovalEngine",
-      "IdentityAssertionError",
-      "IdentityGateway",
-      "IdentityGatewayError",
-      "InMemoryAssertionReplayStore",
-      "InMemoryTrustStore",
-      "PermissionEnforcementError",
-      "PromptRegistryEngine",
-      "TrustStoreMembershipReader"
-    ]
+    "unregisteredEngines": []
   },
   "stage": "discover",
   "tests": {
@@ -2782,9 +2750,9 @@
       "integration": 15,
       "performance": 2,
       "security": 3,
-      "unit": 32
+      "unit": 33
     },
-    "files": 67
+    "files": 68
   },
   "totals": {
     "applications": 1,
@@ -2792,7 +2760,7 @@
     "engines": 60,
     "migrations": 20,
     "packages": 22,
-    "testFiles": 67
+    "testFiles": 68
   },
   "workflows": [
     {

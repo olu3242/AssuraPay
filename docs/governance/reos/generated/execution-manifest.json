@@ -6,6 +6,7 @@
       "name": "@assurapay/web",
       "routes": 24,
       "workspaceDependencies": [
+        "@assurapay/agent-runtime",
         "@assurapay/agreement-creation",
         "@assurapay/agreement-intelligence",
         "@assurapay/completion-assurance",
@@ -2425,7 +2426,7 @@
       ],
       "dependsOn": [],
       "id": "reos.execution-os",
-      "lifecycle": "certified",
+      "lifecycle": "released",
       "status": "implemented"
     },
     {
@@ -2434,8 +2435,8 @@
         "trust.permission-enforcement"
       ],
       "id": "runtime.agent-registration",
-      "lifecycle": "planned",
-      "status": "missing"
+      "lifecycle": "certified",
+      "status": "implemented"
     },
     {
       "blocks": [],
@@ -2443,7 +2444,7 @@
         "reos.execution-os"
       ],
       "id": "settlement.non-custody-guard",
-      "lifecycle": "certified",
+      "lifecycle": "released",
       "status": "implemented"
     },
     {
@@ -2459,7 +2460,7 @@
         "reos.execution-os"
       ],
       "id": "trust.identity-assertions",
-      "lifecycle": "certified",
+      "lifecycle": "released",
       "status": "implemented"
     },
     {
@@ -2474,7 +2475,7 @@
         "trust.identity-assertions"
       ],
       "id": "trust.identity-gateway",
-      "lifecycle": "certified",
+      "lifecycle": "released",
       "status": "implemented"
     },
     {
@@ -2488,7 +2489,7 @@
         "trust.identity-gateway"
       ],
       "id": "trust.permission-enforcement",
-      "lifecycle": "certified",
+      "lifecycle": "released",
       "status": "implemented"
     },
     {
@@ -3171,25 +3172,6 @@
         "trust.permission-enforcement"
       ],
       "executable": true,
-      "id": "runtime.agent-registration",
-      "lifecycle": "planned",
-      "priority": 20,
-      "requiresLiveInfrastructure": false,
-      "scope": {
-        "estimated": false,
-        "files": 1,
-        "tests": 1
-      },
-      "status": "missing",
-      "title": "Agent Runtime registration"
-    },
-    {
-      "blockedBy": [],
-      "blocks": [],
-      "dependsOn": [
-        "trust.permission-enforcement"
-      ],
-      "executable": true,
       "id": "trust.route-permission-integration",
       "lifecycle": "planned",
       "priority": 30,
@@ -3320,7 +3302,7 @@
   "identity": {
     "branch": "claude/git-pull-cqc04u",
     "clean": false,
-    "head": "cbe143540c9dba8ae93680e2e7387e8d0d085f8b",
+    "head": "5e28a08ff19b0bbc230d6b8024f2e39fc751a6e1",
     "repository": "assurapay",
     "version": "0.1.0"
   },
@@ -3381,27 +3363,27 @@
     "engine:59",
     "engine:60",
     "reos.execution-os",
+    "runtime.agent-registration",
     "settlement.non-custody-guard",
     "trust.identity-assertions",
     "trust.identity-gateway",
     "trust.permission-enforcement"
   ],
   "lifecycleSummary": {
-    "certified": 5,
+    "certified": 1,
     "deferred": 4,
     "implemented": 0,
     "implementing": 0,
     "missing": 1,
-    "planned": 4,
-    "released": 55,
+    "planned": 3,
+    "released": 60,
     "validated": 0
   },
-  "manifestDigest": "51713f5c2ba5",
+  "manifestDigest": "0be178ce2a7d",
   "missingCapabilities": [
     "engine:08",
     "persistence.postgres-repository",
     "persistence.rls-certification",
-    "runtime.agent-registration",
     "trust.route-permission-integration"
   ],
   "packages": [
@@ -3411,6 +3393,7 @@
         "AgentGovernanceEngine",
         "AgentRegistryEngine",
         "AgentRuntimeEngine",
+        "AgentRuntimeRegistrationError",
         "AgentTelemetryEngine",
         "AiGatewayEngine",
         "CapabilityRegistryEngine",
@@ -3423,12 +3406,13 @@
       "main": "src/index.ts",
       "moduleType": null,
       "name": "@assurapay/agent-runtime",
-      "sourceFiles": 1,
-      "sourceLines": 998,
+      "sourceFiles": 2,
+      "sourceLines": 1205,
       "testFiles": [
         "packages/agent-runtime/src/agent-runtime.e2e.test.ts",
         "packages/agent-runtime/src/agent-runtime.integration.test.ts",
         "packages/agent-runtime/src/agent-runtime.performance.test.ts",
+        "packages/agent-runtime/src/agent-runtime.registration.test.ts",
         "packages/agent-runtime/src/agent-runtime.security.test.ts",
         "packages/agent-runtime/src/agent-runtime.test.ts"
       ],
@@ -3437,7 +3421,7 @@
         "integration": 1,
         "performance": 1,
         "security": 1,
-        "unit": 1
+        "unit": 2
       },
       "workspaceDependencies": [
         "@assurapay/database",
@@ -3944,7 +3928,7 @@
       "moduleType": "module",
       "name": "@assurapay/reos",
       "sourceFiles": 24,
-      "sourceLines": 4149,
+      "sourceLines": 4164,
       "testFiles": [
         "packages/reos/src/reos.e2e.test.ts",
         "packages/reos/src/reos.governance.test.ts",
@@ -4175,7 +4159,7 @@
       },
       "id": "reos.execution-os",
       "kind": "platform",
-      "onDefaultBranch": false,
+      "onDefaultBranch": true,
       "probes": [
         {
           "kind": "path",
@@ -4251,7 +4235,7 @@
     {
       "git": {
         "historicalCommits": [],
-        "reachableFromHead": false,
+        "reachableFromHead": true,
         "refsContaining": [],
         "removedFromHead": false
       },
@@ -4261,26 +4245,34 @@
       "probes": [
         {
           "kind": "path",
-          "matches": [],
+          "matches": [
+            "apps/web/lib/agent-runtime-app.ts"
+          ],
           "query": "apps/web/lib/agent-runtime-app.ts",
-          "satisfied": false
+          "satisfied": true
         },
         {
           "kind": "symbol",
-          "matches": [],
+          "matches": [
+            "apps/web/lib/agent-runtime-app.ts",
+            "packages/agent-runtime/src/agent-runtime.registration.test.ts",
+            "packages/agent-runtime/src/registration.ts"
+          ],
           "query": "registerAgentRuntime",
-          "satisfied": false
+          "satisfied": true
         },
         {
           "kind": "test",
-          "matches": [],
+          "matches": [
+            "packages/agent-runtime/src/agent-runtime.registration.test.ts"
+          ],
           "query": "packages/agent-runtime/src/agent-runtime.registration.test.ts",
-          "satisfied": false
+          "satisfied": true
         }
       ],
-      "rationale": "No evidence at HEAD, on any ref, or in history.",
-      "satisfiedProbes": 0,
-      "status": "missing",
+      "rationale": "All 3 evidence probes satisfied at HEAD.",
+      "satisfiedProbes": 3,
+      "status": "implemented",
       "title": "Agent Runtime registration",
       "totalProbes": 3
     },
@@ -4293,7 +4285,7 @@
       },
       "id": "settlement.non-custody-guard",
       "kind": "platform",
-      "onDefaultBranch": false,
+      "onDefaultBranch": true,
       "probes": [
         {
           "kind": "path",
@@ -4350,7 +4342,7 @@
       },
       "id": "trust.identity-assertions",
       "kind": "platform",
-      "onDefaultBranch": false,
+      "onDefaultBranch": true,
       "probes": [
         {
           "kind": "path",
@@ -4405,7 +4397,7 @@
       },
       "id": "trust.identity-gateway",
       "kind": "platform",
-      "onDefaultBranch": false,
+      "onDefaultBranch": true,
       "probes": [
         {
           "kind": "path",
@@ -4459,7 +4451,7 @@
       },
       "id": "trust.permission-enforcement",
       "kind": "platform",
-      "onDefaultBranch": false,
+      "onDefaultBranch": true,
       "probes": [
         {
           "kind": "path",
@@ -4696,26 +4688,6 @@
       "rule": "runtime/duplicate-abstraction",
       "severity": "error",
       "subject": "DependencyIntelligenceEngine"
-    },
-    {
-      "evidence": [
-        "AgentGovernanceEngine",
-        "AgentRegistryEngine",
-        "AgentRuntimeEngine",
-        "AgentTelemetryEngine",
-        "AiGatewayEngine",
-        "CapabilityRegistryEngine",
-        "ContextEngine",
-        "ExecutionMemoryEngine",
-        "FileAssuraStore",
-        "HumanApprovalEngine",
-        "IdentityAssertionError",
-        "IdentityGateway"
-      ],
-      "message": "18 exported engine class(es) are not instantiated in any composition root, so they are unreachable at runtime.",
-      "rule": "runtime/unregistered-engine",
-      "severity": "warning",
-      "subject": "runtime"
     }
   ],
   "reosVersion": "1.0.0",
@@ -4734,7 +4706,6 @@
       "AiDecisionSupportEngine",
       "AiGatewayEngine",
       "ApprovalWorkflowEngine",
-      "AssuraPayService",
       "BottleneckDetectionEngine",
       "CapabilityRegistryEngine",
       "CertificationEngine",
@@ -4752,7 +4723,6 @@
       "DefinitionOfDonePackageEngine",
       "DeliverablesEngine",
       "DependencyIntelligenceEngine",
-      "DeterministicVerificationProvider",
       "DigitalExecutionEngine",
       "DisputeResolutionEngine",
       "EnterpriseKpiEngine",
@@ -4766,36 +4736,23 @@
       "ExecutionMemoryEngine",
       "ExecutionOrchestrationEngine",
       "ExecutiveDashboardEngine",
-      "FileAssuraStore",
       "FinalSettlementEngine",
       "FinancialApprovalAuthorityEngine",
       "FinancialEntitlementEngine",
       "FinancialPaymentIntelligenceEngine",
       "HumanApprovalEngine",
-      "IdentityAssertionError",
-      "IdentityAssertionService",
-      "IdentityGateway",
-      "IdentityGatewayError",
-      "IdentityService",
-      "InMemoryAssertionReplayStore",
-      "InMemoryTrustStore",
       "InspectionEngine",
       "InvoiceClaimEngine",
       "IssueRiskCorrectiveActionEngine",
-      "LegalService",
       "MilestoneEngine",
       "MilestonePlanningEngine",
       "NegotiationEngine",
-      "OrganizationService",
-      "PartyService",
       "PaymentEligibilityEngine",
       "PaymentExecutionEngine",
       "PaymentTriggerEngine",
       "PaymentTriggerRuleEngine",
       "PerformanceBaselineEngine",
       "PerformanceBlueprintEngine",
-      "PermissionEnforcementError",
-      "PermissionService",
       "PortfolioAnalyticsEngine",
       "PredictiveExecutionIntelligenceEngine",
       "PredictiveRiskIntelligenceEngine",
@@ -4810,7 +4767,6 @@
       "SettlementAssuranceIndexEngine",
       "SlaIntelligenceEngine",
       "SuccessMetricsEngine",
-      "TrustStoreMembershipReader",
       "ValidationAcceptanceTestingEngine",
       "VendorCustomerPerformanceEngine",
       "WorkflowIntelligenceEngine"
@@ -4900,26 +4856,7 @@
         ]
       }
     ],
-    "unregisteredEngines": [
-      "AgentGovernanceEngine",
-      "AgentRegistryEngine",
-      "AgentRuntimeEngine",
-      "AgentTelemetryEngine",
-      "AiGatewayEngine",
-      "CapabilityRegistryEngine",
-      "ContextEngine",
-      "ExecutionMemoryEngine",
-      "FileAssuraStore",
-      "HumanApprovalEngine",
-      "IdentityAssertionError",
-      "IdentityGateway",
-      "IdentityGatewayError",
-      "InMemoryAssertionReplayStore",
-      "InMemoryTrustStore",
-      "PermissionEnforcementError",
-      "PromptRegistryEngine",
-      "TrustStoreMembershipReader"
-    ]
+    "unregisteredEngines": []
   },
   "stage": "manifest"
 }
