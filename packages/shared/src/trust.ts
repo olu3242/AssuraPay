@@ -39,6 +39,75 @@ export interface TrustPersistence {
   transaction<T>(operation: (tx: TrustPersistence) => Promise<T>): Promise<T>;
 }
 
+/**
+ * Metadata keys whose values must never enter the audit trail.
+ *
+ * History is append-only, so a secret written into it cannot be redacted afterwards —
+ * the only safe moment to drop it is before the record is hashed and stored.
+ */
+export const AUDIT_REDACTED_METADATA = /(password|token|otp|secret|account|identityNumber)/i;
+
+/** Drops secret-shaped metadata keys. Applied before hashing, never after. */
+export function redactAuditMetadata(
+  metadata: Record<string, unknown>,
+): Record<string, unknown> {
+  return Object.fromEntries(
+    Object.entries(metadata).filter(([key]) => !AUDIT_REDACTED_METADATA.test(key)),
+  );
+}
+
+/**
+ * The canonical audit integrity hash.
+ *
+ * Computed over sorted keys. The previous implementation hashed
+ * `JSON.stringify({...input, ...})`, which made the digest depend on the key order of
+ * whatever object literal the calling engine happened to write — two engines recording
+ * the same logical event with their fields in a different order produced different
+ * hashes for identical content. Worse, it made the hash unreproducible by any store
+ * that normalizes: a relational adapter reads columns and rebuilds the record, and
+ * cannot know the order the original literal used, so a chain written through one store
+ * failed verification when read through the other.
+ *
+ * Defined here, in the package both stores and the ledger verifier depend on, so there
+ * is one definition rather than three that must be kept in agreement.
+ */
+export function auditIntegrityHash(
+  record: Omit<AuditRecord, 'id' | 'integrityHash'>,
+  digest: (value: string) => string,
+): string {
+  return digest(
+    canonicalJson({
+      tenantId: record.tenantId,
+      workspaceId: record.workspaceId,
+      actorId: record.actorId,
+      eventType: record.eventType,
+      aggregateType: record.aggregateType,
+      aggregateId: record.aggregateId,
+      correlationId: record.correlationId,
+      metadata: record.metadata,
+      createdAt: record.createdAt,
+      previousHash: record.previousHash,
+    }),
+  );
+}
+
+/**
+ * Serializes a value with object keys in sorted order.
+ *
+ * `undefined` properties are dropped rather than serialized, so an optional field left
+ * unset hashes the same as one absent entirely — otherwise `tenantId: undefined` and no
+ * `tenantId` at all would be different records.
+ */
+export function canonicalJson(value: unknown): string {
+  if (value === undefined) return 'null';
+  if (value === null || typeof value !== 'object') return JSON.stringify(value) ?? 'null';
+  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(',')}]`;
+  const entries = Object.entries(value as Record<string, unknown>)
+    .filter(([, entry]) => entry !== undefined)
+    .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
+  return `{${entries.map(([key, entry]) => `${JSON.stringify(key)}:${canonicalJson(entry)}`).join(',')}}`;
+}
+
 export function requireAuthenticatedIdentity(context?: RequestContext): asserts context is RequestContext {
   if (!context?.actorUserId || !context.sessionId) throw new Error('UNAUTHENTICATED');
 }

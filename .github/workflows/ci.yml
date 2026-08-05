@@ -24,3 +24,62 @@ jobs:
       # architecture, dependency, security and contract validation, and the
       # production build. It is the single certification gate.
       - run: pnpm repo:certify
+
+  # Durability is a separate job because it needs a database, and because it must
+  # be impossible to satisfy without one. `certify:postgres` fails when
+  # ASSURAPAY_TEST_DATABASE_URL is unset rather than skipping, so a missing service
+  # container turns this job red instead of green-and-empty.
+  postgres:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        # Pinned to the version the store is developed against. A durability claim
+        # is about a specific engine's transaction and locking behaviour.
+        image: postgres:16
+        env:
+          POSTGRES_USER: assurapay
+          POSTGRES_PASSWORD: assurapay
+          POSTGRES_DB: assurapay_test
+        ports:
+          - 5432:5432
+        # The suites create and drop databases of their own, so the job waits for a
+        # server that is actually accepting connections rather than for the
+        # container to have started.
+        options: >-
+          --health-cmd "pg_isready -U assurapay"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.3.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      # CREATEDB, because the historical migration set is not schema-relocatable:
+      # one of its SECURITY DEFINER functions pins search_path=public, so the
+      # full-set test needs its own database rather than its own schema.
+      - name: Grant CREATEDB to the test role
+        run: psql "$ADMIN_URL" -c 'ALTER ROLE assurapay CREATEDB'
+        env:
+          ADMIN_URL: postgres://assurapay:assurapay@127.0.0.1:5432/assurapay_test
+
+      - name: Certify durability against real PostgreSQL
+        run: pnpm certify:postgres
+        env:
+          ASSURAPAY_TEST_DATABASE_URL: postgres://assurapay:assurapay@127.0.0.1:5432/assurapay_test
+
+      # Proves the gate cannot pass without a database. If this step succeeds, the
+      # suites are skipping rather than running, and the durability evidence above
+      # is worthless.
+      - name: Prove the gate fails with no database configured
+        run: |
+          if pnpm certify:postgres; then
+            echo "certify:postgres passed with no database configured; the suites are skipping" >&2
+            exit 1
+          fi

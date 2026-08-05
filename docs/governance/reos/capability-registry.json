@@ -211,18 +211,29 @@
       ],
       "evidence": {
         "paths": [
-          "packages/database/src/postgres-store.ts"
+          "packages/database/src/postgres-store.ts",
+          "packages/database/src/postgres-client.ts",
+          "packages/database/src/migrations.ts",
+          "supabase/migrations/202608060001_trust_repository_store.sql"
         ],
         "symbols": [
-          "PostgresTrustStore"
+          "PostgresTrustStore",
+          "applyMigrations",
+          "verifySchemaCompatibility"
         ],
         "tests": [
-          "packages/database/src/postgres-store.integration.test.ts"
+          "packages/database-testing/src/postgres-store.postgres.test.ts",
+          "packages/database-testing/src/migrations.postgres.test.ts",
+          "packages/audit-ledger/src/audit-ledger.postgres.test.ts"
         ]
       },
-      "certify": "certify:tenancy",
+      "certify": "certify:postgres",
       "requiresLiveInfrastructure": true,
-      "notes": "Requires DATABASE_URL and a Postgres driver, which the repository has none of - it currently ships zero runtime dependencies. Blocked before that on persistence.async-repository-interface: TrustPersistence is synchronous, so no network-backed store can implement it. Definition of done is passing TRUST_PERSISTENCE_CONFORMANCE plus persistence.rls-certification against a live instance; an adapter that compiles is not the capability."
+      "notes": "Real driver, real database, real transactions. Inventory found scripts/run-migrations.js to be a single console.log and the only test of the SQL to read the files as text and grep for CREATE TABLE, so twenty migrations had never been executed anywhere. They do apply to vanilla PostgreSQL 16 - only pgcrypto and current_setting('app.*') session variables, nothing Supabase-specific - but they cannot back the repository contract: user_identities requires tenant_neutral_subject_id and primary_authentication_method that no engine sets, and audit_records types aggregate_id as UUID while PermissionService audits a permission key there, an insert that would fail in production. A forward migration adds a schema shaped like the contract and leaves all twenty untouched. Driver is postgres.js: one package, no transitive dependencies, tagged templates so parameterization is the default and sql.unsafe is the single statically policeable escape hatch. Entities whose invariants CLAUDE.md depends on have their own tables with real foreign keys and partial unique indexes; history is append-only in the database through a trigger, and a check constraint makes a severed chain link unstorable rather than merely detectable. Two defects surfaced: the audit integrity hash was not canonical, hashing the calling engine's object literal so no store rebuilding a record from columns could reproduce it, and a session-scoped advisory lock cannot guard a migration run behind a pool. Evidence is 66 tests against a live instance covering conformance, restart durability across two pools, transaction rollback with mutation and audit coupled, isolation, one-winner concurrency, a fork-free chain under twelve concurrent writers, and tamper detection. The gate fails rather than skips without ASSURAPAY_TEST_DATABASE_URL. Row Level Security remains persistence.rls-certification: the policies exist on the historical tables but are not certified, and the trust-store tables do not yet carry them.",
+      "scope": {
+        "files": 12,
+        "tests": 3
+      }
     },
     {
       "id": "persistence.rls-certification",

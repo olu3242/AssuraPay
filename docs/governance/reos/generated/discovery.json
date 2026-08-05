@@ -460,6 +460,12 @@
       "testNamePattern": "58"
     },
     {
+      "command": "vitest run --config vitest.postgres.config.ts",
+      "packageDirectory": null,
+      "script": "certify:postgres",
+      "testNamePattern": null
+    },
+    {
       "command": "vitest run packages/enterprise-intelligence/src/enterprise-intelligence.test.ts --testNamePattern=55",
       "packageDirectory": "packages/enterprise-intelligence",
       "script": "certify:predictive-execution",
@@ -1862,6 +1868,13 @@
       "id": "202608030013",
       "name": "workflow_intelligence",
       "path": "supabase/migrations/202608030013_workflow_intelligence.sql"
+    },
+    {
+      "declaresPolicies": 0,
+      "declaresRowLevelSecurity": false,
+      "id": "202608060001",
+      "name": "trust_repository_store",
+      "path": "supabase/migrations/202608060001_trust_repository_store.sql"
     }
   ],
   "packages": [
@@ -1983,6 +1996,7 @@
       "sourceFiles": 1,
       "sourceLines": 384,
       "testFiles": [
+        "packages/audit-ledger/src/audit-ledger.postgres.test.ts",
         "packages/audit-ledger/src/audit-ledger.test.ts"
       ],
       "tests": {
@@ -1990,10 +2004,11 @@
         "integration": 0,
         "performance": 0,
         "security": 0,
-        "unit": 1
+        "unit": 2
       },
       "workspaceDependencies": [
         "@assurapay/database",
+        "@assurapay/database-testing",
         "@assurapay/shared"
       ]
     },
@@ -2033,14 +2048,20 @@
       "directory": "packages/database",
       "exportedClasses": [
         "FileAssuraStore",
-        "InMemoryTrustStore"
+        "InMemoryTrustStore",
+        "MigrationError",
+        "PostgresConfigError",
+        "PostgresStoreError",
+        "PostgresTrustStore"
       ],
-      "externalDependencies": [],
+      "externalDependencies": [
+        "postgres"
+      ],
       "main": "src/index.ts",
       "moduleType": null,
       "name": "@assurapay/database",
-      "sourceFiles": 3,
-      "sourceLines": 825,
+      "sourceFiles": 6,
+      "sourceLines": 2088,
       "testFiles": [
         "packages/database/src/async-conformance.test.ts",
         "packages/database/src/trust-migrations.integration.test.ts",
@@ -2054,6 +2075,33 @@
         "unit": 2
       },
       "workspaceDependencies": [
+        "@assurapay/shared"
+      ]
+    },
+    {
+      "directory": "packages/database-testing",
+      "exportedClasses": [],
+      "externalDependencies": [
+        "postgres"
+      ],
+      "main": "src/index.ts",
+      "moduleType": null,
+      "name": "@assurapay/database-testing",
+      "sourceFiles": 1,
+      "sourceLines": 192,
+      "testFiles": [
+        "packages/database-testing/src/migrations.postgres.test.ts",
+        "packages/database-testing/src/postgres-store.postgres.test.ts"
+      ],
+      "tests": {
+        "e2e": 0,
+        "integration": 0,
+        "performance": 0,
+        "security": 0,
+        "unit": 2
+      },
+      "workspaceDependencies": [
+        "@assurapay/database",
         "@assurapay/shared"
       ]
     },
@@ -2439,7 +2487,7 @@
       "moduleType": "module",
       "name": "@assurapay/reos",
       "sourceFiles": 25,
-      "sourceLines": 4462,
+      "sourceLines": 4566,
       "testFiles": [
         "packages/reos/src/reos.e2e.test.ts",
         "packages/reos/src/reos.governance.test.ts",
@@ -2532,7 +2580,7 @@
       "moduleType": null,
       "name": "@assurapay/shared",
       "sourceFiles": 2,
-      "sourceLines": 480,
+      "sourceLines": 545,
       "testFiles": [
         "packages/shared/src/trust.test.ts"
       ],
@@ -2588,10 +2636,11 @@
   "reosVersion": "1.0.0",
   "repository": {
     "git": {
-      "branch": "feat/persistence-async-repository-interface",
+      "branch": "feat/persistence-postgres-trust-store",
       "branches": [
         "claude/git-pull-cqc04u",
         "feat/persistence-async-repository-interface",
+        "feat/persistence-postgres-trust-store",
         "main",
         "origin/claude/git-pull-cqc04u",
         "origin/claude/implementation-02q40a",
@@ -2599,6 +2648,7 @@
         "origin/feat/engines-06-10-governance-core",
         "origin/feat/engines-61-70-agent-runtime",
         "origin/feat/persistence-async-repository-interface",
+        "origin/feat/persistence-postgres-trust-store",
         "origin/main",
         "origin/wip/persistence-async-migration",
         "origin/wip/persistence-async-repository-interface",
@@ -2607,6 +2657,7 @@
       ],
       "clean": false,
       "dirtyFiles": [
+        ".github/workflows/ci.yml",
         "docs/governance/reos/capability-registry.json",
         "docs/governance/reos/generated/CERTIFICATION_REPORT.md",
         "docs/governance/reos/generated/DEPENDENCY_RESOLUTION.md",
@@ -2615,23 +2666,10 @@
         "docs/governance/reos/generated/dependency-resolution.json",
         "docs/governance/reos/generated/discovery.json",
         "docs/governance/reos/generated/execution-manifest.json",
-        "docs/governance/reos/generated/forensics.json",
-        "package.json",
-        "packages/agent-runtime/src/agent-runtime.security.test.ts",
-        "packages/database/src/async-conformance.test.ts",
-        "packages/database/src/conformance.ts",
-        "packages/database/src/trust-store.test.ts",
-        "packages/execution-orchestration/src/execution-orchestration.test.ts",
-        "packages/identity/src/identity.test.ts",
-        "packages/reos/src/index.ts",
-        "packages/reos/src/reos.persistence.test.ts",
-        "packages/reos/src/validators/architecture.ts",
-        "packages/reos/src/validators/persistence.ts",
-        "packages/shared/src/trust.test.ts",
-        "packages/shared/src/trust.ts"
+        "docs/governance/reos/generated/forensics.json"
       ],
-      "head": "bcd78f6c73075fc5459bf43a7bcb9bae1f213e45",
-      "headShort": "bcd78f6",
+      "head": "6571dfcb30c7d5d552c0b186872bd6162cfb57ce",
+      "headShort": "6571dfc",
       "reflogAvailable": true,
       "remotes": [
         "origin"
@@ -2640,7 +2678,7 @@
         "platform-trust-foundation",
         "rc-engine-60"
       ],
-      "upstream": "origin/feat/persistence-async-repository-interface"
+      "upstream": "origin/feat/persistence-postgres-trust-store"
     },
     "name": "assurapay",
     "packageManager": "pnpm@11.3.0",
@@ -2822,21 +2860,22 @@
       "integration": 15,
       "performance": 2,
       "security": 3,
-      "unit": 40
+      "unit": 43
     },
-    "files": 75
+    "files": 78
   },
   "totals": {
     "applications": 1,
     "documents": 140,
     "engines": 60,
-    "migrations": 20,
-    "packages": 23,
-    "testFiles": 75
+    "migrations": 21,
+    "packages": 24,
+    "testFiles": 78
   },
   "workflows": [
     {
       "jobs": [
+        "postgres",
         "verify"
       ],
       "name": "AssuraPay CI",

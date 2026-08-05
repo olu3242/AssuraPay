@@ -9,15 +9,15 @@
 | --- | --- |
 | Repository | assurapay |
 | Version | 0.1.0 |
-| Branch | feat/persistence-async-repository-interface |
-| HEAD | bcd78f6c73075fc5459bf43a7bcb9bae1f213e45 |
+| Branch | feat/persistence-postgres-trust-store |
+| HEAD | 6571dfcb30c7d5d552c0b186872bd6162cfb57ce |
 | Worktree clean | no |
-| Manifest digest | 764fbd44c98c |
+| Manifest digest | 8de1ea9abdd7 |
 | REOS version | 1.0.0 |
 
 ## Architecture
 
-- Packages: 23
+- Packages: 24
 - Applications: 1
 - Waves: 6
 - Canonical chain: Contract → PerformanceBlueprint → Milestone → DefinitionOfDonePackage → ExecutionWorkspace → CompletionCertificate → PaymentEligibility → FinancialEntitlement → ReleaseRequest → PaymentInstruction → ReconciliationRecord
@@ -26,10 +26,9 @@
 
 | Lifecycle | Count |
 | --- | --- |
-| missing | 1 |
 | planned | 1 |
 | certified | 1 |
-| released | 68 |
+| released | 69 |
 | deferred | 4 |
 
 ## Engine reconciliation
@@ -104,10 +103,10 @@ from repository evidence: package presence, test files, and certification wiring
 
 | Capability | Title | Status | Lifecycle | Probes | Rationale |
 | --- | --- | --- | --- | --- | --- |
-| persistence.async-repository-interface | Asynchronous repository interface | implemented | certified | 5/5 | All 5 evidence probes satisfied at HEAD. |
-| persistence.postgres-repository | PostgreSQL repository implementation | missing | planned | 0/3 | No evidence at HEAD, on any ref, or in history. |
+| persistence.async-repository-interface | Asynchronous repository interface | implemented | released | 5/5 | All 5 evidence probes satisfied at HEAD. |
+| persistence.postgres-repository | PostgreSQL repository implementation | implemented | certified | 10/10 | All 10 evidence probes satisfied at HEAD. |
 | persistence.repository-conformance | TrustPersistence conformance specification | implemented | released | 4/4 | All 4 evidence probes satisfied at HEAD. |
-| persistence.rls-certification | Row Level Security certification | missing | missing | 0/4 | No evidence at HEAD, on any ref, or in history. |
+| persistence.rls-certification | Row Level Security certification | missing | planned | 0/4 | No evidence at HEAD, on any ref, or in history. |
 | reos.execution-os | Repository Execution Operating System | implemented | released | 7/7 | All 7 evidence probes satisfied at HEAD. |
 | runtime.agent-registration | Agent Runtime registration | implemented | released | 3/3 | All 3 evidence probes satisfied at HEAD. |
 | settlement.non-custody-guard | Non-custody architectural guard | implemented | released | 4/4 | All 4 evidence probes satisfied at HEAD. |
@@ -142,14 +141,13 @@ from repository evidence: package presence, test files, and certification wiring
 
 ## Execution backlog
 
-2 open item(s). Highest-priority first.
+1 open item(s). Highest-priority first.
 
 | Capability | Title | Lifecycle | Priority | Executable | Blocked by | Blocks |
 | --- | --- | --- | --- | --- | --- | --- |
-| persistence.postgres-repository | PostgreSQL repository implementation | planned | 40 | yes | — | 1 |
-| persistence.rls-certification | Row Level Security certification | missing | 41 | no | persistence.postgres-repository | — |
+| persistence.rls-certification | Row Level Security certification | planned | 41 | yes | — | — |
 
 ## Certification coverage
 
-- Certification scripts: 84
-- Packages without a certification script: packages/database, packages/domain
+- Certification scripts: 85
+- Packages without a certification script: packages/database, packages/database-testing, packages/domain

@@ -6,183 +6,21 @@
 
 | Field | Value |
 | --- | --- |
-| Branch | feat/persistence-async-repository-interface |
-| HEAD | bcd78f6c73075fc5459bf43a7bcb9bae1f213e45 |
+| Branch | feat/persistence-postgres-trust-store |
+| HEAD | 6571dfcb30c7d5d552c0b186872bd6162cfb57ce |
 | Worktree clean | no |
-| Uncommitted files | 22 |
-| Generated at | 2026-08-05T19:35:43.104Z |
+| Uncommitted files | 10 |
+| Generated at | 2026-08-05T22:14:21.809Z |
 
 ## Capability implemented
 
-`persistence.async-repository-interface` — lifecycle **certified**
+`persistence.postgres-repository` — lifecycle **certified**
 
-## Files modified (257)
+## Files modified (37)
 
-- `apps/web/app/api/v1/acceptance-criteria/[id]/confirm/route.ts`
-- `apps/web/app/api/v1/acceptance-criteria/route.ts`
-- `apps/web/app/api/v1/acceptance-decisions/route.ts`
-- `apps/web/app/api/v1/agreement-contracts/route.ts`
-- `apps/web/app/api/v1/agreement-intelligence/[id]/publish/route.ts`
-- `apps/web/app/api/v1/agreement-intelligence/route.ts`
-- `apps/web/app/api/v1/approval-requests/[id]/decisions/route.ts`
-- `apps/web/app/api/v1/approval-requests/route.ts`
-- `apps/web/app/api/v1/approval-thresholds/route.ts`
-- `apps/web/app/api/v1/auth/assertion/route.ts`
-- `apps/web/app/api/v1/auth/login/route.ts`
-- `apps/web/app/api/v1/auth/logout/route.ts`
-- `apps/web/app/api/v1/auth/register/route.ts`
-- `apps/web/app/api/v1/auth/session/route.ts`
-- `apps/web/app/api/v1/authorization-decisions/[id]/approve/route.ts`
-- `apps/web/app/api/v1/authorization-decisions/[id]/reject/route.ts`
-- `apps/web/app/api/v1/authorization-decisions/route.ts`
-- `apps/web/app/api/v1/blueprint-milestones/critical-path/route.ts`
-- `apps/web/app/api/v1/blueprint-milestones/dependencies/route.ts`
-- `apps/web/app/api/v1/blueprint-milestones/route.ts`
-- `apps/web/app/api/v1/certification-requests/[id]/decisions/route.ts`
-- `apps/web/app/api/v1/certification-requests/[id]/issue/route.ts`
-- `apps/web/app/api/v1/certification-requests/route.ts`
-- `apps/web/app/api/v1/change-requests/[id]/decide/route.ts`
-- `apps/web/app/api/v1/change-requests/[id]/implement/route.ts`
-- `apps/web/app/api/v1/change-requests/[id]/submit/route.ts`
-- `apps/web/app/api/v1/change-requests/route.ts`
-- `apps/web/app/api/v1/clauses/route.ts`
-- `apps/web/app/api/v1/completion-certificates/[id]/revoke/route.ts`
-- `apps/web/app/api/v1/completion-certificates/[id]/verification/route.ts`
-- `apps/web/app/api/v1/completion-certificates/[id]/verify/route.ts`
-- `apps/web/app/api/v1/completion-certificates/route.ts`
-- `apps/web/app/api/v1/contract-analysis/route.ts`
-- `apps/web/app/api/v1/contract-drafts/[id]/submit/route.ts`
-- `apps/web/app/api/v1/contract-repository/search/route.ts`
-- `apps/web/app/api/v1/contract-risks/route.ts`
-- `apps/web/app/api/v1/contract-templates/versions/route.ts`
-- `apps/web/app/api/v1/contract-versions/route.ts`
-- `apps/web/app/api/v1/contracts/[id]/approve/route.ts`
-- `apps/web/app/api/v1/contracts/route.ts`
-- `apps/web/app/api/v1/corrective-action-plans/[id]/complete/route.ts`
-- `apps/web/app/api/v1/corrective-action-plans/[id]/verify/route.ts`
-- `apps/web/app/api/v1/corrective-action-plans/route.ts`
-- `apps/web/app/api/v1/dashboard-snapshots/route.ts`
-- `apps/web/app/api/v1/defects/[id]/close/route.ts`
-- `apps/web/app/api/v1/defects/[id]/resolve/route.ts`
-- `apps/web/app/api/v1/defects/[id]/root-cause/route.ts`
-- `apps/web/app/api/v1/defects/route.ts`
-- `apps/web/app/api/v1/definition-of-done-packages/[id]/publish/route.ts`
-- `apps/web/app/api/v1/definition-of-done-packages/route.ts`
-- `apps/web/app/api/v1/definitions-of-done/[id]/evaluate/route.ts`
-- `apps/web/app/api/v1/definitions-of-done/[id]/publish/route.ts`
-- `apps/web/app/api/v1/definitions-of-done/route.ts`
-- `apps/web/app/api/v1/deliverables/[id]/confirm/route.ts`
-- `apps/web/app/api/v1/deliverables/route.ts`
-- `apps/web/app/api/v1/dependencies/[id]/resolve/route.ts`
-- `apps/web/app/api/v1/dependencies/route.ts`
-- `apps/web/app/api/v1/disputes/[id]/appeal/route.ts`
-- `apps/web/app/api/v1/disputes/[id]/close/route.ts`
-- `apps/web/app/api/v1/disputes/[id]/decide/route.ts`
-- `apps/web/app/api/v1/disputes/[id]/evidence/route.ts`
-- `apps/web/app/api/v1/disputes/[id]/positions/route.ts`
-- `apps/web/app/api/v1/disputes/route.ts`
-- `apps/web/app/api/v1/drift-alerts/[id]/acknowledge/route.ts`
-- `apps/web/app/api/v1/drift-alerts/[id]/resolve/route.ts`
-- `apps/web/app/api/v1/drift-alerts/route.ts`
-- `apps/web/app/api/v1/evaluation-records/route.ts`
-- `apps/web/app/api/v1/evidence-packages/[id]/verify/route.ts`
-- `apps/web/app/api/v1/evidence-packages/route.ts`
-- `apps/web/app/api/v1/evidence-requirements/route.ts`
-- `apps/web/app/api/v1/execution-assurance-indices/route.ts`
-- `apps/web/app/api/v1/execution-forecasts/[id]/review/route.ts`
-- `apps/web/app/api/v1/execution-forecasts/route.ts`
-- `apps/web/app/api/v1/execution-workspaces/[id]/activate/route.ts`
-- `apps/web/app/api/v1/execution-workspaces/[id]/resume/route.ts`
-- `apps/web/app/api/v1/execution-workspaces/[id]/submit/route.ts`
-- `apps/web/app/api/v1/execution-workspaces/[id]/suspend/route.ts`
-- `apps/web/app/api/v1/execution-workspaces/route.ts`
-- `apps/web/app/api/v1/executions/[id]/transition/route.ts`
-- `apps/web/app/api/v1/executions/route.ts`
-- `apps/web/app/api/v1/final-settlement-accounts/[id]/close/route.ts`
-- `apps/web/app/api/v1/final-settlement-accounts/route.ts`
-- `apps/web/app/api/v1/financial-closure-certificates/route.ts`
-- `apps/web/app/api/v1/financial-entitlements/[id]/confirm/route.ts`
-- `apps/web/app/api/v1/financial-entitlements/route.ts`
-- `apps/web/app/api/v1/financial-forecasts/[id]/review/route.ts`
-- `apps/web/app/api/v1/financial-forecasts/route.ts`
-- `apps/web/app/api/v1/fund-reservations/[id]/cancel/route.ts`
-- `apps/web/app/api/v1/fund-reservations/[id]/release/route.ts`
-- `apps/web/app/api/v1/fund-reservations/route.ts`
-- `apps/web/app/api/v1/funding-commitments/[id]/confirm/route.ts`
-- `apps/web/app/api/v1/funding-commitments/route.ts`
-- `apps/web/app/api/v1/inspections/[id]/complete/route.ts`
-- `apps/web/app/api/v1/inspections/route.ts`
-- `apps/web/app/api/v1/invoices/[id]/approve/route.ts`
-- `apps/web/app/api/v1/invoices/[id]/reject/route.ts`
-- `apps/web/app/api/v1/invoices/route.ts`
-- `apps/web/app/api/v1/issues/[id]/close/route.ts`
-- `apps/web/app/api/v1/issues/[id]/escalate/route.ts`
-- `apps/web/app/api/v1/issues/route.ts`
-- `apps/web/app/api/v1/kpi-definitions/[id]/retire/route.ts`
-- `apps/web/app/api/v1/kpi-definitions/route.ts`
-- `apps/web/app/api/v1/kpi-values/route.ts`
-- `apps/web/app/api/v1/ledger-entries/route.ts`
-- `apps/web/app/api/v1/legal/holds/route.ts`
-- `apps/web/app/api/v1/legal/policies/route.ts`
-- `apps/web/app/api/v1/legal/policy-versions/[id]/accept/route.ts`
-- `apps/web/app/api/v1/me/workspaces/route.ts`
-- `apps/web/app/api/v1/milestones/[id]/assurance/route.ts`
-- `apps/web/app/api/v1/milestones/route.ts`
-- `apps/web/app/api/v1/model-feedback/route.ts`
-- `apps/web/app/api/v1/model-registrations/[id]/deprecate/route.ts`
-- `apps/web/app/api/v1/model-registrations/route.ts`
-- `apps/web/app/api/v1/negotiation-rounds/route.ts`
-- `apps/web/app/api/v1/organizations/route.ts`
-- `apps/web/app/api/v1/parties/[id]/verification-requests/route.ts`
-- `apps/web/app/api/v1/parties/route.ts`
-- `apps/web/app/api/v1/payment-eligibilities/route.ts`
-- `apps/web/app/api/v1/payment-eligibility/[id]/blockers/route.ts`
-- `apps/web/app/api/v1/payment-instructions/[id]/refresh-status/route.ts`
-- `apps/web/app/api/v1/payment-instructions/[id]/reverse/route.ts`
-- `apps/web/app/api/v1/payment-instructions/[id]/submit/route.ts`
-- `apps/web/app/api/v1/payment-instructions/route.ts`
-- `apps/web/app/api/v1/payment-trigger-rules/[id]/activate/route.ts`
-- `apps/web/app/api/v1/payment-trigger-rules/[id]/evaluate/route.ts`
-- `apps/web/app/api/v1/payment-trigger-rules/route.ts`
-- `apps/web/app/api/v1/payment-triggers/[id]/evaluate/route.ts`
-- `apps/web/app/api/v1/payment-triggers/[id]/proposals/route.ts`
-- `apps/web/app/api/v1/payment-triggers/route.ts`
-- `apps/web/app/api/v1/performance-baselines/route.ts`
-- `apps/web/app/api/v1/performance-baselines/variances/route.ts`
-- `apps/web/app/api/v1/performance-blueprints/[id]/activate/route.ts`
-- `apps/web/app/api/v1/performance-blueprints/route.ts`
-- `apps/web/app/api/v1/performance-scorecards/route.ts`
-- `apps/web/app/api/v1/permissions/evaluate/route.ts`
-- `apps/web/app/api/v1/portfolio-snapshots/route.ts`
-- `apps/web/app/api/v1/progress-records/route.ts`
-- `apps/web/app/api/v1/quality-gate-evaluations/route.ts`
-- `apps/web/app/api/v1/quality-plans/route.ts`
-- `apps/web/app/api/v1/recommendations/[id]/decide/route.ts`
-- `apps/web/app/api/v1/recommendations/route.ts`
-- `apps/web/app/api/v1/reconciliation-records/route.ts`
-- `apps/web/app/api/v1/release-requests/[id]/cancel/route.ts`
-- `apps/web/app/api/v1/release-requests/[id]/evaluate/route.ts`
-- `apps/web/app/api/v1/release-requests/route.ts`
-- `apps/web/app/api/v1/renewal-assessments/route.ts`
-- `apps/web/app/api/v1/roles/assignments/route.ts`
-- `apps/web/app/api/v1/roles/route.ts`
-- `apps/web/app/api/v1/scope-items/[id]/confirm/route.ts`
-- `apps/web/app/api/v1/scope-items/route.ts`
-- `apps/web/app/api/v1/settlement-assurance-indices/route.ts`
-- `apps/web/app/api/v1/signature-packages/route.ts`
-- `apps/web/app/api/v1/success-metrics/[id]/confirm/route.ts`
-- `apps/web/app/api/v1/success-metrics/route.ts`
-- `apps/web/app/api/v1/validation-tests/route.ts`
-- `apps/web/app/api/v1/work-items/[id]/transition/route.ts`
-- `apps/web/app/api/v1/work-items/route.ts`
-- `apps/web/app/api/v1/workflow-intelligence/route.ts`
-- `apps/web/app/api/v1/workspaces/[id]/activate-context/route.ts`
-- `apps/web/app/api/v1/workspaces/[id]/found/route.ts`
-- `apps/web/app/api/v1/workspaces/route.ts`
-- `apps/web/lib/grant-administration.ts`
-- `apps/web/lib/trust-app.ts`
+- `.github/workflows/ci.yml`
+- `docs/governance/execution-ledger/6571dfcb30c7-persistence.postgres-repository.json`
 - `docs/governance/execution-ledger/INDEX.md`
-- `docs/governance/execution-ledger/bcd78f6c7307-persistence.async-repository-interface.json`
 - `docs/governance/reos/capability-registry.json`
 - `docs/governance/reos/generated/CERTIFICATION_REPORT.md`
 - `docs/governance/reos/generated/DEPENDENCY_RESOLUTION.md`
@@ -193,97 +31,43 @@
 - `docs/governance/reos/generated/execution-manifest.json`
 - `docs/governance/reos/generated/forensics.json`
 - `package.json`
-- `packages/agent-runtime/src/agent-runtime.e2e.test.ts`
-- `packages/agent-runtime/src/agent-runtime.integration.test.ts`
-- `packages/agent-runtime/src/agent-runtime.performance.test.ts`
-- `packages/agent-runtime/src/agent-runtime.registration.test.ts`
-- `packages/agent-runtime/src/agent-runtime.security.test.ts`
-- `packages/agent-runtime/src/agent-runtime.test.ts`
-- `packages/agent-runtime/src/index.ts`
-- `packages/agreement-creation/src/agreement-creation.e2e.test.ts`
-- `packages/agreement-creation/src/agreement-creation.test.ts`
-- `packages/agreement-creation/src/index.ts`
-- `packages/agreement-intelligence/src/agreement-intelligence.e2e.test.ts`
-- `packages/agreement-intelligence/src/agreement-intelligence.test.ts`
-- `packages/agreement-intelligence/src/index.ts`
-- `packages/audit-ledger/src/audit-ledger.test.ts`
+- `packages/audit-ledger/package.json`
+- `packages/audit-ledger/src/audit-ledger.postgres.test.ts`
 - `packages/audit-ledger/src/index.ts`
-- `packages/completion-assurance/src/completion-assurance.e2e.test.ts`
-- `packages/completion-assurance/src/completion-assurance.test.ts`
-- `packages/completion-assurance/src/index.ts`
-- `packages/database/src/async-conformance.test.ts`
+- `packages/database-testing/package.json`
+- `packages/database-testing/src/index.ts`
+- `packages/database-testing/src/migrations.postgres.test.ts`
+- `packages/database-testing/src/postgres-store.postgres.test.ts`
+- `packages/database/package.json`
 - `packages/database/src/conformance.ts`
+- `packages/database/src/index.ts`
+- `packages/database/src/migrations.ts`
+- `packages/database/src/postgres-client.ts`
+- `packages/database/src/postgres-store.ts`
 - `packages/database/src/trust-store.test.ts`
 - `packages/database/src/trust-store.ts`
-- `packages/domain/src/services/assurapay-service.ts`
-- `packages/domain/src/trust-foundation.e2e.test.ts`
-- `packages/enterprise-analytics/src/enterprise-analytics.e2e.test.ts`
-- `packages/enterprise-analytics/src/enterprise-analytics.test.ts`
-- `packages/enterprise-analytics/src/index.ts`
-- `packages/enterprise-intelligence/src/enterprise-intelligence.e2e.test.ts`
-- `packages/enterprise-intelligence/src/enterprise-intelligence.test.ts`
-- `packages/enterprise-intelligence/src/index.ts`
-- `packages/execution-orchestration/src/execution-orchestration.e2e.test.ts`
-- `packages/execution-orchestration/src/execution-orchestration.test.ts`
-- `packages/execution-orchestration/src/index.ts`
-- `packages/governance-core/src/governance-core.e2e.test.ts`
-- `packages/governance-core/src/governance-core.test.ts`
-- `packages/governance-core/src/index.ts`
-- `packages/identity/src/assertions.test.ts`
-- `packages/identity/src/assertions.ts`
-- `packages/identity/src/gateway.test.ts`
-- `packages/identity/src/gateway.ts`
-- `packages/identity/src/identity.test.ts`
-- `packages/identity/src/index.ts`
-- `packages/identity/src/issuance.test.ts`
-- `packages/identity/src/issuance.ts`
-- `packages/legal/src/index.ts`
-- `packages/legal/src/legal.test.ts`
-- `packages/organizations/src/index.ts`
-- `packages/organizations/src/organizations.test.ts`
-- `packages/parties/src/index.ts`
-- `packages/parties/src/parties.test.ts`
-- `packages/performance-blueprint/src/index.ts`
-- `packages/performance-blueprint/src/performance-blueprint.e2e.test.ts`
-- `packages/performance-blueprint/src/performance-blueprint.test.ts`
-- `packages/performance-readiness/src/index.ts`
-- `packages/performance-readiness/src/performance-readiness.e2e.test.ts`
-- `packages/performance-readiness/src/performance-readiness.test.ts`
-- `packages/permissions/src/catalogue.test.ts`
-- `packages/permissions/src/catalogue.ts`
-- `packages/permissions/src/enforcement.test.ts`
-- `packages/permissions/src/enforcement.ts`
-- `packages/permissions/src/index.ts`
-- `packages/permissions/src/permissions.test.ts`
-- `packages/reos/src/index.ts`
 - `packages/reos/src/reos.persistence.test.ts`
-- `packages/reos/src/validators/architecture.ts`
+- `packages/reos/src/validators/dependency.ts`
 - `packages/reos/src/validators/persistence.ts`
-- `packages/settlement-assurance/src/index.ts`
-- `packages/settlement-assurance/src/settlement-assurance.e2e.test.ts`
-- `packages/settlement-assurance/src/settlement-assurance.non-custody.test.ts`
-- `packages/settlement-assurance/src/settlement-assurance.test.ts`
-- `packages/settlement-execution/src/index.ts`
-- `packages/settlement-execution/src/settlement-execution.e2e.test.ts`
-- `packages/settlement-execution/src/settlement-execution.non-custody.test.ts`
-- `packages/settlement-execution/src/settlement-execution.test.ts`
-- `packages/shared/src/trust.test.ts`
 - `packages/shared/src/trust.ts`
-- `packages/workflow-intelligence/src/index.ts`
-- `packages/workflow-intelligence/src/workflow-intelligence.e2e.test.ts`
-- `packages/workflow-intelligence/src/workflow-intelligence.integration.test.ts`
-- `packages/workflow-intelligence/src/workflow-intelligence.performance.test.ts`
-- `packages/workflow-intelligence/src/workflow-intelligence.security.test.ts`
-- `packages/workflow-intelligence/src/workflow-intelligence.test.ts`
+- `pnpm-lock.yaml`
+- `supabase/migrations/202608060001_trust_repository_store.sql`
+- `tsconfig.json`
+- `vitest.config.ts`
+- `vitest.postgres.config.ts`
 
 ## Validation
 
 | Validator | Result | Checked | Errors | Warnings |
 | --- | --- | --- | --- | --- |
-| architecture | pass | 163 | 0 | 0 |
-| dependencies | pass | 24 | 0 | 0 |
-| security | pass | 256 | 0 | 0 |
-| execution-contract | pass | 247 | 0 | 0 |
+| architecture | pass | 175 | 0 | 0 |
+| dependencies | pass | 25 | 0 | 0 |
+| security | pass | 260 | 0 | 0 |
+| execution-contract | pass | 27 | 0 | 1 |
+
+### Findings
+
+- **warning** `contract/tests-not-updated` (packages/shared/src) — packages/shared has modified source but no modified tests in this change.
 
 ## Governance
 
@@ -295,21 +79,20 @@ No newly introduced violations.
 
 **PASSED** — every certification gate is green.
 
-## Remaining backlog (2)
+## Remaining backlog (1)
 
 | Capability | Status | Executable | Blocked by |
 | --- | --- | --- | --- |
-| persistence.postgres-repository | missing | yes |  |
-| persistence.rls-certification | missing | no | persistence.postgres-repository |
+| persistence.rls-certification | missing | yes |  |
 
 ## Recommended next capability
 
-`persistence.postgres-repository` — PostgreSQL repository implementation
+`persistence.rls-certification` — Row Level Security certification
 
 ## Ledger
 
-Recorded as `bcd78f6c7307-persistence.async-repository-interface` in `docs/governance/execution-ledger/`.
+Recorded as `6571dfcb30c7-persistence.postgres-repository` in `docs/governance/execution-ledger/`.
 
 ## Commit
 
-`bcd78f6c73075fc5459bf43a7bcb9bae1f213e45`
+`6571dfcb30c7d5d552c0b186872bd6162cfb57ce`

@@ -1,11 +1,11 @@
 {
-  "name": "@assurapay/audit-ledger",
+  "name": "@assurapay/database-testing",
   "version": "0.1.0",
   "private": true,
   "main": "src/index.ts",
   "dependencies": {
     "@assurapay/database": "workspace:*",
-    "@assurapay/shared": "workspace:*",
-    "@assurapay/database-testing": "workspace:*"
+    "postgres": "^3.4.9",
+    "@assurapay/shared": "workspace:*"
   }
 }

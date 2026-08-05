@@ -1,6 +1,7 @@
 import path from 'node:path';
 import { readJsonIfPresent, readTextIfPresent, walkFiles } from '../util/fsx.ts';
 import { sortBy } from '../util/serialize.ts';
+import { declaresRuleVocabulary } from './exemption.ts';
 import type { DiscoverySnapshot, Finding, ValidationOutcome } from '../types.ts';
 
 type ManifestShape = { dependencies?: Record<string, string> };
@@ -11,6 +12,10 @@ function collectWorkspaceImports(repoRoot: string, directory: string): Set<strin
     if (!/\.tsx?$/.test(file)) continue;
     const text = readTextIfPresent(path.join(repoRoot, file));
     if (text === null) continue;
+    // A file declaring rule vocabulary writes import statements as fixture strings in
+    // order to test the validator that reads them. Counting those as real imports would
+    // make a validator's own test demand a dependency the package does not have.
+    if (declaresRuleVocabulary(text)) continue;
     for (const match of text.matchAll(/from\s+['"](@assurapay\/[^'"/]+)['"]/g)) {
       imports.add(match[1]);
     }

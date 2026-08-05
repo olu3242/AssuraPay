@@ -1,6 +1,9 @@
 import { createHash, randomUUID } from 'node:crypto';
 import type { AuditRecord, RequestContext, TrustPersistence } from '@assurapay/shared';
-import { requireActiveWorkspace } from '@assurapay/shared';
+import {
+  auditIntegrityHash as canonicalAuditIntegrityHash,
+  requireActiveWorkspace,
+} from '@assurapay/shared';
 
 /**
  * Engine 08 — Audit & Evidence Ledger.
@@ -53,20 +56,17 @@ export type AuditChainVerification = {
 /**
  * Recomputes the integrity hash of a record from its own contents.
  *
- * The store hashes `{...input, metadata, createdAt, previousHash}` — the record
- * minus `id` and `integrityHash`, with `previousHash` moved to the end. Key order
- * matters because the hash is over `JSON.stringify`, so the reconstruction walks
- * the record's own keys in their stored order rather than naming them, which would
- * fix an order the writer does not guarantee.
+ * Delegates to the canonical function in `@assurapay/shared`, which every store writes
+ * through. This previously reconstructed the hashed payload by walking the record's own
+ * keys in stored order, because the writer hashed an object literal and key order
+ * therefore mattered. That made the digest depend on which engine wrote the record, and
+ * made it unreproducible by any store that rebuilds a record from columns — verification
+ * of a durably stored chain failed for reasons that had nothing to do with tampering.
  */
 export function recomputeIntegrityHash(record: AuditRecord): string {
-  const payload: Record<string, unknown> = {};
-  for (const [key, value] of Object.entries(record)) {
-    if (key === 'id' || key === 'integrityHash' || key === 'previousHash') continue;
-    payload[key] = value;
-  }
-  payload.previousHash = record.previousHash;
-  return createHash('sha256').update(JSON.stringify(payload)).digest('hex');
+  return canonicalAuditIntegrityHash(record, (value: string) =>
+    createHash('sha256').update(value).digest('hex'),
+  );
 }
 
 /**

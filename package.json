@@ -38,6 +38,7 @@
     "certify:identity": "vitest run packages/identity",
     "certify:tenancy": "vitest run packages/organizations packages/database",
     "certify:persistence": "vitest run packages/shared packages/database packages/reos/src/reos.persistence.test.ts packages/reos/src/reos.integration.test.ts",
+    "certify:postgres": "vitest run --config vitest.postgres.config.ts",
     "certify:authorization": "vitest run packages/permissions apps/web/lib/route-permissions.test.ts",
     "certify:party-verification": "vitest run packages/parties",
     "certify:legal": "vitest run packages/legal",
@@ -122,6 +123,7 @@
   "dependencies": {
     "framer-motion": "^11.11.9",
     "next": "^14.2.15",
+    "postgres": "^3.4.9",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "zod": "^3.23.0"

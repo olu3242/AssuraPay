@@ -1,5 +1,6 @@
 import { createHash, randomUUID } from 'node:crypto';
 import type { AuditRecord, OutboxEvent, TrustPersistence } from '@assurapay/shared';
+import { auditIntegrityHash, redactAuditMetadata } from '@assurapay/shared';
 
 /**
  * In-memory implementation of the governed persistence boundary.
@@ -51,14 +52,14 @@ export class InMemoryTrustStore implements TrustPersistence {
     const records = (this.collections.get('auditRecords') ?? []) as AuditRecord[];
     const previousHash = records.at(-1)?.integrityHash;
     const createdAt = new Date().toISOString();
-    const safeMetadata = Object.fromEntries(
-      Object.entries(input.metadata).filter(
-        ([key]) => !/(password|token|otp|secret|account|identityNumber)/i.test(key),
-      ),
+    const safeMetadata = redactAuditMetadata(input.metadata);
+    // Hashed through the shared canonical function rather than over this object's key
+    // order, so a record written here verifies when read back from a durable store that
+    // rebuilt it from columns.
+    const integrityHash = auditIntegrityHash(
+      { ...input, metadata: safeMetadata, createdAt, previousHash },
+      (value) => createHash('sha256').update(value).digest('hex'),
     );
-    const integrityHash = createHash('sha256')
-      .update(JSON.stringify({ ...input, metadata: safeMetadata, createdAt, previousHash }))
-      .digest('hex');
     const record = {
       id: randomUUID(),
       ...input,

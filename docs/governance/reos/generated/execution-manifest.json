@@ -46,7 +46,7 @@
       "PaymentInstruction",
       "ReconciliationRecord"
     ],
-    "packageCount": 23,
+    "packageCount": 24,
     "waves": [
       {
         "engines": [
@@ -219,6 +219,7 @@
       "certify:performance-blueprint",
       "certify:persistence",
       "certify:portfolio-analytics",
+      "certify:postgres",
       "certify:predictive-execution",
       "certify:progress-measurement",
       "certify:quality-assurance",
@@ -233,9 +234,10 @@
       "certify:vendor-customer-performance",
       "certify:workflow-intelligence"
     ],
-    "targets": 84,
+    "targets": 85,
     "unscripted": [
       "packages/database",
+      "packages/database-testing",
       "packages/domain"
     ]
   },
@@ -2404,7 +2406,7 @@
         "persistence.repository-conformance"
       ],
       "id": "persistence.async-repository-interface",
-      "lifecycle": "certified",
+      "lifecycle": "released",
       "status": "implemented"
     },
     {
@@ -2415,8 +2417,8 @@
         "persistence.async-repository-interface"
       ],
       "id": "persistence.postgres-repository",
-      "lifecycle": "planned",
-      "status": "missing"
+      "lifecycle": "certified",
+      "status": "implemented"
     },
     {
       "blocks": [
@@ -2437,7 +2439,7 @@
         "persistence.postgres-repository"
       ],
       "id": "persistence.rls-certification",
-      "lifecycle": "missing",
+      "lifecycle": "planned",
       "status": "missing"
     },
     {
@@ -3268,36 +3270,13 @@
   "executionBacklog": [
     {
       "blockedBy": [],
-      "blocks": [
-        "persistence.rls-certification"
-      ],
-      "dependsOn": [
-        "persistence.async-repository-interface"
-      ],
-      "executable": true,
-      "id": "persistence.postgres-repository",
-      "lifecycle": "planned",
-      "priority": 40,
-      "requiresLiveInfrastructure": true,
-      "scope": {
-        "estimated": false,
-        "files": 1,
-        "tests": 1
-      },
-      "status": "missing",
-      "title": "PostgreSQL repository implementation"
-    },
-    {
-      "blockedBy": [
-        "persistence.postgres-repository"
-      ],
       "blocks": [],
       "dependsOn": [
         "persistence.postgres-repository"
       ],
-      "executable": false,
+      "executable": true,
       "id": "persistence.rls-certification",
-      "lifecycle": "missing",
+      "lifecycle": "planned",
       "priority": 41,
       "requiresLiveInfrastructure": true,
       "scope": {
@@ -3310,9 +3289,9 @@
     }
   ],
   "identity": {
-    "branch": "feat/persistence-async-repository-interface",
+    "branch": "feat/persistence-postgres-trust-store",
     "clean": false,
-    "head": "bcd78f6c73075fc5459bf43a7bcb9bae1f213e45",
+    "head": "6571dfcb30c7d5d552c0b186872bd6162cfb57ce",
     "repository": "assurapay",
     "version": "0.1.0"
   },
@@ -3374,6 +3353,7 @@
     "engine:59",
     "engine:60",
     "persistence.async-repository-interface",
+    "persistence.postgres-repository",
     "persistence.repository-conformance",
     "reos.execution-os",
     "runtime.agent-registration",
@@ -3392,14 +3372,13 @@
     "deferred": 4,
     "implemented": 0,
     "implementing": 0,
-    "missing": 1,
+    "missing": 0,
     "planned": 1,
-    "released": 68,
+    "released": 69,
     "validated": 0
   },
-  "manifestDigest": "764fbd44c98c",
+  "manifestDigest": "8de1ea9abdd7",
   "missingCapabilities": [
-    "persistence.postgres-repository",
     "persistence.rls-certification"
   ],
   "packages": [
@@ -3521,6 +3500,7 @@
       "sourceFiles": 1,
       "sourceLines": 384,
       "testFiles": [
+        "packages/audit-ledger/src/audit-ledger.postgres.test.ts",
         "packages/audit-ledger/src/audit-ledger.test.ts"
       ],
       "tests": {
@@ -3528,10 +3508,11 @@
         "integration": 0,
         "performance": 0,
         "security": 0,
-        "unit": 1
+        "unit": 2
       },
       "workspaceDependencies": [
         "@assurapay/database",
+        "@assurapay/database-testing",
         "@assurapay/shared"
       ]
     },
@@ -3571,14 +3552,20 @@
       "directory": "packages/database",
       "exportedClasses": [
         "FileAssuraStore",
-        "InMemoryTrustStore"
+        "InMemoryTrustStore",
+        "MigrationError",
+        "PostgresConfigError",
+        "PostgresStoreError",
+        "PostgresTrustStore"
       ],
-      "externalDependencies": [],
+      "externalDependencies": [
+        "postgres"
+      ],
       "main": "src/index.ts",
       "moduleType": null,
       "name": "@assurapay/database",
-      "sourceFiles": 3,
-      "sourceLines": 825,
+      "sourceFiles": 6,
+      "sourceLines": 2088,
       "testFiles": [
         "packages/database/src/async-conformance.test.ts",
         "packages/database/src/trust-migrations.integration.test.ts",
@@ -3592,6 +3579,33 @@
         "unit": 2
       },
       "workspaceDependencies": [
+        "@assurapay/shared"
+      ]
+    },
+    {
+      "directory": "packages/database-testing",
+      "exportedClasses": [],
+      "externalDependencies": [
+        "postgres"
+      ],
+      "main": "src/index.ts",
+      "moduleType": null,
+      "name": "@assurapay/database-testing",
+      "sourceFiles": 1,
+      "sourceLines": 192,
+      "testFiles": [
+        "packages/database-testing/src/migrations.postgres.test.ts",
+        "packages/database-testing/src/postgres-store.postgres.test.ts"
+      ],
+      "tests": {
+        "e2e": 0,
+        "integration": 0,
+        "performance": 0,
+        "security": 0,
+        "unit": 2
+      },
+      "workspaceDependencies": [
+        "@assurapay/database",
         "@assurapay/shared"
       ]
     },
@@ -3977,7 +3991,7 @@
       "moduleType": "module",
       "name": "@assurapay/reos",
       "sourceFiles": 25,
-      "sourceLines": 4462,
+      "sourceLines": 4566,
       "testFiles": [
         "packages/reos/src/reos.e2e.test.ts",
         "packages/reos/src/reos.governance.test.ts",
@@ -4070,7 +4084,7 @@
       "moduleType": null,
       "name": "@assurapay/shared",
       "sourceFiles": 2,
-      "sourceLines": 480,
+      "sourceLines": 545,
       "testFiles": [
         "packages/shared/src/trust.test.ts"
       ],
@@ -4133,7 +4147,7 @@
       },
       "id": "persistence.async-repository-interface",
       "kind": "platform",
-      "onDefaultBranch": false,
+      "onDefaultBranch": true,
       "probes": [
         {
           "kind": "path",
@@ -4191,7 +4205,7 @@
     {
       "git": {
         "historicalCommits": [],
-        "reachableFromHead": false,
+        "reachableFromHead": true,
         "refsContaining": [],
         "removedFromHead": false
       },
@@ -4201,28 +4215,96 @@
       "probes": [
         {
           "kind": "path",
-          "matches": [],
+          "matches": [
+            "packages/database/src/postgres-store.ts"
+          ],
           "query": "packages/database/src/postgres-store.ts",
-          "satisfied": false
+          "satisfied": true
+        },
+        {
+          "kind": "path",
+          "matches": [
+            "packages/database/src/postgres-client.ts"
+          ],
+          "query": "packages/database/src/postgres-client.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "path",
+          "matches": [
+            "packages/database/src/migrations.ts"
+          ],
+          "query": "packages/database/src/migrations.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "path",
+          "matches": [
+            "supabase/migrations/202608060001_trust_repository_store.sql"
+          ],
+          "query": "supabase/migrations/202608060001_trust_repository_store.sql",
+          "satisfied": true
         },
         {
           "kind": "symbol",
-          "matches": [],
+          "matches": [
+            "packages/audit-ledger/src/audit-ledger.postgres.test.ts",
+            "packages/database-testing/src/postgres-store.postgres.test.ts",
+            "packages/database/src/conformance.ts",
+            "packages/database/src/postgres-store.ts"
+          ],
           "query": "PostgresTrustStore",
-          "satisfied": false
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "packages/database-testing/src/index.ts",
+            "packages/database-testing/src/migrations.postgres.test.ts",
+            "packages/database/src/migrations.ts"
+          ],
+          "query": "applyMigrations",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "packages/database-testing/src/migrations.postgres.test.ts",
+            "packages/database/src/migrations.ts"
+          ],
+          "query": "verifySchemaCompatibility",
+          "satisfied": true
         },
         {
           "kind": "test",
-          "matches": [],
-          "query": "packages/database/src/postgres-store.integration.test.ts",
-          "satisfied": false
+          "matches": [
+            "packages/database-testing/src/postgres-store.postgres.test.ts"
+          ],
+          "query": "packages/database-testing/src/postgres-store.postgres.test.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "test",
+          "matches": [
+            "packages/database-testing/src/migrations.postgres.test.ts"
+          ],
+          "query": "packages/database-testing/src/migrations.postgres.test.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "test",
+          "matches": [
+            "packages/audit-ledger/src/audit-ledger.postgres.test.ts"
+          ],
+          "query": "packages/audit-ledger/src/audit-ledger.postgres.test.ts",
+          "satisfied": true
         }
       ],
-      "rationale": "No evidence at HEAD, on any ref, or in history.",
-      "satisfiedProbes": 0,
-      "status": "missing",
+      "rationale": "All 10 evidence probes satisfied at HEAD.",
+      "satisfiedProbes": 10,
+      "status": "implemented",
       "title": "PostgreSQL repository implementation",
-      "totalProbes": 3
+      "totalProbes": 10
     },
     {
       "git": {
@@ -4246,6 +4328,7 @@
         {
           "kind": "symbol",
           "matches": [
+            "packages/database-testing/src/postgres-store.postgres.test.ts",
             "packages/database/src/conformance.ts",
             "packages/database/src/trust-store.test.ts"
           ],
@@ -4255,6 +4338,7 @@
         {
           "kind": "symbol",
           "matches": [
+            "packages/database-testing/src/postgres-store.postgres.test.ts",
             "packages/database/src/conformance.ts",
             "packages/database/src/trust-store.test.ts"
           ],

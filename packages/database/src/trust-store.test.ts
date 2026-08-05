@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { TrustPersistence } from '@assurapay/shared';
 import { InMemoryTrustStore } from './trust-store';
 import {
+  DEFAULT_CONFORMANCE_COLLECTIONS,
   TRUST_PERSISTENCE_CONFORMANCE,
   runTrustPersistenceConformance,
 } from './conformance';
@@ -19,7 +20,9 @@ describe('TrustPersistence conformance — InMemoryTrustStore', () => {
     it(check.name, async () => {
       // Reported through expect so a failure shows the assertion message rather
       // than an opaque thrown error.
-      await expect(check.run(new InMemoryTrustStore())).resolves.not.toThrow();
+      await expect(
+        check.run(new InMemoryTrustStore(), DEFAULT_CONFORMANCE_COLLECTIONS),
+      ).resolves.not.toThrow();
     });
   }
 });

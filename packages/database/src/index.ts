@@ -340,3 +340,6 @@ export class FileAssuraStore implements AssuraRepository {
 }
 export * from './trust-store';
 export * from './conformance';
+export * from './postgres-client';
+export * from './postgres-store';
+export * from './migrations';

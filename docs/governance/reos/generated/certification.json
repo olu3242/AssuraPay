@@ -1,7 +1,7 @@
 {
-  "branch": "feat/persistence-async-repository-interface",
-  "generatedAt": "2026-08-05T19:35:11.243Z",
-  "head": "bcd78f6c73075fc5459bf43a7bcb9bae1f213e45",
+  "branch": "feat/persistence-postgres-trust-store",
+  "generatedAt": "2026-08-05T22:14:08.518Z",
+  "head": "6571dfcb30c7d5d552c0b186872bd6162cfb57ce",
   "passed": true,
   "reosVersion": "1.0.0",
   "stage": "certify",
@@ -9,7 +9,7 @@
     {
       "command": "pnpm run lint",
       "description": "ESLint across the workspace",
-      "durationMs": 5400,
+      "durationMs": 4819,
       "exitCode": 0,
       "findings": [],
       "id": "lint",
@@ -23,7 +23,7 @@
     {
       "command": "pnpm run typecheck",
       "description": "TypeScript project typecheck",
-      "durationMs": 4621,
+      "durationMs": 2125,
       "exitCode": 0,
       "findings": [],
       "id": "typecheck",
@@ -37,30 +37,30 @@
     {
       "command": "pnpm run test:unit",
       "description": "Unit tests",
-      "durationMs": 20939,
+      "durationMs": 15035,
       "exitCode": 0,
       "findings": [],
       "id": "test:unit",
       "kind": "command",
       "outputTail": [
-        " ✓ packages/execution-orchestration/src/execution-orchestration.integration.test.ts (1 test) 3ms",
-        " ✓ packages/settlement-assurance/src/settlement-assurance.integration.test.ts (1 test) 3ms",
+        " ✓ packages/execution-orchestration/src/execution-orchestration.integration.test.ts (1 test) 2ms",
+        " ✓ packages/settlement-assurance/src/settlement-assurance.integration.test.ts (1 test) 2ms",
         " ✓ packages/performance-readiness/src/performance-readiness.integration.test.ts (1 test) 3ms",
-        " ✓ packages/enterprise-intelligence/src/enterprise-intelligence.integration.test.ts (1 test) 3ms",
-        " ✓ packages/performance-blueprint/src/performance-blueprint.integration.test.ts (1 test) 3ms",
+        " ✓ packages/enterprise-intelligence/src/enterprise-intelligence.integration.test.ts (1 test) 2ms",
+        " ✓ packages/performance-blueprint/src/performance-blueprint.integration.test.ts (1 test) 2ms",
         " ✓ packages/governance-core/src/governance-core.integration.test.ts (1 test) 3ms",
+        " ✓ packages/agreement-intelligence/src/agreement-intelligence.integration.test.ts (1 test) 2ms",
         " ✓ packages/completion-assurance/src/completion-assurance.integration.test.ts (1 test) 3ms",
-        " ✓ packages/agreement-intelligence/src/agreement-intelligence.integration.test.ts (1 test) 3ms",
-        " ✓ packages/reos/src/reos.e2e.test.ts (8 tests) 15278ms",
-        "   ✓ e2e: stages 1 to 4 run end to end through the CLI > manifest writes both the JSON input and the Markdown record 1590ms",
-        "   ✓ e2e: stages 1 to 4 run end to end through the CLI > dependencies selects a capability and records the rejections 3044ms",
-        "   ✓ e2e: stages 1 to 4 run end to end through the CLI > next prints the selected capability and the steps that follow it 1591ms",
-        "   ✓ e2e: stages 1 to 4 are byte-for-byte deterministic > produces identical artifacts across two independent CLI runs 6439ms",
-        "   ✓ e2e: certification gates report structurally > runs the in-process validators and writes a certification report 1911ms",
+        " ✓ packages/reos/src/reos.e2e.test.ts (8 tests) 9453ms",
+        "   ✓ e2e: stages 1 to 4 run end to end through the CLI > manifest writes both the JSON input and the Markdown record 1119ms",
+        "   ✓ e2e: stages 1 to 4 run end to end through the CLI > dependencies selects a capability and records the rejections 1793ms",
+        "   ✓ e2e: stages 1 to 4 run end to end through the CLI > next prints the selected capability and the steps that follow it 1005ms",
+        "   ✓ e2e: stages 1 to 4 are byte-for-byte deterministic > produces identical artifacts across two independent CLI runs 3702ms",
+        "   ✓ e2e: certification gates report structurally > runs the in-process validators and writes a certification report 1165ms",
         " Test Files  78 passed (78)",
-        "      Tests  596 passed (596)",
-        "   Start at  19:33:45",
-        "   Duration  20.05s (transform 1.65s, setup 0ms, collect 7.60s, tests 17.80s, environment 16ms, prepare 4.95s)",
+        "      Tests  603 passed (603)",
+        "   Start at  22:13:07",
+        "   Duration  14.22s (transform 1.64s, setup 0ms, collect 7.03s, tests 11.92s, environment 13ms, prepare 4.54s)",
         "$ vitest run",
         "\u001b[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.\u001b[39m"
       ],
@@ -70,7 +70,7 @@
     {
       "command": "pnpm run test:integration",
       "description": "Integration tests",
-      "durationMs": 11225,
+      "durationMs": 9820,
       "exitCode": 0,
       "findings": [],
       "id": "test:integration",
@@ -80,20 +80,20 @@
         " ↓ packages/workflow-intelligence/src/workflow-intelligence.performance.test.ts (1 test | 1 skipped)",
         " ✓ packages/database/src/trust-migrations.integration.test.ts (1 test) 4ms",
         " ✓ packages/settlement-execution/src/settlement-execution.integration.test.ts (1 test) 3ms",
-        " ✓ packages/agreement-creation/src/agreement-creation.integration.test.ts (1 test) 3ms",
-        " ✓ packages/enterprise-analytics/src/enterprise-analytics.integration.test.ts (1 test) 3ms",
+        " ✓ packages/agreement-creation/src/agreement-creation.integration.test.ts (1 test) 4ms",
+        " ✓ packages/enterprise-analytics/src/enterprise-analytics.integration.test.ts (1 test) 4ms",
         " ✓ packages/execution-orchestration/src/execution-orchestration.integration.test.ts (1 test) 3ms",
         " ✓ packages/settlement-assurance/src/settlement-assurance.integration.test.ts (1 test) 3ms",
-        " ✓ packages/performance-readiness/src/performance-readiness.integration.test.ts (1 test) 3ms",
-        " ✓ packages/enterprise-intelligence/src/enterprise-intelligence.integration.test.ts (1 test) 3ms",
-        " ✓ packages/performance-blueprint/src/performance-blueprint.integration.test.ts (1 test) 3ms",
-        " ✓ packages/governance-core/src/governance-core.integration.test.ts (1 test) 4ms",
+        " ✓ packages/performance-readiness/src/performance-readiness.integration.test.ts (1 test) 2ms",
+        " ✓ packages/enterprise-intelligence/src/enterprise-intelligence.integration.test.ts (1 test) 2ms",
+        " ✓ packages/performance-blueprint/src/performance-blueprint.integration.test.ts (1 test) 4ms",
+        " ✓ packages/governance-core/src/governance-core.integration.test.ts (1 test) 3ms",
         " ✓ packages/completion-assurance/src/completion-assurance.integration.test.ts (1 test) 3ms",
         " ✓ packages/agreement-intelligence/src/agreement-intelligence.integration.test.ts (1 test) 3ms",
         " Test Files  15 passed | 63 skipped (78)",
-        "      Tests  38 passed | 558 skipped (596)",
-        "   Start at  19:34:06",
-        "   Duration  10.26s (transform 1.81s, setup 0ms, collect 8.14s, tests 381ms, environment 16ms, prepare 5.39s)",
+        "      Tests  38 passed | 565 skipped (603)",
+        "   Start at  22:13:22",
+        "   Duration  8.98s (transform 1.78s, setup 0ms, collect 7.09s, tests 428ms, environment 14ms, prepare 4.73s)",
         "$ vitest run --testNamePattern=integration",
         "\u001b[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.\u001b[39m"
       ],
@@ -103,7 +103,7 @@
     {
       "command": "pnpm run test:e2e",
       "description": "End-to-end tests",
-      "durationMs": 23752,
+      "durationMs": 14802,
       "exitCode": 0,
       "findings": [],
       "id": "test:e2e",
@@ -116,17 +116,17 @@
         " ↓ packages/governance-core/src/governance-core.integration.test.ts (1 test | 1 skipped)",
         " ↓ packages/completion-assurance/src/completion-assurance.integration.test.ts (1 test | 1 skipped)",
         " ↓ packages/agreement-intelligence/src/agreement-intelligence.integration.test.ts (1 test | 1 skipped)",
-        " ✓ packages/reos/src/reos.e2e.test.ts (8 tests) 18291ms",
-        "   ✓ e2e: stages 1 to 4 run end to end through the CLI > discover writes a snapshot of the repository 312ms",
-        "   ✓ e2e: stages 1 to 4 run end to end through the CLI > manifest writes both the JSON input and the Markdown record 1524ms",
-        "   ✓ e2e: stages 1 to 4 run end to end through the CLI > dependencies selects a capability and records the rejections 2963ms",
-        "   ✓ e2e: stages 1 to 4 run end to end through the CLI > next prints the selected capability and the steps that follow it 1766ms",
-        "   ✓ e2e: stages 1 to 4 are byte-for-byte deterministic > produces identical artifacts across two independent CLI runs 9282ms",
-        "   ✓ e2e: certification gates report structurally > runs the in-process validators and writes a certification report 2025ms",
+        " ✓ packages/reos/src/reos.e2e.test.ts (8 tests) 9560ms",
+        "   ✓ e2e: stages 1 to 4 run end to end through the CLI > discover writes a snapshot of the repository 306ms",
+        "   ✓ e2e: stages 1 to 4 run end to end through the CLI > manifest writes both the JSON input and the Markdown record 1078ms",
+        "   ✓ e2e: stages 1 to 4 run end to end through the CLI > dependencies selects a capability and records the rejections 1839ms",
+        "   ✓ e2e: stages 1 to 4 run end to end through the CLI > next prints the selected capability and the steps that follow it 1062ms",
+        "   ✓ e2e: stages 1 to 4 are byte-for-byte deterministic > produces identical artifacts across two independent CLI runs 3657ms",
+        "   ✓ e2e: certification gates report structurally > runs the in-process validators and writes a certification report 1214ms",
         " Test Files  15 passed | 63 skipped (78)",
-        "      Tests  22 passed | 574 skipped (596)",
-        "   Start at  19:34:17",
-        "   Duration  22.84s (transform 1.80s, setup 0ms, collect 7.85s, tests 18.40s, environment 16ms, prepare 5.22s)",
+        "      Tests  22 passed | 581 skipped (603)",
+        "   Start at  22:13:32",
+        "   Duration  13.96s (transform 1.66s, setup 0ms, collect 7.24s, tests 9.68s, environment 16ms, prepare 4.70s)",
         "$ vitest run --testNamePattern=e2e",
         "\u001b[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.\u001b[39m"
       ],
@@ -135,52 +135,59 @@
     },
     {
       "description": "Architecture validation",
-      "durationMs": 93,
+      "durationMs": 123,
       "exitCode": 0,
       "findings": [],
       "id": "architecture",
       "kind": "validator",
       "outputTail": [
-        "architecture: 163 unit(s) checked, 0 finding(s)"
+        "architecture: 175 unit(s) checked, 0 finding(s)"
       ],
       "passed": true,
       "skipped": false
     },
     {
       "description": "Dependency validation",
-      "durationMs": 13,
+      "durationMs": 11,
       "exitCode": 0,
       "findings": [],
       "id": "dependencies",
       "kind": "validator",
       "outputTail": [
-        "dependencies: 24 unit(s) checked, 0 finding(s)"
+        "dependencies: 25 unit(s) checked, 0 finding(s)"
       ],
       "passed": true,
       "skipped": false
     },
     {
       "description": "Security validation",
-      "durationMs": 32,
+      "durationMs": 26,
       "exitCode": 0,
       "findings": [],
       "id": "security",
       "kind": "validator",
       "outputTail": [
-        "security: 256 unit(s) checked, 0 finding(s)"
+        "security: 260 unit(s) checked, 0 finding(s)"
       ],
       "passed": true,
       "skipped": false
     },
     {
       "description": "Execution contract validation",
-      "durationMs": 43,
+      "durationMs": 20,
       "exitCode": 0,
-      "findings": [],
+      "findings": [
+        {
+          "location": "packages/shared/src",
+          "message": "packages/shared has modified source but no modified tests in this change.",
+          "rule": "contract/tests-not-updated",
+          "severity": "warning"
+        }
+      ],
       "id": "contract",
       "kind": "validator",
       "outputTail": [
-        "execution-contract: 247 unit(s) checked, 0 finding(s)"
+        "execution-contract: 27 unit(s) checked, 1 finding(s)"
       ],
       "passed": true,
       "skipped": false
@@ -352,7 +359,7 @@
     {
       "command": "pnpm run build",
       "description": "Production build",
-      "durationMs": 30178,
+      "durationMs": 21796,
       "exitCode": 0,
       "findings": [],
       "id": "build",

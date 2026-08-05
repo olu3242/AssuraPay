@@ -9,7 +9,7 @@
       },
       "id": "persistence.async-repository-interface",
       "kind": "platform",
-      "onDefaultBranch": false,
+      "onDefaultBranch": true,
       "probes": [
         {
           "kind": "path",
@@ -67,7 +67,7 @@
     {
       "git": {
         "historicalCommits": [],
-        "reachableFromHead": false,
+        "reachableFromHead": true,
         "refsContaining": [],
         "removedFromHead": false
       },
@@ -77,28 +77,96 @@
       "probes": [
         {
           "kind": "path",
-          "matches": [],
+          "matches": [
+            "packages/database/src/postgres-store.ts"
+          ],
           "query": "packages/database/src/postgres-store.ts",
-          "satisfied": false
+          "satisfied": true
+        },
+        {
+          "kind": "path",
+          "matches": [
+            "packages/database/src/postgres-client.ts"
+          ],
+          "query": "packages/database/src/postgres-client.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "path",
+          "matches": [
+            "packages/database/src/migrations.ts"
+          ],
+          "query": "packages/database/src/migrations.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "path",
+          "matches": [
+            "supabase/migrations/202608060001_trust_repository_store.sql"
+          ],
+          "query": "supabase/migrations/202608060001_trust_repository_store.sql",
+          "satisfied": true
         },
         {
           "kind": "symbol",
-          "matches": [],
+          "matches": [
+            "packages/audit-ledger/src/audit-ledger.postgres.test.ts",
+            "packages/database-testing/src/postgres-store.postgres.test.ts",
+            "packages/database/src/conformance.ts",
+            "packages/database/src/postgres-store.ts"
+          ],
           "query": "PostgresTrustStore",
-          "satisfied": false
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "packages/database-testing/src/index.ts",
+            "packages/database-testing/src/migrations.postgres.test.ts",
+            "packages/database/src/migrations.ts"
+          ],
+          "query": "applyMigrations",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "packages/database-testing/src/migrations.postgres.test.ts",
+            "packages/database/src/migrations.ts"
+          ],
+          "query": "verifySchemaCompatibility",
+          "satisfied": true
         },
         {
           "kind": "test",
-          "matches": [],
-          "query": "packages/database/src/postgres-store.integration.test.ts",
-          "satisfied": false
+          "matches": [
+            "packages/database-testing/src/postgres-store.postgres.test.ts"
+          ],
+          "query": "packages/database-testing/src/postgres-store.postgres.test.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "test",
+          "matches": [
+            "packages/database-testing/src/migrations.postgres.test.ts"
+          ],
+          "query": "packages/database-testing/src/migrations.postgres.test.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "test",
+          "matches": [
+            "packages/audit-ledger/src/audit-ledger.postgres.test.ts"
+          ],
+          "query": "packages/audit-ledger/src/audit-ledger.postgres.test.ts",
+          "satisfied": true
         }
       ],
-      "rationale": "No evidence at HEAD, on any ref, or in history.",
-      "satisfiedProbes": 0,
-      "status": "missing",
+      "rationale": "All 10 evidence probes satisfied at HEAD.",
+      "satisfiedProbes": 10,
+      "status": "implemented",
       "title": "PostgreSQL repository implementation",
-      "totalProbes": 3
+      "totalProbes": 10
     },
     {
       "git": {
@@ -122,6 +190,7 @@
         {
           "kind": "symbol",
           "matches": [
+            "packages/database-testing/src/postgres-store.postgres.test.ts",
             "packages/database/src/conformance.ts",
             "packages/database/src/trust-store.test.ts"
           ],
@@ -131,6 +200,7 @@
         {
           "kind": "symbol",
           "matches": [
+            "packages/database-testing/src/postgres-store.postgres.test.ts",
             "packages/database/src/conformance.ts",
             "packages/database/src/trust-store.test.ts"
           ],
@@ -1051,14 +1121,14 @@
       "totalProbes": 5
     }
   ],
-  "head": "bcd78f6c73075fc5459bf43a7bcb9bae1f213e45",
+  "head": "6571dfcb30c7d5d552c0b186872bd6162cfb57ce",
   "reosVersion": "1.0.0",
   "stage": "forensics",
   "summary": {
     "deferred": 0,
-    "implemented": 13,
+    "implemented": 14,
     "lost": 0,
-    "missing": 2,
+    "missing": 1,
     "partial": 0,
     "unreachable": 0
   }
