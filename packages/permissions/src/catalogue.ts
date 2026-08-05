@@ -156,6 +156,8 @@ export const PERMISSION_CATALOGUE: readonly RoleDefinition[] = Object.freeze([
       'parties:create',
       'parties:request-verification',
       'permissions:evaluate',
+      'roles:read',
+      'roles:assign',
       'legal:create',
       'legal:accept',
       'contract-templates:create-version',

@@ -180,6 +180,14 @@ export const ROUTE_PERMISSION_REQUIREMENTS: Readonly<Record<string, RouteAccess>
   '/api/v1/legal/policies|POST': { access: 'permission', permissionKey: 'legal:create' },
   '/api/v1/legal/policy-versions/[id]/accept|POST': { access: 'permission', permissionKey: 'legal:accept' },
   '/api/v1/me/workspaces|GET': { access: 'identity' },
+  // Founding creates the first grant in a workspace, so it cannot require one.
+  // The owner-membership and no-existing-grant guards are what make it safe.
+  '/api/v1/workspaces/[id]/found|POST': { access: 'identity' },
+  '/api/v1/roles|GET': { access: 'permission', permissionKey: 'roles:read' },
+  '/api/v1/roles/assignments|POST': {
+    access: 'permission',
+    permissionKey: 'roles:assign',
+  },
   '/api/v1/milestones/[id]/assurance|GET': { access: 'permission', permissionKey: 'milestones:assurance' },
   '/api/v1/milestones|POST': { access: 'permission', permissionKey: 'milestones:create' },
   '/api/v1/model-feedback|POST': { access: 'permission', permissionKey: 'model-feedback:create' },
