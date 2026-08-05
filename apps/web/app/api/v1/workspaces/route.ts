@@ -6,7 +6,7 @@ export async function POST(request: Request) {
   try {
     // The tenant comes from the authorized context, never from the body. Reading
     // `body.tenantId` let any caller create a workspace inside any tenant.
-    const context = workspaceScoped(authorizedContextForRoute(request));
+    const context = workspaceScoped(await authorizedContextForRoute(request));
     const body = await request.json();
     const { service } = await getAssuraService();
     const workspace = await service.createWorkspace({

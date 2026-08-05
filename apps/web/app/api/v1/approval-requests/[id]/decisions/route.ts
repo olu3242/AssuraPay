@@ -7,8 +7,8 @@ export async function POST(r: Request, { params }: { params: { id: string } }) {
   try {
     const b = await r.json();
     return Response.json(
-      agreements.approvals.decide(
-        authorizedContextForRoute(r),
+      await agreements.approvals.decide(
+        await authorizedContextForRoute(r),
         params.id,
         b.decision,
         b.conditions,

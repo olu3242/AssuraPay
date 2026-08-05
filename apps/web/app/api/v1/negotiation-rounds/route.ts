@@ -6,7 +6,7 @@ import {
 export async function POST(r: Request) {
   try {
     return Response.json(
-      agreements.negotiations.submit(authorizedContextForRoute(r), await r.json()),
+      await agreements.negotiations.submit(await authorizedContextForRoute(r), await r.json()),
       { status: 201 },
     );
   } catch (e) {

@@ -91,7 +91,7 @@ export class InMemoryTrustStore implements TrustPersistence {
    */
   async transaction<T>(operation: (tx: TrustPersistence) => Promise<T>): Promise<T> {
     const snapshot = new Map(
-      [...this.collections].map(([name, values]) => [name, [...values]] as const),
+      [...this.collections].map(([name, values]) => [name, [...values]] as [string, unknown[]]),
     );
     const scoped = new ScopedTrustStore(this);
 
@@ -131,33 +131,33 @@ class ScopedTrustStore implements TrustPersistence {
 
   async list<T>(collection: string): Promise<T[]> {
     this.assertActive();
-    return this.inner.list<T>(collection);
+    return await this.inner.list<T>(collection);
   }
 
   async append<T>(collection: string, value: T): Promise<void> {
     this.assertActive();
-    return this.inner.append(collection, value);
+    return await this.inner.append(collection, value);
   }
 
   async replace<T extends { id: string }>(collection: string, value: T): Promise<void> {
     this.assertActive();
-    return this.inner.replace(collection, value);
+    return await this.inner.replace(collection, value);
   }
 
   async audit(
     input: Omit<AuditRecord, 'id' | 'createdAt' | 'integrityHash' | 'previousHash'>,
   ): Promise<AuditRecord> {
     this.assertActive();
-    return this.inner.audit(input);
+    return await this.inner.audit(input);
   }
 
   async emit(input: Omit<OutboxEvent, 'id' | 'occurredAt'>): Promise<OutboxEvent> {
     this.assertActive();
-    return this.inner.emit(input);
+    return await this.inner.emit(input);
   }
 
   async transaction<T>(operation: (tx: TrustPersistence) => Promise<T>): Promise<T> {
     this.assertActive();
-    return operation(this);
+    return await operation(this);
   }
 }

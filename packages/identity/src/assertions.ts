@@ -475,13 +475,13 @@ export class IdentityAssertionService {
     private readonly replayStore: AssertionReplayStore = new InMemoryAssertionReplayStore(),
   ) {}
 
-  issue(
+  async issue(
     input: CreateAssertionInput,
     correlationId: string,
-  ): { token: string; claims: IdentityAssertionClaims } {
+  ): Promise<{ token: string; claims: IdentityAssertionClaims }> {
     const issued = createIdentityAssertion(input, this.keyring);
 
-    this.store.audit({
+    await this.store.audit({
       actorId: issued.claims.subject,
       eventType: 'IdentityAssertionIssued',
       aggregateType: 'IdentityAssertion',
@@ -497,7 +497,7 @@ export class IdentityAssertionService {
       },
     });
 
-    this.store.emit({
+    await this.store.emit({
       aggregateType: 'IdentityAssertion',
       aggregateId: issued.claims.nonce,
       eventType: 'IdentityAssertionIssued',
@@ -511,14 +511,14 @@ export class IdentityAssertionService {
     return issued;
   }
 
-  consume(
+  async consume(
     token: string,
     correlationId: string,
     options: VerifyAssertionOptions = {},
-  ): IdentityAssertionClaims {
+  ): Promise<IdentityAssertionClaims> {
     try {
       const claims = consumeIdentityAssertion(token, this.keyring, this.replayStore, options);
-      this.store.audit({
+      await this.store.audit({
         actorId: claims.subject,
         eventType: 'IdentityAssertionAccepted',
         aggregateType: 'IdentityAssertion',
@@ -532,7 +532,7 @@ export class IdentityAssertionService {
     } catch (error) {
       const code =
         error instanceof IdentityAssertionError ? error.code : 'ASSERTION_MALFORMED';
-      this.store.audit({
+      await this.store.audit({
         actorId: 'anonymous',
         eventType: 'IdentityAssertionRejected',
         aggregateType: 'IdentityAssertion',

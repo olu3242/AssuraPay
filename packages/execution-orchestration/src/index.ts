@@ -9,19 +9,19 @@ function ws(context: RequestContext) {
   requireActiveWorkspace(context);
   return context.activeWorkspaceId;
 }
-function get<T extends { id: string; workspaceId: string }>(
+async function get<T extends { id: string; workspaceId: string }>(
   store: TrustPersistence,
   collection: string,
   context: RequestContext,
   id: string,
 ) {
-  const found = store
-    .list<T>(collection)
+  const found = (await store
+    .list<T>(collection))
     .find((x) => x.id === id && x.workspaceId === ws(context));
   if (!found) throw new Error('NOT_FOUND');
   return found;
 }
-function emit(
+async function emit(
   store: TrustPersistence,
   context: RequestContext,
   eventType: string,
@@ -29,7 +29,7 @@ function emit(
   aggregateId: string,
   payload: Record<string, unknown> = {},
 ) {
-  store.audit({
+  await store.audit({
     tenantId: context.tenantId,
     workspaceId: ws(context),
     actorId: context.actorUserId,
@@ -39,7 +39,7 @@ function emit(
     correlationId: context.correlationId,
     metadata: payload,
   });
-  store.emit({
+  await store.emit({
     tenantId: context.tenantId,
     workspaceId: ws(context),
     aggregateType,
@@ -84,11 +84,11 @@ const WORK_ITEM_TRANSITIONS: Record<WorkItem['status'], WorkItem['status'][]> = 
 export class ExecutionOrchestrationEngine {
   constructor(private readonly store: TrustPersistence) {}
 
-  open(context: RequestContext, input: { blueprintId: string; milestoneId: string }) {
+  async open(context: RequestContext, input: { blueprintId: string; milestoneId: string }) {
     const workspaceId = ws(context);
     if (
-      this.store
-        .list<ExecutionWorkspace>('executionWorkspaces')
+      (await this.store
+        .list<ExecutionWorkspace>('executionWorkspaces'))
         .some((x) => x.workspaceId === workspaceId && x.milestoneId === input.milestoneId)
     )
       throw new Error('EXECUTION_WORKSPACE_ALREADY_OPEN');
@@ -99,29 +99,29 @@ export class ExecutionOrchestrationEngine {
       status: 'DRAFT',
       createdAt: now(),
     };
-    this.store.append('executionWorkspaces', workspace);
-    emit(this.store, context, 'ExecutionWorkspaceOpened', 'ExecutionWorkspace', workspace.id, {
+    await this.store.append('executionWorkspaces', workspace);
+    await emit(this.store, context, 'ExecutionWorkspaceOpened', 'ExecutionWorkspace', workspace.id, {
       milestoneId: workspace.milestoneId,
     });
     return workspace;
   }
 
-  activate(context: RequestContext, id: string) {
-    const workspace = get<ExecutionWorkspace>(this.store, 'executionWorkspaces', context, id);
+  async activate(context: RequestContext, id: string) {
+    const workspace = await get<ExecutionWorkspace>(this.store, 'executionWorkspaces', context, id);
     if (workspace.status !== 'DRAFT') throw new Error('EXECUTION_WORKSPACE_NOT_DRAFT');
     const activated: ExecutionWorkspace = { ...workspace, status: 'ACTIVE' };
-    this.store.replace('executionWorkspaces', activated);
-    emit(this.store, context, 'ExecutionWorkspaceActivated', 'ExecutionWorkspace', id, {
+    await this.store.replace('executionWorkspaces', activated);
+    await emit(this.store, context, 'ExecutionWorkspaceActivated', 'ExecutionWorkspace', id, {
       milestoneId: workspace.milestoneId,
     });
     return activated;
   }
 
-  assignWorkItem(
+  async assignWorkItem(
     context: RequestContext,
     input: { executionWorkspaceId: string; deliverableId: string; title: string; assigneeId: string },
   ) {
-    const workspace = get<ExecutionWorkspace>(this.store, 'executionWorkspaces', context, input.executionWorkspaceId);
+    const workspace = await get<ExecutionWorkspace>(this.store, 'executionWorkspaces', context, input.executionWorkspaceId);
     if (workspace.status !== 'ACTIVE') throw new Error('EXECUTION_WORKSPACE_NOT_ACTIVE');
     if (!input.title.trim()) throw new Error('TITLE_REQUIRED');
     const stamp = now();
@@ -133,59 +133,59 @@ export class ExecutionOrchestrationEngine {
       createdAt: stamp,
       updatedAt: stamp,
     };
-    this.store.append('workItems', item);
-    emit(this.store, context, 'WorkItemAssigned', 'WorkItem', item.id, {
+    await this.store.append('workItems', item);
+    await emit(this.store, context, 'WorkItemAssigned', 'WorkItem', item.id, {
       executionWorkspaceId: item.executionWorkspaceId,
       deliverableId: item.deliverableId,
     });
     return item;
   }
 
-  transitionWorkItem(context: RequestContext, input: { id: string; to: WorkItem['status'] }) {
-    const item = get<WorkItem>(this.store, 'workItems', context, input.id);
+  async transitionWorkItem(context: RequestContext, input: { id: string; to: WorkItem['status'] }) {
+    const item = await get<WorkItem>(this.store, 'workItems', context, input.id);
     if (!WORK_ITEM_TRANSITIONS[item.status].includes(input.to)) throw new Error('INVALID_WORK_ITEM_TRANSITION');
     const updated: WorkItem = { ...item, status: input.to, updatedAt: now() };
-    this.store.replace('workItems', updated);
-    emit(this.store, context, 'WorkItemTransitioned', 'WorkItem', item.id, {
+    await this.store.replace('workItems', updated);
+    await emit(this.store, context, 'WorkItemTransitioned', 'WorkItem', item.id, {
       fromStatus: item.status,
       toStatus: input.to,
     });
     return updated;
   }
 
-  suspend(context: RequestContext, input: { id: string; reason: string }) {
-    const workspace = get<ExecutionWorkspace>(this.store, 'executionWorkspaces', context, input.id);
+  async suspend(context: RequestContext, input: { id: string; reason: string }) {
+    const workspace = await get<ExecutionWorkspace>(this.store, 'executionWorkspaces', context, input.id);
     if (workspace.status !== 'ACTIVE') throw new Error('EXECUTION_WORKSPACE_NOT_ACTIVE');
     if (!input.reason.trim()) throw new Error('SUSPENSION_REASON_REQUIRED');
     const suspended: ExecutionWorkspace = { ...workspace, status: 'SUSPENDED' };
-    this.store.replace('executionWorkspaces', suspended);
-    emit(this.store, context, 'ExecutionWorkspaceSuspended', 'ExecutionWorkspace', input.id, {
+    await this.store.replace('executionWorkspaces', suspended);
+    await emit(this.store, context, 'ExecutionWorkspaceSuspended', 'ExecutionWorkspace', input.id, {
       reason: input.reason,
     });
     return suspended;
   }
 
-  resume(context: RequestContext, id: string) {
-    const workspace = get<ExecutionWorkspace>(this.store, 'executionWorkspaces', context, id);
+  async resume(context: RequestContext, id: string) {
+    const workspace = await get<ExecutionWorkspace>(this.store, 'executionWorkspaces', context, id);
     if (workspace.status !== 'SUSPENDED') throw new Error('EXECUTION_WORKSPACE_NOT_SUSPENDED');
     const resumed: ExecutionWorkspace = { ...workspace, status: 'ACTIVE' };
-    this.store.replace('executionWorkspaces', resumed);
-    emit(this.store, context, 'ExecutionWorkspaceResumed', 'ExecutionWorkspace', id, {});
+    await this.store.replace('executionWorkspaces', resumed);
+    await emit(this.store, context, 'ExecutionWorkspaceResumed', 'ExecutionWorkspace', id, {});
     return resumed;
   }
 
-  submit(context: RequestContext, id: string) {
-    const workspace = get<ExecutionWorkspace>(this.store, 'executionWorkspaces', context, id);
+  async submit(context: RequestContext, id: string) {
+    const workspace = await get<ExecutionWorkspace>(this.store, 'executionWorkspaces', context, id);
     if (workspace.status !== 'ACTIVE') throw new Error('EXECUTION_WORKSPACE_NOT_ACTIVE');
     const workspaceId = ws(context);
-    const items = this.store
-      .list<WorkItem>('workItems')
+    const items = (await this.store
+      .list<WorkItem>('workItems'))
       .filter((x) => x.workspaceId === workspaceId && x.executionWorkspaceId === id);
     if (items.some((x) => x.status === 'ASSIGNED' || x.status === 'IN_PROGRESS'))
       throw new Error('WORK_ITEMS_NOT_TERMINAL');
     const submitted: ExecutionWorkspace = { ...workspace, status: 'SUBMITTED' };
-    this.store.replace('executionWorkspaces', submitted);
-    emit(this.store, context, 'ExecutionWorkspaceSubmitted', 'ExecutionWorkspace', id, {
+    await this.store.replace('executionWorkspaces', submitted);
+    await emit(this.store, context, 'ExecutionWorkspaceSubmitted', 'ExecutionWorkspace', id, {
       workItemCount: items.length,
     });
     return submitted;
@@ -211,7 +211,7 @@ export type ProgressRecord = {
 export class ProgressMeasurementEngine {
   constructor(private readonly store: TrustPersistence) {}
 
-  record(
+  async record(
     context: RequestContext,
     input: {
       workItemId: string;
@@ -222,7 +222,7 @@ export class ProgressMeasurementEngine {
   ) {
     if (input.percentComplete < 0 || input.percentComplete > 100) throw new Error('INVALID_PERCENT_COMPLETE');
     const workspaceId = ws(context);
-    const latest = this.latest(context, input.workItemId);
+    const latest = await this.latest(context, input.workItemId);
     const stageIndex = PROGRESS_STAGE_ORDER.indexOf(input.stage);
     if (latest) {
       const latestIndex = PROGRESS_STAGE_ORDER.indexOf(latest.stage);
@@ -242,18 +242,18 @@ export class ProgressMeasurementEngine {
       reportedBy: context.actorUserId,
       createdAt: now(),
     };
-    this.store.append('progressRecords', record);
-    emit(this.store, context, 'ProgressRecorded', 'WorkItem', input.workItemId, {
+    await this.store.append('progressRecords', record);
+    await emit(this.store, context, 'ProgressRecorded', 'WorkItem', input.workItemId, {
       stage: record.stage,
       percentComplete: record.percentComplete,
     });
     return record;
   }
 
-  latest(context: RequestContext, workItemId: string) {
+  async latest(context: RequestContext, workItemId: string) {
     const workspaceId = ws(context);
-    const records = this.store
-      .list<ProgressRecord>('progressRecords')
+    const records = (await this.store
+      .list<ProgressRecord>('progressRecords'))
       .filter((x) => x.workspaceId === workspaceId && x.workItemId === workItemId);
     return records[records.length - 1];
   }
@@ -287,7 +287,7 @@ export type EvidencePackage = {
 export class EvidenceManagementEngine {
   constructor(private readonly store: TrustPersistence) {}
 
-  defineRequirement(
+  async defineRequirement(
     context: RequestContext,
     input: { deliverableId: string; kind: string; description: string; mandatory: boolean },
   ) {
@@ -297,19 +297,19 @@ export class EvidenceManagementEngine {
       ...input,
       createdAt: now(),
     };
-    this.store.append('evidenceRequirements', requirement);
-    emit(this.store, context, 'EvidenceRequirementDefined', 'EvidenceRequirement', requirement.id, {
+    await this.store.append('evidenceRequirements', requirement);
+    await emit(this.store, context, 'EvidenceRequirementDefined', 'EvidenceRequirement', requirement.id, {
       deliverableId: requirement.deliverableId,
       mandatory: requirement.mandatory,
     });
     return requirement;
   }
 
-  submit(context: RequestContext, input: { workItemId: string; deliverableId: string; files: EvidenceFile[] }) {
+  async submit(context: RequestContext, input: { workItemId: string; deliverableId: string; files: EvidenceFile[] }) {
     if (!input.files.length) throw new Error('EVIDENCE_FILE_REQUIRED');
     const workspaceId = ws(context);
-    const requirements = this.store
-      .list<EvidenceRequirement>('evidenceRequirements')
+    const requirements = (await this.store
+      .list<EvidenceRequirement>('evidenceRequirements'))
       .filter((x) => x.workspaceId === workspaceId && x.deliverableId === input.deliverableId);
     for (const file of input.files)
       if (!requirements.some((x) => x.id === file.requirementId)) throw new Error('REQUIREMENT_NOT_FOUND');
@@ -325,16 +325,16 @@ export class EvidenceManagementEngine {
       status: 'SUBMITTED',
       createdAt: stamp,
     };
-    this.store.append('evidencePackages', pkg);
-    emit(this.store, context, 'EvidencePackageSubmitted', 'EvidencePackage', pkg.id, {
+    await this.store.append('evidencePackages', pkg);
+    await emit(this.store, context, 'EvidencePackageSubmitted', 'EvidencePackage', pkg.id, {
       workItemId: pkg.workItemId,
       fileCount: pkg.files.length,
     });
     return pkg;
   }
 
-  verify(context: RequestContext, input: { id: string; decision: 'VERIFIED' | 'REJECTED'; notes: string }) {
-    const pkg = get<EvidencePackage>(this.store, 'evidencePackages', context, input.id);
+  async verify(context: RequestContext, input: { id: string; decision: 'VERIFIED' | 'REJECTED'; notes: string }) {
+    const pkg = await get<EvidencePackage>(this.store, 'evidencePackages', context, input.id);
     if (pkg.status !== 'SUBMITTED') throw new Error('EVIDENCE_PACKAGE_NOT_SUBMITTED');
     if (!input.notes.trim()) throw new Error('VERIFICATION_NOTES_REQUIRED');
     const verified: EvidencePackage = {
@@ -342,8 +342,8 @@ export class EvidenceManagementEngine {
       status: input.decision,
       chainOfCustody: [...pkg.chainOfCustody, { actorId: context.actorUserId, action: input.decision, at: now() }],
     };
-    this.store.replace('evidencePackages', verified);
-    emit(this.store, context, 'EvidencePackageVerified', 'EvidencePackage', pkg.id, {
+    await this.store.replace('evidencePackages', verified);
+    await emit(this.store, context, 'EvidencePackageVerified', 'EvidencePackage', pkg.id, {
       decision: input.decision,
       contentHash: digest(pkg.files),
     });
@@ -372,7 +372,7 @@ const ACCEPTABLE_TEST_RESULTS: ValidationTest['result'][] = ['PASS', 'CONDITIONA
 export class ValidationAcceptanceTestingEngine {
   constructor(private readonly store: TrustPersistence) {}
 
-  record(
+  async record(
     context: RequestContext,
     input: {
       workItemId: string;
@@ -387,7 +387,7 @@ export class ValidationAcceptanceTestingEngine {
     if (input.result === 'CONDITIONAL_PASS' && !input.notes.trim())
       throw new Error('CONDITIONAL_PASS_NOTES_REQUIRED');
     if (input.retestOf) {
-      const prior = get<ValidationTest>(this.store, 'validationTests', context, input.retestOf);
+      const prior = await get<ValidationTest>(this.store, 'validationTests', context, input.retestOf);
       if (prior.result !== 'FAIL' && prior.result !== 'CONDITIONAL_PASS')
         throw new Error('RETEST_REQUIRES_PRIOR_FAILURE');
     }
@@ -398,18 +398,18 @@ export class ValidationAcceptanceTestingEngine {
       testedBy: context.actorUserId,
       testedAt: now(),
     };
-    this.store.append('validationTests', test);
-    emit(this.store, context, 'ValidationTestRecorded', 'ValidationTest', test.id, {
+    await this.store.append('validationTests', test);
+    await emit(this.store, context, 'ValidationTestRecorded', 'ValidationTest', test.id, {
       workItemId: test.workItemId,
       result: test.result,
     });
     return test;
   }
 
-  latestResult(context: RequestContext, input: { workItemId: string; acceptanceCriterionId: string }) {
+  async latestResult(context: RequestContext, input: { workItemId: string; acceptanceCriterionId: string }) {
     const workspaceId = ws(context);
-    const tests = this.store
-      .list<ValidationTest>('validationTests')
+    const tests = (await this.store
+      .list<ValidationTest>('validationTests'))
       .filter(
         (x) =>
           x.workspaceId === workspaceId &&
@@ -420,8 +420,8 @@ export class ValidationAcceptanceTestingEngine {
   }
 
   passed(context: RequestContext, input: { workItemId: string; acceptanceCriterionIds: string[] }) {
-    return input.acceptanceCriterionIds.every((acceptanceCriterionId) => {
-      const latest = this.latestResult(context, { workItemId: input.workItemId, acceptanceCriterionId });
+    return input.acceptanceCriterionIds.every(async (acceptanceCriterionId) => {
+      const latest = await this.latestResult(context, { workItemId: input.workItemId, acceptanceCriterionId });
       return !!latest && ACCEPTABLE_TEST_RESULTS.includes(latest.result);
     });
   }
@@ -465,7 +465,7 @@ export type QualityGateResult = {
 export class QualityAssuranceEngine {
   constructor(private readonly store: TrustPersistence) {}
 
-  definePlan(
+  async definePlan(
     context: RequestContext,
     input: { executionWorkspaceId: string; standards: string[]; inspectionFrequency: string },
   ) {
@@ -477,14 +477,14 @@ export class QualityAssuranceEngine {
       status: 'ACTIVE',
       createdAt: now(),
     };
-    this.store.append('qualityPlans', plan);
-    emit(this.store, context, 'QualityPlanDefined', 'QualityPlan', plan.id, {
+    await this.store.append('qualityPlans', plan);
+    await emit(this.store, context, 'QualityPlanDefined', 'QualityPlan', plan.id, {
       executionWorkspaceId: plan.executionWorkspaceId,
     });
     return plan;
   }
 
-  raiseDefect(context: RequestContext, input: { workItemId: string; severity: Defect['severity']; description: string }) {
+  async raiseDefect(context: RequestContext, input: { workItemId: string; severity: Defect['severity']; description: string }) {
     if (!input.description.trim()) throw new Error('DESCRIPTION_REQUIRED');
     const defect: Defect = {
       id: randomUUID(),
@@ -494,47 +494,47 @@ export class QualityAssuranceEngine {
       raisedBy: context.actorUserId,
       createdAt: now(),
     };
-    this.store.append('defects', defect);
-    emit(this.store, context, 'DefectRaised', 'Defect', defect.id, {
+    await this.store.append('defects', defect);
+    await emit(this.store, context, 'DefectRaised', 'Defect', defect.id, {
       workItemId: defect.workItemId,
       severity: defect.severity,
     });
     return defect;
   }
 
-  assignRootCause(context: RequestContext, input: { id: string; rootCause: string }) {
-    const defect = get<Defect>(this.store, 'defects', context, input.id);
+  async assignRootCause(context: RequestContext, input: { id: string; rootCause: string }) {
+    const defect = await get<Defect>(this.store, 'defects', context, input.id);
     if (defect.status !== 'OPEN' && defect.status !== 'IN_REWORK') throw new Error('DEFECT_NOT_OPEN');
     if (!input.rootCause.trim()) throw new Error('ROOT_CAUSE_REQUIRED');
     const updated: Defect = { ...defect, rootCause: input.rootCause, status: 'IN_REWORK' };
-    this.store.replace('defects', updated);
-    emit(this.store, context, 'DefectRootCauseAssigned', 'Defect', defect.id, { rootCause: input.rootCause });
+    await this.store.replace('defects', updated);
+    await emit(this.store, context, 'DefectRootCauseAssigned', 'Defect', defect.id, { rootCause: input.rootCause });
     return updated;
   }
 
-  resolve(context: RequestContext, id: string) {
-    const defect = get<Defect>(this.store, 'defects', context, id);
+  async resolve(context: RequestContext, id: string) {
+    const defect = await get<Defect>(this.store, 'defects', context, id);
     if (defect.status !== 'IN_REWORK') throw new Error('DEFECT_NOT_IN_REWORK');
     if (!defect.rootCause) throw new Error('ROOT_CAUSE_REQUIRED');
     const resolved: Defect = { ...defect, status: 'RESOLVED', resolvedAt: now() };
-    this.store.replace('defects', resolved);
-    emit(this.store, context, 'DefectResolved', 'Defect', id, { workItemId: defect.workItemId });
+    await this.store.replace('defects', resolved);
+    await emit(this.store, context, 'DefectResolved', 'Defect', id, { workItemId: defect.workItemId });
     return resolved;
   }
 
-  close(context: RequestContext, id: string) {
-    const defect = get<Defect>(this.store, 'defects', context, id);
+  async close(context: RequestContext, id: string) {
+    const defect = await get<Defect>(this.store, 'defects', context, id);
     if (defect.status !== 'RESOLVED') throw new Error('DEFECT_NOT_RESOLVED');
     const closed: Defect = { ...defect, status: 'CLOSED' };
-    this.store.replace('defects', closed);
-    emit(this.store, context, 'DefectClosed', 'Defect', defect.id, { workItemId: defect.workItemId });
+    await this.store.replace('defects', closed);
+    await emit(this.store, context, 'DefectClosed', 'Defect', defect.id, { workItemId: defect.workItemId });
     return closed;
   }
 
-  evaluateGate(context: RequestContext, workItemId: string) {
+  async evaluateGate(context: RequestContext, workItemId: string) {
     const workspaceId = ws(context);
-    const openDefects = this.store
-      .list<Defect>('defects')
+    const openDefects = (await this.store
+      .list<Defect>('defects'))
       .filter(
         (x) =>
           x.workspaceId === workspaceId &&
@@ -551,8 +551,8 @@ export class QualityAssuranceEngine {
       criticalDefectCount,
       evaluatedAt: now(),
     };
-    this.store.append('qualityGateResults', result);
-    emit(this.store, context, 'QualityGateEvaluated', 'QualityGateResult', result.id, {
+    await this.store.append('qualityGateResults', result);
+    await emit(this.store, context, 'QualityGateEvaluated', 'QualityGateResult', result.id, {
       workItemId,
       passed: result.passed,
     });

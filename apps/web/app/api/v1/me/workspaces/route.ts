@@ -10,7 +10,7 @@ export async function GET(request: Request) {
     // The previous implementation returned every workspace in the store to an
     // unauthenticated caller. Scoping to resolved memberships is the point of the
     // route — "my workspaces", not "all workspaces".
-    const context = authorizedContextForRoute(request);
+    const context = await authorizedContextForRoute(request);
     const { store } = await getAssuraService();
     const snapshot = store.getSnapshot();
     const mine = new Set(context.memberships);

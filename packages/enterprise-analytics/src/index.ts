@@ -9,19 +9,19 @@ function ws(context: RequestContext) {
   requireActiveWorkspace(context);
   return context.activeWorkspaceId;
 }
-function get<T extends { id: string; workspaceId: string }>(
+async function get<T extends { id: string; workspaceId: string }>(
   store: TrustPersistence,
   collection: string,
   context: RequestContext,
   id: string,
 ) {
-  const found = store
-    .list<T>(collection)
+  const found = (await store
+    .list<T>(collection))
     .find((x) => x.id === id && x.workspaceId === ws(context));
   if (!found) throw new Error('NOT_FOUND');
   return found;
 }
-function emit(
+async function emit(
   store: TrustPersistence,
   context: RequestContext,
   eventType: string,
@@ -29,7 +29,7 @@ function emit(
   aggregateId: string,
   payload: Record<string, unknown> = {},
 ) {
-  store.audit({
+  await store.audit({
     tenantId: context.tenantId,
     workspaceId: ws(context),
     actorId: context.actorUserId,
@@ -39,7 +39,7 @@ function emit(
     correlationId: context.correlationId,
     metadata: payload,
   });
-  store.emit({
+  await store.emit({
     tenantId: context.tenantId,
     workspaceId: ws(context),
     aggregateType,
@@ -110,8 +110,8 @@ export class FinancialPaymentIntelligenceEngine {
       reviewStatus: 'NOT_REVIEWED',
       generatedAt: now(),
     };
-    this.store.append('financialForecasts', forecast);
-    emit(this.store, context, 'FinancialForecastGenerated', 'FinancialForecast', forecast.id, {
+    await this.store.append('financialForecasts', forecast);
+    await emit(this.store, context, 'FinancialForecastGenerated', 'FinancialForecast', forecast.id, {
       scopeId: forecast.scopeId,
       forecastType: forecast.forecastType,
       confidence: forecast.confidence,
@@ -119,21 +119,21 @@ export class FinancialPaymentIntelligenceEngine {
     return forecast;
   }
 
-  review(context: RequestContext, input: { id: string; decision: 'ACCEPTED' | 'REJECTED' }) {
-    const forecast = get<FinancialForecast>(this.store, 'financialForecasts', context, input.id);
+  async review(context: RequestContext, input: { id: string; decision: 'ACCEPTED' | 'REJECTED' }) {
+    const forecast = await get<FinancialForecast>(this.store, 'financialForecasts', context, input.id);
     if (forecast.reviewStatus !== 'NOT_REVIEWED') throw new Error('FORECAST_ALREADY_REVIEWED');
     const reviewed: FinancialForecast = { ...forecast, reviewStatus: input.decision };
-    this.store.replace('financialForecasts', reviewed);
-    emit(this.store, context, 'FinancialForecastReviewed', 'FinancialForecast', forecast.id, {
+    await this.store.replace('financialForecasts', reviewed);
+    await emit(this.store, context, 'FinancialForecastReviewed', 'FinancialForecast', forecast.id, {
       decision: input.decision,
     });
     return reviewed;
   }
 
-  latest(context: RequestContext, input: { scopeId: string; forecastType: FinancialForecast['forecastType'] }) {
+  async latest(context: RequestContext, input: { scopeId: string; forecastType: FinancialForecast['forecastType'] }) {
     const workspaceId = ws(context);
-    const forecasts = this.store
-      .list<FinancialForecast>('financialForecasts')
+    const forecasts = (await this.store
+      .list<FinancialForecast>('financialForecasts'))
       .filter(
         (x) => x.workspaceId === workspaceId && x.scopeId === input.scopeId && x.forecastType === input.forecastType,
       );
@@ -158,7 +158,7 @@ export type PerformanceScorecard = {
 export class VendorCustomerPerformanceEngine {
   constructor(private readonly store: TrustPersistence) {}
 
-  score(
+  async score(
     context: RequestContext,
     input: {
       partyId: string;
@@ -177,8 +177,8 @@ export class VendorCustomerPerformanceEngine {
       overallScore: Math.round(averageOf(Object.values(input.metrics))),
       computedAt: now(),
     };
-    this.store.append('performanceScorecards', scorecard);
-    emit(this.store, context, 'PerformanceScorecardComputed', 'PerformanceScorecard', scorecard.id, {
+    await this.store.append('performanceScorecards', scorecard);
+    await emit(this.store, context, 'PerformanceScorecardComputed', 'PerformanceScorecard', scorecard.id, {
       partyId: scorecard.partyId,
       partyRole: scorecard.partyRole,
       overallScore: scorecard.overallScore,
@@ -186,15 +186,15 @@ export class VendorCustomerPerformanceEngine {
     return scorecard;
   }
 
-  history(context: RequestContext, input: { partyId: string; partyRole: PerformanceScorecard['partyRole'] }) {
+  async history(context: RequestContext, input: { partyId: string; partyRole: PerformanceScorecard['partyRole'] }) {
     const workspaceId = ws(context);
-    return this.store
-      .list<PerformanceScorecard>('performanceScorecards')
+    return (await this.store
+      .list<PerformanceScorecard>('performanceScorecards'))
       .filter((x) => x.workspaceId === workspaceId && x.partyId === input.partyId && x.partyRole === input.partyRole);
   }
 
-  latest(context: RequestContext, input: { partyId: string; partyRole: PerformanceScorecard['partyRole'] }) {
-    const scorecards = this.history(context, input);
+  async latest(context: RequestContext, input: { partyId: string; partyRole: PerformanceScorecard['partyRole'] }) {
+    const scorecards = await this.history(context, input);
     return scorecards[scorecards.length - 1];
   }
 }
@@ -218,7 +218,7 @@ export type PortfolioSnapshot = {
 export class PortfolioAnalyticsEngine {
   constructor(private readonly store: TrustPersistence) {}
 
-  snapshot(
+  async snapshot(
     context: RequestContext,
     input: {
       scopeId: string;
@@ -245,8 +245,8 @@ export class PortfolioAnalyticsEngine {
         throw new Error(`${field.toUpperCase()}_MUST_BE_NON_NEGATIVE_INTEGER_MINOR_UNITS`);
     requireScoreRange(input.concentrationTopPartyPercent, 'CONCENTRATION_TOP_PARTY_PERCENT');
     const snapshot: PortfolioSnapshot = { id: randomUUID(), workspaceId: ws(context), ...input, computedAt: now() };
-    this.store.append('portfolioSnapshots', snapshot);
-    emit(this.store, context, 'PortfolioSnapshotComputed', 'PortfolioSnapshot', snapshot.id, {
+    await this.store.append('portfolioSnapshots', snapshot);
+    await emit(this.store, context, 'PortfolioSnapshotComputed', 'PortfolioSnapshot', snapshot.id, {
       scopeId: snapshot.scopeId,
       atRiskCount: snapshot.atRiskCount,
       disputedCount: snapshot.disputedCount,
@@ -254,15 +254,15 @@ export class PortfolioAnalyticsEngine {
     return snapshot;
   }
 
-  trend(context: RequestContext, scopeId: string) {
+  async trend(context: RequestContext, scopeId: string) {
     const workspaceId = ws(context);
-    return this.store
-      .list<PortfolioSnapshot>('portfolioSnapshots')
+    return (await this.store
+      .list<PortfolioSnapshot>('portfolioSnapshots'))
       .filter((x) => x.workspaceId === workspaceId && x.scopeId === scopeId);
   }
 
-  latest(context: RequestContext, scopeId: string) {
-    const snapshots = this.trend(context, scopeId);
+  async latest(context: RequestContext, scopeId: string) {
+    const snapshots = await this.trend(context, scopeId);
     return snapshots[snapshots.length - 1];
   }
 }
@@ -284,7 +284,7 @@ export type RenewalAssessment = {
 export class RenewalRelationshipIntelligenceEngine {
   constructor(private readonly store: TrustPersistence) {}
 
-  assess(
+  async assess(
     context: RequestContext,
     input: {
       contractId: string;
@@ -303,18 +303,18 @@ export class RenewalRelationshipIntelligenceEngine {
       assessedBy: context.actorUserId,
       assessedAt: now(),
     };
-    this.store.append('renewalAssessments', assessment);
-    emit(this.store, context, 'RenewalAssessed', 'RenewalAssessment', assessment.id, {
+    await this.store.append('renewalAssessments', assessment);
+    await emit(this.store, context, 'RenewalAssessed', 'RenewalAssessment', assessment.id, {
       contractId: assessment.contractId,
       recommendedAction: assessment.recommendedAction,
     });
     return assessment;
   }
 
-  latest(context: RequestContext, contractId: string) {
+  async latest(context: RequestContext, contractId: string) {
     const workspaceId = ws(context);
-    const assessments = this.store
-      .list<RenewalAssessment>('renewalAssessments')
+    const assessments = (await this.store
+      .list<RenewalAssessment>('renewalAssessments'))
       .filter((x) => x.workspaceId === workspaceId && x.contractId === contractId);
     return assessments[assessments.length - 1];
   }
@@ -388,7 +388,7 @@ export type Recommendation = {
 export class AiDecisionSupportEngine {
   constructor(private readonly store: TrustPersistence) {}
 
-  registerModel(
+  async registerModel(
     context: RequestContext,
     input: { modelId: string; modelVersion: string; purpose: string; governedBy: string },
   ) {
@@ -400,28 +400,28 @@ export class AiDecisionSupportEngine {
       status: 'ACTIVE',
       registeredAt: now(),
     };
-    this.store.append('modelRegistrations', registration);
-    emit(this.store, context, 'ModelRegistered', 'ModelRegistration', registration.id, {
+    await this.store.append('modelRegistrations', registration);
+    await emit(this.store, context, 'ModelRegistered', 'ModelRegistration', registration.id, {
       modelId: registration.modelId,
       modelVersion: registration.modelVersion,
     });
     return registration;
   }
 
-  deprecateModel(context: RequestContext, id: string) {
-    const registration = get<ModelRegistration>(this.store, 'modelRegistrations', context, id);
+  async deprecateModel(context: RequestContext, id: string) {
+    const registration = await get<ModelRegistration>(this.store, 'modelRegistrations', context, id);
     if (registration.status !== 'ACTIVE') throw new Error('MODEL_NOT_ACTIVE');
     const deprecated: ModelRegistration = { ...registration, status: 'DEPRECATED' };
-    this.store.replace('modelRegistrations', deprecated);
-    emit(this.store, context, 'ModelDeprecated', 'ModelRegistration', registration.id, {});
+    await this.store.replace('modelRegistrations', deprecated);
+    await emit(this.store, context, 'ModelDeprecated', 'ModelRegistration', registration.id, {});
     return deprecated;
   }
 
-  recordEvaluation(
+  async recordEvaluation(
     context: RequestContext,
     input: { modelRegistrationId: string; metric: string; score: number; threshold: number },
   ) {
-    get<ModelRegistration>(this.store, 'modelRegistrations', context, input.modelRegistrationId);
+    await get<ModelRegistration>(this.store, 'modelRegistrations', context, input.modelRegistrationId);
     const passed = input.score >= input.threshold;
     const evaluation: EvaluationRecord = {
       id: randomUUID(),
@@ -430,13 +430,13 @@ export class AiDecisionSupportEngine {
       passed,
       evaluatedAt: now(),
     };
-    this.store.append('evaluationRecords', evaluation);
-    emit(this.store, context, 'EvaluationRecorded', 'EvaluationRecord', evaluation.id, {
+    await this.store.append('evaluationRecords', evaluation);
+    await emit(this.store, context, 'EvaluationRecorded', 'EvaluationRecord', evaluation.id, {
       modelRegistrationId: evaluation.modelRegistrationId,
       passed,
     });
     if (!passed)
-      this.raiseDrift(context, {
+      await this.raiseDrift(context, {
         modelRegistrationId: input.modelRegistrationId,
         description: `Evaluation for metric "${input.metric}" scored ${input.score}, below threshold ${input.threshold}`,
         severity: input.score < input.threshold / 2 ? 'HIGH' : 'MEDIUM',
@@ -444,7 +444,7 @@ export class AiDecisionSupportEngine {
     return evaluation;
   }
 
-  raiseDrift(
+  async raiseDrift(
     context: RequestContext,
     input: { modelRegistrationId: string; description: string; severity: DriftAlert['severity'] },
   ) {
@@ -455,47 +455,47 @@ export class AiDecisionSupportEngine {
       status: 'OPEN',
       raisedAt: now(),
     };
-    this.store.append('driftAlerts', alert);
-    emit(this.store, context, 'DriftAlertRaised', 'DriftAlert', alert.id, {
+    await this.store.append('driftAlerts', alert);
+    await emit(this.store, context, 'DriftAlertRaised', 'DriftAlert', alert.id, {
       modelRegistrationId: alert.modelRegistrationId,
       severity: alert.severity,
     });
     return alert;
   }
 
-  acknowledgeDrift(context: RequestContext, id: string) {
-    const alert = get<DriftAlert>(this.store, 'driftAlerts', context, id);
+  async acknowledgeDrift(context: RequestContext, id: string) {
+    const alert = await get<DriftAlert>(this.store, 'driftAlerts', context, id);
     if (alert.status !== 'OPEN') throw new Error('DRIFT_ALERT_NOT_OPEN');
     const acknowledged: DriftAlert = { ...alert, status: 'ACKNOWLEDGED' };
-    this.store.replace('driftAlerts', acknowledged);
-    emit(this.store, context, 'DriftAlertAcknowledged', 'DriftAlert', alert.id, {});
+    await this.store.replace('driftAlerts', acknowledged);
+    await emit(this.store, context, 'DriftAlertAcknowledged', 'DriftAlert', alert.id, {});
     return acknowledged;
   }
 
-  resolveDrift(context: RequestContext, id: string) {
-    const alert = get<DriftAlert>(this.store, 'driftAlerts', context, id);
+  async resolveDrift(context: RequestContext, id: string) {
+    const alert = await get<DriftAlert>(this.store, 'driftAlerts', context, id);
     if (alert.status === 'RESOLVED') throw new Error('DRIFT_ALERT_ALREADY_RESOLVED');
     const resolved: DriftAlert = { ...alert, status: 'RESOLVED', resolvedAt: now() };
-    this.store.replace('driftAlerts', resolved);
-    emit(this.store, context, 'DriftAlertResolved', 'DriftAlert', alert.id, {});
+    await this.store.replace('driftAlerts', resolved);
+    await emit(this.store, context, 'DriftAlertResolved', 'DriftAlert', alert.id, {});
     return resolved;
   }
 
-  openDrifts(context: RequestContext, modelRegistrationId: string) {
+  async openDrifts(context: RequestContext, modelRegistrationId: string) {
     const workspaceId = ws(context);
-    return this.store
-      .list<DriftAlert>('driftAlerts')
+    return (await this.store
+      .list<DriftAlert>('driftAlerts'))
       .filter(
         (x) =>
           x.workspaceId === workspaceId && x.modelRegistrationId === modelRegistrationId && x.status !== 'RESOLVED',
       );
   }
 
-  submitFeedback(
+  async submitFeedback(
     context: RequestContext,
     input: { modelRegistrationId: string; outputReference: string; rating: ModelFeedback['rating']; comment: string },
   ) {
-    get<ModelRegistration>(this.store, 'modelRegistrations', context, input.modelRegistrationId);
+    await get<ModelRegistration>(this.store, 'modelRegistrations', context, input.modelRegistrationId);
     const feedback: ModelFeedback = {
       id: randomUUID(),
       workspaceId: ws(context),
@@ -503,19 +503,19 @@ export class AiDecisionSupportEngine {
       submittedBy: context.actorUserId,
       submittedAt: now(),
     };
-    this.store.append('modelFeedback', feedback);
-    emit(this.store, context, 'ModelFeedbackSubmitted', 'ModelFeedback', feedback.id, {
+    await this.store.append('modelFeedback', feedback);
+    await emit(this.store, context, 'ModelFeedbackSubmitted', 'ModelFeedback', feedback.id, {
       modelRegistrationId: feedback.modelRegistrationId,
       rating: feedback.rating,
     });
     return feedback;
   }
 
-  recommend(
+  async recommend(
     context: RequestContext,
     input: { scopeId: string; modelRegistrationId: string; recommendation: string; confidence: number },
   ) {
-    get<ModelRegistration>(this.store, 'modelRegistrations', context, input.modelRegistrationId);
+    await get<ModelRegistration>(this.store, 'modelRegistrations', context, input.modelRegistrationId);
     if (!input.recommendation.trim()) throw new Error('RECOMMENDATION_REQUIRED');
     if (input.confidence < 0 || input.confidence > 1) throw new Error('INVALID_CONFIDENCE');
     const recommendation: Recommendation = {
@@ -525,20 +525,20 @@ export class AiDecisionSupportEngine {
       status: 'PENDING',
       createdAt: now(),
     };
-    this.store.append('recommendations', recommendation);
-    emit(this.store, context, 'RecommendationCreated', 'Recommendation', recommendation.id, {
+    await this.store.append('recommendations', recommendation);
+    await emit(this.store, context, 'RecommendationCreated', 'Recommendation', recommendation.id, {
       scopeId: recommendation.scopeId,
       confidence: recommendation.confidence,
     });
     return recommendation;
   }
 
-  decideRecommendation(context: RequestContext, input: { id: string; decision: 'ACCEPTED' | 'DISMISSED' }) {
-    const recommendation = get<Recommendation>(this.store, 'recommendations', context, input.id);
+  async decideRecommendation(context: RequestContext, input: { id: string; decision: 'ACCEPTED' | 'DISMISSED' }) {
+    const recommendation = await get<Recommendation>(this.store, 'recommendations', context, input.id);
     if (recommendation.status !== 'PENDING') throw new Error('RECOMMENDATION_ALREADY_DECIDED');
     const decided: Recommendation = { ...recommendation, status: input.decision, decidedAt: now() };
-    this.store.replace('recommendations', decided);
-    emit(this.store, context, 'RecommendationDecided', 'Recommendation', recommendation.id, {
+    await this.store.replace('recommendations', decided);
+    await emit(this.store, context, 'RecommendationDecided', 'Recommendation', recommendation.id, {
       decision: input.decision,
     });
     return decided;

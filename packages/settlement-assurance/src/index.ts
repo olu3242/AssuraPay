@@ -9,19 +9,19 @@ function ws(context: RequestContext) {
   requireActiveWorkspace(context);
   return context.activeWorkspaceId;
 }
-function get<T extends { id: string; workspaceId: string }>(
+async function get<T extends { id: string; workspaceId: string }>(
   store: TrustPersistence,
   collection: string,
   context: RequestContext,
   id: string,
 ) {
-  const found = store
-    .list<T>(collection)
+  const found = (await store
+    .list<T>(collection))
     .find((x) => x.id === id && x.workspaceId === ws(context));
   if (!found) throw new Error('NOT_FOUND');
   return found;
 }
-function emit(
+async function emit(
   store: TrustPersistence,
   context: RequestContext,
   eventType: string,
@@ -29,7 +29,7 @@ function emit(
   aggregateId: string,
   payload: Record<string, unknown> = {},
 ) {
-  store.audit({
+  await store.audit({
     tenantId: context.tenantId,
     workspaceId: ws(context),
     actorId: context.actorUserId,
@@ -39,7 +39,7 @@ function emit(
     correlationId: context.correlationId,
     metadata: payload,
   });
-  store.emit({
+  await store.emit({
     tenantId: context.tenantId,
     workspaceId: ws(context),
     aggregateType,
@@ -71,7 +71,7 @@ export type PaymentEligibility = {
 export class PaymentEligibilityEngine {
   constructor(private readonly store: TrustPersistence) {}
 
-  assess(
+  async assess(
     context: RequestContext,
     input: {
       milestoneId: string;
@@ -96,18 +96,18 @@ export class PaymentEligibilityEngine {
       evaluatedBy: context.actorUserId,
       evaluatedAt: now(),
     };
-    this.store.append('paymentEligibilities', assessment);
-    emit(this.store, context, 'PaymentEligibilityAssessed', 'PaymentEligibility', assessment.id, {
+    await this.store.append('paymentEligibilities', assessment);
+    await emit(this.store, context, 'PaymentEligibilityAssessed', 'PaymentEligibility', assessment.id, {
       milestoneId: assessment.milestoneId,
       eligible: assessment.eligible,
     });
     return assessment;
   }
 
-  latest(context: RequestContext, milestoneId: string) {
+  async latest(context: RequestContext, milestoneId: string) {
     const workspaceId = ws(context);
-    const records = this.store
-      .list<PaymentEligibility>('paymentEligibilities')
+    const records = (await this.store
+      .list<PaymentEligibility>('paymentEligibilities'))
       .filter((x) => x.workspaceId === workspaceId && x.milestoneId === milestoneId);
     return records[records.length - 1];
   }
@@ -134,7 +134,7 @@ export type FinancialEntitlement = {
 export class FinancialEntitlementEngine {
   constructor(private readonly store: TrustPersistence) {}
 
-  calculate(
+  async calculate(
     context: RequestContext,
     input: {
       milestoneId: string;
@@ -147,7 +147,7 @@ export class FinancialEntitlementEngine {
       penaltyAmountMinor: number;
     },
   ) {
-    const eligibility = get<PaymentEligibility>(this.store, 'paymentEligibilities', context, input.paymentEligibilityId);
+    const eligibility = await get<PaymentEligibility>(this.store, 'paymentEligibilities', context, input.paymentEligibilityId);
     if (!eligibility.eligible) throw new Error('PAYMENT_NOT_ELIGIBLE');
     if (!Number.isInteger(input.grossEarnedAmountMinor) || input.grossEarnedAmountMinor <= 0)
       throw new Error('GROSS_EARNED_MUST_BE_POSITIVE_INTEGER_MINOR_UNITS');
@@ -174,20 +174,20 @@ export class FinancialEntitlementEngine {
       status: 'DRAFT',
       calculatedAt: now(),
     };
-    this.store.append('financialEntitlements', entitlement);
-    emit(this.store, context, 'FinancialEntitlementCalculated', 'FinancialEntitlement', entitlement.id, {
+    await this.store.append('financialEntitlements', entitlement);
+    await emit(this.store, context, 'FinancialEntitlementCalculated', 'FinancialEntitlement', entitlement.id, {
       milestoneId: entitlement.milestoneId,
       netPayableAmountMinor: entitlement.netPayableAmountMinor,
     });
     return entitlement;
   }
 
-  confirm(context: RequestContext, id: string) {
-    const entitlement = get<FinancialEntitlement>(this.store, 'financialEntitlements', context, id);
+  async confirm(context: RequestContext, id: string) {
+    const entitlement = await get<FinancialEntitlement>(this.store, 'financialEntitlements', context, id);
     if (entitlement.status !== 'DRAFT') throw new Error('FINANCIAL_ENTITLEMENT_IMMUTABLE');
     const confirmed: FinancialEntitlement = { ...entitlement, status: 'CONFIRMED' };
-    this.store.replace('financialEntitlements', confirmed);
-    emit(this.store, context, 'FinancialEntitlementConfirmed', 'FinancialEntitlement', id, {
+    await this.store.replace('financialEntitlements', confirmed);
+    await emit(this.store, context, 'FinancialEntitlementConfirmed', 'FinancialEntitlement', id, {
       netPayableAmountMinor: entitlement.netPayableAmountMinor,
       currency: entitlement.currency,
     });
@@ -213,7 +213,7 @@ export type Invoice = {
 export class InvoiceClaimEngine {
   constructor(private readonly store: TrustPersistence) {}
 
-  submit(
+  async submit(
     context: RequestContext,
     input: {
       milestoneId: string;
@@ -224,7 +224,7 @@ export class InvoiceClaimEngine {
     },
   ) {
     requireIntegerMinorUnits(input.amountMinor, 'AMOUNT');
-    const entitlement = get<FinancialEntitlement>(
+    const entitlement = await get<FinancialEntitlement>(
       this.store,
       'financialEntitlements',
       context,
@@ -233,8 +233,8 @@ export class InvoiceClaimEngine {
     if (entitlement.status !== 'CONFIRMED') throw new Error('ENTITLEMENT_NOT_CONFIRMED');
     const workspaceId = ws(context);
     if (
-      this.store
-        .list<Invoice>('invoices')
+      (await this.store
+        .list<Invoice>('invoices'))
         .some((x) => x.workspaceId === workspaceId && x.invoiceNumber === input.invoiceNumber && x.status !== 'REJECTED')
     )
       throw new Error('DUPLICATE_INVOICE');
@@ -246,30 +246,30 @@ export class InvoiceClaimEngine {
       submittedBy: context.actorUserId,
       createdAt: now(),
     };
-    this.store.append('invoices', invoice);
-    emit(this.store, context, 'InvoiceSubmitted', 'Invoice', invoice.id, {
+    await this.store.append('invoices', invoice);
+    await emit(this.store, context, 'InvoiceSubmitted', 'Invoice', invoice.id, {
       milestoneId: invoice.milestoneId,
       status: invoice.status,
     });
     return invoice;
   }
 
-  approve(context: RequestContext, id: string) {
-    const invoice = get<Invoice>(this.store, 'invoices', context, id);
+  async approve(context: RequestContext, id: string) {
+    const invoice = await get<Invoice>(this.store, 'invoices', context, id);
     if (invoice.status !== 'MATCHED') throw new Error('INVOICE_NOT_MATCHED');
     const approved: Invoice = { ...invoice, status: 'APPROVED' };
-    this.store.replace('invoices', approved);
-    emit(this.store, context, 'InvoiceApproved', 'Invoice', id, { amountMinor: invoice.amountMinor });
+    await this.store.replace('invoices', approved);
+    await emit(this.store, context, 'InvoiceApproved', 'Invoice', id, { amountMinor: invoice.amountMinor });
     return approved;
   }
 
-  reject(context: RequestContext, input: { id: string; reason: string }) {
-    const invoice = get<Invoice>(this.store, 'invoices', context, input.id);
+  async reject(context: RequestContext, input: { id: string; reason: string }) {
+    const invoice = await get<Invoice>(this.store, 'invoices', context, input.id);
     if (invoice.status === 'APPROVED' || invoice.status === 'REJECTED') throw new Error('INVOICE_NOT_REJECTABLE');
     if (!input.reason.trim()) throw new Error('REJECTION_REASON_REQUIRED');
     const rejected: Invoice = { ...invoice, status: 'REJECTED' };
-    this.store.replace('invoices', rejected);
-    emit(this.store, context, 'InvoiceRejected', 'Invoice', invoice.id, { reason: input.reason });
+    await this.store.replace('invoices', rejected);
+    await emit(this.store, context, 'InvoiceRejected', 'Invoice', invoice.id, { reason: input.reason });
     return rejected;
   }
 }
@@ -322,7 +322,7 @@ export class EscrowFundingAssuranceEngine {
     private readonly gateway?: ExternalCustodyGateway,
   ) {}
 
-  recordCommitment(
+  async recordCommitment(
     context: RequestContext,
     input: {
       milestoneId: string;
@@ -341,8 +341,8 @@ export class EscrowFundingAssuranceEngine {
       status: 'PENDING_CONFIRMATION',
       createdAt: now(),
     };
-    this.store.append('fundingCommitments', commitment);
-    emit(this.store, context, 'FundingCommitmentRecorded', 'FundingCommitment', commitment.id, {
+    await this.store.append('fundingCommitments', commitment);
+    await emit(this.store, context, 'FundingCommitmentRecorded', 'FundingCommitment', commitment.id, {
       milestoneId: commitment.milestoneId,
       providerKey: commitment.providerKey,
     });
@@ -350,7 +350,7 @@ export class EscrowFundingAssuranceEngine {
   }
 
   async confirmCommitment(context: RequestContext, id: string) {
-    const commitment = get<FundingCommitment>(this.store, 'fundingCommitments', context, id);
+    const commitment = await get<FundingCommitment>(this.store, 'fundingCommitments', context, id);
     if (commitment.status !== 'PENDING_CONFIRMATION') throw new Error('FUNDING_COMMITMENT_NOT_PENDING');
     if (!this.gateway) throw new Error('EXTERNAL_CUSTODY_GATEWAY_REQUIRED');
     const result = await this.gateway.confirmFunding({
@@ -366,23 +366,23 @@ export class EscrowFundingAssuranceEngine {
       providerConfirmationReference: result.providerConfirmationReference,
       confirmedAt: now(),
     };
-    this.store.replace('fundingCommitments', confirmed);
-    emit(this.store, context, 'FundingCommitmentConfirmed', 'FundingCommitment', id, {
+    await this.store.replace('fundingCommitments', confirmed);
+    await emit(this.store, context, 'FundingCommitmentConfirmed', 'FundingCommitment', id, {
       providerConfirmationReference: result.providerConfirmationReference,
     });
     return confirmed;
   }
 
-  reserve(
+  async reserve(
     context: RequestContext,
     input: { fundingCommitmentId: string; invoiceId: string; reservedAmountMinor: number },
   ) {
     requireIntegerMinorUnits(input.reservedAmountMinor, 'RESERVED_AMOUNT');
-    const commitment = get<FundingCommitment>(this.store, 'fundingCommitments', context, input.fundingCommitmentId);
+    const commitment = await get<FundingCommitment>(this.store, 'fundingCommitments', context, input.fundingCommitmentId);
     if (commitment.status !== 'CONFIRMED') throw new Error('FUNDING_COMMITMENT_NOT_CONFIRMED');
     const workspaceId = ws(context);
-    const activeReserved = this.store
-      .list<FundReservation>('fundReservations')
+    const activeReserved = (await this.store
+      .list<FundReservation>('fundReservations'))
       .filter((x) => x.workspaceId === workspaceId && x.fundingCommitmentId === commitment.id && x.status === 'RESERVED')
       .reduce((sum, x) => sum + x.reservedAmountMinor, 0);
     if (activeReserved + input.reservedAmountMinor > commitment.committedAmountMinor)
@@ -394,32 +394,32 @@ export class EscrowFundingAssuranceEngine {
       status: 'RESERVED',
       createdAt: now(),
     };
-    this.store.append('fundReservations', reservation);
-    emit(this.store, context, 'FundReservationCreated', 'FundReservation', reservation.id, {
+    await this.store.append('fundReservations', reservation);
+    await emit(this.store, context, 'FundReservationCreated', 'FundReservation', reservation.id, {
       fundingCommitmentId: reservation.fundingCommitmentId,
       invoiceId: reservation.invoiceId,
     });
     return reservation;
   }
 
-  releaseReservation(context: RequestContext, id: string) {
-    const reservation = get<FundReservation>(this.store, 'fundReservations', context, id);
+  async releaseReservation(context: RequestContext, id: string) {
+    const reservation = await get<FundReservation>(this.store, 'fundReservations', context, id);
     if (reservation.status !== 'RESERVED') throw new Error('RESERVATION_NOT_RESERVED');
     const released: FundReservation = { ...reservation, status: 'RELEASED' };
-    this.store.replace('fundReservations', released);
-    emit(this.store, context, 'FundReservationReleased', 'FundReservation', id, {
+    await this.store.replace('fundReservations', released);
+    await emit(this.store, context, 'FundReservationReleased', 'FundReservation', id, {
       fundingCommitmentId: reservation.fundingCommitmentId,
     });
     return released;
   }
 
-  cancelReservation(context: RequestContext, input: { id: string; reason: string }) {
-    const reservation = get<FundReservation>(this.store, 'fundReservations', context, input.id);
+  async cancelReservation(context: RequestContext, input: { id: string; reason: string }) {
+    const reservation = await get<FundReservation>(this.store, 'fundReservations', context, input.id);
     if (reservation.status !== 'RESERVED') throw new Error('RESERVATION_NOT_RESERVED');
     if (!input.reason.trim()) throw new Error('CANCELLATION_REASON_REQUIRED');
     const cancelled: FundReservation = { ...reservation, status: 'CANCELLED' };
-    this.store.replace('fundReservations', cancelled);
-    emit(this.store, context, 'FundReservationCancelled', 'FundReservation', reservation.id, {
+    await this.store.replace('fundReservations', cancelled);
+    await emit(this.store, context, 'FundReservationCancelled', 'FundReservation', reservation.id, {
       reason: input.reason,
     });
     return cancelled;
@@ -453,7 +453,7 @@ export type ReleaseRequest = {
 export class ConditionalReleaseOrchestrationEngine {
   constructor(private readonly store: TrustPersistence) {}
 
-  draft(
+  async draft(
     context: RequestContext,
     input: {
       milestoneId: string;
@@ -465,14 +465,14 @@ export class ConditionalReleaseOrchestrationEngine {
     },
   ) {
     requireIntegerMinorUnits(input.requestedAmountMinor, 'REQUESTED_AMOUNT');
-    const entitlement = get<FinancialEntitlement>(
+    const entitlement = await get<FinancialEntitlement>(
       this.store,
       'financialEntitlements',
       context,
       input.financialEntitlementId,
     );
-    const invoice = get<Invoice>(this.store, 'invoices', context, input.invoiceId);
-    const reservation = get<FundReservation>(this.store, 'fundReservations', context, input.fundReservationId);
+    const invoice = await get<Invoice>(this.store, 'invoices', context, input.invoiceId);
+    const reservation = await get<FundReservation>(this.store, 'fundReservations', context, input.fundReservationId);
     if (input.releaseType === 'FULL' && input.requestedAmountMinor !== entitlement.netPayableAmountMinor)
       throw new Error('FULL_RELEASE_MUST_MATCH_ENTITLEMENT');
     if (input.requestedAmountMinor > reservation.reservedAmountMinor) throw new Error('REQUESTED_EXCEEDS_RESERVED');
@@ -486,8 +486,8 @@ export class ConditionalReleaseOrchestrationEngine {
       requestedBy: context.actorUserId,
       createdAt: now(),
     };
-    this.store.append('releaseRequests', request);
-    emit(this.store, context, 'ReleaseRequestDrafted', 'ReleaseRequest', request.id, {
+    await this.store.append('releaseRequests', request);
+    await emit(this.store, context, 'ReleaseRequestDrafted', 'ReleaseRequest', request.id, {
       milestoneId: request.milestoneId,
       releaseType: request.releaseType,
       requestedAmountMinor: request.requestedAmountMinor,
@@ -496,31 +496,31 @@ export class ConditionalReleaseOrchestrationEngine {
     return request;
   }
 
-  evaluate(context: RequestContext, input: { id: string; paymentEligible: boolean }) {
-    const request = get<ReleaseRequest>(this.store, 'releaseRequests', context, input.id);
+  async evaluate(context: RequestContext, input: { id: string; paymentEligible: boolean }) {
+    const request = await get<ReleaseRequest>(this.store, 'releaseRequests', context, input.id);
     if (request.status === 'CANCELLED') throw new Error('RELEASE_REQUEST_CANCELLED');
-    const invoice = get<Invoice>(this.store, 'invoices', context, request.invoiceId);
-    const reservation = get<FundReservation>(this.store, 'fundReservations', context, request.fundReservationId);
+    const invoice = await get<Invoice>(this.store, 'invoices', context, request.invoiceId);
+    const reservation = await get<FundReservation>(this.store, 'fundReservations', context, request.fundReservationId);
     const blockers: string[] = [];
     if (!input.paymentEligible) blockers.push('PAYMENT_NOT_ELIGIBLE');
     if (invoice.status !== 'APPROVED') blockers.push('INVOICE_NOT_APPROVED');
     if (reservation.status !== 'RESERVED') blockers.push('FUNDS_NOT_RESERVED');
     const evaluated: ReleaseRequest = { ...request, status: blockers.length === 0 ? 'CONDITIONS_MET' : 'BLOCKED', blockers };
-    this.store.replace('releaseRequests', evaluated);
-    emit(this.store, context, 'ReleaseRequestEvaluated', 'ReleaseRequest', request.id, {
+    await this.store.replace('releaseRequests', evaluated);
+    await emit(this.store, context, 'ReleaseRequestEvaluated', 'ReleaseRequest', request.id, {
       status: evaluated.status,
       blockers: evaluated.blockers,
     });
     return evaluated;
   }
 
-  cancel(context: RequestContext, input: { id: string; reason: string }) {
-    const request = get<ReleaseRequest>(this.store, 'releaseRequests', context, input.id);
+  async cancel(context: RequestContext, input: { id: string; reason: string }) {
+    const request = await get<ReleaseRequest>(this.store, 'releaseRequests', context, input.id);
     if (request.status === 'CANCELLED') throw new Error('RELEASE_REQUEST_ALREADY_CANCELLED');
     if (!input.reason.trim()) throw new Error('CANCELLATION_REASON_REQUIRED');
     const cancelled: ReleaseRequest = { ...request, status: 'CANCELLED' };
-    this.store.replace('releaseRequests', cancelled);
-    emit(this.store, context, 'ReleaseRequestCancelled', 'ReleaseRequest', request.id, { reason: input.reason });
+    await this.store.replace('releaseRequests', cancelled);
+    await emit(this.store, context, 'ReleaseRequestCancelled', 'ReleaseRequest', request.id, { reason: input.reason });
     return cancelled;
   }
 }

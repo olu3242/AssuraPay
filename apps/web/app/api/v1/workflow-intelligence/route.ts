@@ -6,12 +6,12 @@ import {
 
 export async function POST(request: Request) {
   try {
-    const context = authorizedContextForRoute(request);
+    const context = await authorizedContextForRoute(request);
     const body = await request.json();
     switch (body.operation) {
       case 'workflow-status':
         return Response.json(
-          workflowIntelligence.workflow.assess(context, body.input),
+          await workflowIntelligence.workflow.assess(context, body.input),
           { status: 201 },
         );
       case 'dependency-analysis':
@@ -43,7 +43,7 @@ export async function POST(request: Request) {
         );
       case 'execution-health':
         return Response.json(
-          workflowIntelligence.health.compute(context, body.input),
+          await workflowIntelligence.health.compute(context, body.input),
           { status: 201 },
         );
       default:

@@ -11,8 +11,8 @@ import { foundWorkspace } from '../../../../../../lib/grant-administration';
  */
 export async function POST(request: Request, { params }: { params: { id: string } }) {
   try {
-    const context = authorizedContextForRoute(request);
-    return Response.json(foundWorkspace(context, params.id), { status: 201 });
+    const context = await authorizedContextForRoute(request);
+    return Response.json(await foundWorkspace(context, params.id), { status: 201 });
   } catch (error) {
     return errorResponse(error);
   }

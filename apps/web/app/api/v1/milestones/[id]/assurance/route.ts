@@ -4,7 +4,7 @@ import { authorizedContextForRoute, errorResponse } from '../../../../../../lib/
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
   try {
-    authorizedContextForRoute(request);
+    await authorizedContextForRoute(request);
     const { service } = await getAssuraService();
     const assurance = await service.getAssuranceReadModel(params.id);
     return NextResponse.json(assurance);

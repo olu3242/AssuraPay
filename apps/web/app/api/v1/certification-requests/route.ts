@@ -5,9 +5,9 @@ import {
 } from '../../../../lib/trust-app';
 export async function POST(request: Request) {
   try {
-    const context = authorizedContextForRoute(request);
+    const context = await authorizedContextForRoute(request);
     return Response.json(
-      governance.certifications.request(context, await request.json()),
+      await governance.certifications.request(context, await request.json()),
       { status: 201 },
     );
   } catch (error) {

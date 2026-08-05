@@ -6,8 +6,8 @@ import {
 export async function POST(r: Request) {
   try {
     return Response.json(
-      agreements.authoring.createTemplateVersion(
-        authorizedContextForRoute(r),
+      await agreements.authoring.createTemplateVersion(
+        await authorizedContextForRoute(r),
         await r.json(),
       ),
       { status: 201 },

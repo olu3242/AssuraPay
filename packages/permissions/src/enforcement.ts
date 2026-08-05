@@ -59,16 +59,16 @@ type MembershipRecord = {
  * the in-store one without touching enforcement.
  */
 export interface WorkspaceMembershipReader {
-  activeWorkspaceIds(userId: string): string[];
+  activeWorkspaceIds(userId: string): Promise<string[]>;
 }
 
 /** Reads active memberships from the authoritative `memberships` collection. */
 export class TrustStoreMembershipReader implements WorkspaceMembershipReader {
   constructor(private readonly store: TrustPersistence) {}
 
-  activeWorkspaceIds(userId: string): string[] {
-    return this.store
-      .list<MembershipRecord>('memberships')
+  async activeWorkspaceIds(userId: string): Promise<string[]> {
+    return (await this.store
+      .list<MembershipRecord>('memberships'))
       .filter((record) => record.userId === userId && record.status === 'ACTIVE')
       .map((record) => record.workspaceId)
       .sort();
@@ -87,7 +87,7 @@ export interface PermissionAuthority {
     context: RequestContext,
     permissionKey: string,
     scopeId?: string,
-  ): PermissionDecision;
+  ): Promise<PermissionDecision>;
   /**
    * Non-throwing decision, used to establish which of a requirement's conflicting
    * permissions the caller actually holds.
@@ -96,8 +96,11 @@ export interface PermissionAuthority {
     context: RequestContext,
     permissionKey: string,
     scopeId?: string,
-  ): PermissionDecision;
-  assertNoSegregationConflict(context: RequestContext, permissions: string[]): void;
+  ): Promise<PermissionDecision>;
+  assertNoSegregationConflict(
+    context: RequestContext,
+    permissions: string[],
+  ): Promise<void>;
 }
 
 export type PermissionRequirement = {
@@ -125,14 +128,14 @@ export type EnforcementAuthorities = {
  * supply one, and trusting it would reintroduce exactly the bypass the gateway
  * removed. Membership is read, never accepted.
  */
-export function resolveMemberships(
+export async function resolveMemberships(
   identity: RequestContext,
   memberships: WorkspaceMembershipReader,
-): RequestContext {
+): Promise<RequestContext> {
   requireIdentity(identity);
   return {
     ...identity,
-    memberships: memberships.activeWorkspaceIds(identity.actorUserId),
+    memberships: await memberships.activeWorkspaceIds(identity.actorUserId),
   };
 }
 
@@ -149,11 +152,11 @@ export function resolveMemberships(
  * The returned context carries resolved memberships, so a downstream engine's
  * `requireActiveWorkspace` succeeds on proven membership rather than on a claim.
  */
-export function enforcePermission(
+export async function enforcePermission(
   identity: RequestContext,
   requirement: PermissionRequirement,
   authorities: EnforcementAuthorities,
-): RequestContext {
+): Promise<RequestContext> {
   requireIdentity(identity);
 
   if (!identity.activeWorkspaceId?.trim() || !identity.tenantId?.trim()) {
@@ -163,10 +166,10 @@ export function enforcePermission(
     );
   }
 
-  const authorized = resolveMemberships(identity, authorities.memberships);
+  const authorized = await resolveMemberships(identity, authorities.memberships);
 
   if (!authorized.memberships.includes(identity.activeWorkspaceId)) {
-    authorities.store.audit({
+    await authorities.store.audit({
       tenantId: identity.tenantId,
       workspaceId: identity.activeWorkspaceId,
       actorId: identity.actorUserId,
@@ -186,7 +189,7 @@ export function enforcePermission(
   }
 
   try {
-    authorities.permissions.requirePermission(
+    await authorities.permissions.requirePermission(
       authorized,
       requirement.permissionKey,
       requirement.scopeId,
@@ -206,15 +209,21 @@ export function enforcePermission(
     // every caller once the rule existed, including the compliant one holding a
     // single side — which reads as strict but renders the permission unusable and
     // pressures an operator into deleting the rule.
+    // Decisions are resolved before filtering. A `.filter` predicate cannot await,
+    // and an unawaited promise is always truthy, so every declared conflict would
+    // read as held and the rule would fire for a caller holding none of them.
+    const decisions = await Promise.all(
+      requirement.segregatedFrom.map((permissionKey) =>
+        authorities.permissions.evaluate(authorized, permissionKey, requirement.scopeId),
+      ),
+    );
     const heldConflicts = requirement.segregatedFrom.filter(
-      (permissionKey) =>
-        authorities.permissions.evaluate(authorized, permissionKey, requirement.scopeId)
-          .allowed,
+      (_permissionKey, index) => decisions[index].allowed,
     );
 
     if (heldConflicts.length > 0) {
       try {
-        authorities.permissions.assertNoSegregationConflict(authorized, [
+        await authorities.permissions.assertNoSegregationConflict(authorized, [
           requirement.permissionKey,
           ...heldConflicts,
         ]);

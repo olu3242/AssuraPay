@@ -8,9 +8,9 @@ export async function POST(
   { params }: { params: { id: string } },
 ) {
   try {
-    const context = authorizedContextForRoute(request);
+    const context = await authorizedContextForRoute(request);
     return Response.json(
-      governance.paymentTriggers.evaluate(context, params.id),
+      await governance.paymentTriggers.evaluate(context, params.id),
     );
   } catch (error) {
     return errorResponse(error);

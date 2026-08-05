@@ -4,7 +4,7 @@ import { authorizedContextForRoute, errorResponse } from '../../../../../../lib/
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
   try {
-    authorizedContextForRoute(request);
+    await authorizedContextForRoute(request);
     const { store } = await getAssuraService();
     const snapshot = store.getSnapshot();
     const eligibility = snapshot?.paymentEligibility?.find(

@@ -22,15 +22,15 @@ const average = (values: number[]) =>
     ? values.reduce((sum, value) => sum + value, 0) / values.length
     : 0;
 const clamp = (value: number) => Math.max(0, Math.min(100, Math.round(value)));
-function save<T extends { id: string; workspaceId: string }>(
+async function save<T extends { id: string; workspaceId: string }>(
   store: TrustPersistence,
   context: RequestContext,
   collection: string,
   value: T,
   eventType: string,
 ) {
-  store.append(collection, value);
-  store.audit({
+  await store.append(collection, value);
+  await store.audit({
     tenantId: context.tenantId,
     workspaceId: ws(context),
     actorId: context.actorUserId,
@@ -40,7 +40,7 @@ function save<T extends { id: string; workspaceId: string }>(
     correlationId: context.correlationId,
     metadata: {},
   });
-  store.emit({
+  await store.emit({
     tenantId: context.tenantId,
     workspaceId: ws(context),
     aggregateType: collection,
@@ -80,7 +80,7 @@ export interface DependencyEdge {
 // Engine 71 — observes canonical snapshots; it never transitions nodes.
 export class WorkflowIntelligenceEngine {
   constructor(private readonly store: TrustPersistence) {}
-  assess(
+  async assess(
     context: RequestContext,
     input: {
       agreementId: string;
@@ -114,7 +114,7 @@ export class WorkflowIntelligenceEngine {
     const healthScore = clamp(
       progressScore - blocked.length * 10 - stalled.length * 5,
     );
-    return save(
+    return await save(
       this.store,
       context,
       'workflowAssessments',
@@ -313,7 +313,7 @@ export type ExceptionType =
 // Engine 75 — remediation artifacts are proposals only.
 export class ExceptionManagementEngine {
   constructor(private readonly store: TrustPersistence) {}
-  createPlan(
+  async createPlan(
     context: RequestContext,
     input: {
       agreementId: string;
@@ -339,7 +339,7 @@ export class ExceptionManagementEngine {
         'Propose corrective action',
       ],
     };
-    return save(
+    return await save(
       this.store,
       context,
       'exceptionRemediationPlans',
@@ -520,7 +520,7 @@ export interface ExecutionHealthSignals {
 // Engine 80 — primary agreement KPI; risk is inverted and all weights are explicit.
 export class ExecutionHealthEngine {
   constructor(private readonly store: TrustPersistence) {}
-  compute(
+  async compute(
     context: RequestContext,
     input: { agreementId: string; signals: ExecutionHealthSignals },
   ) {
@@ -554,7 +554,7 @@ export class ExecutionHealthEngine {
           : score >= 40
             ? ('AT_RISK' as const)
             : ('CRITICAL' as const);
-    return save(
+    return await save(
       this.store,
       context,
       'executionHealthScores',

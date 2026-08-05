@@ -15,19 +15,19 @@ function workspace(c: RequestContext) {
   requireActiveWorkspace(c);
   return c.activeWorkspaceId;
 }
-function find<T extends { id: string; workspaceId: string }>(
+async function find<T extends { id: string; workspaceId: string }>(
   s: TrustPersistence,
   k: string,
   c: RequestContext,
   id: string,
 ) {
-  const x = s
-    .list<T>(k)
+  const x = (await s
+    .list<T>(k))
     .find((v) => v.id === id && v.workspaceId === workspace(c));
   if (!x) throw new Error('NOT_FOUND');
   return x;
 }
-function event(
+async function event(
   s: TrustPersistence,
   c: RequestContext,
   type: string,
@@ -35,7 +35,7 @@ function event(
   aggregateId: string,
   payload: Record<string, unknown> = {},
 ) {
-  s.audit({
+  await s.audit({
     tenantId: c.tenantId,
     workspaceId: workspace(c),
     actorId: c.actorUserId,
@@ -45,7 +45,7 @@ function event(
     correlationId: c.correlationId,
     metadata: payload,
   });
-  s.emit({
+  await s.emit({
     tenantId: c.tenantId,
     workspaceId: workspace(c),
     aggregateType,
@@ -124,7 +124,7 @@ export type ContractComment = {
 };
 export class ContractAuthoringEngine {
   constructor(private s: TrustPersistence) {}
-  create(
+  async create(
     c: RequestContext,
     i: {
       contractNumber: string;
@@ -135,8 +135,8 @@ export class ContractAuthoringEngine {
   ) {
     const w = workspace(c);
     if (
-      this.s
-        .list<Agreement>('agreements')
+      (await this.s
+        .list<Agreement>('agreements'))
         .some(
           (x) => x.workspaceId === w && x.contractNumber === i.contractNumber,
         )
@@ -150,11 +150,11 @@ export class ContractAuthoringEngine {
       createdAt: now(),
       version: 1,
     };
-    this.s.append('agreements', x);
-    event(this.s, c, 'ContractCreated', 'Agreement', x.id);
+    await this.s.append('agreements', x);
+    await event(this.s, c, 'ContractCreated', 'Agreement', x.id);
     return x;
   }
-  createTemplateVersion(
+  async createTemplateVersion(
     c: RequestContext,
     i: {
       templateKey: string;
@@ -163,8 +163,8 @@ export class ContractAuthoringEngine {
     },
   ) {
     const w = workspace(c),
-      all = this.s
-        .list<TemplateVersion>('templateVersions')
+      all = (await this.s
+        .list<TemplateVersion>('templateVersions'))
         .filter((x) => x.workspaceId === w && x.templateKey === i.templateKey);
     const x: TemplateVersion = {
       id: randomUUID(),
@@ -177,29 +177,29 @@ export class ContractAuthoringEngine {
       createdBy: c.actorUserId,
       createdAt: now(),
     };
-    this.s.append('templateVersions', x);
+    await this.s.append('templateVersions', x);
     return x;
   }
-  publishTemplate(c: RequestContext, id: string) {
-    const x = find<TemplateVersion>(this.s, 'templateVersions', c, id);
+  async publishTemplate(c: RequestContext, id: string) {
+    const x = await find<TemplateVersion>(this.s, 'templateVersions', c, id);
     if (x.status !== 'DRAFT') throw new Error('PUBLISHED_TEMPLATE_IMMUTABLE');
-    for (const p of this.s
-      .list<TemplateVersion>('templateVersions')
+    for (const p of (await this.s
+      .list<TemplateVersion>('templateVersions'))
       .filter(
         (v) =>
           v.workspaceId === x.workspaceId &&
           v.templateKey === x.templateKey &&
           v.status === 'PUBLISHED',
       ))
-      this.s.replace('templateVersions', { ...p, status: 'SUPERSEDED' });
+      await this.s.replace('templateVersions', { ...p, status: 'SUPERSEDED' });
     const y = { ...x, status: 'PUBLISHED' as const };
-    this.s.replace('templateVersions', y);
-    event(this.s, c, 'ContractTemplatePublished', 'TemplateVersion', id, {
+    await this.s.replace('templateVersions', y);
+    await event(this.s, c, 'ContractTemplatePublished', 'TemplateVersion', id, {
       contentHash: x.contentHash,
     });
     return y;
   }
-  createDraft(
+  async createDraft(
     c: RequestContext,
     contractId: string,
     templateVersionId: string,
@@ -207,8 +207,8 @@ export class ContractAuthoringEngine {
     content: string,
     aiProposed = false,
   ) {
-    const contract = find<Agreement>(this.s, 'agreements', c, contractId),
-      template = find<TemplateVersion>(
+    const contract = await find<Agreement>(this.s, 'agreements', c, contractId),
+      template = await find<TemplateVersion>(
         this.s,
         'templateVersions',
         c,
@@ -242,23 +242,23 @@ export class ContractAuthoringEngine {
       createdAt: now(),
       version: 1,
     };
-    this.s.append('documentVersions', doc);
-    this.s.append('contractDrafts', d);
+    await this.s.append('documentVersions', doc);
+    await this.s.append('contractDrafts', d);
     return d;
   }
-  setVariables(c: RequestContext, id: string, values: Record<string, unknown>) {
-    const d = find<ContractDraft>(this.s, 'contractDrafts', c, id);
+  async setVariables(c: RequestContext, id: string, values: Record<string, unknown>) {
+    const d = await find<ContractDraft>(this.s, 'contractDrafts', c, id);
     if (d.status !== 'WORKING') throw new Error('DRAFT_NOT_EDITABLE');
     const x = {
       ...d,
       variables: { ...d.variables, ...values },
       version: d.version + 1,
     };
-    this.s.replace('contractDrafts', x);
+    await this.s.replace('contractDrafts', x);
     return x;
   }
-  lock(c: RequestContext, id: string) {
-    const d = find<ContractDraft>(this.s, 'contractDrafts', c, id);
+  async lock(c: RequestContext, id: string) {
+    const d = await find<ContractDraft>(this.s, 'contractDrafts', c, id);
     if (d.status !== 'WORKING') throw new Error('DRAFT_NOT_EDITABLE');
     const x = {
       ...d,
@@ -266,12 +266,12 @@ export class ContractAuthoringEngine {
       lockedBy: c.actorUserId,
       version: d.version + 1,
     };
-    this.s.replace('contractDrafts', x);
+    await this.s.replace('contractDrafts', x);
     return x;
   }
-  submit(c: RequestContext, id: string) {
-    const d = find<ContractDraft>(this.s, 'contractDrafts', c, id),
-      t = find<TemplateVersion>(
+  async submit(c: RequestContext, id: string) {
+    const d = await find<ContractDraft>(this.s, 'contractDrafts', c, id),
+      t = await find<TemplateVersion>(
         this.s,
         'templateVersions',
         c,
@@ -289,21 +289,21 @@ export class ContractAuthoringEngine {
     if (missing.length)
       throw new Error(`REQUIRED_VARIABLES_MISSING:${missing.join(',')}`);
     const x = { ...d, status: 'SUBMITTED' as const, version: d.version + 1 };
-    this.s.replace('contractDrafts', x);
-    event(this.s, c, 'ContractDraftSubmitted', 'ContractDraft', id, {
+    await this.s.replace('contractDrafts', x);
+    await event(this.s, c, 'ContractDraftSubmitted', 'ContractDraft', id, {
       documentVersionId: d.documentVersionId,
     });
     return x;
   }
-  revise(
+  async revise(
     c: RequestContext,
     id: string,
     contentReference: string,
     content: string,
   ) {
-    const d = find<ContractDraft>(this.s, 'contractDrafts', c, id);
+    const d = await find<ContractDraft>(this.s, 'contractDrafts', c, id);
     if (d.status === 'LOCKED') throw new Error('DRAFT_LOCKED');
-    const old = find<DocumentVersion>(
+    const old = await find<DocumentVersion>(
       this.s,
       'documentVersions',
       c,
@@ -319,23 +319,23 @@ export class ContractAuthoringEngine {
       createdAt: now(),
       supersedesId: old.id,
     };
-    this.s.append('documentVersions', doc);
+    await this.s.append('documentVersions', doc);
     const x = {
       ...d,
       documentVersionId: doc.id,
       status: 'WORKING' as const,
       version: d.version + 1,
     };
-    this.s.replace('contractDrafts', x);
+    await this.s.replace('contractDrafts', x);
     return x;
   }
-  comment(
+  async comment(
     c: RequestContext,
     contractId: string,
     body: string,
     visibility: 'INTERNAL' | 'SHARED',
   ) {
-    find<Agreement>(this.s, 'agreements', c, contractId);
+    await find<Agreement>(this.s, 'agreements', c, contractId);
     const x: ContractComment = {
       id: randomUUID(),
       workspaceId: workspace(c),
@@ -345,12 +345,12 @@ export class ContractAuthoringEngine {
       authorId: c.actorUserId,
       createdAt: now(),
     };
-    this.s.append('contractComments', x);
+    await this.s.append('contractComments', x);
     return x;
   }
-  comments(c: RequestContext, contractId: string, external = false) {
-    return this.s
-      .list<ContractComment>('contractComments')
+  async comments(c: RequestContext, contractId: string, external = false) {
+    return (await this.s
+      .list<ContractComment>('contractComments'))
       .filter(
         (x) =>
           x.workspaceId === workspace(c) &&
@@ -392,7 +392,7 @@ export type ClauseDeviation = {
 };
 export class ClauseIntelligenceEngine {
   constructor(private s: TrustPersistence) {}
-  createVersion(
+  async createVersion(
     c: RequestContext,
     i: {
       clauseKey: string;
@@ -403,8 +403,8 @@ export class ClauseIntelligenceEngine {
   ) {
     const w = workspace(c),
       n =
-        this.s
-          .list<ClauseVersion>('clauseVersions')
+        (await this.s
+          .list<ClauseVersion>('clauseVersions'))
           .filter((x) => x.workspaceId === w && x.clauseKey === i.clauseKey)
           .length + 1;
     const x: ClauseVersion = {
@@ -418,30 +418,30 @@ export class ClauseIntelligenceEngine {
       status: 'DRAFT',
       createdAt: now(),
     };
-    this.s.append('clauseVersions', x);
+    await this.s.append('clauseVersions', x);
     return x;
   }
-  publish(c: RequestContext, id: string) {
-    const x = find<ClauseVersion>(this.s, 'clauseVersions', c, id);
+  async publish(c: RequestContext, id: string) {
+    const x = await find<ClauseVersion>(this.s, 'clauseVersions', c, id);
     if (x.status !== 'DRAFT') throw new Error('PUBLISHED_CLAUSE_IMMUTABLE');
     const y = { ...x, status: 'PUBLISHED' as const };
-    this.s.replace('clauseVersions', y);
+    await this.s.replace('clauseVersions', y);
     return y;
   }
-  retire(c: RequestContext, id: string) {
-    const x = find<ClauseVersion>(this.s, 'clauseVersions', c, id);
+  async retire(c: RequestContext, id: string) {
+    const x = await find<ClauseVersion>(this.s, 'clauseVersions', c, id);
     const y = { ...x, status: 'RETIRED' as const };
-    this.s.replace('clauseVersions', y);
+    await this.s.replace('clauseVersions', y);
     return y;
   }
-  insert(
+  async insert(
     c: RequestContext,
     draftId: string,
     i: { clauseVersionId?: string; customBody?: string },
   ) {
     let bodyHash: string, source: ClauseInstance['source'];
     if (i.clauseVersionId) {
-      const v = find<ClauseVersion>(
+      const v = await find<ClauseVersion>(
         this.s,
         'clauseVersions',
         c,
@@ -465,17 +465,17 @@ export class ClauseIntelligenceEngine {
       source,
       createdAt: now(),
     };
-    this.s.append('clauseInstances', x);
+    await this.s.append('clauseInstances', x);
     return x;
   }
-  deviate(
+  async deviate(
     c: RequestContext,
     instanceId: string,
     baselineVersionId: string,
     proposed: string,
     summary: string,
   ) {
-    const b = find<ClauseVersion>(
+    const b = await find<ClauseVersion>(
       this.s,
       'clauseVersions',
       c,
@@ -491,22 +491,22 @@ export class ClauseIntelligenceEngine {
       status: 'PENDING',
       createdAt: now(),
     };
-    this.s.append('clauseDeviations', x);
-    event(this.s, c, 'ClauseDeviationDetected', 'ClauseDeviation', x.id, {
+    await this.s.append('clauseDeviations', x);
+    await event(this.s, c, 'ClauseDeviationDetected', 'ClauseDeviation', x.id, {
       risk: b.risk,
       proposedHash: hash(proposed),
     });
     return x;
   }
-  approve(c: RequestContext, id: string) {
-    const x = find<ClauseDeviation>(this.s, 'clauseDeviations', c, id);
+  async approve(c: RequestContext, id: string) {
+    const x = await find<ClauseDeviation>(this.s, 'clauseDeviations', c, id);
     const y = { ...x, status: 'APPROVED' as const };
-    this.s.replace('clauseDeviations', y);
+    await this.s.replace('clauseDeviations', y);
     return y;
   }
-  guidance(c: RequestContext, id: string, external = false) {
+  async guidance(c: RequestContext, id: string, external = false) {
     if (external) throw new Error('INTERNAL_GUIDANCE_FORBIDDEN');
-    return find<ClauseVersion>(this.s, 'clauseVersions', c, id).guidance;
+    return (await find<ClauseVersion>(this.s, 'clauseVersions', c, id)).guidance;
   }
 }
 
@@ -523,7 +523,7 @@ export type NegotiationRound = {
 };
 export class NegotiationEngine {
   constructor(private s: TrustPersistence) {}
-  submit(
+  async submit(
     c: RequestContext,
     i: {
       contractId: string;
@@ -535,8 +535,8 @@ export class NegotiationEngine {
     if (!i.participantIds.includes(c.actorUserId))
       throw new Error('NEGOTIATION_PARTICIPANT_REQUIRED');
     const n =
-      this.s
-        .list<NegotiationRound>('negotiationRounds')
+      (await this.s
+        .list<NegotiationRound>('negotiationRounds'))
         .filter(
           (x) =>
             x.workspaceId === workspace(c) && x.contractId === i.contractId,
@@ -552,24 +552,24 @@ export class NegotiationEngine {
       mandatoryOpenItems: i.mandatoryOpenItems,
       createdAt: now(),
     };
-    this.s.append('negotiationRounds', x);
-    event(this.s, c, 'NegotiationRoundSubmitted', 'NegotiationRound', x.id);
+    await this.s.append('negotiationRounds', x);
+    await event(this.s, c, 'NegotiationRoundSubmitted', 'NegotiationRound', x.id);
     return x;
   }
-  withdraw(c: RequestContext, id: string) {
-    const x = find<NegotiationRound>(this.s, 'negotiationRounds', c, id);
+  async withdraw(c: RequestContext, id: string) {
+    const x = await find<NegotiationRound>(this.s, 'negotiationRounds', c, id);
     if (x.submittedBy !== c.actorUserId)
       throw new Error('NEGOTIATION_UNAUTHORIZED');
     const y = { ...x, status: 'WITHDRAWN' as const };
-    this.s.replace('negotiationRounds', y);
+    await this.s.replace('negotiationRounds', y);
     return y;
   }
-  accept(c: RequestContext, id: string) {
-    const x = find<NegotiationRound>(this.s, 'negotiationRounds', c, id);
+  async accept(c: RequestContext, id: string) {
+    const x = await find<NegotiationRound>(this.s, 'negotiationRounds', c, id);
     if (x.mandatoryOpenItems.length)
       throw new Error('MANDATORY_POSITIONS_UNRESOLVED');
     const y = { ...x, status: 'ACCEPTED' as const };
-    this.s.replace('negotiationRounds', y);
+    await this.s.replace('negotiationRounds', y);
     return y;
   }
 }
@@ -609,7 +609,7 @@ export type ApprovalDecision = {
 };
 export class ApprovalWorkflowEngine {
   constructor(private s: TrustPersistence) {}
-  policy(c: RequestContext, steps: ApprovalPolicy['steps']) {
+  async policy(c: RequestContext, steps: ApprovalPolicy['steps']) {
     if (!steps.length) throw new Error('APPROVAL_STEPS_REQUIRED');
     const x: ApprovalPolicy = {
       id: randomUUID(),
@@ -619,15 +619,15 @@ export class ApprovalWorkflowEngine {
       status: 'PUBLISHED',
       createdAt: now(),
     };
-    this.s.append('approvalPolicies', x);
+    await this.s.append('approvalPolicies', x);
     return x;
   }
-  route(
+  async route(
     c: RequestContext,
     i: { contractId: string; documentVersionId: string; policyId: string },
   ) {
-    const p = find<ApprovalPolicy>(this.s, 'approvalPolicies', c, i.policyId),
-      d = find<DocumentVersion>(
+    const p = await find<ApprovalPolicy>(this.s, 'approvalPolicies', c, i.policyId),
+      d = await find<DocumentVersion>(
         this.s,
         'documentVersions',
         c,
@@ -644,25 +644,25 @@ export class ApprovalWorkflowEngine {
       completedSteps: 0,
       createdAt: now(),
     };
-    this.s.append('approvalRequests', x);
-    event(this.s, c, 'ApprovalRequestRouted', 'ApprovalRequest', x.id, {
+    await this.s.append('approvalRequests', x);
+    await event(this.s, c, 'ApprovalRequestRouted', 'ApprovalRequest', x.id, {
       policyId: p.id,
       policyVersion: p.version,
     });
     return x;
   }
-  decide(
+  async decide(
     c: RequestContext,
     id: string,
     decision: 'APPROVE' | 'REJECT',
     conditions: string[] = [],
     roles: string[] = [],
   ) {
-    const r = find<ApprovalRequest>(this.s, 'approvalRequests', c, id);
+    const r = await find<ApprovalRequest>(this.s, 'approvalRequests', c, id);
     if (r.status !== 'PENDING') throw new Error('APPROVAL_DECISION_IMMUTABLE');
     if (r.requesterId === c.actorUserId)
       throw new Error('REQUESTER_SELF_APPROVAL_BLOCKED');
-    const p = find<ApprovalPolicy>(this.s, 'approvalPolicies', c, r.policyId),
+    const p = await find<ApprovalPolicy>(this.s, 'approvalPolicies', c, r.policyId),
       step = p.steps[r.completedSteps];
     if (!step || !roles.includes(step.role))
       throw new Error('APPROVER_AUTHORITY_REQUIRED');
@@ -679,7 +679,7 @@ export class ApprovalWorkflowEngine {
       conditions,
       createdAt: now(),
     };
-    this.s.append('approvalDecisions', x);
+    await this.s.append('approvalDecisions', x);
     const completed = r.completedSteps + 1,
       y = {
         ...r,
@@ -691,15 +691,15 @@ export class ApprovalWorkflowEngine {
               ? ('APPROVED' as const)
               : ('PENDING' as const),
       };
-    this.s.replace('approvalRequests', y);
+    await this.s.replace('approvalRequests', y);
     return x;
   }
-  invalidateOnChange(c: RequestContext, id: string, currentHash: string) {
-    const r = find<ApprovalRequest>(this.s, 'approvalRequests', c, id);
+  async invalidateOnChange(c: RequestContext, id: string, currentHash: string) {
+    const r = await find<ApprovalRequest>(this.s, 'approvalRequests', c, id);
     if (r.documentHash === currentHash) return r;
     const y = { ...r, status: 'INVALIDATED' as const };
-    this.s.replace('approvalRequests', y);
-    event(this.s, c, 'ApprovalInvalidated', 'ApprovalRequest', id);
+    await this.s.replace('approvalRequests', y);
+    await event(this.s, c, 'ApprovalInvalidated', 'ApprovalRequest', id);
     return y;
   }
 }
@@ -743,7 +743,7 @@ export class DigitalExecutionEngine {
     private provider: SignatureProvider,
     private webhookSecret: string,
   ) {}
-  create(
+  async create(
     c: RequestContext,
     i: {
       contractId: string;
@@ -752,13 +752,13 @@ export class DigitalExecutionEngine {
       signers: SignaturePackage['signers'];
     },
   ) {
-    const a = find<ApprovalRequest>(
+    const a = await find<ApprovalRequest>(
         this.s,
         'approvalRequests',
         c,
         i.approvalRequestId,
       ),
-      d = find<DocumentVersion>(
+      d = await find<DocumentVersion>(
         this.s,
         'documentVersions',
         c,
@@ -781,18 +781,18 @@ export class DigitalExecutionEngine {
       providerKey: this.provider.providerKey,
       createdAt: now(),
     };
-    this.s.append('signaturePackages', x);
+    await this.s.append('signaturePackages', x);
     return x;
   }
   async send(c: RequestContext, id: string) {
-    const x = find<SignaturePackage>(this.s, 'signaturePackages', c, id);
+    const x = await find<SignaturePackage>(this.s, 'signaturePackages', c, id);
     if (x.status !== 'DRAFT') throw new Error('PACKAGE_NOT_SENDABLE');
     await this.provider.send(x);
     const y = { ...x, status: 'SENT' as const };
-    this.s.replace('signaturePackages', y);
+    await this.s.replace('signaturePackages', y);
     return y;
   }
-  callback(
+  async callback(
     c: RequestContext,
     id: string,
     payload: {
@@ -813,15 +813,15 @@ export class DigitalExecutionEngine {
     )
       throw new Error('INVALID_PROVIDER_WEBHOOK');
     if (
-      this.s
-        .list<{ eventId: string }>('signatureCallbacks')
+      (await this.s
+        .list<{ eventId: string }>('signatureCallbacks'))
         .some((x) => x.eventId === payload.eventId)
     )
-      return find<SignaturePackage>(this.s, 'signaturePackages', c, id);
-    const p = find<SignaturePackage>(this.s, 'signaturePackages', c, id);
+      return await find<SignaturePackage>(this.s, 'signaturePackages', c, id);
+    const p = await find<SignaturePackage>(this.s, 'signaturePackages', c, id);
     if (payload.documentHash !== p.documentHash)
       throw new Error('DOCUMENT_HASH_MISMATCH');
-    this.s.append('signatureCallbacks', {
+    await this.s.append('signatureCallbacks', {
       id: randomUUID(),
       workspaceId: workspace(c),
       eventId: payload.eventId,
@@ -829,7 +829,7 @@ export class DigitalExecutionEngine {
     });
     if (payload.action === 'DECLINED') {
       const y = { ...p, status: 'DECLINED' as const };
-      this.s.replace('signaturePackages', y);
+      await this.s.replace('signaturePackages', y);
       return y;
     }
     const signers = p.signers.map((x) =>
@@ -847,15 +847,15 @@ export class DigitalExecutionEngine {
       signers,
       status: complete ? ('COMPLETED' as const) : ('PARTIALLY_SIGNED' as const),
     };
-    this.s.replace('signaturePackages', y);
+    await this.s.replace('signaturePackages', y);
     return y;
   }
-  issue(c: RequestContext, id: string) {
-    const p = find<SignaturePackage>(this.s, 'signaturePackages', c, id);
+  async issue(c: RequestContext, id: string) {
+    const p = await find<SignaturePackage>(this.s, 'signaturePackages', c, id);
     if (p.status !== 'COMPLETED')
       throw new Error('SIGNATURE_PACKAGE_INCOMPLETE');
-    const existing = this.s
-      .list<ExecutionCertificate>('agreementExecutionCertificates')
+    const existing = (await this.s
+      .list<ExecutionCertificate>('agreementExecutionCertificates'))
       .find((x) => x.packageId === id);
     if (existing) return existing;
     const canonicalHash = hash({
@@ -879,8 +879,8 @@ export class DigitalExecutionEngine {
       status: 'VALID',
       issuedAt: now(),
     };
-    this.s.append('agreementExecutionCertificates', x);
-    event(
+    await this.s.append('agreementExecutionCertificates', x);
+    await event(
       this.s,
       c,
       'ExecutionCertificateIssued',
@@ -890,15 +890,15 @@ export class DigitalExecutionEngine {
     );
     return x;
   }
-  revoke(c: RequestContext, id: string) {
-    const x = find<ExecutionCertificate>(
+  async revoke(c: RequestContext, id: string) {
+    const x = await find<ExecutionCertificate>(
       this.s,
       'agreementExecutionCertificates',
       c,
       id,
     );
     const y = { ...x, status: 'REVOKED' as const };
-    this.s.replace('agreementExecutionCertificates', y);
+    await this.s.replace('agreementExecutionCertificates', y);
     return y;
   }
 }

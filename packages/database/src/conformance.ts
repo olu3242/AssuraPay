@@ -71,18 +71,18 @@ export const TRUST_PERSISTENCE_CONFORMANCE: readonly ConformanceCheck[] = Object
     name: 'returns an empty list for a collection never written to',
     rationale:
       'Engines filter the result immediately. Returning undefined or throwing would make every read site defensive.',
-    run(store) {
-      assertEqual(store.list('nothing-here'), [], 'unknown collection');
+    async run(store) {
+      assertEqual(await store.list('nothing-here'), [], 'unknown collection');
     },
   },
   {
     name: 'reads back what was appended, in append order',
     rationale:
       'Order is meaning here: the audit chain, the ledger and every history read assume the store preserves it.',
-    run(store) {
-      for (const id of ['a', 'b', 'c']) store.append('things', { id });
+    async run(store) {
+      for (const id of ['a', 'b', 'c']) await store.append('things', { id });
       assertEqual(
-        store.list<{ id: string }>('things').map((thing) => thing.id),
+        (await store.list<{ id: string }>('things')).map((thing) => thing.id),
         ['a', 'b', 'c'],
         'append order',
       );
@@ -91,24 +91,24 @@ export const TRUST_PERSISTENCE_CONFORMANCE: readonly ConformanceCheck[] = Object
   {
     name: 'keeps collections independent',
     rationale: 'A shared namespace would let one aggregate’s writes appear in another’s history.',
-    run(store) {
-      store.append('alpha', { id: 'a' });
-      store.append('beta', { id: 'b' });
-      assertEqual(store.list<{ id: string }>('alpha').map((x) => x.id), ['a'], 'alpha');
-      assertEqual(store.list<{ id: string }>('beta').map((x) => x.id), ['b'], 'beta');
+    async run(store) {
+      await store.append('alpha', { id: 'a' });
+      await store.append('beta', { id: 'b' });
+      assertEqual((await store.list<{ id: string }>('alpha')).map((x) => x.id), ['a'], 'alpha');
+      assertEqual((await store.list<{ id: string }>('beta')).map((x) => x.id), ['b'], 'beta');
     },
   },
   {
     name: 'hands out a copy, so a reader cannot mutate stored state',
     rationale:
       'Returning live references would let any caller edit history in place — the precise thing CLAUDE.md constraint 3 forbids — with no write call to audit.',
-    run(store) {
-      store.append('things', { id: 'a', value: 1 });
-      const first = store.list<{ id: string; value: number }>('things');
+    async run(store) {
+      await store.append('things', { id: 'a', value: 1 });
+      const first = await store.list<{ id: string; value: number }>('things');
       first[0].value = 999;
       first.push({ id: 'injected', value: 0 });
 
-      const second = store.list<{ id: string; value: number }>('things');
+      const second = await store.list<{ id: string; value: number }>('things');
       assertEqual(second.length, 1, 'reader push must not reach the store');
       assertEqual(second[0].value, 1, 'reader mutation must not reach the store');
     },
@@ -117,21 +117,21 @@ export const TRUST_PERSISTENCE_CONFORMANCE: readonly ConformanceCheck[] = Object
     name: 'copies on write, so mutating the argument afterwards changes nothing',
     rationale:
       'A caller reusing a builder object would otherwise retroactively alter records it already wrote.',
-    run(store) {
+    async run(store) {
       const record = { id: 'a', value: 1 };
-      store.append('things', record);
+      await store.append('things', record);
       record.value = 999;
-      assertEqual(store.list<{ value: number }>('things')[0].value, 1, 'stored value');
+      assertEqual((await store.list<{ value: number }>('things'))[0].value, 1, 'stored value');
     },
   },
   {
     name: 'replaces a record in place, preserving its position',
     rationale: 'Reordering on update would corrupt every order-dependent read.',
-    run(store) {
-      for (const id of ['a', 'b', 'c']) store.append('things', { id, value: 0 });
-      store.replace('things', { id: 'b', value: 7 });
+    async run(store) {
+      for (const id of ['a', 'b', 'c']) await store.append('things', { id, value: 0 });
+      await store.replace('things', { id: 'b', value: 7 });
 
-      const things = store.list<{ id: string; value: number }>('things');
+      const things = await store.list<{ id: string; value: number }>('things');
       assertEqual(things.map((thing) => thing.id), ['a', 'b', 'c'], 'order after replace');
       assertEqual(things[1].value, 7, 'replaced value');
     },
@@ -140,22 +140,22 @@ export const TRUST_PERSISTENCE_CONFORMANCE: readonly ConformanceCheck[] = Object
     name: 'refuses to replace a record that does not exist',
     rationale:
       'Silently inserting would turn a failed update into a duplicate, and the caller would never learn the record it meant to change was gone.',
-    run(store) {
+    async run(store) {
       let threw = false;
       try {
-        store.replace('things', { id: 'missing' });
+        await store.replace('things', { id: 'missing' });
       } catch {
         threw = true;
       }
       assert(threw, 'replace of an absent id must throw');
-      assertEqual(store.list('things'), [], 'nothing inserted');
+      assertEqual(await store.list('things'), [], 'nothing inserted');
     },
   },
   {
     name: 'stamps every audit record with an id, a timestamp and an integrity hash',
     rationale: 'A record missing any of these cannot be located, ordered or verified.',
-    run(store) {
-      const record = store.audit(auditInput());
+    async run(store) {
+      const record = await store.audit(auditInput());
       assert(record.id.length > 0, 'id');
       assert(!Number.isNaN(Date.parse(record.createdAt)), 'createdAt must parse');
       assert(/^[0-9a-f]{64}$/.test(record.integrityHash), 'integrityHash must be hex sha256');
@@ -165,18 +165,18 @@ export const TRUST_PERSISTENCE_CONFORMANCE: readonly ConformanceCheck[] = Object
     name: 'leaves the first audit record unlinked',
     rationale:
       'A genesis record pointing at a predecessor would mean records are missing, so it must not be the normal state.',
-    run(store) {
-      assertEqual(store.audit(auditInput()).previousHash, undefined, 'genesis previousHash');
+    async run(store) {
+      assertEqual((await store.audit(auditInput())).previousHash, undefined, 'genesis previousHash');
     },
   },
   {
     name: 'chains each audit record to the one before it',
     rationale:
       'The link is what makes deletion and reordering detectable. Without it the records are a list, not a ledger.',
-    run(store) {
-      const first = store.audit(auditInput());
-      const second = store.audit(auditInput({ aggregateId: 'thing-2' }));
-      const third = store.audit(auditInput({ aggregateId: 'thing-3' }));
+    async run(store) {
+      const first = await store.audit(auditInput());
+      const second = await store.audit(auditInput({ aggregateId: 'thing-2' }));
+      const third = await store.audit(auditInput({ aggregateId: 'thing-3' }));
 
       assertEqual(second.previousHash, first.integrityHash, 'second link');
       assertEqual(third.previousHash, second.integrityHash, 'third link');
@@ -186,9 +186,9 @@ export const TRUST_PERSISTENCE_CONFORMANCE: readonly ConformanceCheck[] = Object
     name: 'chains across aggregates and workspaces, not per stream',
     rationale:
       'A per-stream chain lets an entire stream be dropped without breaking any link that remains.',
-    run(store) {
-      const first = store.audit(auditInput({ workspaceId: 'workspace-1' }));
-      const second = store.audit(
+    async run(store) {
+      const first = await store.audit(auditInput({ workspaceId: 'workspace-1' }));
+      const second = await store.audit(
         auditInput({ workspaceId: 'workspace-2', aggregateType: 'Other' }),
       );
       assertEqual(second.previousHash, first.integrityHash, 'cross-stream link');
@@ -198,9 +198,9 @@ export const TRUST_PERSISTENCE_CONFORMANCE: readonly ConformanceCheck[] = Object
     name: 'gives different content different hashes',
     rationale:
       'A hash that ignores part of the record leaves that part editable without detection.',
-    run(store) {
-      const first = store.audit(auditInput({ metadata: { value: 1 } }));
-      const second = store.audit(auditInput({ metadata: { value: 2 } }));
+    async run(store) {
+      const first = await store.audit(auditInput({ metadata: { value: 1 } }));
+      const second = await store.audit(auditInput({ metadata: { value: 2 } }));
       assert(first.integrityHash !== second.integrityHash, 'hashes must differ');
     },
   },
@@ -208,8 +208,8 @@ export const TRUST_PERSISTENCE_CONFORMANCE: readonly ConformanceCheck[] = Object
     name: 'redacts secret-shaped metadata keys before storing or hashing',
     rationale:
       'The audit log is append-only and can never be redacted afterwards, so a secret written into it is permanent.',
-    run(store) {
-      const record = store.audit(
+    async run(store) {
+      const record = await store.audit(
         auditInput({
           metadata: {
             password: 'hunter2',
@@ -224,7 +224,7 @@ export const TRUST_PERSISTENCE_CONFORMANCE: readonly ConformanceCheck[] = Object
       );
 
       assertEqual(record.metadata, { reason: 'kept' }, 'redacted metadata');
-      const serialised = JSON.stringify(store.list('auditRecords'));
+      const serialised = JSON.stringify(await store.list('auditRecords'));
       for (const secret of ['hunter2', '123456']) {
         assert(!serialised.includes(secret), `stored trail must not contain ${secret}`);
       }
@@ -234,9 +234,9 @@ export const TRUST_PERSISTENCE_CONFORMANCE: readonly ConformanceCheck[] = Object
     name: 'stores the audit record it returns',
     rationale:
       'A caller recording the returned id must be able to find that record later; returning one thing and storing another breaks every evidence link.',
-    run(store) {
-      const returned = store.audit(auditInput());
-      const stored = store.list<AuditRecord>('auditRecords');
+    async run(store) {
+      const returned = await store.audit(auditInput());
+      const stored = await store.list<AuditRecord>('auditRecords');
       assertEqual(stored.length, 1, 'one record stored');
       assertEqual(stored[0].id, returned.id, 'same id');
       assertEqual(stored[0].integrityHash, returned.integrityHash, 'same hash');
@@ -246,9 +246,9 @@ export const TRUST_PERSISTENCE_CONFORMANCE: readonly ConformanceCheck[] = Object
     name: 'hashes over the redacted record, so the chain verifies as stored',
     rationale:
       'Hashing pre-redaction input would make every record with a secret-shaped key fail verification forever.',
-    run(store) {
-      store.audit(auditInput({ metadata: { token: 'abc', reason: 'kept' } }));
-      const record = store.list<AuditRecord>('auditRecords')[0];
+    async run(store) {
+      await store.audit(auditInput({ metadata: { token: 'abc', reason: 'kept' } }));
+      const record = (await store.list<AuditRecord>('auditRecords'))[0];
 
       const payload: Record<string, unknown> = {};
       for (const [key, value] of Object.entries(record)) {
@@ -267,8 +267,8 @@ export const TRUST_PERSISTENCE_CONFORMANCE: readonly ConformanceCheck[] = Object
   {
     name: 'emits an outbox event with an id and an occurrence time',
     rationale: 'A publisher needs both to deduplicate and to order what it delivers.',
-    run(store) {
-      const event = store.emit({
+    async run(store) {
+      const event = await store.emit({
         tenantId: 'tenant-1',
         workspaceId: 'workspace-1',
         aggregateType: 'Thing',
@@ -281,7 +281,7 @@ export const TRUST_PERSISTENCE_CONFORMANCE: readonly ConformanceCheck[] = Object
 
       assert(event.id.length > 0, 'id');
       assert(!Number.isNaN(Date.parse(event.occurredAt)), 'occurredAt must parse');
-      assertEqual(store.list<OutboxEvent>('outboxEvents').length, 1, 'stored');
+      assertEqual((await store.list<OutboxEvent>('outboxEvents')).length, 1, 'stored');
       assertEqual(event.publishedAt, undefined, 'a new event is unpublished');
     },
   },
@@ -289,9 +289,9 @@ export const TRUST_PERSISTENCE_CONFORMANCE: readonly ConformanceCheck[] = Object
     name: 'keeps audit records and outbox events in separate collections',
     rationale:
       'The outbox is drained and marked published; the audit trail never is. Mixing them would put a mutable workflow inside append-only history.',
-    run(store) {
-      store.audit(auditInput());
-      store.emit({
+    async run(store) {
+      await store.audit(auditInput());
+      await store.emit({
         aggregateType: 'Thing',
         aggregateId: 'thing-1',
         eventType: 'ThingHappened',
@@ -300,8 +300,8 @@ export const TRUST_PERSISTENCE_CONFORMANCE: readonly ConformanceCheck[] = Object
         correlationId: 'corr-1',
       });
 
-      assertEqual(store.list('auditRecords').length, 1, 'audit');
-      assertEqual(store.list('outboxEvents').length, 1, 'outbox');
+      assertEqual((await store.list('auditRecords')).length, 1, 'audit');
+      assertEqual((await store.list('outboxEvents')).length, 1, 'outbox');
     },
   },
 ]);
