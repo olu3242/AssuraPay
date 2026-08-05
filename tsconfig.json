@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "lib": ["dom", "dom.iterable", "es2022"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "es2022"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -16,15 +20,36 @@
     "incremental": true,
     "baseUrl": ".",
     "paths": {
-      "@assurapay/shared": ["packages/shared/src/index.ts"],
-      "@assurapay/domain": ["packages/domain/src/index.ts"],
-      "@assurapay/database": ["packages/database/src/index.ts"],
-      "@assurapay/identity": ["packages/identity/src/index.ts"],
-      "@assurapay/organizations": ["packages/organizations/src/index.ts"],
-      "@assurapay/permissions": ["packages/permissions/src/index.ts"],
-      "@assurapay/parties": ["packages/parties/src/index.ts"],
-      "@assurapay/legal": ["packages/legal/src/index.ts"],
-      "@assurapay/governance-core": ["packages/governance-core/src/index.ts"],
+      "@assurapay/shared": [
+        "packages/shared/src/index.ts"
+      ],
+      "@assurapay/domain": [
+        "packages/domain/src/index.ts"
+      ],
+      "@assurapay/database": [
+        "packages/database/src/index.ts"
+      ],
+      "@assurapay/database-testing": [
+        "packages/database-testing/src/index.ts"
+      ],
+      "@assurapay/identity": [
+        "packages/identity/src/index.ts"
+      ],
+      "@assurapay/organizations": [
+        "packages/organizations/src/index.ts"
+      ],
+      "@assurapay/permissions": [
+        "packages/permissions/src/index.ts"
+      ],
+      "@assurapay/parties": [
+        "packages/parties/src/index.ts"
+      ],
+      "@assurapay/legal": [
+        "packages/legal/src/index.ts"
+      ],
+      "@assurapay/governance-core": [
+        "packages/governance-core/src/index.ts"
+      ],
       "@assurapay/agreement-creation": [
         "packages/agreement-creation/src/index.ts"
       ],
@@ -55,16 +80,36 @@
       "@assurapay/enterprise-analytics": [
         "packages/enterprise-analytics/src/index.ts"
       ],
-      "@assurapay/agent-runtime": ["packages/agent-runtime/src/index.ts"],
-      "@assurapay/audit-ledger": ["packages/audit-ledger/src/index.ts"],
-      "@assurapay/reos": ["packages/reos/src/index.ts"],
+      "@assurapay/agent-runtime": [
+        "packages/agent-runtime/src/index.ts"
+      ],
+      "@assurapay/audit-ledger": [
+        "packages/audit-ledger/src/index.ts"
+      ],
+      "@assurapay/reos": [
+        "packages/reos/src/index.ts"
+      ],
       "@assurapay/workflow-intelligence": [
         "packages/workflow-intelligence/src/index.ts"
       ]
     },
-    "plugins": [{ "name": "next" }],
-    "types": ["node", "vitest/globals"]
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "types": [
+      "node",
+      "vitest/globals"
+    ]
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }

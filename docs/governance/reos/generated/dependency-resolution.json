@@ -108,7 +108,7 @@
       ],
       "executable": true,
       "id": "persistence.postgres-repository",
-      "lifecycle": "planned",
+      "lifecycle": "implementing",
       "priority": 40,
       "requiresLiveInfrastructure": true,
       "scope": {
@@ -116,11 +116,11 @@
         "files": 1,
         "tests": 1
       },
-      "status": "missing",
+      "status": "partial",
       "title": "PostgreSQL repository implementation"
     }
   ],
-  "head": "bcd78f6c73075fc5459bf43a7bcb9bae1f213e45",
+  "head": "70a8c63d96cd3ba3fc455859575036ae9658055f",
   "rejected": [
     {
       "id": "persistence.rls-certification",
@@ -138,7 +138,7 @@
     ],
     "executable": true,
     "id": "persistence.postgres-repository",
-    "lifecycle": "planned",
+    "lifecycle": "implementing",
     "priority": 40,
     "requiresLiveInfrastructure": true,
     "scope": {
@@ -146,9 +146,9 @@
       "files": 1,
       "tests": 1
     },
-    "status": "missing",
+    "status": "partial",
     "title": "PostgreSQL repository implementation"
   },
-  "selectionReason": "Highest-priority executable capability (priority 40, lifecycle planned) — selected despite needing live infrastructure, nothing else is executable — unblocks 1 downstream capability/-ies",
+  "selectionReason": "Highest-priority executable capability (priority 40, lifecycle implementing) — selected despite needing live infrastructure, nothing else is executable — unblocks 1 downstream capability/-ies",
   "stage": "dependencies"
 }

@@ -8,10 +8,10 @@
 | --- | --- |
 | Capability | persistence.postgres-repository |
 | Title | PostgreSQL repository implementation |
-| Current status | missing |
-| Lifecycle | planned |
+| Current status | partial |
+| Lifecycle | implementing |
 | Priority | 40 |
-| Reason | Highest-priority executable capability (priority 40, lifecycle planned) — selected despite needing live infrastructure, nothing else is executable — unblocks 1 downstream capability/-ies |
+| Reason | Highest-priority executable capability (priority 40, lifecycle implementing) — selected despite needing live infrastructure, nothing else is executable — unblocks 1 downstream capability/-ies |
 | Depends on | persistence.async-repository-interface |
 | Unmet dependencies | none |
 | Blocks (transitive) | persistence.rls-certification |
@@ -22,7 +22,7 @@
 
 | Capability | Title | Lifecycle | Priority | Blocks | Live infra |
 | --- | --- | --- | --- | --- | --- |
-| persistence.postgres-repository | PostgreSQL repository implementation | planned | 40 | 1 | yes |
+| persistence.postgres-repository | PostgreSQL repository implementation | implementing | 40 | 1 | yes |
 
 ## Blocked
 

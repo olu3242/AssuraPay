@@ -1,20 +1,29 @@
 import { defineConfig } from 'vitest/config';
 import path from 'node:path';
 
+/*
+ * The PostgreSQL certification gate.
+ *
+ * A separate config rather than a flag, because these suites are the opposite of the
+ * default run: they require a real database and fail without one. Keeping them in their
+ * own project means `vitest run` stays meaningful on a machine with no database, while
+ * this gate can never pass by skipping — `requireTestDatabaseUrl` throws at collection
+ * time when `ASSURAPAY_TEST_DATABASE_URL` is unset.
+ *
+ * Sequential, single-fork: several suites take advisory locks, create and drop databases,
+ * and assert on connection-handle counts. Running them in parallel would make those
+ * assertions depend on what another file happened to be doing.
+ */
 export default defineConfig({
   test: {
     environment: 'node',
-    include: ['**/*.{test,spec}.ts'],
-    /*
-     * PostgreSQL suites are excluded from the default run and have their own gate.
-     *
-     * They require a real database and refuse to fall back to anything — a green run
-     * against memory is not evidence of durability. Excluding them keeps `vitest run`
-     * meaningful on a machine with no database, while `certify:postgres` fails loudly
-     * rather than skipping when the database is missing. Nothing is skipped: the suites
-     * either run against PostgreSQL or the gate that owns them fails.
-     */
-    exclude: ['**/node_modules/**', '**/*.postgres.test.ts'],
+    include: ['**/*.postgres.test.ts'],
+    exclude: ['**/node_modules/**'],
+    pool: 'forks',
+    poolOptions: { forks: { singleFork: true } },
+    fileParallelism: false,
+    testTimeout: 60_000,
+    hookTimeout: 60_000,
   },
   resolve: {
     alias: {

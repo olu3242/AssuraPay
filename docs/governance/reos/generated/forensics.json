@@ -9,7 +9,7 @@
       },
       "id": "persistence.async-repository-interface",
       "kind": "platform",
-      "onDefaultBranch": false,
+      "onDefaultBranch": true,
       "probes": [
         {
           "kind": "path",
@@ -77,15 +77,22 @@
       "probes": [
         {
           "kind": "path",
-          "matches": [],
+          "matches": [
+            "packages/database/src/postgres-store.ts"
+          ],
           "query": "packages/database/src/postgres-store.ts",
-          "satisfied": false
+          "satisfied": true
         },
         {
           "kind": "symbol",
-          "matches": [],
+          "matches": [
+            "packages/audit-ledger/src/audit-ledger.postgres.test.ts",
+            "packages/database-testing/src/postgres-store.postgres.test.ts",
+            "packages/database/src/conformance.ts",
+            "packages/database/src/postgres-store.ts"
+          ],
           "query": "PostgresTrustStore",
-          "satisfied": false
+          "satisfied": true
         },
         {
           "kind": "test",
@@ -94,9 +101,9 @@
           "satisfied": false
         }
       ],
-      "rationale": "No evidence at HEAD, on any ref, or in history.",
-      "satisfiedProbes": 0,
-      "status": "missing",
+      "rationale": "2 of 3 evidence probes satisfied at HEAD.",
+      "satisfiedProbes": 2,
+      "status": "partial",
       "title": "PostgreSQL repository implementation",
       "totalProbes": 3
     },
@@ -122,6 +129,7 @@
         {
           "kind": "symbol",
           "matches": [
+            "packages/database-testing/src/postgres-store.postgres.test.ts",
             "packages/database/src/conformance.ts",
             "packages/database/src/trust-store.test.ts"
           ],
@@ -131,6 +139,7 @@
         {
           "kind": "symbol",
           "matches": [
+            "packages/database-testing/src/postgres-store.postgres.test.ts",
             "packages/database/src/conformance.ts",
             "packages/database/src/trust-store.test.ts"
           ],
@@ -1051,15 +1060,15 @@
       "totalProbes": 5
     }
   ],
-  "head": "bcd78f6c73075fc5459bf43a7bcb9bae1f213e45",
+  "head": "70a8c63d96cd3ba3fc455859575036ae9658055f",
   "reosVersion": "1.0.0",
   "stage": "forensics",
   "summary": {
     "deferred": 0,
     "implemented": 13,
     "lost": 0,
-    "missing": 2,
-    "partial": 0,
+    "missing": 1,
+    "partial": 1,
     "unreachable": 0
   }
 }

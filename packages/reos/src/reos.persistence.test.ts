@@ -235,6 +235,94 @@ describe('persistence rules: a race must not be pre-decided', () => {
   });
 });
 
+describe('persistence rules: the adapter boundary holds', () => {
+  const withInterface = (files: Record<string, string>) => ({
+    'packages/shared/src/trust.ts': ASYNC_INTERFACE,
+    ...files,
+  });
+
+  it('reports a driver import outside the approved client module', () => {
+    // One line in a route handler is all it takes to put connection handling somewhere
+    // with no pool to manage and no disposal path.
+    const root = fakeRepo(
+      withInterface({
+        'apps/web/app/api/route.ts': "import postgres from 'postgres';\nexport const GET = () => undefined;\n",
+      }),
+    );
+
+    const findings = collectAsyncPersistenceFindings(root);
+    expect(rulesFired(findings)).toEqual(['persistence/driver-outside-adapter']);
+    expect(findings[0].location).toBe('apps/web/app/api/route.ts:1');
+  });
+
+  it('permits the driver inside the module that owns it', () => {
+    const root = fakeRepo(
+      withInterface({
+        'packages/database/src/postgres-client.ts': "import postgres from 'postgres';\nexport const x = 1;\n",
+      }),
+    );
+    expect(collectAsyncPersistenceFindings(root)).toEqual([]);
+  });
+
+  it('reports the unparameterized escape hatch outside DDL', () => {
+    const root = fakeRepo(
+      withInterface({
+        'packages/engine/src/index.ts':
+          'export const find = (id: string) => sql.unsafe(`SELECT * FROM t WHERE id = ${id}`);\n',
+      }),
+    );
+
+    const findings = collectAsyncPersistenceFindings(root);
+    expect(rulesFired(findings)).toEqual(['persistence/unsafe-sql']);
+  });
+
+  it('permits the escape hatch in the migration runner, where the SQL is a statement list', () => {
+    const root = fakeRepo(
+      withInterface({
+        'packages/database/src/migrations.ts': 'await tx.unsafe(migration.sql);\n',
+      }),
+    );
+    expect(collectAsyncPersistenceFindings(root)).toEqual([]);
+  });
+
+  it('reports a pool created outside the runtime', () => {
+    // A pool per request is a pool with no bound on how many exist.
+    const root = fakeRepo(
+      withInterface({
+        'apps/web/lib/handler.ts':
+          "export async function handle() {\n  const pool = createPostgresPool({ databaseUrl });\n  return pool;\n}\n",
+      }),
+    );
+
+    const findings = collectAsyncPersistenceFindings(root);
+    expect(rulesFired(findings)).toEqual(['persistence/pool-outside-runtime']);
+  });
+
+  it('reports production code importing the test-database helpers', () => {
+    // They create and drop databases and skip every check production configuration
+    // performs, so reaching them from production turns a deploy into a schema operation.
+    const root = fakeRepo(
+      withInterface({
+        'apps/web/lib/app.ts':
+          "import { createTestDatabase } from '@assurapay/database-testing';\nexport const x = createTestDatabase;\n",
+      }),
+    );
+
+    const findings = collectAsyncPersistenceFindings(root);
+    expect(rulesFired(findings)).toEqual(['persistence/test-helper-in-production']);
+  });
+
+  it('permits a test importing them, which is what they are for', () => {
+    const root = fakeRepo(
+      withInterface({
+        'packages/database/src/store.postgres.test.ts':
+          "import { createTestDatabase } from '@assurapay/database-testing';\n",
+      }),
+    );
+    expect(collectAsyncPersistenceFindings(root)).toEqual([]);
+  });
+});
+
 describe('persistence rules: the vocabulary itself', () => {
   it('states a rationale for every rule', () => {
     for (const rule of ASYNC_PERSISTENCE_RULES) {
@@ -251,6 +339,10 @@ describe('persistence rules: the vocabulary itself', () => {
       'persistence/voided-governed-write',
       'persistence/async-predicate',
       'persistence/pre-awaited-race',
+      'persistence/driver-outside-adapter',
+      'persistence/unsafe-sql',
+      'persistence/pool-outside-runtime',
+      'persistence/test-helper-in-production',
     ]);
     expect(ASYNC_PERSISTENCE_RULES.map((rule) => rule.rule).filter((rule) => !fired.has(rule))).toEqual(
       [],

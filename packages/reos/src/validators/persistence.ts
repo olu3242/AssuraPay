@@ -73,7 +73,49 @@ export const ASYNC_PERSISTENCE_RULES: readonly AsyncPersistenceRule[] = Object.f
     rationale:
       'Awaiting a call inside Promise.race resolves it before the race begins, so the timeout it is raced against can never win and the bound is silently absent.',
   },
+  {
+    rule: 'persistence/driver-outside-adapter',
+    rationale:
+      'A driver import anywhere but the approved client module puts connection handling, error shapes and SQL construction in code that has no pool to manage, and makes replacing the driver a repository-wide edit rather than a one-file change.',
+  },
+  {
+    rule: 'persistence/unsafe-sql',
+    rationale:
+      'Parameterization is what stops a tenant id, permission key or search term from being read as SQL. The driver binds interpolated values by default, so the only way to lose that is the unsafe escape hatch, which belongs to DDL alone.',
+  },
+  {
+    rule: 'persistence/pool-outside-runtime',
+    rationale:
+      'A pool created in a handler, a service or an engine is a pool with no disposal path and no bound on how many exist. Connections then leak per request until the database refuses new ones.',
+  },
+  {
+    rule: 'persistence/test-helper-in-production',
+    rationale:
+      'Test helpers create and drop databases and skip the checks production configuration performs. Reachable from production code, they turn a deployment into an unguarded schema operation.',
+  },
 ]);
+
+/**
+ * Modules permitted to name the PostgreSQL driver, and to create a pool.
+ *
+ * A short list on purpose. The point of the rule is that connection handling lives in one
+ * place; a list that grows is the rule being negotiated away.
+ */
+const DRIVER_MODULES = Object.freeze([
+  'packages/database/src/postgres-client.ts',
+  'packages/database-testing/src/index.ts',
+]);
+
+/** Modules permitted to use the driver's unparameterized escape hatch. */
+const UNSAFE_SQL_MODULES = Object.freeze([
+  // DDL cannot be parameterized: a migration file is a statement list, not a value.
+  'packages/database/src/migrations.ts',
+  'packages/database/src/postgres-client.ts',
+  'packages/database-testing/src/index.ts',
+]);
+
+/** Test-only modules that production code must not reach. */
+const TEST_HELPER_MODULES = Object.freeze(['@assurapay/database-testing']);
 
 function isTestFile(file: string): boolean {
   return /\.(test|spec)\.tsx?$/.test(file);
@@ -288,6 +330,73 @@ function checkPreAwaitedRaces(repoRoot: string, files: readonly string[]): Findi
 }
 
 /**
+ * The driver is named in one module, the pool created in one place, and the
+ * unparameterized escape hatch confined to DDL.
+ *
+ * Checked by import specifier and call shape rather than by convention, because each of
+ * these reads as ordinary code at the site that gets it wrong: `import postgres from
+ * 'postgres'` in a route handler is one line, and so is a pool created per request.
+ */
+function checkAdapterBoundaries(repoRoot: string, files: readonly string[]): Finding[] {
+  const findings: Finding[] = [];
+
+  for (const file of files) {
+    const text = readCode(repoRoot, file);
+    if (text === null) continue;
+    const lines = text.split('\n');
+
+    for (const [index, line] of lines.entries()) {
+      const at = `${file}:${index + 1}`;
+
+      // The driver, by name. Matched on the import specifier so a variable called
+      // `postgres` is not mistaken for the package.
+      if (
+        /from\s+['"](postgres|pg|postgres\.js)['"]/.test(line) &&
+        !DRIVER_MODULES.includes(file)
+      )
+        findings.push({
+          rule: 'persistence/driver-outside-adapter',
+          severity: 'error',
+          message: `${at} imports the PostgreSQL driver. Only ${DRIVER_MODULES.join(' and ')} may name it; everything else depends on SqlClient.`,
+          location: at,
+          subject: file,
+        });
+
+      if (/\.unsafe\s*\(/.test(line) && !UNSAFE_SQL_MODULES.includes(file) && !isTestFile(file))
+        findings.push({
+          rule: 'persistence/unsafe-sql',
+          severity: 'error',
+          message: `${at} calls the driver's unparameterized escape hatch. Interpolate values into a tagged template instead, which binds them as parameters.`,
+          location: at,
+          subject: file,
+        });
+
+      if (/\bcreatePostgresPool\s*\(/.test(line) && !isTestFile(file) && !DRIVER_MODULES.includes(file))
+        findings.push({
+          rule: 'persistence/pool-outside-runtime',
+          severity: 'error',
+          message: `${at} creates a connection pool. Pools belong to the application runtime, which owns exactly one and disposes it.`,
+          location: at,
+          subject: file,
+        });
+
+      if (isTestFile(file)) continue;
+      for (const helper of TEST_HELPER_MODULES)
+        if (new RegExp(String.raw`from\s+['"][^'"]*${helper}['"]`).test(line))
+          findings.push({
+            rule: 'persistence/test-helper-in-production',
+            severity: 'error',
+            message: `${at} imports the test-database helper ${helper} from production code. It creates and drops databases and skips production configuration checks.`,
+            location: at,
+            subject: file,
+          });
+    }
+  }
+
+  return findings;
+}
+
+/**
  * Collects every asynchronous-persistence finding across the given roots.
  *
  * Test files are scanned for async predicates and pre-awaited races — a test can
@@ -308,5 +417,6 @@ export function collectAsyncPersistenceFindings(
     ...checkVoidedWrites(repoRoot, production),
     ...checkAsyncPredicates(repoRoot, files),
     ...checkPreAwaitedRaces(repoRoot, files),
+    ...checkAdapterBoundaries(repoRoot, files),
   ];
 }
