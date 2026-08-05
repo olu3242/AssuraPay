@@ -28,7 +28,7 @@ import {
   PartyService,
 } from '@assurapay/parties';
 import { LegalService } from '@assurapay/legal';
-import type { RequestContext } from '@assurapay/shared';
+import { requireActiveWorkspace, type RequestContext } from '@assurapay/shared';
 import {
   CertificationEngine,
   DefinitionOfDoneEngine,
@@ -393,6 +393,24 @@ export function authorizedContext(
     permissions: trust.permissions,
     store: trustStore,
   });
+}
+
+/**
+ * A context proven to carry workspace scope.
+ *
+ * `RequestContext` types `activeWorkspaceId` and `tenantId` as optional because an
+ * identity-class context legitimately has neither. Enforcement guarantees both for
+ * a permission-class route, but the type cannot express that, so a route needing to
+ * scope a write says so and gets a stable failure instead of a cast.
+ */
+export type WorkspaceScopedContext = RequestContext & {
+  activeWorkspaceId: string;
+  tenantId: string;
+};
+
+export function workspaceScoped(context: RequestContext): WorkspaceScopedContext {
+  requireActiveWorkspace(context);
+  return context;
 }
 
 let catalogueConfig: CatalogueConfig | undefined;
