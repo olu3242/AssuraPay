@@ -6,23 +6,23 @@
 
 | Field | Value |
 | --- | --- |
-| Capability | trust.route-permission-rollout |
-| Title | Route migration to authorized context |
+| Capability | trust.session-assertion-issuance |
+| Title | Identity assertion issuance from an authenticated session |
 | Current status | missing |
 | Lifecycle | planned |
-| Priority | 32 |
-| Reason | Highest-priority executable capability (priority 32, lifecycle planned) |
-| Depends on | trust.permission-grant-catalogue |
+| Priority | 33 |
+| Reason | Highest-priority executable capability (priority 33, lifecycle planned) — unblocks 1 downstream capability/-ies |
+| Depends on | trust.route-permission-rollout |
 | Unmet dependencies | none |
-| Blocks (transitive) | — |
-| Declared scope | 158 file(s), 1 test suite(s) (registry estimate) |
+| Blocks (transitive) | trust.grant-administration-api |
+| Declared scope | 2 file(s), 1 test suite(s) (registry estimate) |
 | Requires live infrastructure | no |
 
 ## Executable queue
 
 | Capability | Title | Lifecycle | Priority | Blocks | Live infra |
 | --- | --- | --- | --- | --- | --- |
-| trust.route-permission-rollout | Route migration to authorized context | planned | 32 | — | no |
+| trust.session-assertion-issuance | Identity assertion issuance from an authenticated session | planned | 33 | 1 | no |
 | persistence.postgres-repository | PostgreSQL repository implementation | planned | 40 | 1 | yes |
 | engine:08 | Engine 08 — Audit & Evidence Ledger | planned | 108 | 52 | no |
 
@@ -30,6 +30,7 @@
 
 | Capability | Status | Blocked by |
 | --- | --- | --- |
+| trust.grant-administration-api | partial | trust.session-assertion-issuance |
 | persistence.rls-certification | missing | persistence.postgres-repository |
 
 ## Awaiting live infrastructure
@@ -37,7 +38,7 @@
 - persistence.postgres-repository
 - persistence.rls-certification
 
-## Completed (63)
+## Completed (64)
 
 - engine:01
 - engine:02
@@ -102,3 +103,4 @@
 - trust.permission-enforcement
 - trust.permission-grant-catalogue
 - trust.route-permission-integration
+- trust.route-permission-rollout

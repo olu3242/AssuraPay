@@ -6,6 +6,27 @@
   "blocked": [
     {
       "blockedBy": [
+        "trust.session-assertion-issuance"
+      ],
+      "blocks": [],
+      "dependsOn": [
+        "trust.session-assertion-issuance"
+      ],
+      "executable": false,
+      "id": "trust.grant-administration-api",
+      "lifecycle": "implementing",
+      "priority": 34,
+      "requiresLiveInfrastructure": false,
+      "scope": {
+        "estimated": true,
+        "files": 3,
+        "tests": 1
+      },
+      "status": "partial",
+      "title": "HTTP surface for workspace founding and role assignment"
+    },
+    {
+      "blockedBy": [
         "persistence.postgres-repository"
       ],
       "blocks": [],
@@ -89,27 +110,30 @@
     "trust.identity-gateway",
     "trust.permission-enforcement",
     "trust.permission-grant-catalogue",
-    "trust.route-permission-integration"
+    "trust.route-permission-integration",
+    "trust.route-permission-rollout"
   ],
   "executable": [
     {
       "blockedBy": [],
-      "blocks": [],
+      "blocks": [
+        "trust.grant-administration-api"
+      ],
       "dependsOn": [
-        "trust.permission-grant-catalogue"
+        "trust.route-permission-rollout"
       ],
       "executable": true,
-      "id": "trust.route-permission-rollout",
+      "id": "trust.session-assertion-issuance",
       "lifecycle": "planned",
-      "priority": 32,
+      "priority": 33,
       "requiresLiveInfrastructure": false,
       "scope": {
         "estimated": true,
-        "files": 158,
+        "files": 2,
         "tests": 1
       },
       "status": "missing",
-      "title": "Route migration to authorized context"
+      "title": "Identity assertion issuance from an authenticated session"
     },
     {
       "blockedBy": [],
@@ -205,7 +229,7 @@
       "title": "Engine 08 — Audit & Evidence Ledger"
     }
   ],
-  "head": "9bd4ad1a87d051f93baec463e7db34a372c68c31",
+  "head": "0f517fc4f78b0a641ff2c087a11dfb3b983dcdfe",
   "rejected": [
     {
       "id": "engine:08",
@@ -218,28 +242,34 @@
     {
       "id": "persistence.rls-certification",
       "reason": "Blocked by unmet dependencies: persistence.postgres-repository."
+    },
+    {
+      "id": "trust.grant-administration-api",
+      "reason": "Blocked by unmet dependencies: trust.session-assertion-issuance."
     }
   ],
   "reosVersion": "1.0.0",
   "selected": {
     "blockedBy": [],
-    "blocks": [],
+    "blocks": [
+      "trust.grant-administration-api"
+    ],
     "dependsOn": [
-      "trust.permission-grant-catalogue"
+      "trust.route-permission-rollout"
     ],
     "executable": true,
-    "id": "trust.route-permission-rollout",
+    "id": "trust.session-assertion-issuance",
     "lifecycle": "planned",
-    "priority": 32,
+    "priority": 33,
     "requiresLiveInfrastructure": false,
     "scope": {
       "estimated": true,
-      "files": 158,
+      "files": 2,
       "tests": 1
     },
     "status": "missing",
-    "title": "Route migration to authorized context"
+    "title": "Identity assertion issuance from an authenticated session"
   },
-  "selectionReason": "Highest-priority executable capability (priority 32, lifecycle planned)",
+  "selectionReason": "Highest-priority executable capability (priority 33, lifecycle planned) — unblocks 1 downstream capability/-ies",
   "stage": "dependencies"
 }
