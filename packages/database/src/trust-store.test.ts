@@ -27,7 +27,7 @@ describe('TrustPersistence conformance — InMemoryTrustStore', () => {
 describe('TrustPersistence conformance — the suite itself', () => {
   it('passes every check against the in-memory store', async () => {
     const failures = (
-      await runTrustPersistenceConformance(() => new InMemoryTrustStore())
+      await runTrustPersistenceConformance(inMemoryFactory())
     ).filter((result) => !result.passed);
     expect(failures).toEqual([]);
   });
@@ -53,11 +53,65 @@ describe('TrustPersistence conformance — the suite itself', () => {
     // If checks shared a store, one that wrote three records would make a later
     // "one record stored" assertion fail for a correct implementation.
     let built = 0;
-    await runTrustPersistenceConformance(() => {
-      built += 1;
-      return new InMemoryTrustStore();
+    await runTrustPersistenceConformance({
+      async create() {
+        built += 1;
+        return new InMemoryTrustStore();
+      },
     });
     expect(built).toBe(TRUST_PERSISTENCE_CONFORMANCE.length);
+  });
+
+  it('releases every store it constructed, including after a failing check', async () => {
+    // A durable adapter's `create` takes a connection. If a rejected check skipped
+    // disposal, a run against Postgres would exhaust the pool partway through and
+    // report connection errors in place of the real contract failures.
+    const disposed: TrustPersistence[] = [];
+    class FailsEverything extends InMemoryTrustStore {
+      async list<T>(): Promise<T[]> {
+        throw new Error('READ_UNAVAILABLE');
+      }
+    }
+
+    await runTrustPersistenceConformance({
+      async create() {
+        return new FailsEverything();
+      },
+      async dispose(store) {
+        disposed.push(store);
+      },
+    });
+
+    expect(disposed.length).toBe(TRUST_PERSISTENCE_CONFORMANCE.length);
+  });
+
+  it('reports a failing disposal rather than letting the leak pass silently', async () => {
+    const results = await runTrustPersistenceConformance({
+      async create() {
+        return new InMemoryTrustStore();
+      },
+      async dispose() {
+        throw new Error('POOL_RELEASE_FAILED');
+      },
+    });
+
+    const disposalFailures = results.filter(
+      (result) => !result.passed && result.failure === 'POOL_RELEASE_FAILED',
+    );
+    expect(disposalFailures.length).toBe(TRUST_PERSISTENCE_CONFORMANCE.length);
+  });
+
+  it('records a construction failure as a failed check, not a thrown run', async () => {
+    // An adapter that cannot connect is failing the contract. Throwing out of the
+    // runner would make that indistinguishable from a broken harness.
+    const results = await runTrustPersistenceConformance({
+      async create(): Promise<TrustPersistence> {
+        throw new Error('CONNECTION_REFUSED');
+      },
+    });
+
+    expect(results.length).toBe(TRUST_PERSISTENCE_CONFORMANCE.length);
+    expect(results.every((result) => result.failure === 'CONNECTION_REFUSED')).toBe(true);
   });
 
   it('reports a failing implementation rather than throwing', async () => {
@@ -69,7 +123,11 @@ describe('TrustPersistence conformance — the suite itself', () => {
       }
     }
 
-    const results = await runTrustPersistenceConformance(() => new Broken());
+    const results = await runTrustPersistenceConformance({
+      async create() {
+        return new Broken();
+      },
+    });
     const failures = results.filter((result) => !result.passed);
     expect(failures.length).toBeGreaterThan(3);
     for (const failure of failures) {
@@ -78,37 +136,11 @@ describe('TrustPersistence conformance — the suite itself', () => {
   });
 });
 
-describe('the repository interface cannot be implemented over a network', () => {
-  it('is synchronous in every method, which no network-backed store can satisfy', async () => {
-    // CLAUDE.md says Postgres "can be swapped without touching engine logic". That
-    // is not true as built: every method returns a value rather than a promise, so
-    // a Postgres adapter would have to block on I/O, and making it async would
-    // change every engine call site.
-    //
-    // This is pinned as a test rather than left as a comment so the constraint is
-    // discovered by whoever attempts the adapter, at the moment they attempt it.
-    const store: TrustPersistence = new InMemoryTrustStore();
-
-    for (const result of [
-      await store.list('things'),
-      await store.audit({
-        actorId: 'user-1',
-        eventType: 'Thing',
-        aggregateType: 'Thing',
-        aggregateId: 'thing-1',
-        correlationId: 'corr-1',
-        metadata: {},
-      }),
-      await store.emit({
-        aggregateType: 'Thing',
-        aggregateId: 'thing-1',
-        eventType: 'Thing',
-        eventVersion: 1,
-        payload: {},
-        correlationId: 'corr-1',
-      }),
-    ]) {
-      expect(result).not.toBeInstanceOf(Promise);
-    }
-  });
-});
+/** The in-memory store as a conformance factory. No lifecycle to release. */
+function inMemoryFactory() {
+  return {
+    async create(): Promise<TrustPersistence> {
+      return new InMemoryTrustStore();
+    },
+  };
+}

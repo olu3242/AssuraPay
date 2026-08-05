@@ -46,9 +46,25 @@ export function requireActiveWorkspace(context: RequestContext): asserts context
   requireAuthenticatedIdentity(context);
   if (!context.activeWorkspaceId || !context.tenantId || !context.memberships.includes(context.activeWorkspaceId)) throw new Error('ACTIVE_WORKSPACE_REQUIRED');
 }
-export function maskValue(value: string, mode: 'NONE' | 'PARTIAL' | 'FULL' | 'TOKENIZED' | 'LAST_FOUR') {
+export type MaskingMode = 'NONE' | 'PARTIAL' | 'FULL' | 'TOKENIZED' | 'LAST_FOUR';
+
+/**
+ * Masks a sensitive value for display.
+ *
+ * The partial modes reveal a fixed number of characters, which only masks anything
+ * when the value is longer than what they reveal. `LAST_FOUR` of a four-character
+ * account reference is the whole reference, and `PARTIAL` reveals the first two and
+ * last two, so anything up to four characters is fully exposed. Both fall back to
+ * full redaction rather than returning the input decorated with asterisks, because
+ * the caller has already decided this value must not be shown in full and a short
+ * value is not a licence to show it.
+ */
+export function maskValue(value: string, mode: MaskingMode) {
   if (mode === 'NONE') return value;
-  if (mode === 'LAST_FOUR') return `****${value.slice(-4)}`;
-  if (mode === 'PARTIAL') return `${value.slice(0, 2)}***${value.slice(-2)}`;
-  return mode === 'TOKENIZED' ? '[TOKENIZED]' : '[REDACTED]';
+  if (mode === 'TOKENIZED') return '[TOKENIZED]';
+  if (mode === 'FULL') return '[REDACTED]';
+  if (value.length <= 4) return '[REDACTED]';
+  return mode === 'LAST_FOUR'
+    ? `****${value.slice(-4)}`
+    : `${value.slice(0, 2)}***${value.slice(-2)}`;
 }

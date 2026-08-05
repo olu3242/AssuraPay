@@ -9,10 +9,10 @@
 | --- | --- |
 | Repository | assurapay |
 | Version | 0.1.0 |
-| Branch | claude/git-pull-cqc04u |
-| HEAD | fcdb5cab56816b20140d0cf128a8e2d347f1e015 |
-| Worktree clean | yes |
-| Manifest digest | d146a688afe9 |
+| Branch | feat/persistence-async-repository-interface |
+| HEAD | bcd78f6c73075fc5459bf43a7bcb9bae1f213e45 |
+| Worktree clean | no |
+| Manifest digest | 764fbd44c98c |
 | REOS version | 1.0.0 |
 
 ## Architecture
@@ -26,10 +26,10 @@
 
 | Lifecycle | Count |
 | --- | --- |
-| missing | 2 |
+| missing | 1 |
 | planned | 1 |
-| certified | 8 |
-| released | 60 |
+| certified | 1 |
+| released | 68 |
 | deferred | 4 |
 
 ## Engine reconciliation
@@ -46,7 +46,7 @@ from repository evidence: package presence, test files, and certification wiring
 | 05 | Legal Governance | 1 | Conditionally implemented | implemented | released | packages/legal | **yes** |
 | 06 | Third-Party Risk | 1 | Deferred | deferred | deferred | — | no |
 | 07 | Compliance Foundation | 1 | Deferred | deferred | deferred | — | no |
-| 08 | Audit & Evidence Ledger | 1 | Conditionally implemented | implemented | certified | packages/audit-ledger | **yes** |
+| 08 | Audit & Evidence Ledger | 1 | Conditionally implemented | implemented | released | packages/audit-ledger | **yes** |
 | 09 | Notification & Communication | 1 | Deferred | deferred | deferred | — | no |
 | 10 | Enterprise Configuration | 1 | Deferred | deferred | deferred | — | no |
 | 11 | Contract Authoring | 2 | — | implemented | released | packages/agreement-creation | no |
@@ -104,21 +104,21 @@ from repository evidence: package presence, test files, and certification wiring
 
 | Capability | Title | Status | Lifecycle | Probes | Rationale |
 | --- | --- | --- | --- | --- | --- |
-| persistence.async-repository-interface | Asynchronous repository interface | missing | planned | 0/3 | No evidence at HEAD, on any ref, or in history. |
-| persistence.postgres-repository | PostgreSQL repository implementation | missing | missing | 0/3 | No evidence at HEAD, on any ref, or in history. |
-| persistence.repository-conformance | TrustPersistence conformance specification | implemented | certified | 4/4 | All 4 evidence probes satisfied at HEAD. |
+| persistence.async-repository-interface | Asynchronous repository interface | implemented | certified | 5/5 | All 5 evidence probes satisfied at HEAD. |
+| persistence.postgres-repository | PostgreSQL repository implementation | missing | planned | 0/3 | No evidence at HEAD, on any ref, or in history. |
+| persistence.repository-conformance | TrustPersistence conformance specification | implemented | released | 4/4 | All 4 evidence probes satisfied at HEAD. |
 | persistence.rls-certification | Row Level Security certification | missing | missing | 0/4 | No evidence at HEAD, on any ref, or in history. |
 | reos.execution-os | Repository Execution Operating System | implemented | released | 7/7 | All 7 evidence probes satisfied at HEAD. |
-| runtime.agent-registration | Agent Runtime registration | implemented | certified | 3/3 | All 3 evidence probes satisfied at HEAD. |
+| runtime.agent-registration | Agent Runtime registration | implemented | released | 3/3 | All 3 evidence probes satisfied at HEAD. |
 | settlement.non-custody-guard | Non-custody architectural guard | implemented | released | 4/4 | All 4 evidence probes satisfied at HEAD. |
-| trust.grant-administration-api | HTTP surface for workspace founding and role assignment | implemented | certified | 6/6 | All 6 evidence probes satisfied at HEAD. |
+| trust.grant-administration-api | HTTP surface for workspace founding and role assignment | implemented | released | 6/6 | All 6 evidence probes satisfied at HEAD. |
 | trust.identity-assertions | HMAC identity assertions | implemented | released | 4/4 | All 4 evidence probes satisfied at HEAD. |
 | trust.identity-gateway | Production identity gateway | implemented | released | 4/4 | All 4 evidence probes satisfied at HEAD. |
 | trust.permission-enforcement | Permission enforcement middleware | implemented | released | 4/4 | All 4 evidence probes satisfied at HEAD. |
-| trust.permission-grant-catalogue | Permission grant catalogue and workspace bootstrap | implemented | certified | 8/8 | All 8 evidence probes satisfied at HEAD. |
-| trust.route-permission-integration | Route-level permission mapping | implemented | certified | 6/6 | All 6 evidence probes satisfied at HEAD. |
-| trust.route-permission-rollout | Route migration to authorized context | implemented | certified | 4/4 | All 4 evidence probes satisfied at HEAD. |
-| trust.session-assertion-issuance | Identity assertion issuance from an authenticated session | implemented | certified | 5/5 | All 5 evidence probes satisfied at HEAD. |
+| trust.permission-grant-catalogue | Permission grant catalogue and workspace bootstrap | implemented | released | 8/8 | All 8 evidence probes satisfied at HEAD. |
+| trust.route-permission-integration | Route-level permission mapping | implemented | released | 6/6 | All 6 evidence probes satisfied at HEAD. |
+| trust.route-permission-rollout | Route migration to authorized context | implemented | released | 4/4 | All 4 evidence probes satisfied at HEAD. |
+| trust.session-assertion-issuance | Identity assertion issuance from an authenticated session | implemented | released | 5/5 | All 5 evidence probes satisfied at HEAD. |
 
 ## Reconciliation findings
 
@@ -142,15 +142,14 @@ from repository evidence: package presence, test files, and certification wiring
 
 ## Execution backlog
 
-3 open item(s). Highest-priority first.
+2 open item(s). Highest-priority first.
 
 | Capability | Title | Lifecycle | Priority | Executable | Blocked by | Blocks |
 | --- | --- | --- | --- | --- | --- | --- |
-| persistence.async-repository-interface | Asynchronous repository interface | planned | 39 | yes | — | 2 |
-| persistence.postgres-repository | PostgreSQL repository implementation | missing | 40 | no | persistence.async-repository-interface | 1 |
+| persistence.postgres-repository | PostgreSQL repository implementation | planned | 40 | yes | — | 1 |
 | persistence.rls-certification | Row Level Security certification | missing | 41 | no | persistence.postgres-repository | — |
 
 ## Certification coverage
 
-- Certification scripts: 83
-- Packages without a certification script: packages/database, packages/domain, packages/shared
+- Certification scripts: 84
+- Packages without a certification script: packages/database, packages/domain

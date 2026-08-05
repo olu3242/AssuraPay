@@ -429,21 +429,23 @@
       ],
       "evidence": {
         "paths": [
-          "packages/shared/src/async-trust.ts"
+          "packages/reos/src/validators/persistence.ts"
         ],
         "symbols": [
-          "AsyncTrustPersistence"
+          "ASYNC_PERSISTENCE_RULES",
+          "collectAsyncPersistenceFindings"
         ],
         "tests": [
-          "packages/database/src/async-conformance.test.ts"
+          "packages/database/src/async-conformance.test.ts",
+          "packages/reos/src/reos.persistence.test.ts"
         ]
       },
-      "certify": "certify:tenancy",
+      "certify": "certify:persistence",
       "scope": {
-        "files": 40,
-        "tests": 2
+        "files": 245,
+        "tests": 4
       },
-      "notes": "The real blocker on the Postgres adapter, and it needs no infrastructure to fix. TrustPersistence is synchronous in every method - list returns T[], append returns void - and no call site anywhere awaits the store. A network-backed store cannot implement it. CLAUDE.md states Postgres can be swapped without touching engine logic; that is not true as built, because making the interface async changes every engine call site. A test in trust-store.test.ts pins the constraint so whoever attempts the adapter discovers it immediately rather than halfway through. Scope is large and mechanical: the decision to make is whether engines become async or a synchronous read-through cache sits in front of the store."
+      "notes": "The real blocker on the Postgres adapter, fixed with no infrastructure. TrustPersistence was synchronous in every method - list returned T[], append returned void - so no network-backed store could implement it, and CLAUDE.md's claim that Postgres can be swapped without touching engine logic was false as built. The interface itself was made asynchronous rather than adding a parallel AsyncTrustPersistence: two interfaces would let call sites keep the synchronous one, and a MaybePromise union would let a caller forget to await and still compile. Evidence is the static enforcement rather than the type declaration, because TrustPersistence existed before this capability and a symbol probe on it would have reported the work as done before it started. Every forbidden shape typechecks, so the rules in packages/reos/src/validators/persistence.ts are what keeps the migration from eroding: floating governed writes, void-discarded writes, async predicates handed to synchronous array methods, a pre-awaited Promise.race, and a sync method back on the interface. Each rule corresponds to a defect the migration actually produced: ValidationAcceptanceTestingEngine.passed used every(async) and so passed unconditionally, IdentityService.revokeAll returned unresolved promises, and the AI gateway awaited its provider inside the race that was supposed to time it out."
     }
   ]
 }

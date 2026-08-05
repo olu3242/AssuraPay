@@ -319,21 +319,55 @@ export type ConformanceResult = {
 };
 
 /**
- * Runs every check against a freshly constructed store.
+ * Supplies the store under test, with the lifecycle a durable adapter needs.
+ *
+ * `create` is asynchronous because a real adapter has to connect and provision
+ * before it can answer a read, and a synchronous factory would force that work
+ * into a constructor that cannot await it — the same shape that made the previous
+ * interface impossible to implement over a network.
+ *
+ * There is deliberately no `reset` hook. Resetting one shared store would make
+ * per-check isolation depend on the adapter's own truncation being correct, and
+ * cross-check state leakage is one of the things this suite exists to catch. A
+ * Postgres adapter that finds construction too slow should reuse a pool across
+ * `create` calls and give each store its own schema, rather than share state and
+ * clean up after itself.
+ */
+export type TrustPersistenceFactory = {
+  /** A store with no prior state. Called once per check. */
+  create(): Promise<TrustPersistence>;
+  /**
+   * Releases what `create` acquired — a connection, a temporary schema. Called
+   * after every check including a failing one, so a rejected check cannot leak a
+   * connection and exhaust the pool partway through the run.
+   */
+  dispose?(store: TrustPersistence): Promise<void>;
+};
+
+/**
+ * Runs every check against a freshly constructed store and reports each outcome.
  *
  * Takes a factory rather than an instance so no check can observe another's
  * writes — an implementation that passed only in a particular order would be
  * hiding exactly the state leakage worth catching.
+ *
+ * A failure is recorded, never thrown: an adapter under development fails several
+ * checks at once, and stopping at the first would hide the rest. A failure inside
+ * `create` or `dispose` is recorded against the check too, since an adapter that
+ * cannot construct is failing the contract as surely as one that returns wrong
+ * data.
  */
 export async function runTrustPersistenceConformance(
-  factory: () => TrustPersistence,
+  factory: TrustPersistenceFactory,
 ): Promise<ConformanceResult[]> {
   const results: ConformanceResult[] = [];
   // Sequential rather than Promise.all: each check gets its own store, and running
   // them concurrently would make a failure report depend on scheduling order.
   for (const check of TRUST_PERSISTENCE_CONFORMANCE) {
+    let store: TrustPersistence | undefined;
     try {
-      await check.run(factory());
+      store = await factory.create();
+      await check.run(store);
       results.push({ name: check.name, passed: true });
     } catch (error) {
       results.push({
@@ -341,6 +375,21 @@ export async function runTrustPersistenceConformance(
         passed: false,
         failure: error instanceof Error ? error.message : String(error),
       });
+    } finally {
+      if (store && factory.dispose) {
+        try {
+          await factory.dispose(store);
+        } catch (error) {
+          // Reported rather than swallowed: a store that cannot be released is a
+          // resource leak, and silence here is how a run exhausts a pool and then
+          // blames the checks.
+          results.push({
+            name: `${check.name} (dispose)`,
+            passed: false,
+            failure: error instanceof Error ? error.message : String(error),
+          });
+        }
+      }
     }
   }
   return results;

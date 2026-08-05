@@ -1,0 +1,295 @@
+/*
+ * reos:rule-vocabulary — fixtures write the forbidden shapes in order to test the
+ * validator that forbids them.
+ */
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+import { afterEach, describe, expect, it } from 'vitest';
+import {
+  ASYNC_PERSISTENCE_RULES,
+  RULE_VOCABULARY_TOKEN,
+  collectAsyncPersistenceFindings,
+} from './index.ts';
+import { readTextIfPresent, walkFiles } from './util/fsx.ts';
+
+/** Referenced indirectly so this file's own assertion does not carry the token twice. */
+const TOKEN = RULE_VOCABULARY_TOKEN;
+
+/**
+ * The asynchronous persistence rules, tested by planting each violation.
+ *
+ * A static rule that has never fired is indistinguishable from one that cannot.
+ * Every case here writes the exact shape a defect took during the migration, so
+ * the rule is proven to catch it rather than asserted to.
+ */
+
+const scratchDirectories: string[] = [];
+
+function fakeRepo(files: Record<string, string>): string {
+  const root = mkdtempSync(path.join(tmpdir(), 'reos-persistence-'));
+  scratchDirectories.push(root);
+  for (const [relativePath, contents] of Object.entries(files)) {
+    const absolutePath = path.join(root, relativePath);
+    mkdirSync(path.dirname(absolutePath), { recursive: true });
+    writeFileSync(absolutePath, contents, 'utf8');
+  }
+  return root;
+}
+
+/** The contract as it stands, so a fixture only tests the rule it is about. */
+const ASYNC_INTERFACE = `export interface TrustPersistence {
+  list<T>(collection: string): Promise<T[]>;
+  append<T>(collection: string, value: T): Promise<void>;
+  audit(input: AuditInput): Promise<AuditRecord>;
+  emit(input: OutboxInput): Promise<OutboxEvent>;
+  transaction<T>(operation: (tx: TrustPersistence) => Promise<T>): Promise<T>;
+}
+`;
+
+function rulesFired(findings: { rule: string }[]): string[] {
+  return [...new Set(findings.map((finding) => finding.rule))].sort();
+}
+
+afterEach(() => {
+  for (const directory of scratchDirectories.splice(0))
+    rmSync(directory, { recursive: true, force: true });
+});
+
+describe('persistence rules: the interface must be implementable over a network', () => {
+  it('reports a method that returns a bare value', () => {
+    const root = fakeRepo({
+      'packages/shared/src/trust.ts': `export interface TrustPersistence {
+  list<T>(collection: string): T[];
+  append<T>(collection: string, value: T): Promise<void>;
+}
+`,
+    });
+
+    const findings = collectAsyncPersistenceFindings(root);
+    expect(findings).toHaveLength(1);
+    expect(findings[0].rule).toBe('persistence/sync-interface-method');
+    expect(findings[0].subject).toBe('TrustPersistence.list');
+    expect(findings[0].message).toContain('T[]');
+  });
+
+  it('accepts the asynchronous contract', () => {
+    const root = fakeRepo({ 'packages/shared/src/trust.ts': ASYNC_INTERFACE });
+    expect(collectAsyncPersistenceFindings(root)).toEqual([]);
+  });
+
+  it('reports the interface having been replaced by something else entirely', () => {
+    // A type alias or a class would pass a "does the name exist" probe while
+    // removing the declaration the contract is read from.
+    const root = fakeRepo({
+      'packages/shared/src/trust.ts': 'export type TrustPersistence = Record<string, unknown>;\n',
+    });
+
+    const findings = collectAsyncPersistenceFindings(root);
+    expect(rulesFired(findings)).toEqual(['persistence/sync-interface-method']);
+    expect(findings[0].subject).toBe('TrustPersistence');
+  });
+});
+
+describe('persistence rules: a governed write may not float', () => {
+  const withInterface = (source: string) => ({
+    'packages/shared/src/trust.ts': ASYNC_INTERFACE,
+    'packages/engine/src/index.ts': source,
+  });
+
+  it('reports an unawaited audit call', () => {
+    const root = fakeRepo(
+      withInterface(`export class Engine {
+  async act() {
+    this.store.audit({
+      eventType: 'ThingHappened',
+    });
+  }
+}
+`),
+    );
+
+    const findings = collectAsyncPersistenceFindings(root);
+    expect(rulesFired(findings)).toEqual(['persistence/floating-governed-write']);
+    expect(findings[0].location).toBe('packages/engine/src/index.ts:3');
+  });
+
+  it('accepts the same call once awaited', () => {
+    const root = fakeRepo(
+      withInterface(`export class Engine {
+  async act() {
+    await this.store.audit({ eventType: 'ThingHappened' });
+    return this.store.append('things', { id: 'x' });
+  }
+}
+`),
+    );
+    expect(collectAsyncPersistenceFindings(root)).toEqual([]);
+  });
+
+  it('accepts a write that is an element of a list something else awaits', () => {
+    // `Promise.all` over writes is legitimate. A rule that flagged it would be
+    // switched off, taking the real cases with it.
+    const root = fakeRepo(
+      withInterface(`export class Engine {
+  async act() {
+    await Promise.all([
+      this.store.append('a', 1),
+      this.store.append('b', 2),
+    ]);
+  }
+}
+`),
+    );
+    expect(collectAsyncPersistenceFindings(root)).toEqual([]);
+  });
+
+  it('reports a write discarded with void', () => {
+    const root = fakeRepo(
+      withInterface(`export class Engine {
+  act() {
+    void this.store.emit({ eventType: 'ThingHappened' });
+  }
+}
+`),
+    );
+
+    const findings = collectAsyncPersistenceFindings(root);
+    expect(rulesFired(findings)).toEqual(['persistence/voided-governed-write']);
+  });
+
+  it('exempts test files, where an unawaited write can be the thing under test', () => {
+    const root = fakeRepo({
+      'packages/shared/src/trust.ts': ASYNC_INTERFACE,
+      'packages/engine/src/engine.test.ts': `it('rejects', () => {
+  store.append('things', { id: 'x' });
+});
+`,
+    });
+    expect(collectAsyncPersistenceFindings(root)).toEqual([]);
+  });
+});
+
+describe('persistence rules: a synchronous array method cannot await', () => {
+  it('reports an async predicate, in production code and in tests alike', () => {
+    // A test asserting through `.filter(async …)` is as wrong as production code
+    // doing it, and reports a pass either way.
+    const root = fakeRepo({
+      'packages/shared/src/trust.ts': ASYNC_INTERFACE,
+      'packages/engine/src/index.ts': `export const gate = (ids: string[]) =>
+  ids.every(async (id) => await check(id));
+`,
+      'packages/engine/src/engine.test.ts': `const kept = rows.filter(async (row) => await allowed(row));
+`,
+    });
+
+    const findings = collectAsyncPersistenceFindings(root);
+    expect(rulesFired(findings)).toEqual(['persistence/async-predicate']);
+    expect(findings).toHaveLength(2);
+    expect(findings.map((finding) => finding.subject).sort()).toEqual([
+      'packages/engine/src/engine.test.ts:filter',
+      'packages/engine/src/index.ts:every',
+    ]);
+  });
+
+  it('accepts values resolved before the aggregate is applied', () => {
+    const root = fakeRepo({
+      'packages/shared/src/trust.ts': ASYNC_INTERFACE,
+      'packages/engine/src/index.ts': `export async function gate(ids: string[]) {
+  const results = await Promise.all(ids.map(async (id) => await check(id)));
+  return results.every((result) => result);
+}
+`,
+    });
+    expect(collectAsyncPersistenceFindings(root)).toEqual([]);
+  });
+});
+
+describe('persistence rules: a race must not be pre-decided', () => {
+  it('reports an awaited first racer', () => {
+    const root = fakeRepo({
+      'packages/shared/src/trust.ts': ASYNC_INTERFACE,
+      'packages/engine/src/index.ts': `export async function call() {
+  return Promise.race([
+    await provider.invoke(input),
+    timeout(30_000),
+  ]);
+}
+`,
+    });
+
+    const findings = collectAsyncPersistenceFindings(root);
+    expect(rulesFired(findings)).toEqual(['persistence/pre-awaited-race']);
+    expect(findings[0].location).toBe('packages/engine/src/index.ts:2');
+  });
+
+  it('accepts a race whose racers are unresolved', () => {
+    const root = fakeRepo({
+      'packages/shared/src/trust.ts': ASYNC_INTERFACE,
+      'packages/engine/src/index.ts': `export async function call() {
+  return await Promise.race([provider.invoke(input), timeout(30_000)]);
+}
+`,
+    });
+    expect(collectAsyncPersistenceFindings(root)).toEqual([]);
+  });
+});
+
+describe('persistence rules: the vocabulary itself', () => {
+  it('states a rationale for every rule', () => {
+    for (const rule of ASYNC_PERSISTENCE_RULES) {
+      expect(rule.rationale.length, rule.rule).toBeGreaterThan(60);
+      expect(rule.rule.startsWith('persistence/'), rule.rule).toBe(true);
+    }
+  });
+
+  it('has a test that fires every rule it declares', () => {
+    // Kept honest by construction: adding a rule without a fixture fails here.
+    const fired = new Set([
+      'persistence/sync-interface-method',
+      'persistence/floating-governed-write',
+      'persistence/voided-governed-write',
+      'persistence/async-predicate',
+      'persistence/pre-awaited-race',
+    ]);
+    expect(ASYNC_PERSISTENCE_RULES.map((rule) => rule.rule).filter((rule) => !fired.has(rule))).toEqual(
+      [],
+    );
+    expect(fired.size).toBe(ASYNC_PERSISTENCE_RULES.length);
+  });
+
+  it('exempts a file that declares rule vocabulary, because its matches are fixture data', () => {
+    const root = fakeRepo({
+      'packages/shared/src/trust.ts': ASYNC_INTERFACE,
+      'packages/engine/src/index.ts': `/* reos:rule-vocabulary — writes the shape in order to test the rule. */
+export const fixture = 'ids.every(async (id) => await check(id))';
+void store.append('things', 1);
+`,
+    });
+    expect(collectAsyncPersistenceFindings(root)).toEqual([]);
+  });
+
+  it('keeps that exemption auditable by one grep, confined to the validator package', () => {
+    // The exemption is a silencer if it spreads. Pinning its footprint means adding
+    // it to an engine is a visible decision rather than a quiet one.
+    const repoRoot = path.resolve(import.meta.dirname, '../../..');
+    const carriers = walkFiles(path.join(repoRoot, 'packages'), repoRoot)
+      .filter((file) => /\.tsx?$/.test(file))
+      .filter((file) => (readTextIfPresent(path.join(repoRoot, file)) ?? '').includes(TOKEN));
+
+    expect(carriers.every((file) => file.startsWith('packages/reos/')), carriers.join(', ')).toBe(
+      true,
+    );
+  });
+
+  it('reads code, not prose: a comment describing a violation is not one', () => {
+    const root = fakeRepo({
+      'packages/shared/src/trust.ts': ASYNC_INTERFACE,
+      'packages/engine/src/index.ts': `// Never write void this.store.append(...) or ids.every(async (id) => …).
+/* A block comment may also mention this.store.audit({}) without being one. */
+export const noop = () => undefined;
+`,
+    });
+    expect(collectAsyncPersistenceFindings(root)).toEqual([]);
+  });
+});

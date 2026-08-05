@@ -1,0 +1,312 @@
+import path from 'node:path';
+import { readTextIfPresent, walkFiles } from '../util/fsx.ts';
+import { declaresRuleVocabulary } from './exemption.ts';
+import type { Finding } from '../types.ts';
+
+/**
+ * Static enforcement of the asynchronous persistence contract.
+ *
+ * `TrustPersistence` became asynchronous so a network-backed store could
+ * implement it. That change is only durable if the shapes it forbids cannot come
+ * back, and every one of them typechecks:
+ *
+ *   - a promise is truthy, so an unawaited governed write is invisible at the
+ *     call site and silently lost on the durable path;
+ *   - `void store.append(...)` compiles and reads as deliberate;
+ *   - `.every(async …)` returns true for any non-empty list, because each
+ *     predicate call yields a promise rather than a verdict;
+ *   - `await provider.invoke(...)` inside `Promise.race` resolves before the
+ *     timeout can win, disabling the bound it is raced against;
+ *   - a method on the interface that returns a bare value re-imposes the
+ *     synchronous constraint the migration removed.
+ *
+ * Each rule here corresponds to a defect that was actually found during the
+ * migration, not to a hypothetical one. They are reported through the
+ * architecture validator rather than as a twelfth certification step, because
+ * they are boundary invariants of the same kind it already enforces.
+ */
+
+/** Methods on `TrustPersistence` that perform a governed write. */
+const GOVERNED_WRITES = ['append', 'audit', 'emit', 'replace', 'transaction'];
+
+/** Array methods whose predicate is called synchronously and cannot await. */
+const SYNCHRONOUS_ARRAY_METHODS = [
+  'every',
+  'some',
+  'filter',
+  'find',
+  'findLast',
+  'findIndex',
+  'findLastIndex',
+  'sort',
+];
+
+export type AsyncPersistenceRule = {
+  rule: string;
+  /** What the rule forbids, and what goes wrong when it is violated. */
+  rationale: string;
+};
+
+export const ASYNC_PERSISTENCE_RULES: readonly AsyncPersistenceRule[] = Object.freeze([
+  {
+    rule: 'persistence/sync-interface-method',
+    rationale:
+      'A TrustPersistence method returning a bare value cannot be implemented over a network, which is the constraint the asynchronous interface exists to remove.',
+  },
+  {
+    rule: 'persistence/floating-governed-write',
+    rationale:
+      'An unawaited append, audit, emit, replace or transaction resolves after the caller has already reported success, so the audit trail loses records the response claimed were written.',
+  },
+  {
+    rule: 'persistence/voided-governed-write',
+    rationale:
+      'Marking a governed write as intentionally ignored is never correct: history is append-only, and a discarded write is a missing record no reader can detect.',
+  },
+  {
+    rule: 'persistence/async-predicate',
+    rationale:
+      'A synchronous array method calls its predicate and reads the return value immediately. An async predicate returns a promise, which is always truthy, so every, some and filter report the opposite of the truth.',
+  },
+  {
+    rule: 'persistence/pre-awaited-race',
+    rationale:
+      'Awaiting a call inside Promise.race resolves it before the race begins, so the timeout it is raced against can never win and the bound is silently absent.',
+  },
+]);
+
+function isTestFile(file: string): boolean {
+  return /\.(test|spec)\.tsx?$/.test(file);
+}
+
+/**
+ * Blanks comment bodies while preserving line count and offsets.
+ *
+ * A comment can never be a violation, and a validator that reads its own prose as
+ * code fails on the file explaining the rule — which is how a rule gets deleted
+ * instead of obeyed. Line numbers must survive, because findings cite them.
+ */
+function stripComments(text: string): string {
+  return text
+    .replace(/\/\*[\s\S]*?\*\//g, (match) => match.replace(/[^\n]/g, ' '))
+    .replace(/(^|[^:])\/\/[^\n]*/g, (match, prefix: string) =>
+      prefix + ' '.repeat(match.length - prefix.length),
+    );
+}
+
+/**
+ * Source with comments blanked, or null when the file is absent or exempt.
+ *
+ * A file declaring `reos:rule-vocabulary` writes the forbidden shapes as fixture
+ * data in order to prove the rule catches them, so its matches are the test, not
+ * the violation. The exemption is the repository's existing one rather than a new
+ * mechanism, so every use of it is still found by a single grep.
+ */
+function readCode(repoRoot: string, file: string): string | null {
+  const text = readTextIfPresent(path.join(repoRoot, file));
+  if (text === null || declaresRuleVocabulary(text)) return null;
+  return stripComments(text);
+}
+
+function sourceFiles(repoRoot: string, roots: readonly string[]): string[] {
+  const collected: string[] = [];
+  for (const root of roots)
+    collected.push(
+      ...walkFiles(path.join(repoRoot, root), repoRoot).filter((file) =>
+        /\.tsx?$/.test(file),
+      ),
+    );
+  return collected.sort();
+}
+
+/**
+ * Every method on the interface must declare a promise-returning signature.
+ *
+ * Read from the interface declaration rather than from an implementation: a class
+ * may legitimately be `async` while the interface it satisfies is not, and it is
+ * the interface that decides whether a Postgres adapter is possible.
+ */
+function checkInterfaceIsAsynchronous(repoRoot: string): Finding[] {
+  const location = 'packages/shared/src/trust.ts';
+  const text = readTextIfPresent(path.join(repoRoot, location));
+  if (text === null) return [];
+
+  const declaration = text.match(/export interface TrustPersistence\s*\{([\s\S]*?)\n\}/);
+  if (!declaration) {
+    return [
+      {
+        rule: 'persistence/sync-interface-method',
+        severity: 'error',
+        message:
+          'TrustPersistence is not declared as an interface in packages/shared/src/trust.ts; the persistence contract cannot be checked.',
+        location,
+        subject: 'TrustPersistence',
+      },
+    ];
+  }
+
+  const findings: Finding[] = [];
+  // Members are single-line in this declaration; a signature spanning lines would
+  // still expose its return type on the line carrying the closing parenthesis.
+  for (const line of declaration[1].split('\n')) {
+    const member = line.match(/^\s{2}(\w+)(<[^>]*>)?\(.*\)\s*:\s*(.+);\s*$/);
+    if (!member) continue;
+    const [, name, , returnType] = member;
+    if (/\bPromise</.test(returnType)) continue;
+    findings.push({
+      rule: 'persistence/sync-interface-method',
+      severity: 'error',
+      message: `TrustPersistence.${name} returns ${returnType.trim()} rather than a Promise, so no network-backed store can implement it.`,
+      location,
+      subject: `TrustPersistence.${name}`,
+    });
+  }
+  return findings;
+}
+
+/**
+ * A governed write whose promise is discarded.
+ *
+ * Matched on the statement's opening line, which is where the missing `await`
+ * would go. A call used as an argument or an array element is preceded by `[`,
+ * `(` or `,` and is excluded, since something else is responsible for awaiting
+ * it — `Promise.all` over a list of writes is a legitimate shape.
+ */
+function checkFloatingWrites(repoRoot: string, files: readonly string[]): Finding[] {
+  const findings: Finding[] = [];
+  const call = new RegExp(
+    String.raw`^\s*((?:this|tx|store|persistence|repository)(?:\.\w+)*)\.(${GOVERNED_WRITES.join('|')})\s*[(<]`,
+  );
+
+  for (const file of files) {
+    const text = readCode(repoRoot, file);
+    if (text === null) continue;
+    const lines = text.split('\n');
+
+    for (const [index, line] of lines.entries()) {
+      const match = line.match(call);
+      if (!match) continue;
+
+      // A statement continuing an argument list or array literal is awaited by
+      // whatever opened it.
+      const previous = lines
+        .slice(0, index)
+        .reverse()
+        .find((candidate) => candidate.trim().length > 0);
+      if (previous && /[[(,]$/.test(previous.trim())) continue;
+
+      findings.push({
+        rule: 'persistence/floating-governed-write',
+        severity: 'error',
+        message: `${file}:${index + 1} calls ${match[1]}.${match[2]} without awaiting it; the write may not have happened when the caller returns.`,
+        location: `${file}:${index + 1}`,
+        subject: `${file}:${match[1]}.${match[2]}`,
+      });
+    }
+  }
+  return findings;
+}
+
+/** `void` applied to a governed write — a discarded promise, stated deliberately. */
+function checkVoidedWrites(repoRoot: string, files: readonly string[]): Finding[] {
+  const findings: Finding[] = [];
+  const voided = new RegExp(
+    String.raw`\bvoid\s+([\w.]+)\.(${GOVERNED_WRITES.join('|')})\s*\(`,
+  );
+
+  for (const file of files) {
+    const text = readCode(repoRoot, file);
+    if (text === null) continue;
+
+    for (const [index, line] of text.split('\n').entries()) {
+      const match = line.match(voided);
+      if (!match) continue;
+      findings.push({
+        rule: 'persistence/voided-governed-write',
+        severity: 'error',
+        message: `${file}:${index + 1} discards ${match[1]}.${match[2]} with void; a governed write may not be fire-and-forget.`,
+        location: `${file}:${index + 1}`,
+        subject: `${file}:${match[1]}.${match[2]}`,
+      });
+    }
+  }
+  return findings;
+}
+
+/** An async callback handed to an array method that cannot await it. */
+function checkAsyncPredicates(repoRoot: string, files: readonly string[]): Finding[] {
+  const findings: Finding[] = [];
+  const predicate = new RegExp(
+    String.raw`\.(${SYNCHRONOUS_ARRAY_METHODS.join('|')})\(\s*async\b`,
+  );
+
+  for (const file of files) {
+    const text = readCode(repoRoot, file);
+    if (text === null) continue;
+
+    for (const [index, line] of text.split('\n').entries()) {
+      const match = line.match(predicate);
+      if (!match) continue;
+      findings.push({
+        rule: 'persistence/async-predicate',
+        severity: 'error',
+        message: `${file}:${index + 1} passes an async callback to .${match[1]}, which reads the returned promise as its verdict. Resolve the values first, then apply .${match[1]}.`,
+        location: `${file}:${index + 1}`,
+        subject: `${file}:${match[1]}`,
+      });
+    }
+  }
+  return findings;
+}
+
+/**
+ * A raced call that was already awaited.
+ *
+ * Checked across lines, because the readable form puts each racer on its own
+ * line and the `await` then sits at the start of the first one.
+ */
+function checkPreAwaitedRaces(repoRoot: string, files: readonly string[]): Finding[] {
+  const findings: Finding[] = [];
+
+  for (const file of files) {
+    const text = readCode(repoRoot, file);
+    if (text === null) continue;
+
+    for (const match of text.matchAll(/Promise\.race\(\s*\[\s*(await\b)?/g)) {
+      if (!match[1]) continue;
+      const line = text.slice(0, match.index).split('\n').length;
+      findings.push({
+        rule: 'persistence/pre-awaited-race',
+        severity: 'error',
+        message: `${file}:${line} awaits the first racer inside Promise.race, so nothing it is raced against can ever win.`,
+        location: `${file}:${line}`,
+        subject: `${file}:Promise.race`,
+      });
+    }
+  }
+  return findings;
+}
+
+/**
+ * Collects every asynchronous-persistence finding across the given roots.
+ *
+ * Test files are scanned for async predicates and pre-awaited races — a test can
+ * assert the wrong thing for exactly the same reason production code can — but
+ * exempted from the floating-write rule, where a deliberately unawaited call is
+ * sometimes the thing under test.
+ */
+export function collectAsyncPersistenceFindings(
+  repoRoot: string,
+  roots: readonly string[] = ['packages', 'apps'],
+): Finding[] {
+  const files = sourceFiles(repoRoot, roots);
+  const production = files.filter((file) => !isTestFile(file));
+
+  return [
+    ...checkInterfaceIsAsynchronous(repoRoot),
+    ...checkFloatingWrites(repoRoot, production),
+    ...checkVoidedWrites(repoRoot, production),
+    ...checkAsyncPredicates(repoRoot, files),
+    ...checkPreAwaitedRaces(repoRoot, files),
+  ];
+}

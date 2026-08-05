@@ -3,7 +3,7 @@
 > Append-only history of REOS executions. Generated index — the `*.json`
 > entries beside it are the records and are never rewritten.
 
-13 execution(s) recorded.
+14 execution(s) recorded.
 
 | Recorded at | Capability | Lifecycle | Branch | Commit | Validation | Certification | Manifest |
 |---|---|---|---|---|---|---|---|
@@ -20,3 +20,4 @@
 | 2026-08-05T11:17:26.093Z | `trust.grant-administration-api` | certified | `claude/git-pull-cqc04u` | `08c0f3b` | pass | pass | `41c7dd8329ba` |
 | 2026-08-05T11:25:37.389Z | `engine:08` | certified | `claude/git-pull-cqc04u` | `c8455eb` | pass | pass | `cd854700205a` |
 | 2026-08-05T11:31:47.130Z | `persistence.repository-conformance` | certified | `claude/git-pull-cqc04u` | `7131966` | pass | pass | `1bd7b2676e48` |
+| 2026-08-05T19:35:43.100Z | `persistence.async-repository-interface` | certified | `feat/persistence-async-repository-interface` | `bcd78f6` | pass | pass | `764fbd44c98c` |

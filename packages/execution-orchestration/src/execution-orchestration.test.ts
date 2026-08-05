@@ -154,6 +154,58 @@ describe('Engine 34 Validation & Acceptance Testing', () => {
     });
     expect(await e.passed(c, { workItemId: 'wi', acceptanceCriterionIds: ['ac'] })).toBe(true);
   });
+
+  /**
+   * `passed` is a gate on the completion chain, so a wrong `true` here propagates
+   * into a certificate. These pin the aggregate against the shape that broke it:
+   * `every` with an async predicate returns true for any non-empty list, because
+   * each call yields a truthy promise rather than a verdict.
+   */
+  it('fails the aggregate when any one criterion of several is unmet', async () => {
+    // The single-criterion case can pass by accident. A mixed list cannot.
+    const e = new ValidationAcceptanceTestingEngine(new InMemoryTrustStore());
+    for (const [acceptanceCriterionId, result] of [
+      ['ac-pass', 'PASS'],
+      ['ac-fail', 'FAIL'],
+    ] as const)
+      await e.record(c, {
+        workItemId: 'wi',
+        acceptanceCriterionId,
+        method: 'MANUAL',
+        result,
+        notes: 'recorded',
+      });
+
+    expect(await e.passed(c, { workItemId: 'wi', acceptanceCriterionIds: ['ac-pass'] })).toBe(true);
+    expect(await e.passed(c, { workItemId: 'wi', acceptanceCriterionIds: ['ac-pass', 'ac-fail'] })).toBe(
+      false,
+    );
+  });
+
+  it('fails a criterion that was never tested rather than treating absence as consent', async () => {
+    const e = new ValidationAcceptanceTestingEngine(new InMemoryTrustStore());
+    await e.record(c, {
+      workItemId: 'wi',
+      acceptanceCriterionId: 'ac-pass',
+      method: 'MANUAL',
+      result: 'PASS',
+      notes: '',
+    });
+
+    expect(await e.passed(c, { workItemId: 'wi', acceptanceCriterionIds: ['ac-pass', 'never-run'] })).toBe(
+      false,
+    );
+  });
+
+  it('returns a resolved verdict rather than a value the caller must interpret', async () => {
+    // A promise is truthy, so `if (engine.passed(...))` on an unresolved call reads
+    // as a pass. The method is async by contract; this asserts the shape callers see.
+    const e = new ValidationAcceptanceTestingEngine(new InMemoryTrustStore());
+    const verdict = e.passed(c, { workItemId: 'wi', acceptanceCriterionIds: ['ac'] });
+
+    expect(typeof verdict.then).toBe('function');
+    expect(await verdict).toBe(false);
+  });
 });
 
 describe('Engine 35 Quality Assurance', () => {
