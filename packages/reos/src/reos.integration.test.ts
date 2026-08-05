@@ -41,6 +41,23 @@ describe('integration: stage 1 discovers the real repository', () => {
     ).toBe(true);
   });
 
+  it('counts only engine classes as engines', () => {
+    // Counting every exported class made the unregistered figure grow whenever a
+    // package gained an error type, which is the opposite of the intended signal.
+    for (const name of discovery.runtime.exportedEngines) {
+      expect(name.endsWith('Engine'), `${name} is not an engine class`).toBe(true);
+    }
+    expect(discovery.runtime.exportedEngines.length).toBeGreaterThan(50);
+  });
+
+  it('treats an engine instantiated in a registration module as reachable', () => {
+    // The agent runtime is composed in packages/agent-runtime/src/registration.ts
+    // and mounted by the app, so requiring the `new` to appear literally under
+    // apps/*/lib would report a correctly wired runtime as unreachable.
+    expect(discovery.runtime.exportedEngines).toContain('AgentRuntimeEngine');
+    expect(discovery.runtime.unregisteredEngines).not.toContain('AgentRuntimeEngine');
+  });
+
   it('inventories CI workflows', () => {
     expect(discovery.workflows.map((workflow) => workflow.path)).toContain(
       '.github/workflows/ci.yml',
