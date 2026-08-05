@@ -30,6 +30,8 @@ export const ROUTE_COVERAGE_PUBLIC_ALLOWLIST: Readonly<Record<string, string>> =
     'Public. Sign-in is how a caller obtains a credential, so it cannot require one.',
   'v1/auth/register/route.ts':
     'Public. Registration precedes having any identity to authorize.',
+  'v1/auth/assertion/route.ts':
+    'Public. It authenticates the session cookie in order to mint an assertion, so requiring an assertion would be circular. The session is the authority: no request field can name a subject, session or assurance level.',
   'v1/auth/session/route.ts':
     'Identity-class, but authenticates by session cookie rather than by identity assertion. Requiring an assertion here would lock out precisely the cookie holder the route exists to serve, and no cookie-to-assertion exchange is governed yet.',
 });
@@ -119,7 +121,7 @@ describe('route authorization coverage — every handler authorizes', () => {
       ).toBe(true);
       expect(reason.length, key).toBeGreaterThan(40);
     }
-    expect(Object.keys(ROUTE_COVERAGE_PUBLIC_ALLOWLIST)).toHaveLength(3);
+    expect(Object.keys(ROUTE_COVERAGE_PUBLIC_ALLOWLIST)).toHaveLength(4);
   });
 
   it('allowlists only routes the policy table classes as public or identity', () => {
@@ -163,16 +165,41 @@ describe('route authorization coverage — the table matches the filesystem', ()
   });
 });
 
+/**
+ * Routes that may name a workspace in the request body.
+ *
+ * The rule below forbids a handler taking identity from the request. Selecting
+ * which workspace to act in is a different act from claiming authority over it —
+ * but only when something downstream proves membership. Each entry states what
+ * does the proving, and the list is asserted to stay tiny.
+ */
+const BODY_WORKSPACE_SELECTION_ALLOWLIST: Readonly<Record<string, string>> = Object.freeze({
+  'v1/auth/assertion/route.ts':
+    'Selects which workspace the minted assertion names. issueAssertionForSession refuses a workspace the session holder has no ACTIVE membership in, so the body chooses among proven memberships rather than asserting one.',
+});
+
 describe('route authorization coverage — identity is never taken from the body', () => {
   it('derives actor, workspace and tenant from the context rather than the request', () => {
     // These routes previously read `body.tenantId ?? 'tenant-demo'` and
     // `body.actorId ?? 'owner-demo'`, so the caller named their own tenant and
     // their own approver.
     const spoofable = files
+      .filter((file) => !(file.key in BODY_WORKSPACE_SELECTION_ALLOWLIST))
       .filter((file) => /body\.(tenantId|workspaceId|actorId|actorUserId)\b/.test(file.code))
       .map((file) => file.key);
 
     expect(spoofable).toEqual([]);
+  });
+
+  it('never lets an exempt route name the actor or tenant, only the workspace', () => {
+    // The exemption is for choosing among proven memberships. Naming a subject or
+    // a tenant is not that, and no reason would make it so.
+    for (const key of Object.keys(BODY_WORKSPACE_SELECTION_ALLOWLIST)) {
+      const file = files.find((entry) => entry.key === key);
+      expect(file, key).toBeDefined();
+      expect(/body\.(tenantId|actorId|actorUserId)\b/.test(file!.code), key).toBe(false);
+    }
+    expect(Object.keys(BODY_WORKSPACE_SELECTION_ALLOWLIST).length).toBeLessThanOrEqual(2);
   });
 
   it('leaves no demo identity defaults anywhere in the API surface', () => {

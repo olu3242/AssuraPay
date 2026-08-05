@@ -4,6 +4,9 @@ import {
   IdentityGateway,
   IdentityService,
   InMemoryAssertionReplayStore,
+  issueAssertionForSession,
+  type IssueAssertionInput,
+  type IssuedAssertion,
   loadAssertionKeyring,
   loadGatewayConfig,
 } from '@assurapay/identity';
@@ -411,6 +414,27 @@ export type WorkspaceScopedContext = RequestContext & {
 export function workspaceScoped(context: RequestContext): WorkspaceScopedContext {
   requireActiveWorkspace(context);
   return context;
+}
+
+/**
+ * Mints an identity assertion for the holder of a valid session cookie.
+ *
+ * This is the bridge that makes the authorized API reachable. Sign-in produces a
+ * session cookie; every authorized route authenticates a signed assertion; nothing
+ * joined the two, so a real client could reach nothing.
+ *
+ * Deliberately not exposed through the gateway's `exchange`, which stays
+ * unsupported: exchange transfers privilege between assertions under attenuation
+ * rules that are not defined, whereas this starts from a session the identity
+ * engine owns and can revoke, and mints something strictly weaker.
+ */
+export function issueSessionAssertion(input: IssueAssertionInput): IssuedAssertion {
+  return issueAssertionForSession(
+    getIdentityGateway(),
+    trust.identity,
+    trustStore,
+    input,
+  );
 }
 
 let catalogueConfig: CatalogueConfig | undefined;

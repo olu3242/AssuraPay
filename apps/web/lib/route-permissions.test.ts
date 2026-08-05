@@ -67,12 +67,15 @@ describe('route permission policy — coverage', () => {
 });
 
 describe('route permission policy — public and identity classes', () => {
-  it('treats only sign-in and registration as public', () => {
+  it('treats only sign-in, registration and assertion issuance as public', () => {
     const publicRoutes = Object.entries(ROUTE_PERMISSION_REQUIREMENTS)
       .filter(([, entry]) => entry.access === 'public')
       .map(([key]) => key);
 
     expect(publicRoutes.sort()).toEqual([
+      // Assertion issuance is public for the same reason: it authenticates the
+      // session cookie, and requiring an assertion to mint one is circular.
+      '/api/v1/auth/assertion|POST',
       '/api/v1/auth/login|POST',
       '/api/v1/auth/register|POST',
     ]);

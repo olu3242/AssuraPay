@@ -79,6 +79,9 @@ export const ROUTE_PERMISSION_REQUIREMENTS: Readonly<Record<string, RouteAccess>
   '/api/v1/approval-requests|POST': { access: 'permission', permissionKey: 'approval-requests:create' },
   '/api/v1/approval-thresholds|POST': { access: 'permission', permissionKey: 'approval-thresholds:create' },
   '/api/v1/auth/login|POST': { access: 'public' },
+  // Public because the credential it authenticates is the session cookie, not an
+  // assertion. Requiring an assertion to obtain an assertion is circular.
+  '/api/v1/auth/assertion|POST': { access: 'public' },
   '/api/v1/auth/logout|POST': { access: 'identity' },
   '/api/v1/auth/register|POST': { access: 'public' },
   '/api/v1/auth/session|GET': { access: 'identity' },
