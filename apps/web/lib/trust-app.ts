@@ -118,6 +118,8 @@ import {
   WorkflowIntelligenceEngine,
   deterministicRiskPredictionGateway,
 } from '@assurapay/workflow-intelligence';
+import { RouteAccessError, requirementForRoute } from './route-permissions';
+
 const globalTrust = globalThis as typeof globalThis & {
   assurapayTrustStore?: InMemoryTrustStore;
   assurapayAssertionReplayStore?: InMemoryAssertionReplayStore;
@@ -327,6 +329,42 @@ export function actingRequestContext(request: Request): RequestContext {
   const correlationId = correlationOf(request);
   const identity = getIdentityGateway().consumeRequestContext(request, correlationId);
   return resolveMemberships(identity, membershipReader);
+}
+
+/**
+ * Authorized context derived from the route policy table.
+ *
+ * The route's own path and method select the requirement, so a route does not
+ * restate its permission key and the two cannot drift apart. Unmapped routes
+ * throw: deny by default.
+ *
+ * A `public` classification is a programming error here — a public route must not
+ * ask for an authorized context — so it is refused rather than silently allowed.
+ */
+export function authorizedContextForRoute(request: Request): RequestContext {
+  const access = requirementForRoute(new URL(request.url).pathname, request.method);
+  const correlationId = correlationOf(request);
+
+  if (access.access === 'public') {
+    throw new RouteAccessError(
+      'ROUTE_NOT_MAPPED',
+      'a public route must not request an authorized context',
+    );
+  }
+
+  const identity = getIdentityGateway().authenticate(request, correlationId);
+
+  // An identity-class route is authenticated and membership-scoped, but carries no
+  // permission requirement; see route-permissions.ts for why that is not a gap.
+  if (access.access === 'identity') {
+    return resolveMemberships(identity, membershipReader);
+  }
+
+  return enforcePermission(identity, access, {
+    memberships: membershipReader,
+    permissions: trust.permissions,
+    store: trustStore,
+  });
 }
 
 /**
