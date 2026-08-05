@@ -2508,8 +2508,8 @@
         "trust.route-permission-integration"
       ],
       "id": "trust.permission-grant-catalogue",
-      "lifecycle": "planned",
-      "status": "missing"
+      "lifecycle": "certified",
+      "status": "implemented"
     },
     {
       "blocks": [
@@ -2529,7 +2529,7 @@
         "trust.permission-grant-catalogue"
       ],
       "id": "trust.route-permission-rollout",
-      "lifecycle": "missing",
+      "lifecycle": "planned",
       "status": "missing"
     }
   ],
@@ -3198,36 +3198,13 @@
   "executionBacklog": [
     {
       "blockedBy": [],
-      "blocks": [
-        "trust.route-permission-rollout"
-      ],
-      "dependsOn": [
-        "trust.route-permission-integration"
-      ],
-      "executable": true,
-      "id": "trust.permission-grant-catalogue",
-      "lifecycle": "planned",
-      "priority": 31,
-      "requiresLiveInfrastructure": false,
-      "scope": {
-        "estimated": true,
-        "files": 1,
-        "tests": 1
-      },
-      "status": "missing",
-      "title": "Permission grant catalogue and workspace bootstrap"
-    },
-    {
-      "blockedBy": [
-        "trust.permission-grant-catalogue"
-      ],
       "blocks": [],
       "dependsOn": [
         "trust.permission-grant-catalogue"
       ],
-      "executable": false,
+      "executable": true,
       "id": "trust.route-permission-rollout",
-      "lifecycle": "missing",
+      "lifecycle": "planned",
       "priority": 32,
       "requiresLiveInfrastructure": false,
       "scope": {
@@ -3356,7 +3333,7 @@
   "identity": {
     "branch": "claude/git-pull-cqc04u",
     "clean": false,
-    "head": "6ed065b142e4d5a06de79e03a301249ccb414937",
+    "head": "99a6077fe5da2424bc1a7301da0cfef38d28b658",
     "repository": "assurapay",
     "version": "0.1.0"
   },
@@ -3422,24 +3399,24 @@
     "trust.identity-assertions",
     "trust.identity-gateway",
     "trust.permission-enforcement",
+    "trust.permission-grant-catalogue",
     "trust.route-permission-integration"
   ],
   "lifecycleSummary": {
-    "certified": 2,
+    "certified": 3,
     "deferred": 4,
     "implemented": 0,
     "implementing": 0,
-    "missing": 2,
+    "missing": 1,
     "planned": 3,
     "released": 60,
     "validated": 0
   },
-  "manifestDigest": "6e01b16b6412",
+  "manifestDigest": "03559e30284b",
   "missingCapabilities": [
     "engine:08",
     "persistence.postgres-repository",
     "persistence.rls-certification",
-    "trust.permission-grant-catalogue",
     "trust.route-permission-rollout"
   ],
   "packages": [
@@ -3950,6 +3927,7 @@
     {
       "directory": "packages/permissions",
       "exportedClasses": [
+        "CatalogueError",
         "PermissionEnforcementError",
         "PermissionService",
         "TrustStoreMembershipReader"
@@ -3958,9 +3936,10 @@
       "main": "src/index.ts",
       "moduleType": null,
       "name": "@assurapay/permissions",
-      "sourceFiles": 2,
-      "sourceLines": 221,
+      "sourceFiles": 3,
+      "sourceLines": 1000,
       "testFiles": [
+        "packages/permissions/src/catalogue.test.ts",
         "packages/permissions/src/enforcement.test.ts",
         "packages/permissions/src/permissions.test.ts"
       ],
@@ -3969,7 +3948,7 @@
         "integration": 0,
         "performance": 0,
         "security": 0,
-        "unit": 2
+        "unit": 3
       },
       "workspaceDependencies": [
         "@assurapay/database",
@@ -4554,7 +4533,7 @@
     {
       "git": {
         "historicalCommits": [],
-        "reachableFromHead": false,
+        "reachableFromHead": true,
         "refsContaining": [],
         "removedFromHead": false
       },
@@ -4564,34 +4543,81 @@
       "probes": [
         {
           "kind": "path",
-          "matches": [],
+          "matches": [
+            "packages/permissions/src/catalogue.ts"
+          ],
           "query": "packages/permissions/src/catalogue.ts",
-          "satisfied": false
+          "satisfied": true
+        },
+        {
+          "kind": "path",
+          "matches": [
+            "apps/web/lib/trust-app.ts"
+          ],
+          "query": "apps/web/lib/trust-app.ts",
+          "satisfied": true
         },
         {
           "kind": "symbol",
-          "matches": [],
+          "matches": [
+            "packages/permissions/src/catalogue.test.ts",
+            "packages/permissions/src/catalogue.ts"
+          ],
           "query": "PERMISSION_CATALOGUE",
-          "satisfied": false
+          "satisfied": true
         },
         {
           "kind": "symbol",
-          "matches": [],
+          "matches": [
+            "apps/web/lib/route-permissions.test.ts",
+            "packages/permissions/src/catalogue.test.ts",
+            "packages/permissions/src/catalogue.ts"
+          ],
+          "query": "SEGREGATION_CATALOGUE",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "apps/web/lib/trust-app.ts",
+            "packages/permissions/src/catalogue.test.ts",
+            "packages/permissions/src/catalogue.ts"
+          ],
           "query": "bootstrapWorkspaceGrants",
-          "satisfied": false
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "apps/web/lib/trust-app.ts",
+            "packages/permissions/src/catalogue.test.ts",
+            "packages/permissions/src/catalogue.ts"
+          ],
+          "query": "grantRole",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "apps/web/lib/trust-app.ts"
+          ],
+          "query": "bootstrapFoundingAdministrator",
+          "satisfied": true
         },
         {
           "kind": "test",
-          "matches": [],
+          "matches": [
+            "packages/permissions/src/catalogue.test.ts"
+          ],
           "query": "packages/permissions/src/catalogue.test.ts",
-          "satisfied": false
+          "satisfied": true
         }
       ],
-      "rationale": "No evidence at HEAD, on any ref, or in history.",
-      "satisfiedProbes": 0,
-      "status": "missing",
+      "rationale": "All 8 evidence probes satisfied at HEAD.",
+      "satisfiedProbes": 8,
+      "status": "implemented",
       "title": "Permission grant catalogue and workspace bootstrap",
-      "totalProbes": 4
+      "totalProbes": 8
     },
     {
       "git": {

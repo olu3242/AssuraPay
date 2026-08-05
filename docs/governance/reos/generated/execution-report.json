@@ -1,12 +1,12 @@
 {
-  "capability": "trust.route-permission-integration",
+  "capability": "trust.permission-grant-catalogue",
   "capabilityLifecycle": "certified",
   "certification": {
     "available": true,
     "failedSteps": [],
     "passed": true
   },
-  "commit": "13f3246bdbdcafb10fd5a75aca0dc451a292a9b5",
+  "commit": "99a6077fe5da2424bc1a7301da0cfef38d28b658",
   "filesModified": [
     ".env.example",
     "apps/web/lib/agent-runtime-app.ts",
@@ -14,8 +14,10 @@
     "apps/web/lib/route-permissions.ts",
     "apps/web/lib/trust-app.ts",
     "apps/web/package.json",
+    "docs/ENGINE_CATALOG.md",
     "docs/governance/execution-ledger/13f3246bdbdc-trust.route-permission-integration.json",
     "docs/governance/execution-ledger/5e28a08ff19b-runtime.agent-registration.json",
+    "docs/governance/execution-ledger/99a6077fe5da-trust.permission-grant-catalogue.json",
     "docs/governance/execution-ledger/INDEX.md",
     "docs/governance/reos/capability-registry.json",
     "docs/governance/reos/generated/CERTIFICATION_REPORT.md",
@@ -33,11 +35,16 @@
     "packages/agent-runtime/src/agent-runtime.registration.test.ts",
     "packages/agent-runtime/src/index.ts",
     "packages/agent-runtime/src/registration.ts",
+    "packages/permissions/src/catalogue.test.ts",
+    "packages/permissions/src/catalogue.ts",
+    "packages/permissions/src/enforcement.test.ts",
+    "packages/permissions/src/enforcement.ts",
+    "packages/permissions/src/index.ts",
     "packages/reos/src/reos.integration.test.ts",
     "packages/reos/src/stages/discover.ts",
     "pnpm-lock.yaml"
   ],
-  "generatedAt": "2026-08-05T03:27:50.496Z",
+  "generatedAt": "2026-08-05T03:50:34.606Z",
   "governance": {
     "baselined": 15,
     "findings": [
@@ -197,61 +204,36 @@
     "phase": 2,
     "resolved": []
   },
-  "ledgerEntryId": "13f3246bdbdc-trust.route-permission-integration",
+  "ledgerEntryId": "99a6077fe5da-trust.permission-grant-catalogue",
   "recommendedNextCapability": {
     "blockedBy": [],
-    "blocks": [
-      "trust.route-permission-rollout"
-    ],
+    "blocks": [],
     "dependsOn": [
-      "trust.route-permission-integration"
+      "trust.permission-grant-catalogue"
     ],
     "executable": true,
-    "id": "trust.permission-grant-catalogue",
+    "id": "trust.route-permission-rollout",
     "lifecycle": "planned",
-    "priority": 31,
+    "priority": 32,
     "requiresLiveInfrastructure": false,
     "scope": {
       "estimated": true,
-      "files": 1,
+      "files": 158,
       "tests": 1
     },
     "status": "missing",
-    "title": "Permission grant catalogue and workspace bootstrap"
+    "title": "Route migration to authorized context"
   },
   "remainingBacklog": [
     {
       "blockedBy": [],
-      "blocks": [
-        "trust.route-permission-rollout"
-      ],
-      "dependsOn": [
-        "trust.route-permission-integration"
-      ],
-      "executable": true,
-      "id": "trust.permission-grant-catalogue",
-      "lifecycle": "planned",
-      "priority": 31,
-      "requiresLiveInfrastructure": false,
-      "scope": {
-        "estimated": true,
-        "files": 1,
-        "tests": 1
-      },
-      "status": "missing",
-      "title": "Permission grant catalogue and workspace bootstrap"
-    },
-    {
-      "blockedBy": [
-        "trust.permission-grant-catalogue"
-      ],
       "blocks": [],
       "dependsOn": [
         "trust.permission-grant-catalogue"
       ],
-      "executable": false,
+      "executable": true,
       "id": "trust.route-permission-rollout",
-      "lifecycle": "missing",
+      "lifecycle": "planned",
       "priority": 32,
       "requiresLiveInfrastructure": false,
       "scope": {
@@ -383,8 +365,8 @@
     "clean": false,
     "dirtyFiles": [
       "apps/web/lib/route-permissions.test.ts",
-      "apps/web/lib/route-permissions.ts",
       "apps/web/lib/trust-app.ts",
+      "docs/ENGINE_CATALOG.md",
       "docs/governance/reos/capability-registry.json",
       "docs/governance/reos/generated/CERTIFICATION_REPORT.md",
       "docs/governance/reos/generated/DEPENDENCY_RESOLUTION.md",
@@ -394,14 +376,18 @@
       "docs/governance/reos/generated/discovery.json",
       "docs/governance/reos/generated/execution-manifest.json",
       "docs/governance/reos/generated/forensics.json",
-      "package.json"
+      "packages/permissions/src/catalogue.test.ts",
+      "packages/permissions/src/catalogue.ts",
+      "packages/permissions/src/enforcement.test.ts",
+      "packages/permissions/src/enforcement.ts",
+      "packages/permissions/src/index.ts"
     ],
-    "head": "13f3246bdbdcafb10fd5a75aca0dc451a292a9b5"
+    "head": "99a6077fe5da2424bc1a7301da0cfef38d28b658"
   },
   "stage": "report",
   "validation": [
     {
-      "checked": 145,
+      "checked": 147,
       "findings": [],
       "passed": true,
       "validator": "architecture"
@@ -413,13 +399,13 @@
       "validator": "dependencies"
     },
     {
-      "checked": 246,
+      "checked": 247,
       "findings": [],
       "passed": true,
       "validator": "security"
     },
     {
-      "checked": 16,
+      "checked": 23,
       "findings": [],
       "passed": true,
       "validator": "execution-contract"

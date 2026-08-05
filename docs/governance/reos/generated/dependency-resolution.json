@@ -6,27 +6,6 @@
   "blocked": [
     {
       "blockedBy": [
-        "trust.permission-grant-catalogue"
-      ],
-      "blocks": [],
-      "dependsOn": [
-        "trust.permission-grant-catalogue"
-      ],
-      "executable": false,
-      "id": "trust.route-permission-rollout",
-      "lifecycle": "missing",
-      "priority": 32,
-      "requiresLiveInfrastructure": false,
-      "scope": {
-        "estimated": true,
-        "files": 158,
-        "tests": 1
-      },
-      "status": "missing",
-      "title": "Route migration to authorized context"
-    },
-    {
-      "blockedBy": [
         "persistence.postgres-repository"
       ],
       "blocks": [],
@@ -109,29 +88,28 @@
     "trust.identity-assertions",
     "trust.identity-gateway",
     "trust.permission-enforcement",
+    "trust.permission-grant-catalogue",
     "trust.route-permission-integration"
   ],
   "executable": [
     {
       "blockedBy": [],
-      "blocks": [
-        "trust.route-permission-rollout"
-      ],
+      "blocks": [],
       "dependsOn": [
-        "trust.route-permission-integration"
+        "trust.permission-grant-catalogue"
       ],
       "executable": true,
-      "id": "trust.permission-grant-catalogue",
+      "id": "trust.route-permission-rollout",
       "lifecycle": "planned",
-      "priority": 31,
+      "priority": 32,
       "requiresLiveInfrastructure": false,
       "scope": {
         "estimated": true,
-        "files": 1,
+        "files": 158,
         "tests": 1
       },
       "status": "missing",
-      "title": "Permission grant catalogue and workspace bootstrap"
+      "title": "Route migration to authorized context"
     },
     {
       "blockedBy": [],
@@ -227,7 +205,7 @@
       "title": "Engine 08 — Audit & Evidence Ledger"
     }
   ],
-  "head": "6ed065b142e4d5a06de79e03a301249ccb414937",
+  "head": "99a6077fe5da2424bc1a7301da0cfef38d28b658",
   "rejected": [
     {
       "id": "engine:08",
@@ -240,34 +218,28 @@
     {
       "id": "persistence.rls-certification",
       "reason": "Blocked by unmet dependencies: persistence.postgres-repository."
-    },
-    {
-      "id": "trust.route-permission-rollout",
-      "reason": "Blocked by unmet dependencies: trust.permission-grant-catalogue."
     }
   ],
   "reosVersion": "1.0.0",
   "selected": {
     "blockedBy": [],
-    "blocks": [
-      "trust.route-permission-rollout"
-    ],
+    "blocks": [],
     "dependsOn": [
-      "trust.route-permission-integration"
+      "trust.permission-grant-catalogue"
     ],
     "executable": true,
-    "id": "trust.permission-grant-catalogue",
+    "id": "trust.route-permission-rollout",
     "lifecycle": "planned",
-    "priority": 31,
+    "priority": 32,
     "requiresLiveInfrastructure": false,
     "scope": {
       "estimated": true,
-      "files": 1,
+      "files": 158,
       "tests": 1
     },
     "status": "missing",
-    "title": "Permission grant catalogue and workspace bootstrap"
+    "title": "Route migration to authorized context"
   },
-  "selectionReason": "Highest-priority executable capability (priority 31, lifecycle planned) — unblocks 1 downstream capability/-ies",
+  "selectionReason": "Highest-priority executable capability (priority 32, lifecycle planned)",
   "stage": "dependencies"
 }

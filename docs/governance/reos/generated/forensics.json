@@ -426,7 +426,7 @@
     {
       "git": {
         "historicalCommits": [],
-        "reachableFromHead": false,
+        "reachableFromHead": true,
         "refsContaining": [],
         "removedFromHead": false
       },
@@ -436,34 +436,81 @@
       "probes": [
         {
           "kind": "path",
-          "matches": [],
+          "matches": [
+            "packages/permissions/src/catalogue.ts"
+          ],
           "query": "packages/permissions/src/catalogue.ts",
-          "satisfied": false
+          "satisfied": true
+        },
+        {
+          "kind": "path",
+          "matches": [
+            "apps/web/lib/trust-app.ts"
+          ],
+          "query": "apps/web/lib/trust-app.ts",
+          "satisfied": true
         },
         {
           "kind": "symbol",
-          "matches": [],
+          "matches": [
+            "packages/permissions/src/catalogue.test.ts",
+            "packages/permissions/src/catalogue.ts"
+          ],
           "query": "PERMISSION_CATALOGUE",
-          "satisfied": false
+          "satisfied": true
         },
         {
           "kind": "symbol",
-          "matches": [],
+          "matches": [
+            "apps/web/lib/route-permissions.test.ts",
+            "packages/permissions/src/catalogue.test.ts",
+            "packages/permissions/src/catalogue.ts"
+          ],
+          "query": "SEGREGATION_CATALOGUE",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "apps/web/lib/trust-app.ts",
+            "packages/permissions/src/catalogue.test.ts",
+            "packages/permissions/src/catalogue.ts"
+          ],
           "query": "bootstrapWorkspaceGrants",
-          "satisfied": false
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "apps/web/lib/trust-app.ts",
+            "packages/permissions/src/catalogue.test.ts",
+            "packages/permissions/src/catalogue.ts"
+          ],
+          "query": "grantRole",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "apps/web/lib/trust-app.ts"
+          ],
+          "query": "bootstrapFoundingAdministrator",
+          "satisfied": true
         },
         {
           "kind": "test",
-          "matches": [],
+          "matches": [
+            "packages/permissions/src/catalogue.test.ts"
+          ],
           "query": "packages/permissions/src/catalogue.test.ts",
-          "satisfied": false
+          "satisfied": true
         }
       ],
-      "rationale": "No evidence at HEAD, on any ref, or in history.",
-      "satisfiedProbes": 0,
-      "status": "missing",
+      "rationale": "All 8 evidence probes satisfied at HEAD.",
+      "satisfiedProbes": 8,
+      "status": "implemented",
       "title": "Permission grant catalogue and workspace bootstrap",
-      "totalProbes": 4
+      "totalProbes": 8
     },
     {
       "git": {
@@ -571,14 +618,14 @@
       "totalProbes": 3
     }
   ],
-  "head": "6ed065b142e4d5a06de79e03a301249ccb414937",
+  "head": "99a6077fe5da2424bc1a7301da0cfef38d28b658",
   "reosVersion": "1.0.0",
   "stage": "forensics",
   "summary": {
     "deferred": 0,
-    "implemented": 7,
+    "implemented": 8,
     "lost": 0,
-    "missing": 4,
+    "missing": 3,
     "partial": 0,
     "unreachable": 0
   }

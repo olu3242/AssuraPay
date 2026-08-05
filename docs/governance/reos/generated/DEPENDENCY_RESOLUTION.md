@@ -6,23 +6,23 @@
 
 | Field | Value |
 | --- | --- |
-| Capability | trust.permission-grant-catalogue |
-| Title | Permission grant catalogue and workspace bootstrap |
+| Capability | trust.route-permission-rollout |
+| Title | Route migration to authorized context |
 | Current status | missing |
 | Lifecycle | planned |
-| Priority | 31 |
-| Reason | Highest-priority executable capability (priority 31, lifecycle planned) — unblocks 1 downstream capability/-ies |
-| Depends on | trust.route-permission-integration |
+| Priority | 32 |
+| Reason | Highest-priority executable capability (priority 32, lifecycle planned) |
+| Depends on | trust.permission-grant-catalogue |
 | Unmet dependencies | none |
-| Blocks (transitive) | trust.route-permission-rollout |
-| Declared scope | 1 file(s), 1 test suite(s) (registry estimate) |
+| Blocks (transitive) | — |
+| Declared scope | 158 file(s), 1 test suite(s) (registry estimate) |
 | Requires live infrastructure | no |
 
 ## Executable queue
 
 | Capability | Title | Lifecycle | Priority | Blocks | Live infra |
 | --- | --- | --- | --- | --- | --- |
-| trust.permission-grant-catalogue | Permission grant catalogue and workspace bootstrap | planned | 31 | 1 | no |
+| trust.route-permission-rollout | Route migration to authorized context | planned | 32 | — | no |
 | persistence.postgres-repository | PostgreSQL repository implementation | planned | 40 | 1 | yes |
 | engine:08 | Engine 08 — Audit & Evidence Ledger | planned | 108 | 52 | no |
 
@@ -30,7 +30,6 @@
 
 | Capability | Status | Blocked by |
 | --- | --- | --- |
-| trust.route-permission-rollout | missing | trust.permission-grant-catalogue |
 | persistence.rls-certification | missing | persistence.postgres-repository |
 
 ## Awaiting live infrastructure
@@ -38,7 +37,7 @@
 - persistence.postgres-repository
 - persistence.rls-certification
 
-## Completed (62)
+## Completed (63)
 
 - engine:01
 - engine:02
@@ -101,4 +100,5 @@
 - trust.identity-assertions
 - trust.identity-gateway
 - trust.permission-enforcement
+- trust.permission-grant-catalogue
 - trust.route-permission-integration

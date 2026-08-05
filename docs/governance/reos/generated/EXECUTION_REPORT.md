@@ -7,16 +7,16 @@
 | Field | Value |
 | --- | --- |
 | Branch | claude/git-pull-cqc04u |
-| HEAD | 13f3246bdbdcafb10fd5a75aca0dc451a292a9b5 |
+| HEAD | 99a6077fe5da2424bc1a7301da0cfef38d28b658 |
 | Worktree clean | no |
-| Uncommitted files | 13 |
-| Generated at | 2026-08-05T03:27:50.496Z |
+| Uncommitted files | 17 |
+| Generated at | 2026-08-05T03:50:34.606Z |
 
 ## Capability implemented
 
-`trust.route-permission-integration` — lifecycle **certified**
+`trust.permission-grant-catalogue` — lifecycle **certified**
 
-## Files modified (28)
+## Files modified (35)
 
 - `.env.example`
 - `apps/web/lib/agent-runtime-app.ts`
@@ -24,8 +24,10 @@
 - `apps/web/lib/route-permissions.ts`
 - `apps/web/lib/trust-app.ts`
 - `apps/web/package.json`
+- `docs/ENGINE_CATALOG.md`
 - `docs/governance/execution-ledger/13f3246bdbdc-trust.route-permission-integration.json`
 - `docs/governance/execution-ledger/5e28a08ff19b-runtime.agent-registration.json`
+- `docs/governance/execution-ledger/99a6077fe5da-trust.permission-grant-catalogue.json`
 - `docs/governance/execution-ledger/INDEX.md`
 - `docs/governance/reos/capability-registry.json`
 - `docs/governance/reos/generated/CERTIFICATION_REPORT.md`
@@ -43,6 +45,11 @@
 - `packages/agent-runtime/src/agent-runtime.registration.test.ts`
 - `packages/agent-runtime/src/index.ts`
 - `packages/agent-runtime/src/registration.ts`
+- `packages/permissions/src/catalogue.test.ts`
+- `packages/permissions/src/catalogue.ts`
+- `packages/permissions/src/enforcement.test.ts`
+- `packages/permissions/src/enforcement.ts`
+- `packages/permissions/src/index.ts`
 - `packages/reos/src/reos.integration.test.ts`
 - `packages/reos/src/stages/discover.ts`
 - `pnpm-lock.yaml`
@@ -51,10 +58,10 @@
 
 | Validator | Result | Checked | Errors | Warnings |
 | --- | --- | --- | --- | --- |
-| architecture | pass | 145 | 0 | 0 |
+| architecture | pass | 147 | 0 | 0 |
 | dependencies | pass | 23 | 0 | 0 |
-| security | pass | 246 | 0 | 0 |
-| execution-contract | pass | 16 | 0 | 0 |
+| security | pass | 247 | 0 | 0 |
+| execution-contract | pass | 23 | 0 | 0 |
 
 ## Governance
 
@@ -66,24 +73,23 @@ No newly introduced violations.
 
 **PASSED** — every certification gate is green.
 
-## Remaining backlog (5)
+## Remaining backlog (4)
 
 | Capability | Status | Executable | Blocked by |
 | --- | --- | --- | --- |
-| trust.permission-grant-catalogue | missing | yes |  |
-| trust.route-permission-rollout | missing | no | trust.permission-grant-catalogue |
+| trust.route-permission-rollout | missing | yes |  |
 | persistence.postgres-repository | missing | yes |  |
 | persistence.rls-certification | missing | no | persistence.postgres-repository |
 | engine:08 | missing | yes |  |
 
 ## Recommended next capability
 
-`trust.permission-grant-catalogue` — Permission grant catalogue and workspace bootstrap
+`trust.route-permission-rollout` — Route migration to authorized context
 
 ## Ledger
 
-Recorded as `13f3246bdbdc-trust.route-permission-integration` in `docs/governance/execution-ledger/`.
+Recorded as `99a6077fe5da-trust.permission-grant-catalogue` in `docs/governance/execution-ledger/`.
 
 ## Commit
 
-`13f3246bdbdcafb10fd5a75aca0dc451a292a9b5`
+`99a6077fe5da2424bc1a7301da0cfef38d28b658`

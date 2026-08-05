@@ -287,11 +287,15 @@
       ],
       "evidence": {
         "paths": [
-          "packages/permissions/src/catalogue.ts"
+          "packages/permissions/src/catalogue.ts",
+          "apps/web/lib/trust-app.ts"
         ],
         "symbols": [
           "PERMISSION_CATALOGUE",
-          "bootstrapWorkspaceGrants"
+          "SEGREGATION_CATALOGUE",
+          "bootstrapWorkspaceGrants",
+          "grantRole",
+          "bootstrapFoundingAdministrator"
         ],
         "tests": [
           "packages/permissions/src/catalogue.test.ts"
@@ -299,10 +303,10 @@
       },
       "certify": "certify:authorization",
       "scope": {
-        "files": 1,
-        "tests": 1
+        "files": 2,
+        "tests": 2
       },
-      "notes": "Blocks the route migration. routePermissionKeys() names every permission the surface requires, but nothing in the repository can create the first grant: PermissionService.grant needs an already-authorized workspace context, and no route or seed produces one. Migrating routes to deny-by-default before this exists would lock every caller out of every route permanently. This capability defines the catalogue of valid keys, the role bundles that group them, the segregation-of-duties rules the route table declares, and a workspace-creation path that grants a founding administrator without an authorizing caller. Evidence shape may be revised when the capability is selected."
+      "notes": "Closes the circle that blocked the route migration: deny-by-default over an empty grant table denies everyone, including whoever would issue the first grant. PERMISSION_CATALOGUE is the closed set of roles and the keys each may hold, so a key no role names cannot be granted. SEGREGATION_CATALOGUE is the canonical duty pairs, mirrored by the route table and kept in step by a test. bootstrapWorkspaceGrants grants the founding administrator with no authorizing caller, once per workspace, against an owner membership that must already exist. grantRole is the ordinary authorized path and refuses a grant whose resulting permission set would breach segregation of duties. No superuser role exists: the founding administrator holds no certification, release or payment key, so founding a workspace does not create a principal who can move money alone."
     },
     {
       "id": "trust.route-permission-rollout",

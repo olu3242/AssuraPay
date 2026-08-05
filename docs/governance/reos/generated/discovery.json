@@ -1248,7 +1248,7 @@
       "declaredStatus": "Conditionally implemented",
       "id": "03",
       "name": "Roles, Permissions & Governance",
-      "responsibility": "RBAC, ABAC, record/field access, delegation, authority, segregation of duties",
+      "responsibility": "RBAC, ABAC, record/field access, delegation, authority, segregation of duties, grant catalogue and workspace founding",
       "wave": 1,
       "waveName": "Trust Foundation"
     },
@@ -2359,6 +2359,7 @@
     {
       "directory": "packages/permissions",
       "exportedClasses": [
+        "CatalogueError",
         "PermissionEnforcementError",
         "PermissionService",
         "TrustStoreMembershipReader"
@@ -2367,9 +2368,10 @@
       "main": "src/index.ts",
       "moduleType": null,
       "name": "@assurapay/permissions",
-      "sourceFiles": 2,
-      "sourceLines": 221,
+      "sourceFiles": 3,
+      "sourceLines": 1000,
       "testFiles": [
+        "packages/permissions/src/catalogue.test.ts",
         "packages/permissions/src/enforcement.test.ts",
         "packages/permissions/src/permissions.test.ts"
       ],
@@ -2378,7 +2380,7 @@
         "integration": 0,
         "performance": 0,
         "security": 0,
-        "unit": 2
+        "unit": 3
       },
       "workspaceDependencies": [
         "@assurapay/database",
@@ -2551,16 +2553,26 @@
       ],
       "clean": false,
       "dirtyFiles": [
+        "apps/web/lib/route-permissions.test.ts",
+        "apps/web/lib/trust-app.ts",
+        "docs/ENGINE_CATALOG.md",
+        "docs/governance/reos/capability-registry.json",
         "docs/governance/reos/generated/CERTIFICATION_REPORT.md",
+        "docs/governance/reos/generated/DEPENDENCY_RESOLUTION.md",
         "docs/governance/reos/generated/EXECUTION_MANIFEST.md",
         "docs/governance/reos/generated/certification.json",
         "docs/governance/reos/generated/dependency-resolution.json",
         "docs/governance/reos/generated/discovery.json",
         "docs/governance/reos/generated/execution-manifest.json",
-        "docs/governance/reos/generated/forensics.json"
+        "docs/governance/reos/generated/forensics.json",
+        "packages/permissions/src/catalogue.test.ts",
+        "packages/permissions/src/catalogue.ts",
+        "packages/permissions/src/enforcement.test.ts",
+        "packages/permissions/src/enforcement.ts",
+        "packages/permissions/src/index.ts"
       ],
-      "head": "6ed065b142e4d5a06de79e03a301249ccb414937",
-      "headShort": "6ed065b",
+      "head": "99a6077fe5da2424bc1a7301da0cfef38d28b658",
+      "headShort": "99a6077",
       "reflogAvailable": true,
       "remotes": [
         "origin"
@@ -2749,9 +2761,9 @@
       "integration": 15,
       "performance": 2,
       "security": 3,
-      "unit": 33
+      "unit": 34
     },
-    "files": 68
+    "files": 69
   },
   "totals": {
     "applications": 1,
@@ -2759,7 +2771,7 @@
     "engines": 60,
     "migrations": 20,
     "packages": 22,
-    "testFiles": 68
+    "testFiles": 69
   },
   "workflows": [
     {
