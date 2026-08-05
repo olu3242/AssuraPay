@@ -321,7 +321,8 @@
           "apps/web/lib/route-coverage.test.ts"
         ],
         "symbols": [
-          "ROUTE_COVERAGE_PUBLIC_ALLOWLIST"
+          "ROUTE_COVERAGE_PUBLIC_ALLOWLIST",
+          "workspaceScoped"
         ],
         "tests": [
           "apps/web/lib/route-coverage.test.ts"
@@ -329,10 +330,62 @@
       },
       "certify": "certify:authorization",
       "scope": {
-        "files": 158,
+        "files": 155,
         "tests": 1
       },
-      "notes": "The mechanical change: every route handler that still calls requestContext switches to authorizedContextForRoute, and a coverage test asserts that no route file outside the public set calls requestContext directly, so a new unauthorized route fails certification instead of shipping. Large but not discretionary \u2014 it is the last step that makes the policy table binding rather than advisory. Deliberately separate so the 156-file diff is never folded into unrelated work. Evidence shape may be revised when the capability is selected."
+      "notes": "All 154 non-public route handlers call authorizedContextForRoute; no handler calls requestContext. A source-scanning coverage suite fails certification if a route skips authorization, if the policy table and the filesystem disagree in either direction, or if a handler reads actor, workspace or tenant from the request body. Eight legacy routes additionally had no authentication at all and took tenantId, workspaceId and actorId from the body with demo defaults; those now derive all three from the authorized context. The allowlist is three auth routes, each with a stated reason."
+    },
+    {
+      "id": "trust.session-assertion-issuance",
+      "title": "Identity assertion issuance from an authenticated session",
+      "kind": "platform",
+      "priority": 33,
+      "dependsOn": [
+        "trust.route-permission-rollout"
+      ],
+      "evidence": {
+        "paths": [
+          "packages/identity/src/issuance.ts"
+        ],
+        "symbols": [
+          "issueAssertionForSession"
+        ],
+        "tests": [
+          "packages/identity/src/issuance.test.ts"
+        ]
+      },
+      "certify": "certify:identity",
+      "scope": {
+        "files": 2,
+        "tests": 1
+      },
+      "notes": "Discovered while migrating the routes, and it blocks the API being usable end to end. Sign-in issues a session cookie; the identity gateway authenticates only a signed assertion header; IdentityGateway.exchange() is deliberately unsupported because attenuation semantics are ungoverned. No route issues an assertion, so no client holding a cookie can reach any authorized route. This predates the migration - requestContext already required an assertion - but the migration makes it total. Closing it means defining what an assertion minted from a session may carry: audience, purpose, lifetime and whether it attenuates. That is the governance question, not the signing, which already exists. Evidence shape may be revised when the capability is selected."
+    },
+    {
+      "id": "trust.grant-administration-api",
+      "title": "HTTP surface for workspace founding and role assignment",
+      "kind": "platform",
+      "priority": 34,
+      "dependsOn": [
+        "trust.session-assertion-issuance"
+      ],
+      "evidence": {
+        "paths": [
+          "apps/web/app/api/v1/roles/assignments/route.ts"
+        ],
+        "symbols": [
+          "GRANT_ADMINISTRATION_ROUTES"
+        ],
+        "tests": [
+          "apps/web/lib/grant-administration.test.ts"
+        ]
+      },
+      "certify": "certify:authorization",
+      "scope": {
+        "files": 3,
+        "tests": 1
+      },
+      "notes": "bootstrapFoundingAdministrator and assignRole exist in the composition root but no route reaches them, so grants can only be created in-process. Without this an operator cannot grant a role over the API, which leaves every permission-class route unsatisfiable in a running deployment even once assertions can be issued. Adding routes means adding policy-table entries and catalogue keys for them, which the existing drift tests will require. Evidence shape may be revised when the capability is selected."
     }
   ]
 }
