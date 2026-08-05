@@ -21,26 +21,26 @@ describe('e2e Batch 11 execution and settlement signals into a role-filtered exe
       correlationId: 'c',
     };
 
-    const executionIndex = new ExecutionAssuranceIndexEngine(s).compute(c, {
+    const executionIndex = await new ExecutionAssuranceIndexEngine(s).compute(c, {
       scopeId: 'erection-milestone',
       factors: { quality: 92, timeliness: 88 },
       mandatoryGates: [{ gate: 'QUALITY_GATE', passed: true }],
     });
-    const settlementIndex = new SettlementAssuranceIndexEngine(s).compute(c, {
+    const settlementIndex = await new SettlementAssuranceIndexEngine(s).compute(c, {
       scopeId: 'erection-milestone',
       factors: { eligibility: 100, funding: 100 },
       activeHold: false,
     });
 
     const kpis = new EnterpriseKpiEngine(s);
-    const onTimeDelivery = kpis.define(c, {
+    const onTimeDelivery = await kpis.define(c, {
       kind: 'EXECUTION',
       name: 'On-time delivery rate',
       targetValue: 90,
       direction: 'HIGHER_IS_BETTER',
       unit: 'percent',
     });
-    const kpiValue = kpis.recordValue(c, { kpiDefinitionId: onTimeDelivery.id, scopeId: 'portfolio', actualValue: 94 });
+    const kpiValue = await kpis.recordValue(c, { kpiDefinitionId: onTimeDelivery.id, scopeId: 'portfolio', actualValue: 94 });
 
     const forecasts = new PredictiveExecutionIntelligenceEngine(s, {
       async forecast(input) {
@@ -61,7 +61,7 @@ describe('e2e Batch 11 execution and settlement signals into a role-filtered exe
     expect(forecast.reviewStatus).toBe('NOT_REVIEWED');
 
     const dashboards = new ExecutiveDashboardEngine(s);
-    const snapshot = dashboards.compose(c, {
+    const snapshot = await dashboards.compose(c, {
       role: 'EXECUTIVE',
       widgets: [
         { key: 'execution-index', label: 'Execution Assurance Index', value: executionIndex.score, allowedRoles: ['EXECUTIVE'] },

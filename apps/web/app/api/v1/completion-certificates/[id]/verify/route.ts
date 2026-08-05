@@ -7,7 +7,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
     // Certificate verification is the evidence a release is built on, so it is
     // permission-gated rather than open: an unauthenticated caller could otherwise
     // enumerate certificate ids and read their status.
-    authorizedContextForRoute(request);
+    await authorizedContextForRoute(request);
     const { store } = await getAssuraService();
     const snapshot = store.getSnapshot();
     const certificate = snapshot?.certificates?.find(

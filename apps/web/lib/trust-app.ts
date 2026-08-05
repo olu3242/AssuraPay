@@ -327,9 +327,9 @@ function correlationOf(request: Request): string {
  * empty: authentication cannot prove membership, so workspace-scoped paths must
  * have it resolved by the membership authority.
  */
-export function requestContext(request: Request): RequestContext {
+export async function requestContext(request: Request): Promise<RequestContext> {
   const correlationId = correlationOf(request);
-  const identity = getIdentityGateway().authenticate(request, correlationId);
+  const identity = await getIdentityGateway().authenticate(request, correlationId);
   // The gateway proves identity and refuses to resolve membership. Enforcement
   // resolves it from the authoritative record, so workspace-scoped engines see
   // proven membership rather than a claim.
@@ -340,9 +340,9 @@ export function requestContext(request: Request): RequestContext {
  * Verified identity context for a path that acts, consuming the assertion so it
  * cannot authorise a second action.
  */
-export function actingRequestContext(request: Request): RequestContext {
+export async function actingRequestContext(request: Request): Promise<RequestContext> {
   const correlationId = correlationOf(request);
-  const identity = getIdentityGateway().consumeRequestContext(request, correlationId);
+  const identity = await getIdentityGateway().consumeRequestContext(request, correlationId);
   return resolveMemberships(identity, membershipReader);
 }
 
@@ -356,7 +356,7 @@ export function actingRequestContext(request: Request): RequestContext {
  * A `public` classification is a programming error here — a public route must not
  * ask for an authorized context — so it is refused rather than silently allowed.
  */
-export function authorizedContextForRoute(request: Request): RequestContext {
+export async function authorizedContextForRoute(request: Request): Promise<RequestContext> {
   const access = requirementForRoute(new URL(request.url).pathname, request.method);
   const correlationId = correlationOf(request);
 
@@ -367,7 +367,7 @@ export function authorizedContextForRoute(request: Request): RequestContext {
     );
   }
 
-  const identity = getIdentityGateway().authenticate(request, correlationId);
+  const identity = await getIdentityGateway().authenticate(request, correlationId);
 
   // An identity-class route is authenticated and membership-scoped, but carries no
   // permission requirement; see route-permissions.ts for why that is not a gap.
@@ -375,7 +375,7 @@ export function authorizedContextForRoute(request: Request): RequestContext {
     return resolveMemberships(identity, membershipReader);
   }
 
-  return enforcePermission(identity, access, {
+  return await enforcePermission(identity, access, {
     memberships: membershipReader,
     permissions: trust.permissions,
     store: trustStore,
@@ -389,13 +389,13 @@ export function authorizedContextForRoute(request: Request): RequestContext {
  * an engine receives an already-authorized context and does not decide whether the
  * caller may act. Deny by default — absent an applicable grant, this throws.
  */
-export function authorizedContext(
+export async function authorizedContext(
   request: Request,
   requirement: PermissionRequirement,
-): RequestContext {
+): Promise<RequestContext> {
   const correlationId = correlationOf(request);
-  const identity = getIdentityGateway().authenticate(request, correlationId);
-  return enforcePermission(identity, requirement, {
+  const identity = await getIdentityGateway().authenticate(request, correlationId);
+  return await enforcePermission(identity, requirement, {
     memberships: membershipReader,
     permissions: trust.permissions,
     store: trustStore,
@@ -432,8 +432,8 @@ export function workspaceScoped(context: RequestContext): WorkspaceScopedContext
  * rules that are not defined, whereas this starts from a session the identity
  * engine owns and can revoke, and mints something strictly weaker.
  */
-export function issueSessionAssertion(input: IssueAssertionInput): IssuedAssertion {
-  return issueAssertionForSession(
+export async function issueSessionAssertion(input: IssueAssertionInput): Promise<IssuedAssertion> {
+  return await issueAssertionForSession(
     getIdentityGateway(),
     trust.identity,
     trustStore,
@@ -466,10 +466,10 @@ export function getCatalogueConfig(): CatalogueConfig {
  * workspace must hold no grant yet, the role must be the bootstrappable one, and
  * configuration must permit it. Every refusal carries a `CATALOGUE_*` code.
  */
-export function bootstrapFoundingAdministrator(
+export async function bootstrapFoundingAdministrator(
   input: BootstrapInput,
-): WorkspaceBootstrap {
-  return bootstrapWorkspaceGrants(trustStore, input, getCatalogueConfig());
+): Promise<WorkspaceBootstrap> {
+  return await bootstrapWorkspaceGrants(trustStore, input, getCatalogueConfig());
 }
 
 /**
@@ -479,11 +479,11 @@ export function bootstrapFoundingAdministrator(
  * this is reached; what this adds is the segregation-of-duties check on the
  * resulting permission set, which a single request cannot see.
  */
-export function assignRole(
+export async function assignRole(
   context: RequestContext,
   input: GrantRoleInput,
-): PermissionGrant[] {
-  return grantRole(trust.permissions, trustStore, context, input);
+): Promise<PermissionGrant[]> {
+  return await grantRole(trust.permissions, trustStore, context, input);
 }
 
 /**

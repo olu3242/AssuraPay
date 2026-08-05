@@ -22,36 +22,36 @@ describe('e2e Batch 3 governed agreement creation', () => {
         correlationId: 'c',
       },
       a = new ContractAuthoringEngine(s),
-      contract = a.create(c, {
+      contract = await a.create(c, {
         contractNumber: 'AP-2026-1',
         title: 'Vendor Agreement',
         contractType: 'DATA',
         ownerUserId: 'manager',
       }),
-      t = a.publishTemplate(
+      t = await a.publishTemplate(
         c,
-        a.createTemplateVersion(c, {
+        (await a.createTemplateVersion(c, {
           templateKey: 'vendor',
           variableSchema: [{ key: 'vendor', required: true }],
           content: 'v1',
-        }).id,
+        })).id,
       ),
-      d = a.createDraft(c, contract.id, t.id, 'draft/1', 'agreement');
-    a.setVariables(c, d.id, { vendor: 'Fictional Data Ltd' });
-    a.submit(c, d.id);
+      d = await a.createDraft(c, contract.id, t.id, 'draft/1', 'agreement');
+    await a.setVariables(c, d.id, { vendor: 'Fictional Data Ltd' });
+    await a.submit(c, d.id);
     const clauses = new ClauseIntelligenceEngine(s),
-      cv = clauses.publish(
+      cv = await clauses.publish(
         c,
-        clauses.createVersion(c, {
+        (await clauses.createVersion(c, {
           clauseKey: 'scope',
           body: 'deliver data',
           risk: 'LOW',
           guidance: 'standard',
-        }).id,
+        })).id,
       );
-    clauses.insert(c, d.id, { clauseVersionId: cv.id });
+    await clauses.insert(c, d.id, { clauseVersionId: cv.id });
     const n = new NegotiationEngine(s),
-      round = n.submit(
+      round = await n.submit(
         { ...c, actorUserId: 'counterparty' },
         {
           contractId: contract.id,
@@ -60,17 +60,17 @@ describe('e2e Batch 3 governed agreement creation', () => {
           mandatoryOpenItems: [],
         },
       );
-    n.accept(c, round.id);
+    await n.accept(c, round.id);
     const approvals = new ApprovalWorkflowEngine(s),
-      policy = approvals.policy(c, [
+      policy = await approvals.policy(c, [
         { role: 'LEGAL', minimumAssurance: 'IAL2_VERIFIED' },
       ]),
-      request = approvals.route(c, {
+      request = await approvals.route(c, {
         contractId: contract.id,
         documentVersionId: d.documentVersionId,
         policyId: policy.id,
       });
-    approvals.decide(
+    await approvals.decide(
       { ...c, actorUserId: 'legal' },
       request.id,
       'APPROVE',
@@ -82,7 +82,7 @@ describe('e2e Batch 3 governed agreement creation', () => {
         deterministicSignatureProvider,
         'secret',
       ),
-      pack = execution.create(c, {
+      pack = await execution.create(c, {
         contractId: contract.id,
         approvalRequestId: request.id,
         documentVersionId: d.documentVersionId,
@@ -104,8 +104,8 @@ describe('e2e Batch 3 governed agreement creation', () => {
       signature = createHmac('sha256', 'secret')
         .update(JSON.stringify(payload))
         .digest('hex');
-    execution.callback(c, pack.id, payload, signature);
-    expect(execution.issue(c, pack.id)).toMatchObject({
+    await execution.callback(c, pack.id, payload, signature);
+    expect(await execution.issue(c, pack.id)).toMatchObject({
       contractId: contract.id,
       status: 'VALID',
     });

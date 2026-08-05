@@ -7,7 +7,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
     // The approver is the authenticated caller. Reading `body.actorId` — defaulted
     // to 'owner-demo' — meant the approval record named whoever the request asked
     // for, which makes an approval trail that cannot be relied on.
-    const context = authorizedContextForRoute(request);
+    const context = await authorizedContextForRoute(request);
     const { service } = await getAssuraService();
     const contract = await service.approveContract(params.id, context.actorUserId);
     return NextResponse.json(contract);

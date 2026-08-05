@@ -40,25 +40,23 @@ describe('Engine 56 Financial & Payment Intelligence', () => {
     });
     const forecast = await e.forecast(c, { scopeId: 'm', forecastType: 'LEAKAGE', signals: { reconciliationExceptions: 2 } });
     expect(forecast.reviewStatus).toBe('NOT_REVIEWED');
-    expect(e.review(c, { id: forecast.id, decision: 'ACCEPTED' }).reviewStatus).toBe('ACCEPTED');
-    expect(() => e.review(c, { id: forecast.id, decision: 'REJECTED' })).toThrow('FORECAST_ALREADY_REVIEWED');
+    expect((await e.review(c, { id: forecast.id, decision: 'ACCEPTED' })).reviewStatus).toBe('ACCEPTED');
+    await expect(e.review(c, { id: forecast.id, decision: 'REJECTED' })).rejects.toThrow('FORECAST_ALREADY_REVIEWED');
   });
 });
 
 describe('Engine 57 Vendor & Customer Performance', () => {
-  it('validates the period range and metric bounds and averages metrics into an overall score', () => {
+  it('validates the period range and metric bounds and averages metrics into an overall score', async () => {
     const s = new InMemoryTrustStore();
     const e = new VendorCustomerPerformanceEngine(s);
-    expect(() =>
-      e.score(c, {
+    await expect(e.score(c, {
         partyId: 'vendor-1',
         partyRole: 'VENDOR',
         periodStart: '2026-08-01',
         periodEnd: '2026-07-01',
         metrics: { onTimeDelivery: 90 },
-      }),
-    ).toThrow('INVALID_PERIOD_RANGE');
-    const scorecard = e.score(c, {
+      })).rejects.toThrow('INVALID_PERIOD_RANGE');
+    const scorecard = await e.score(c, {
       partyId: 'vendor-1',
       partyRole: 'VENDOR',
       periodStart: '2026-07-01',
@@ -66,17 +64,16 @@ describe('Engine 57 Vendor & Customer Performance', () => {
       metrics: { onTimeDelivery: 90, qualityScore: 80 },
     });
     expect(scorecard.overallScore).toBe(85);
-    expect(e.history(c, { partyId: 'vendor-1', partyRole: 'VENDOR' })).toHaveLength(1);
-    expect(e.latest(c, { partyId: 'vendor-1', partyRole: 'VENDOR' })?.id).toBe(scorecard.id);
+    expect(await e.history(c, { partyId: 'vendor-1', partyRole: 'VENDOR' })).toHaveLength(1);
+    expect((await e.latest(c, { partyId: 'vendor-1', partyRole: 'VENDOR' }))?.id).toBe(scorecard.id);
   });
 });
 
 describe('Engine 58 Portfolio Analytics', () => {
-  it('rejects negative counts/amounts and out-of-range concentration, and tracks a trend per scope', () => {
+  it('rejects negative counts/amounts and out-of-range concentration, and tracks a trend per scope', async () => {
     const s = new InMemoryTrustStore();
     const e = new PortfolioAnalyticsEngine(s);
-    expect(() =>
-      e.snapshot(c, {
+    await expect(e.snapshot(c, {
         scopeId: 'portfolio',
         atRiskCount: -1,
         blockedCount: 0,
@@ -85,10 +82,8 @@ describe('Engine 58 Portfolio Analytics', () => {
         retainedAmountMinor: 0,
         concentrationTopPartyPercent: 10,
         currency: 'NGN',
-      }),
-    ).toThrow('MUST_BE_NON_NEGATIVE');
-    expect(() =>
-      e.snapshot(c, {
+      })).rejects.toThrow('MUST_BE_NON_NEGATIVE');
+    await expect(e.snapshot(c, {
         scopeId: 'portfolio',
         atRiskCount: 1,
         blockedCount: 0,
@@ -97,10 +92,8 @@ describe('Engine 58 Portfolio Analytics', () => {
         retainedAmountMinor: 0,
         concentrationTopPartyPercent: 150,
         currency: 'NGN',
-      }),
-    ).toThrow('MUST_BE_BETWEEN_0_AND_100');
-    expect(() =>
-      e.snapshot(c, {
+      })).rejects.toThrow('MUST_BE_BETWEEN_0_AND_100');
+    await expect(e.snapshot(c, {
         scopeId: 'portfolio',
         atRiskCount: 1,
         blockedCount: 0,
@@ -109,9 +102,8 @@ describe('Engine 58 Portfolio Analytics', () => {
         retainedAmountMinor: 0,
         concentrationTopPartyPercent: 10,
         currency: 'NGN',
-      }),
-    ).toThrow('UNPAIDAMOUNTMINOR_MUST_BE_NON_NEGATIVE_INTEGER_MINOR_UNITS');
-    e.snapshot(c, {
+      })).rejects.toThrow('UNPAIDAMOUNTMINOR_MUST_BE_NON_NEGATIVE_INTEGER_MINOR_UNITS');
+    await e.snapshot(c, {
       scopeId: 'portfolio',
       atRiskCount: 2,
       blockedCount: 1,
@@ -121,7 +113,7 @@ describe('Engine 58 Portfolio Analytics', () => {
       concentrationTopPartyPercent: 35,
       currency: 'NGN',
     });
-    const second = e.snapshot(c, {
+    const second = await e.snapshot(c, {
       scopeId: 'portfolio',
       atRiskCount: 1,
       blockedCount: 0,
@@ -131,84 +123,80 @@ describe('Engine 58 Portfolio Analytics', () => {
       concentrationTopPartyPercent: 30,
       currency: 'NGN',
     });
-    expect(e.trend(c, 'portfolio')).toHaveLength(2);
-    expect(e.latest(c, 'portfolio')?.id).toBe(second.id);
+    expect(await e.trend(c, 'portfolio')).toHaveLength(2);
+    expect((await e.latest(c, 'portfolio'))?.id).toBe(second.id);
   });
 });
 
 describe('Engine 59 Renewal & Relationship Intelligence', () => {
-  it('requires a valid readiness score and rationale, and returns the latest assessment per contract', () => {
+  it('requires a valid readiness score and rationale, and returns the latest assessment per contract', async () => {
     const s = new InMemoryTrustStore();
     const e = new RenewalRelationshipIntelligenceEngine(s);
-    expect(() =>
-      e.assess(c, {
+    await expect(e.assess(c, {
         contractId: 'contract',
         renewalReadinessScore: 150,
         performanceHistorySummary: 'strong',
         recommendedAction: 'RENEW',
         rationale: 'consistent on-time delivery',
-      }),
-    ).toThrow('MUST_BE_BETWEEN_0_AND_100');
-    expect(() =>
-      e.assess(c, {
+      })).rejects.toThrow('MUST_BE_BETWEEN_0_AND_100');
+    await expect(e.assess(c, {
         contractId: 'contract',
         renewalReadinessScore: 80,
         performanceHistorySummary: 'strong',
         recommendedAction: 'RENEW',
         rationale: '',
-      }),
-    ).toThrow('RATIONALE_REQUIRED');
-    const assessment = e.assess(c, {
+      })).rejects.toThrow('RATIONALE_REQUIRED');
+    const assessment = await e.assess(c, {
       contractId: 'contract',
       renewalReadinessScore: 88,
       performanceHistorySummary: 'consistent on-time delivery across 6 milestones',
       recommendedAction: 'RENEW',
       rationale: 'strong performance history and no unresolved disputes',
     });
-    expect(e.latest(c, 'contract')?.id).toBe(assessment.id);
+    expect((await e.latest(c, 'contract'))?.id).toBe(assessment.id);
   });
 });
 
 describe('Engine 60 AI Decision Support & Continuous Improvement', () => {
-  it('auto-raises a drift alert on a failed evaluation and never lets a recommendation execute without a human decision', () => {
+  it('auto-raises a drift alert on a failed evaluation and never lets a recommendation execute without a human decision', async () => {
     const s = new InMemoryTrustStore();
     const e = new AiDecisionSupportEngine(s);
-    const model = e.registerModel(c, {
+    const model = await e.registerModel(c, {
       modelId: 'contract-risk-scorer',
       modelVersion: '2',
       purpose: 'Score contract risk dimensions',
       governedBy: 'ContractRiskEngine',
     });
-    const failedEval = e.recordEvaluation(c, { modelRegistrationId: model.id, metric: 'precision', score: 30, threshold: 80 });
+    const failedEval = await e.recordEvaluation(c, { modelRegistrationId: model.id, metric: 'precision', score: 30, threshold: 80 });
     expect(failedEval.passed).toBe(false);
-    const openDrifts = e.openDrifts(c, model.id);
+    const openDrifts = await e.openDrifts(c, model.id);
     expect(openDrifts).toHaveLength(1);
     expect(openDrifts[0].severity).toBe('HIGH');
-    e.acknowledgeDrift(c, openDrifts[0].id);
-    expect(() => e.acknowledgeDrift(c, openDrifts[0].id)).toThrow('DRIFT_ALERT_NOT_OPEN');
-    e.resolveDrift(c, openDrifts[0].id);
-    expect(e.openDrifts(c, model.id)).toHaveLength(0);
+    await e.acknowledgeDrift(c, openDrifts[0].id);
+    await expect(e.acknowledgeDrift(c, openDrifts[0].id)).rejects.toThrow('DRIFT_ALERT_NOT_OPEN');
+    await e.resolveDrift(c, openDrifts[0].id);
+    expect(await e.openDrifts(c, model.id)).toHaveLength(0);
 
-    e.submitFeedback(c, {
+    await e.submitFeedback(c, {
       modelRegistrationId: model.id,
       outputReference: 'analysis-run-1',
       rating: 'NEGATIVE',
       comment: 'missed an obvious payment-trigger gap',
     });
 
-    const recommendation = e.recommend(c, {
+    const recommendation = await e.recommend(c, {
       scopeId: 'contract',
       modelRegistrationId: model.id,
       recommendation: 'Flag contract for manual risk review',
       confidence: 0.55,
     });
     expect(recommendation.status).toBe('PENDING');
-    const decided = e.decideRecommendation(c, { id: recommendation.id, decision: 'ACCEPTED' });
+    const decided = await e.decideRecommendation(c, { id: recommendation.id, decision: 'ACCEPTED' });
     expect(decided.status).toBe('ACCEPTED');
-    expect(() => e.decideRecommendation(c, { id: recommendation.id, decision: 'DISMISSED' })).toThrow(
+    await expect(e.decideRecommendation(c, { id: recommendation.id, decision: 'DISMISSED' })).rejects.toThrow(
       'RECOMMENDATION_ALREADY_DECIDED',
     );
-    e.deprecateModel(c, model.id);
-    expect(() => e.deprecateModel(c, model.id)).toThrow('MODEL_NOT_ACTIVE');
+    await e.deprecateModel(c, model.id);
+    await expect(e.deprecateModel(c, model.id)).rejects.toThrow('MODEL_NOT_ACTIVE');
   });
 });

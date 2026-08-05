@@ -32,7 +32,7 @@ describe('integration: governed Agent Runtime pipeline', () => {
     const memory = new ExecutionMemoryEngine(store);
     const telemetry = new AgentTelemetryEngine(store);
     const governance = new AgentGovernanceEngine(store);
-    const capability = capabilities.register(c, {
+    const capability = await capabilities.register(c, {
       name: 'assess-dod-readiness',
       owner: 'Completion Assurance',
       permission: 'dod:read',
@@ -42,28 +42,28 @@ describe('integration: governed Agent Runtime pipeline', () => {
       humanApprovalRequired: false,
       protectedState: false,
     });
-    const prompt = prompts.createVersion(c, {
+    const prompt = await prompts.createVersion(c, {
       promptId: 'dod-readiness',
       template: 'Propose gaps for {{dod}}',
       requiredVariables: ['dod'],
       outputContract: 'DoDReadinessProposal',
     });
-    prompts.publish(c, prompt.id);
-    const agent = agents.register(c, {
+    await prompts.publish(c, prompt.id);
+    const agent = await agents.register(c, {
       name: 'DoD',
       owner: 'Performance Readiness',
       promptIds: ['dod-readiness'],
       allowedCapabilityIds: [capability.id],
     });
-    agents.activate(c, agent.id);
-    governance.publish(c, {
+    await agents.activate(c, agent.id);
+    await governance.publish(c, {
       allowedRoles: ['operator'],
       allowedPromptIds: ['dod-readiness'],
       allowedCapabilityIds: [capability.id],
       allowedModels: ['governed-model'],
       requireApprovalFor: ['APPROVAL', 'WAIVER', 'OVERRIDE', 'CERTIFICATION'],
     });
-    const snapshot = contexts.create(c, {
+    const snapshot = await contexts.create(c, {
       agreementId: 'a',
       blueprintId: 'b',
       milestoneIds: ['m'],
@@ -122,8 +122,8 @@ describe('integration: governed Agent Runtime pipeline', () => {
       kind: 'PROPOSAL',
       proposal: { missingEvidence: ['inspection'] },
     });
-    expect(memory.history(c, run.id)).toHaveLength(2);
-    expect(telemetry.summarize(c, agent.id).totalCostMinor).toBe(2);
-    expect(store.list('auditRecords').length).toBeGreaterThanOrEqual(5);
+    expect(await memory.history(c, run.id)).toHaveLength(2);
+    expect((await telemetry.summarize(c, agent.id)).totalCostMinor).toBe(2);
+    expect((await store.list('auditRecords')).length).toBeGreaterThanOrEqual(5);
   });
 });

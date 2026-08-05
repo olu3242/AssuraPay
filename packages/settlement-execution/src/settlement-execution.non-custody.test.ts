@@ -38,7 +38,7 @@ describe('non-custody constraint', () => {
   it('never submits a payment without the provider gateway, and never asserts settlement without the gateway reporting it', async () => {
     const s = new InMemoryTrustStore();
     const noGateway = new PaymentExecutionEngine(s);
-    const draft = noGateway.issue(c, {
+    const draft = await noGateway.issue(c, {
       releaseRequestId: 'r',
       providerKey: 'paystack',
       idempotencyKey: 'idem-1',
@@ -49,7 +49,7 @@ describe('non-custody constraint', () => {
     });
     await expect(noGateway.submit(c, draft.id)).rejects.toThrow('PAYMENT_PROVIDER_GATEWAY_REQUIRED');
     expect(
-      s.list<{ id: string; status: string }>('paymentInstructions').find((x) => x.id === draft.id)?.status,
+      (await s.list<{ id: string; status: string }>('paymentInstructions')).find((x) => x.id === draft.id)?.status,
     ).toBe('DRAFT');
 
     const rejectingGateway = new PaymentExecutionEngine(s, {
@@ -62,11 +62,11 @@ describe('non-custody constraint', () => {
     });
     await expect(rejectingGateway.submit(c, draft.id)).rejects.toThrow('PROVIDER_REJECTED_PAYMENT');
     expect(
-      s.list<{ id: string; status: string }>('paymentInstructions').find((x) => x.id === draft.id)?.status,
+      (await s.list<{ id: string; status: string }>('paymentInstructions')).find((x) => x.id === draft.id)?.status,
     ).toBe('FAILED');
   });
 
-  it('is idempotent on issue, so retrying a release never double-instructs the provider', () => {
+  it('is idempotent on issue, so retrying a release never double-instructs the provider', async () => {
     const s = new InMemoryTrustStore();
     const e = new PaymentExecutionEngine(s);
     const input = {
@@ -78,9 +78,9 @@ describe('non-custody constraint', () => {
       currency: 'NGN',
       authorized: true,
     };
-    const first = e.issue(c, input);
-    const second = e.issue(c, input);
+    const first = await e.issue(c, input);
+    const second = await e.issue(c, input);
     expect(second.id).toBe(first.id);
-    expect(s.list('paymentInstructions')).toHaveLength(1);
+    expect(await s.list('paymentInstructions')).toHaveLength(1);
   });
 });

@@ -13,28 +13,28 @@ const assertText = (value: string, code: string) => {
   if (!value.trim()) throw new Error(code);
 };
 
-function records<T extends { workspaceId: string }>(
+async function records<T extends { workspaceId: string }>(
   store: TrustPersistence,
   name: string,
   context: RequestContext,
 ) {
-  return store
-    .list<T>(name)
+  return (await store
+    .list<T>(name))
     .filter((entry) => entry.workspaceId === workspace(context));
 }
-function record<T extends { id: string; workspaceId: string }>(
+async function record<T extends { id: string; workspaceId: string }>(
   store: TrustPersistence,
   name: string,
   context: RequestContext,
   id: string,
 ) {
-  const found = records<T>(store, name, context).find(
+  const found = (await records<T>(store, name, context)).find(
     (entry) => entry.id === id,
   );
   if (!found) throw new Error('NOT_FOUND');
   return found;
 }
-function publish(
+async function publish(
   store: TrustPersistence,
   context: RequestContext,
   eventType: string,
@@ -42,7 +42,7 @@ function publish(
   aggregateId: string,
   metadata: Record<string, unknown> = {},
 ) {
-  store.audit({
+  await store.audit({
     tenantId: context.tenantId,
     workspaceId: workspace(context),
     actorId: context.actorUserId,
@@ -52,7 +52,7 @@ function publish(
     correlationId: context.correlationId,
     metadata,
   });
-  store.emit({
+  await store.emit({
     tenantId: context.tenantId,
     workspaceId: workspace(context),
     aggregateType,
@@ -85,7 +85,7 @@ export interface Capability {
 // Engine 62 — capabilities are contracts, never arbitrary functions or direct state handles.
 export class CapabilityRegistryEngine {
   constructor(private readonly store: TrustPersistence) {}
-  register(
+  async register(
     context: RequestContext,
     input: Omit<Capability, 'id' | 'workspaceId' | 'active' | 'createdAt'>,
   ) {
@@ -102,8 +102,8 @@ export class CapabilityRegistryEngine {
       active: true,
       createdAt: timestamp(),
     };
-    this.store.append('agentCapabilities', capability);
-    publish(
+    await this.store.append('agentCapabilities', capability);
+    await publish(
       this.store,
       context,
       'AgentCapabilityRegistered',
@@ -113,18 +113,18 @@ export class CapabilityRegistryEngine {
     );
     return capability;
   }
-  get(context: RequestContext, id: string) {
-    return record<Capability>(this.store, 'agentCapabilities', context, id);
+  async get(context: RequestContext, id: string) {
+    return await record<Capability>(this.store, 'agentCapabilities', context, id);
   }
-  list(context: RequestContext) {
-    return records<Capability>(this.store, 'agentCapabilities', context);
+  async list(context: RequestContext) {
+    return await records<Capability>(this.store, 'agentCapabilities', context);
   }
-  deactivate(context: RequestContext, id: string) {
-    const current = this.get(context, id);
+  async deactivate(context: RequestContext, id: string) {
+    const current = await this.get(context, id);
     if (!current.active) throw new Error('CAPABILITY_NOT_ACTIVE');
     const next = { ...current, active: false };
-    this.store.replace('agentCapabilities', next);
-    publish(
+    await this.store.replace('agentCapabilities', next);
+    await publish(
       this.store,
       context,
       'AgentCapabilityDeactivated',
@@ -163,7 +163,7 @@ export const ASSURAPAY_AGENT_IDENTITIES = [
 // Engine 63
 export class AgentRegistryEngine {
   constructor(private readonly store: TrustPersistence) {}
-  register(
+  async register(
     context: RequestContext,
     input: Omit<
       RegisteredAgent,
@@ -172,11 +172,11 @@ export class AgentRegistryEngine {
   ) {
     assertText(input.name, 'AGENT_NAME_REQUIRED');
     assertText(input.owner, 'AGENT_OWNER_REQUIRED');
-    const prior = records<RegisteredAgent>(
+    const prior = (await records<RegisteredAgent>(
       this.store,
       'registeredAgents',
       context,
-    ).filter((agent) => agent.name === input.name);
+    )).filter((agent) => agent.name === input.name);
     const agent: RegisteredAgent = {
       id: randomUUID(),
       workspaceId: workspace(context),
@@ -185,43 +185,43 @@ export class AgentRegistryEngine {
       active: false,
       createdAt: timestamp(),
     };
-    this.store.append('registeredAgents', agent);
-    publish(this.store, context, 'AgentVersionRegistered', 'Agent', agent.id, {
+    await this.store.append('registeredAgents', agent);
+    await publish(this.store, context, 'AgentVersionRegistered', 'Agent', agent.id, {
       name: agent.name,
       version: agent.version,
     });
     return agent;
   }
-  activate(context: RequestContext, id: string) {
-    const target = record<RegisteredAgent>(
+  async activate(context: RequestContext, id: string) {
+    const target = await record<RegisteredAgent>(
       this.store,
       'registeredAgents',
       context,
       id,
     );
-    for (const prior of records<RegisteredAgent>(
+    for (const prior of (await records<RegisteredAgent>(
       this.store,
       'registeredAgents',
       context,
-    ).filter((x) => x.name === target.name && x.active))
-      this.store.replace('registeredAgents', { ...prior, active: false });
+    )).filter((x) => x.name === target.name && x.active))
+      await this.store.replace('registeredAgents', { ...prior, active: false });
     const active = { ...target, active: true };
-    this.store.replace('registeredAgents', active);
-    publish(this.store, context, 'AgentActivated', 'Agent', id, {
+    await this.store.replace('registeredAgents', active);
+    await publish(this.store, context, 'AgentActivated', 'Agent', id, {
       name: active.name,
       version: active.version,
     });
     return active;
   }
-  get(context: RequestContext, id: string) {
-    return record<RegisteredAgent>(this.store, 'registeredAgents', context, id);
+  async get(context: RequestContext, id: string) {
+    return await record<RegisteredAgent>(this.store, 'registeredAgents', context, id);
   }
-  active(context: RequestContext, name: string) {
-    return records<RegisteredAgent>(
+  async active(context: RequestContext, name: string) {
+    return (await records<RegisteredAgent>(
       this.store,
       'registeredAgents',
       context,
-    ).find((x) => x.name === name && x.active);
+    )).find((x) => x.name === name && x.active);
   }
 }
 
@@ -241,7 +241,7 @@ export interface PromptVersion {
 // Engine 64
 export class PromptRegistryEngine {
   constructor(private readonly store: TrustPersistence) {}
-  createVersion(
+  async createVersion(
     context: RequestContext,
     input: {
       promptId: string;
@@ -256,11 +256,11 @@ export class PromptRegistryEngine {
     for (const variable of input.requiredVariables)
       if (!input.template.includes(`{{${variable}}}`))
         throw new Error(`PROMPT_VARIABLE_MISSING:${variable}`);
-    const prior = records<PromptVersion>(
+    const prior = (await records<PromptVersion>(
       this.store,
       'promptVersions',
       context,
-    ).filter((x) => x.promptId === input.promptId);
+    )).filter((x) => x.promptId === input.promptId);
     const version: PromptVersion = {
       id: randomUUID(),
       workspaceId: workspace(context),
@@ -271,53 +271,53 @@ export class PromptRegistryEngine {
       checksum: hash(input),
       createdAt: timestamp(),
     };
-    this.store.append('promptVersions', version);
+    await this.store.append('promptVersions', version);
     return version;
   }
-  publish(context: RequestContext, id: string) {
-    const target = record<PromptVersion>(
+  async publish(context: RequestContext, id: string) {
+    const target = await record<PromptVersion>(
       this.store,
       'promptVersions',
       context,
       id,
     );
-    for (const current of records<PromptVersion>(
+    for (const current of (await records<PromptVersion>(
       this.store,
       'promptVersions',
       context,
-    ).filter((x) => x.promptId === target.promptId && x.status === 'PUBLISHED'))
-      this.store.replace('promptVersions', {
+    )).filter((x) => x.promptId === target.promptId && x.status === 'PUBLISHED'))
+      await this.store.replace('promptVersions', {
         ...current,
         status: 'RETIRED' as const,
       });
     const next = { ...target, status: 'PUBLISHED' as const };
-    this.store.replace('promptVersions', next);
-    publish(this.store, context, 'PromptPublished', 'PromptVersion', id, {
+    await this.store.replace('promptVersions', next);
+    await publish(this.store, context, 'PromptPublished', 'PromptVersion', id, {
       promptId: next.promptId,
       version: next.version,
       checksum: next.checksum,
     });
     return next;
   }
-  rollback(context: RequestContext, promptId: string, version: number) {
-    const target = records<PromptVersion>(
+  async rollback(context: RequestContext, promptId: string, version: number) {
+    const target = (await records<PromptVersion>(
       this.store,
       'promptVersions',
       context,
-    ).find((x) => x.promptId === promptId && x.version === version);
+    )).find((x) => x.promptId === promptId && x.version === version);
     if (!target) throw new Error('PROMPT_VERSION_NOT_FOUND');
-    return this.publish(context, target.id);
+    return await this.publish(context, target.id);
   }
-  render(
+  async render(
     context: RequestContext,
     promptId: string,
     variables: Record<string, string>,
   ) {
-    const active = records<PromptVersion>(
+    const active = (await records<PromptVersion>(
       this.store,
       'promptVersions',
       context,
-    ).find((x) => x.promptId === promptId && x.status === 'PUBLISHED');
+    )).find((x) => x.promptId === promptId && x.status === 'PUBLISHED');
     if (!active) throw new Error('PUBLISHED_PROMPT_NOT_FOUND');
     let rendered = active.template;
     for (const variable of active.requiredVariables) {
@@ -327,12 +327,12 @@ export class PromptRegistryEngine {
     }
     return { version: active, rendered };
   }
-  test(
+  async test(
     context: RequestContext,
     id: string,
     cases: Array<{ variables: Record<string, string>; expectedText: string }>,
   ) {
-    const prompt = record<PromptVersion>(
+    const prompt = await record<PromptVersion>(
       this.store,
       'promptVersions',
       context,
@@ -414,6 +414,9 @@ export class AiGatewayEngine {
         try {
           const timeoutMs = input.timeoutMs ?? 30_000;
           let timer: ReturnType<typeof setTimeout> | undefined;
+          // `provider.invoke` must not be awaited inside the race: awaiting it
+          // first would resolve the call before the timeout promise could ever
+          // win, silently disabling the timeout it is raced against.
           const response = await Promise.race([
             provider.invoke({ ...input, timeoutMs }),
             new Promise<never>((_, reject) => {
@@ -459,7 +462,7 @@ export interface ExecutionContextSnapshot {
 // Engine 66 — caller supplies governed references/snapshots; this package never reads domain stores.
 export class ContextEngine {
   constructor(private readonly store: TrustPersistence) {}
-  create(
+  async create(
     context: RequestContext,
     input: Omit<
       ExecutionContextSnapshot,
@@ -483,11 +486,11 @@ export class ContextEngine {
       checksum: hash(body),
       createdAt: timestamp(),
     };
-    this.store.append('agentContextSnapshots', snapshot);
+    await this.store.append('agentContextSnapshots', snapshot);
     return snapshot;
   }
-  get(context: RequestContext, id: string) {
-    return record<ExecutionContextSnapshot>(
+  async get(context: RequestContext, id: string) {
+    return await record<ExecutionContextSnapshot>(
       this.store,
       'agentContextSnapshots',
       context,
@@ -510,18 +513,18 @@ export interface MemoryEntry {
 // Engine 67 — append-only, explicit, inspectable memory.
 export class ExecutionMemoryEngine {
   constructor(private readonly store: TrustPersistence) {}
-  append(
+  async append(
     context: RequestContext,
     input: Omit<
       MemoryEntry,
       'id' | 'workspaceId' | 'sequence' | 'contentHash' | 'createdAt'
     >,
   ) {
-    const prior = records<MemoryEntry>(
+    const prior = (await records<MemoryEntry>(
       this.store,
       'agentMemory',
       context,
-    ).filter((x) => x.executionId === input.executionId);
+    )).filter((x) => x.executionId === input.executionId);
     const entry: MemoryEntry = {
       id: randomUUID(),
       workspaceId: workspace(context),
@@ -530,11 +533,11 @@ export class ExecutionMemoryEngine {
       contentHash: hash(input.content),
       createdAt: timestamp(),
     };
-    this.store.append('agentMemory', entry);
+    await this.store.append('agentMemory', entry);
     return entry;
   }
-  history(context: RequestContext, executionId: string) {
-    return records<MemoryEntry>(this.store, 'agentMemory', context)
+  async history(context: RequestContext, executionId: string) {
+    return (await records<MemoryEntry>(this.store, 'agentMemory', context))
       .filter((x) => x.executionId === executionId)
       .sort((a, b) => a.sequence - b.sequence);
   }
@@ -556,7 +559,7 @@ export interface ApprovalRequest {
 // Engine 68
 export class HumanApprovalEngine {
   constructor(private readonly store: TrustPersistence) {}
-  request(
+  async request(
     context: RequestContext,
     input: Omit<
       ApprovalRequest,
@@ -578,8 +581,8 @@ export class HumanApprovalEngine {
       status: 'PENDING',
       createdAt: timestamp(),
     };
-    this.store.append('agentApprovalRequests', request);
-    publish(
+    await this.store.append('agentApprovalRequests', request);
+    await publish(
       this.store,
       context,
       'AgentApprovalRequested',
@@ -589,12 +592,12 @@ export class HumanApprovalEngine {
     );
     return request;
   }
-  decide(
+  async decide(
     context: RequestContext,
     id: string,
     decision: 'APPROVED' | 'REJECTED',
   ) {
-    const request = record<ApprovalRequest>(
+    const request = await record<ApprovalRequest>(
       this.store,
       'agentApprovalRequests',
       context,
@@ -610,14 +613,14 @@ export class HumanApprovalEngine {
       decidedBy: context.actorUserId,
       decidedAt: timestamp(),
     };
-    this.store.replace('agentApprovalRequests', next);
-    publish(this.store, context, 'AgentApprovalDecided', 'AgentApproval', id, {
+    await this.store.replace('agentApprovalRequests', next);
+    await publish(this.store, context, 'AgentApprovalDecided', 'AgentApproval', id, {
       decision,
     });
     return next;
   }
-  consume(context: RequestContext, id: string, proposalHash: string) {
-    const request = record<ApprovalRequest>(
+  async consume(context: RequestContext, id: string, proposalHash: string) {
+    const request = await record<ApprovalRequest>(
       this.store,
       'agentApprovalRequests',
       context,
@@ -628,7 +631,7 @@ export class HumanApprovalEngine {
     if (request.proposalHash !== proposalHash)
       throw new Error('APPROVAL_PROPOSAL_MISMATCH');
     const next = { ...request, consumedAt: timestamp() };
-    this.store.replace('agentApprovalRequests', next);
+    await this.store.replace('agentApprovalRequests', next);
     return next;
   }
 }
@@ -652,7 +655,7 @@ export interface TelemetryRecord {
 // Engine 69
 export class AgentTelemetryEngine {
   constructor(private readonly store: TrustPersistence) {}
-  record(
+  async record(
     context: RequestContext,
     input: Omit<TelemetryRecord, 'id' | 'workspaceId' | 'createdAt'>,
   ) {
@@ -677,15 +680,15 @@ export class AgentTelemetryEngine {
       ...input,
       createdAt: timestamp(),
     };
-    this.store.append('agentTelemetry', value);
+    await this.store.append('agentTelemetry', value);
     return value;
   }
-  summarize(context: RequestContext, agentId?: string) {
-    const values = records<TelemetryRecord>(
+  async summarize(context: RequestContext, agentId?: string) {
+    const values = (await records<TelemetryRecord>(
       this.store,
       'agentTelemetry',
       context,
-    ).filter((x) => !agentId || x.agentId === agentId);
+    )).filter((x) => !agentId || x.agentId === agentId);
     const count = values.length;
     return {
       count,
@@ -721,20 +724,20 @@ export interface GovernancePolicy {
 // Engine 70
 export class AgentGovernanceEngine {
   constructor(private readonly store: TrustPersistence) {}
-  publish(
+  async publish(
     context: RequestContext,
     input: Omit<
       GovernancePolicy,
       'id' | 'workspaceId' | 'version' | 'active' | 'createdAt'
     >,
   ) {
-    const prior = records<GovernancePolicy>(
+    const prior = await records<GovernancePolicy>(
       this.store,
       'agentGovernancePolicies',
       context,
     );
     for (const current of prior.filter((x) => x.active))
-      this.store.replace('agentGovernancePolicies', {
+      await this.store.replace('agentGovernancePolicies', {
         ...current,
         active: false,
       });
@@ -746,8 +749,8 @@ export class AgentGovernanceEngine {
       active: true,
       createdAt: timestamp(),
     };
-    this.store.append('agentGovernancePolicies', policy);
-    publish(
+    await this.store.append('agentGovernancePolicies', policy);
+    await publish(
       this.store,
       context,
       'AgentGovernancePolicyPublished',
@@ -757,7 +760,7 @@ export class AgentGovernanceEngine {
     );
     return policy;
   }
-  authorize(
+  async authorize(
     context: RequestContext,
     input: {
       roles: string[];
@@ -767,11 +770,11 @@ export class AgentGovernanceEngine {
       action?: ProtectedAction;
     },
   ) {
-    const policy = records<GovernancePolicy>(
+    const policy = (await records<GovernancePolicy>(
       this.store,
       'agentGovernancePolicies',
       context,
-    ).find((x) => x.active);
+    )).find((x) => x.active);
     if (!policy) throw new Error('ACTIVE_AGENT_GOVERNANCE_POLICY_REQUIRED');
     if (!input.roles.some((role) => policy.allowedRoles.includes(role)))
       throw new Error('AGENT_ROLE_DENIED');
@@ -784,7 +787,7 @@ export class AgentGovernanceEngine {
     const approvalRequired =
       input.action !== undefined &&
       policy.requireApprovalFor.includes(input.action);
-    publish(
+    await publish(
       this.store,
       context,
       'AgentGovernanceAuthorized',
@@ -840,8 +843,8 @@ export class AgentRuntimeEngine {
       deterministic: DeterministicCapabilityGateway;
     },
   ) {}
-  cancel(context: RequestContext, id: string) {
-    const run = record<AgentExecution>(
+  async cancel(context: RequestContext, id: string) {
+    const run = await record<AgentExecution>(
       this.deps.store,
       'agentExecutions',
       context,
@@ -854,8 +857,8 @@ export class AgentRuntimeEngine {
       status: 'CANCELLED' as const,
       completedAt: timestamp(),
     };
-    this.deps.store.replace('agentExecutions', next);
-    publish(
+    await this.deps.store.replace('agentExecutions', next);
+    await publish(
       this.deps.store,
       context,
       'AgentExecutionCancelled',
@@ -878,16 +881,16 @@ export class AgentRuntimeEngine {
       timeoutMs?: number;
     },
   ) {
-    const agent = this.deps.agents.get(context, input.agentId);
+    const agent = await this.deps.agents.get(context, input.agentId);
     if (!agent.active) throw new Error('AGENT_NOT_ACTIVE');
     if (!agent.allowedCapabilityIds.includes(input.capabilityId))
       throw new Error('AGENT_CAPABILITY_DENIED');
     if (!agent.promptIds.includes(input.promptId))
       throw new Error('AGENT_PROMPT_DENIED');
-    const capability = this.deps.capabilities.get(context, input.capabilityId);
+    const capability = await this.deps.capabilities.get(context, input.capabilityId);
     if (!capability.active || !capability.aiAllowed)
       throw new Error('CAPABILITY_NOT_AVAILABLE_TO_AI');
-    const authorization = this.deps.governance.authorize(context, {
+    const authorization = await this.deps.governance.authorize(context, {
       roles: input.roles,
       promptId: input.promptId,
       capabilityId: input.capabilityId,
@@ -896,8 +899,8 @@ export class AgentRuntimeEngine {
     });
     const approvalRequired =
       authorization.approvalRequired || capability.humanApprovalRequired;
-    this.deps.contexts.get(context, input.contextSnapshotId);
-    const prompt = this.deps.prompts.render(
+    await this.deps.contexts.get(context, input.contextSnapshotId);
+    const prompt = await this.deps.prompts.render(
       context,
       input.promptId,
       input.variables,
@@ -913,14 +916,14 @@ export class AgentRuntimeEngine {
       attempts: 0,
       createdAt: timestamp(),
     };
-    this.deps.store.append('agentExecutions', run);
+    await this.deps.store.append('agentExecutions', run);
     const running = {
       ...run,
       status: 'RUNNING' as const,
       startedAt: timestamp(),
     };
-    this.deps.store.replace('agentExecutions', running);
-    this.deps.memory.append(context, {
+    await this.deps.store.replace('agentExecutions', running);
+    await this.deps.memory.append(context, {
       executionId: run.id,
       agentId: agent.id,
       kind: 'USER',
@@ -951,14 +954,14 @@ export class AgentRuntimeEngine {
           proposal,
           completedAt: timestamp(),
         };
-        this.deps.store.replace('agentExecutions', succeeded);
-        this.deps.memory.append(context, {
+        await this.deps.store.replace('agentExecutions', succeeded);
+        await this.deps.memory.append(context, {
           executionId: run.id,
           agentId: agent.id,
           kind: 'RESULT',
           content: proposal,
         });
-        this.deps.telemetry.record(context, {
+        await this.deps.telemetry.record(context, {
           executionId: run.id,
           agentId: agent.id,
           provider: ai.provider,
@@ -970,7 +973,7 @@ export class AgentRuntimeEngine {
           hallucinationFlag: false,
           approvalRequested: approvalRequired,
         });
-        publish(
+        await publish(
           this.deps.store,
           context,
           'AgentExecutionSucceeded',
@@ -991,8 +994,8 @@ export class AgentRuntimeEngine {
       error: message,
       completedAt: timestamp(),
     };
-    this.deps.store.replace('agentExecutions', failed);
-    this.deps.telemetry.record(context, {
+    await this.deps.store.replace('agentExecutions', failed);
+    await this.deps.telemetry.record(context, {
       executionId: run.id,
       agentId: agent.id,
       latencyMs: Date.now() - started,
@@ -1003,7 +1006,7 @@ export class AgentRuntimeEngine {
       hallucinationFlag: false,
       approvalRequested: false,
     });
-    publish(
+    await publish(
       this.deps.store,
       context,
       'AgentExecutionFailed',

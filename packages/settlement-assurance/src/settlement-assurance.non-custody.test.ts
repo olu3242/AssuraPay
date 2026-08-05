@@ -34,9 +34,9 @@ describe('non-custody constraint', () => {
       expect(source).not.toMatch(forbidden);
   });
 
-  it('records only a reference to the external provider escrow, never a held balance', () => {
+  it('records only a reference to the external provider escrow, never a held balance', async () => {
     const s = new InMemoryTrustStore();
-    const commitment = new EscrowFundingAssuranceEngine(s).recordCommitment(c, {
+    const commitment = await new EscrowFundingAssuranceEngine(s).recordCommitment(c, {
       milestoneId: 'm',
       providerKey: 'paystack',
       externalCustodyReference: 'paystack://escrow/abc123',
@@ -50,7 +50,7 @@ describe('non-custody constraint', () => {
 
   it('never transitions funding to confirmed without the provider gateway confirming it', async () => {
     const s = new InMemoryTrustStore();
-    const commitment = new EscrowFundingAssuranceEngine(s).recordCommitment(c, {
+    const commitment = await new EscrowFundingAssuranceEngine(s).recordCommitment(c, {
       milestoneId: 'm',
       providerKey: 'paystack',
       externalCustodyReference: 'paystack://escrow/abc123',
@@ -64,7 +64,7 @@ describe('non-custody constraint', () => {
     await expect(new EscrowFundingAssuranceEngine(s, decliningGateway).confirmCommitment(c, commitment.id)).rejects.toThrow(
       'PROVIDER_FUNDING_NOT_CONFIRMED',
     );
-    expect(s.list<{ id: string; status: string }>('fundingCommitments').find((x) => x.id === commitment.id)?.status).toBe(
+    expect((await s.list<{ id: string; status: string }>('fundingCommitments')).find((x) => x.id === commitment.id)?.status).toBe(
       'PENDING_CONFIRMATION',
     );
     const acceptingGateway = { async confirmFunding() { return { confirmed: true, providerConfirmationReference: 'prov-ref-1' }; } };

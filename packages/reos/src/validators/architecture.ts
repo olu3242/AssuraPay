@@ -1,6 +1,10 @@
 import path from 'node:path';
 import { readTextIfPresent, walkFiles } from '../util/fsx.ts';
 import { sortBy } from '../util/serialize.ts';
+import {
+  ASYNC_PERSISTENCE_RULES,
+  collectAsyncPersistenceFindings,
+} from './persistence.ts';
 import type { DiscoverySnapshot, Finding, ValidationOutcome } from '../types.ts';
 
 /**
@@ -152,6 +156,13 @@ export function validateArchitecture(
       });
     }
   }
+
+  // The asynchronous persistence contract is a boundary invariant of the same kind
+  // as the package rules above: every engine reads and writes through
+  // TrustPersistence, and each forbidden shape typechecks, so nothing else in the
+  // pipeline would catch a regression.
+  checked += ASYNC_PERSISTENCE_RULES.length;
+  findings.push(...collectAsyncPersistenceFindings(repoRoot));
 
   return {
     validator: 'architecture',

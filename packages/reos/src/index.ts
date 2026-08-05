@@ -127,6 +127,10 @@ export type { CertifyOptions } from './stages/certify.ts';
 export { buildExecutionReport, renderExecutionReport } from './stages/report.ts';
 
 export { TRUST_FOUNDATION_PACKAGES, validateArchitecture } from './validators/architecture.ts';
+export {
+  ASYNC_PERSISTENCE_RULES,
+  collectAsyncPersistenceFindings,
+} from './validators/persistence.ts';
 export { detectCycles, validateDependencies } from './validators/dependency.ts';
 export {
   CUSTODY_PRIMITIVES,

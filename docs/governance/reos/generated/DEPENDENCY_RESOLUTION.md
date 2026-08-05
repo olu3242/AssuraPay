@@ -6,29 +6,28 @@
 
 | Field | Value |
 | --- | --- |
-| Capability | persistence.async-repository-interface |
-| Title | Asynchronous repository interface |
+| Capability | persistence.postgres-repository |
+| Title | PostgreSQL repository implementation |
 | Current status | missing |
 | Lifecycle | planned |
-| Priority | 39 |
-| Reason | Highest-priority executable capability (priority 39, lifecycle planned) — unblocks 2 downstream capability/-ies |
-| Depends on | persistence.repository-conformance |
+| Priority | 40 |
+| Reason | Highest-priority executable capability (priority 40, lifecycle planned) — selected despite needing live infrastructure, nothing else is executable — unblocks 1 downstream capability/-ies |
+| Depends on | persistence.async-repository-interface |
 | Unmet dependencies | none |
-| Blocks (transitive) | persistence.postgres-repository, persistence.rls-certification |
-| Declared scope | 40 file(s), 2 test suite(s) (registry estimate) |
-| Requires live infrastructure | no |
+| Blocks (transitive) | persistence.rls-certification |
+| Declared scope | 1 file(s), 1 test suite(s) |
+| Requires live infrastructure | yes |
 
 ## Executable queue
 
 | Capability | Title | Lifecycle | Priority | Blocks | Live infra |
 | --- | --- | --- | --- | --- | --- |
-| persistence.async-repository-interface | Asynchronous repository interface | planned | 39 | 2 | no |
+| persistence.postgres-repository | PostgreSQL repository implementation | planned | 40 | 1 | yes |
 
 ## Blocked
 
 | Capability | Status | Blocked by |
 | --- | --- | --- |
-| persistence.postgres-repository | missing | persistence.async-repository-interface |
 | persistence.rls-certification | missing | persistence.postgres-repository |
 
 ## Awaiting live infrastructure
@@ -36,7 +35,7 @@
 - persistence.postgres-repository
 - persistence.rls-certification
 
-## Completed (68)
+## Completed (69)
 
 - engine:01
 - engine:02
@@ -94,6 +93,7 @@
 - engine:58
 - engine:59
 - engine:60
+- persistence.async-repository-interface
 - persistence.repository-conformance
 - reos.execution-os
 - runtime.agent-registration

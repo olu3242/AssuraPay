@@ -9,19 +9,19 @@ function ws(context: RequestContext) {
   requireActiveWorkspace(context);
   return context.activeWorkspaceId;
 }
-function get<T extends { id: string; workspaceId: string }>(
+async function get<T extends { id: string; workspaceId: string }>(
   store: TrustPersistence,
   collection: string,
   context: RequestContext,
   id: string,
 ) {
-  const found = store
-    .list<T>(collection)
+  const found = (await store
+    .list<T>(collection))
     .find((x) => x.id === id && x.workspaceId === ws(context));
   if (!found) throw new Error('NOT_FOUND');
   return found;
 }
-function emit(
+async function emit(
   store: TrustPersistence,
   context: RequestContext,
   eventType: string,
@@ -29,7 +29,7 @@ function emit(
   aggregateId: string,
   payload: Record<string, unknown> = {},
 ) {
-  store.audit({
+  await store.audit({
     tenantId: context.tenantId,
     workspaceId: ws(context),
     actorId: context.actorUserId,
@@ -39,7 +39,7 @@ function emit(
     correlationId: context.correlationId,
     metadata: payload,
   });
-  store.emit({
+  await store.emit({
     tenantId: context.tenantId,
     workspaceId: ws(context),
     aggregateType,
@@ -82,7 +82,7 @@ export type ExecutionAssuranceIndex = {
 export class ExecutionAssuranceIndexEngine {
   constructor(private readonly store: TrustPersistence) {}
 
-  compute(
+  async compute(
     context: RequestContext,
     input: { scopeId: string; factors: Record<string, number>; mandatoryGates: MandatoryGateResult[] },
   ) {
@@ -98,8 +98,8 @@ export class ExecutionAssuranceIndexEngine {
       failedGates,
       computedAt: now(),
     };
-    this.store.append('executionAssuranceIndices', index);
-    emit(this.store, context, 'ExecutionAssuranceIndexComputed', 'ExecutionAssuranceIndex', index.id, {
+    await this.store.append('executionAssuranceIndices', index);
+    await emit(this.store, context, 'ExecutionAssuranceIndexComputed', 'ExecutionAssuranceIndex', index.id, {
       scopeId: index.scopeId,
       score: index.score,
       overridden: index.overridden,
@@ -107,10 +107,10 @@ export class ExecutionAssuranceIndexEngine {
     return index;
   }
 
-  latest(context: RequestContext, scopeId: string) {
+  async latest(context: RequestContext, scopeId: string) {
     const workspaceId = ws(context);
-    const records = this.store
-      .list<ExecutionAssuranceIndex>('executionAssuranceIndices')
+    const records = (await this.store
+      .list<ExecutionAssuranceIndex>('executionAssuranceIndices'))
       .filter((x) => x.workspaceId === workspaceId && x.scopeId === scopeId);
     return records[records.length - 1];
   }
@@ -132,7 +132,7 @@ export type SettlementAssuranceIndex = {
 export class SettlementAssuranceIndexEngine {
   constructor(private readonly store: TrustPersistence) {}
 
-  compute(context: RequestContext, input: { scopeId: string; factors: Record<string, number>; activeHold: boolean }) {
+  async compute(context: RequestContext, input: { scopeId: string; factors: Record<string, number>; activeHold: boolean }) {
     for (const [field, value] of Object.entries(input.factors)) requireScoreRange(value, field.toUpperCase());
     const index: SettlementAssuranceIndex = {
       id: randomUUID(),
@@ -142,8 +142,8 @@ export class SettlementAssuranceIndexEngine {
       overridden: input.activeHold,
       computedAt: now(),
     };
-    this.store.append('settlementAssuranceIndices', index);
-    emit(this.store, context, 'SettlementAssuranceIndexComputed', 'SettlementAssuranceIndex', index.id, {
+    await this.store.append('settlementAssuranceIndices', index);
+    await emit(this.store, context, 'SettlementAssuranceIndexComputed', 'SettlementAssuranceIndex', index.id, {
       scopeId: index.scopeId,
       score: index.score,
       overridden: index.overridden,
@@ -151,10 +151,10 @@ export class SettlementAssuranceIndexEngine {
     return index;
   }
 
-  latest(context: RequestContext, scopeId: string) {
+  async latest(context: RequestContext, scopeId: string) {
     const workspaceId = ws(context);
-    const records = this.store
-      .list<SettlementAssuranceIndex>('settlementAssuranceIndices')
+    const records = (await this.store
+      .list<SettlementAssuranceIndex>('settlementAssuranceIndices'))
       .filter((x) => x.workspaceId === workspaceId && x.scopeId === scopeId);
     return records[records.length - 1];
   }
@@ -187,7 +187,7 @@ export type KpiValue = {
 export class EnterpriseKpiEngine {
   constructor(private readonly store: TrustPersistence) {}
 
-  define(
+  async define(
     context: RequestContext,
     input: { kind: KpiDefinition['kind']; name: string; targetValue: number; direction: KpiDefinition['direction']; unit: string },
   ) {
@@ -199,25 +199,25 @@ export class EnterpriseKpiEngine {
       status: 'ACTIVE',
       createdAt: now(),
     };
-    this.store.append('kpiDefinitions', definition);
-    emit(this.store, context, 'KpiDefinitionDefined', 'KpiDefinition', definition.id, {
+    await this.store.append('kpiDefinitions', definition);
+    await emit(this.store, context, 'KpiDefinitionDefined', 'KpiDefinition', definition.id, {
       kind: definition.kind,
       name: definition.name,
     });
     return definition;
   }
 
-  retire(context: RequestContext, id: string) {
-    const definition = get<KpiDefinition>(this.store, 'kpiDefinitions', context, id);
+  async retire(context: RequestContext, id: string) {
+    const definition = await get<KpiDefinition>(this.store, 'kpiDefinitions', context, id);
     if (definition.status !== 'ACTIVE') throw new Error('KPI_DEFINITION_NOT_ACTIVE');
     const retired: KpiDefinition = { ...definition, status: 'RETIRED' };
-    this.store.replace('kpiDefinitions', retired);
-    emit(this.store, context, 'KpiDefinitionRetired', 'KpiDefinition', definition.id, {});
+    await this.store.replace('kpiDefinitions', retired);
+    await emit(this.store, context, 'KpiDefinitionRetired', 'KpiDefinition', definition.id, {});
     return retired;
   }
 
-  recordValue(context: RequestContext, input: { kpiDefinitionId: string; scopeId: string; actualValue: number }) {
-    const definition = get<KpiDefinition>(this.store, 'kpiDefinitions', context, input.kpiDefinitionId);
+  async recordValue(context: RequestContext, input: { kpiDefinitionId: string; scopeId: string; actualValue: number }) {
+    const definition = await get<KpiDefinition>(this.store, 'kpiDefinitions', context, input.kpiDefinitionId);
     if (definition.status !== 'ACTIVE') throw new Error('KPI_DEFINITION_NOT_ACTIVE');
     if (!Number.isFinite(input.actualValue)) throw new Error('INVALID_ACTUAL_VALUE');
     const onTrack =
@@ -225,18 +225,18 @@ export class EnterpriseKpiEngine {
         ? input.actualValue >= definition.targetValue
         : input.actualValue <= definition.targetValue;
     const value: KpiValue = { id: randomUUID(), workspaceId: ws(context), ...input, onTrack, recordedAt: now() };
-    this.store.append('kpiValues', value);
-    emit(this.store, context, 'KpiValueRecorded', 'KpiValue', value.id, {
+    await this.store.append('kpiValues', value);
+    await emit(this.store, context, 'KpiValueRecorded', 'KpiValue', value.id, {
       kpiDefinitionId: value.kpiDefinitionId,
       onTrack: value.onTrack,
     });
     return value;
   }
 
-  latest(context: RequestContext, input: { kpiDefinitionId: string; scopeId: string }) {
+  async latest(context: RequestContext, input: { kpiDefinitionId: string; scopeId: string }) {
     const workspaceId = ws(context);
-    const values = this.store
-      .list<KpiValue>('kpiValues')
+    const values = (await this.store
+      .list<KpiValue>('kpiValues'))
       .filter(
         (x) => x.workspaceId === workspaceId && x.kpiDefinitionId === input.kpiDefinitionId && x.scopeId === input.scopeId,
       );
@@ -260,7 +260,7 @@ export type DashboardSnapshot = {
 export class ExecutiveDashboardEngine {
   constructor(private readonly store: TrustPersistence) {}
 
-  compose(context: RequestContext, input: { role: string; widgets: DashboardWidget[] }) {
+  async compose(context: RequestContext, input: { role: string; widgets: DashboardWidget[] }) {
     if (!input.role.trim()) throw new Error('ROLE_REQUIRED');
     const visible = input.widgets.filter((w) => w.allowedRoles.includes(input.role));
     const snapshot: DashboardSnapshot = {
@@ -271,18 +271,18 @@ export class ExecutiveDashboardEngine {
       generatedFor: context.actorUserId,
       generatedAt: now(),
     };
-    this.store.append('dashboardSnapshots', snapshot);
-    emit(this.store, context, 'DashboardSnapshotGenerated', 'DashboardSnapshot', snapshot.id, {
+    await this.store.append('dashboardSnapshots', snapshot);
+    await emit(this.store, context, 'DashboardSnapshotGenerated', 'DashboardSnapshot', snapshot.id, {
       role: snapshot.role,
       widgetCount: snapshot.widgets.length,
     });
     return snapshot;
   }
 
-  latest(context: RequestContext, role: string) {
+  async latest(context: RequestContext, role: string) {
     const workspaceId = ws(context);
-    const snapshots = this.store
-      .list<DashboardSnapshot>('dashboardSnapshots')
+    const snapshots = (await this.store
+      .list<DashboardSnapshot>('dashboardSnapshots'))
       .filter((x) => x.workspaceId === workspaceId && x.role === role);
     return snapshots[snapshots.length - 1];
   }
@@ -340,8 +340,8 @@ export class PredictiveExecutionIntelligenceEngine {
       reviewStatus: 'NOT_REVIEWED',
       generatedAt: now(),
     };
-    this.store.append('executionForecasts', forecast);
-    emit(this.store, context, 'ExecutionForecastGenerated', 'ExecutionForecast', forecast.id, {
+    await this.store.append('executionForecasts', forecast);
+    await emit(this.store, context, 'ExecutionForecastGenerated', 'ExecutionForecast', forecast.id, {
       scopeId: forecast.scopeId,
       forecastType: forecast.forecastType,
       confidence: forecast.confidence,
@@ -349,21 +349,21 @@ export class PredictiveExecutionIntelligenceEngine {
     return forecast;
   }
 
-  review(context: RequestContext, input: { id: string; decision: 'ACCEPTED' | 'REJECTED' }) {
-    const forecast = get<ExecutionForecast>(this.store, 'executionForecasts', context, input.id);
+  async review(context: RequestContext, input: { id: string; decision: 'ACCEPTED' | 'REJECTED' }) {
+    const forecast = await get<ExecutionForecast>(this.store, 'executionForecasts', context, input.id);
     if (forecast.reviewStatus !== 'NOT_REVIEWED') throw new Error('FORECAST_ALREADY_REVIEWED');
     const reviewed: ExecutionForecast = { ...forecast, reviewStatus: input.decision };
-    this.store.replace('executionForecasts', reviewed);
-    emit(this.store, context, 'ExecutionForecastReviewed', 'ExecutionForecast', forecast.id, {
+    await this.store.replace('executionForecasts', reviewed);
+    await emit(this.store, context, 'ExecutionForecastReviewed', 'ExecutionForecast', forecast.id, {
       decision: input.decision,
     });
     return reviewed;
   }
 
-  latest(context: RequestContext, input: { scopeId: string; forecastType: ExecutionForecast['forecastType'] }) {
+  async latest(context: RequestContext, input: { scopeId: string; forecastType: ExecutionForecast['forecastType'] }) {
     const workspaceId = ws(context);
-    const forecasts = this.store
-      .list<ExecutionForecast>('executionForecasts')
+    const forecasts = (await this.store
+      .list<ExecutionForecast>('executionForecasts'))
       .filter(
         (x) => x.workspaceId === workspaceId && x.scopeId === input.scopeId && x.forecastType === input.forecastType,
       );

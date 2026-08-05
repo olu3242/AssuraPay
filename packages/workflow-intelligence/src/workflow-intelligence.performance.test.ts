@@ -11,7 +11,7 @@ const c = {
   correlationId: 'load',
 };
 describe('performance', () => {
-  it('analyzes a 1,000-node dependency chain and computes 1,000 health snapshots', () => {
+  it('analyzes a 1,000-node dependency chain and computes 1,000 health snapshots', async () => {
     const nodes = Array.from({ length: 1000 }, (_, i) => `m${i}`);
     const edges = nodes.slice(1).map((node, i) => ({
       from: nodes[i],
@@ -23,7 +23,7 @@ describe('performance', () => {
     ).toHaveLength(1000);
     const health = new ExecutionHealthEngine(new InMemoryTrustStore());
     for (let i = 0; i < 1000; i++)
-      health.compute(c, {
+      await health.compute(c, {
         agreementId: `a${i}`,
         signals: {
           milestoneCompletion: 50,

@@ -5,10 +5,10 @@ import {
 } from '../../../../lib/trust-app';
 export async function POST(request: Request) {
   try {
-    const context = authorizedContextForRoute(request);
+    const context = await authorizedContextForRoute(request);
     const body = await request.json();
     return Response.json(
-      governance.dod.createVersion(context, body.milestoneId, body.criteria),
+      await governance.dod.createVersion(context, body.milestoneId, body.criteria),
       { status: 201 },
     );
   } catch (error) {

@@ -24,9 +24,9 @@ const c = {
 };
 
 describe('Engines 71–80 workflow intelligence', () => {
-  it('71 computes workflow progress and detects blocked and stalled canonical nodes', () => {
+  it('71 computes workflow progress and detects blocked and stalled canonical nodes', async () => {
     const engine = new WorkflowIntelligenceEngine(new InMemoryTrustStore());
-    const report = engine.assess(c, {
+    const report = await engine.assess(c, {
       agreementId: 'a',
       observedAt: '2026-08-03T12:00:00Z',
       stalledAfterHours: 24,
@@ -122,8 +122,8 @@ describe('Engines 71–80 workflow intelligence', () => {
     expect(result.breached).toBe(true);
     expect(result.breachProbability).toBe(100);
   });
-  it('75 produces a governed remediation proposal without changing domain state', () => {
-    const plan = new ExceptionManagementEngine(
+  it('75 produces a governed remediation proposal without changing domain state', async () => {
+    const plan = await new ExceptionManagementEngine(
       new InMemoryTrustStore(),
     ).createPlan(c, {
       agreementId: 'a',
@@ -187,9 +187,9 @@ describe('Engines 71–80 workflow intelligence', () => {
     expect(result.bottleneck).toBe(true);
     expect(result.recommendation).toContain('reassignment');
   });
-  it('80 computes the primary weighted execution KPI and persists an immutable snapshot', () => {
+  it('80 computes the primary weighted execution KPI and persists an immutable snapshot', async () => {
     const store = new InMemoryTrustStore();
-    const result = new ExecutionHealthEngine(store).compute(c, {
+    const result = await new ExecutionHealthEngine(store).compute(c, {
       agreementId: 'a',
       signals: {
         milestoneCompletion: 80,
@@ -203,6 +203,6 @@ describe('Engines 71–80 workflow intelligence', () => {
     });
     expect(result.score).toBe(82);
     expect(result.health).toBe('HEALTHY');
-    expect(store.list('executionHealthScores')).toHaveLength(1);
+    expect(await store.list('executionHealthScores')).toHaveLength(1);
   });
 });

@@ -27,8 +27,8 @@ function gatewayIdentity(overrides: Partial<RequestContext> = {}): RequestContex
   };
 }
 
-function activeMembership(store: InMemoryTrustStore, userId = 'user-1', workspaceId = WORKSPACE) {
-  store.append('memberships', {
+async function activeMembership(store: InMemoryTrustStore, userId = 'user-1', workspaceId = WORKSPACE) {
+  await store.append('memberships', {
     id: `m-${userId}-${workspaceId}`,
     workspaceId,
     userId,
@@ -37,8 +37,8 @@ function activeMembership(store: InMemoryTrustStore, userId = 'user-1', workspac
 }
 
 /** Grants a permission directly, bypassing the granting path's own authorization. */
-function grant(store: InMemoryTrustStore, permissionKey: string, userId = 'user-1') {
-  store.append('permissionGrants', {
+async function grant(store: InMemoryTrustStore, permissionKey: string, userId = 'user-1') {
+  await store.append('permissionGrants', {
     id: `g-${permissionKey}-${userId}`,
     workspaceId: WORKSPACE,
     userId,
@@ -61,72 +61,68 @@ function authorities(store: InMemoryTrustStore): EnforcementAuthorities {
 }
 
 describe('Engine 03 permission enforcement — membership resolution', () => {
-  it('resolves active memberships from the authoritative record', () => {
+  it('resolves active memberships from the authoritative record', async () => {
     const store = new InMemoryTrustStore();
-    activeMembership(store);
-    expect(resolveMemberships(gatewayIdentity(), new TrustStoreMembershipReader(store)).memberships).toEqual(
+    await activeMembership(store);
+    expect((await resolveMemberships(gatewayIdentity(), new TrustStoreMembershipReader(store))).memberships).toEqual(
       [WORKSPACE],
     );
   });
 
-  it('ignores memberships that are not active', () => {
+  it('ignores memberships that are not active', async () => {
     const store = new InMemoryTrustStore();
     for (const status of ['INVITED', 'SUSPENDED', 'ENDED', 'REVOKED']) {
-      store.append('memberships', {
+      await store.append('memberships', {
         id: `m-${status}`,
         workspaceId: `workspace-${status}`,
         userId: 'user-1',
         status,
       });
     }
-    expect(resolveMemberships(gatewayIdentity(), new TrustStoreMembershipReader(store)).memberships).toEqual(
+    expect((await resolveMemberships(gatewayIdentity(), new TrustStoreMembershipReader(store))).memberships).toEqual(
       [],
     );
   });
 
-  it('reads only the requesting user’s memberships', () => {
+  it('reads only the requesting user’s memberships', async () => {
     const store = new InMemoryTrustStore();
-    activeMembership(store, 'someone-else', 'workspace-9');
-    expect(resolveMemberships(gatewayIdentity(), new TrustStoreMembershipReader(store)).memberships).toEqual(
+    await activeMembership(store, 'someone-else', 'workspace-9');
+    expect((await resolveMemberships(gatewayIdentity(), new TrustStoreMembershipReader(store))).memberships).toEqual(
       [],
     );
   });
 
-  it('discards any membership list supplied on the incoming context', () => {
+  it('discards any membership list supplied on the incoming context', async () => {
     // Trusting a caller-supplied membership list would reintroduce exactly the
     // bypass the identity gateway removed.
     const store = new InMemoryTrustStore();
     const forged = gatewayIdentity({ memberships: ['workspace-1', 'workspace-9'] });
-    expect(resolveMemberships(forged, new TrustStoreMembershipReader(store)).memberships).toEqual([]);
+    expect((await resolveMemberships(forged, new TrustStoreMembershipReader(store))).memberships).toEqual([]);
   });
 
-  it('rejects an unauthenticated context', () => {
+  it('rejects an unauthenticated context', async () => {
     const store = new InMemoryTrustStore();
-    expect(() =>
-      resolveMemberships(
+    await expect(resolveMemberships(
         gatewayIdentity({ actorUserId: '' }),
         new TrustStoreMembershipReader(store),
-      ),
-    ).toThrow('ENFORCEMENT_UNAUTHENTICATED');
+      )).rejects.toThrow('ENFORCEMENT_UNAUTHENTICATED');
   });
 });
 
 describe('Engine 03 permission enforcement — deny by default', () => {
-  it('denies when the user holds no grant', () => {
+  it('denies when the user holds no grant', async () => {
     const store = new InMemoryTrustStore();
-    activeMembership(store);
+    await activeMembership(store);
 
-    expect(() =>
-      enforcePermission(gatewayIdentity(), { permissionKey: 'contract:read' }, authorities(store)),
-    ).toThrow('ENFORCEMENT_PERMISSION_DENIED');
+    await expect(enforcePermission(gatewayIdentity(), { permissionKey: 'contract:read' }, authorities(store))).rejects.toThrow('ENFORCEMENT_PERMISSION_DENIED');
   });
 
-  it('allows when an applicable grant exists, returning resolved memberships', () => {
+  it('allows when an applicable grant exists, returning resolved memberships', async () => {
     const store = new InMemoryTrustStore();
-    activeMembership(store);
-    grant(store, 'contract:read');
+    await activeMembership(store);
+    await grant(store, 'contract:read');
 
-    const authorized = enforcePermission(
+    const authorized = await enforcePermission(
       gatewayIdentity(),
       { permissionKey: 'contract:read' },
       authorities(store),
@@ -135,20 +131,18 @@ describe('Engine 03 permission enforcement — deny by default', () => {
     expect(authorized.actorUserId).toBe('user-1');
   });
 
-  it('denies a permission granted to a different user', () => {
+  it('denies a permission granted to a different user', async () => {
     const store = new InMemoryTrustStore();
-    activeMembership(store);
-    grant(store, 'contract:read', 'someone-else');
+    await activeMembership(store);
+    await grant(store, 'contract:read', 'someone-else');
 
-    expect(() =>
-      enforcePermission(gatewayIdentity(), { permissionKey: 'contract:read' }, authorities(store)),
-    ).toThrow('ENFORCEMENT_PERMISSION_DENIED');
+    await expect(enforcePermission(gatewayIdentity(), { permissionKey: 'contract:read' }, authorities(store))).rejects.toThrow('ENFORCEMENT_PERMISSION_DENIED');
   });
 
-  it('denies an expired grant', () => {
+  it('denies an expired grant', async () => {
     const store = new InMemoryTrustStore();
-    activeMembership(store);
-    store.append('permissionGrants', {
+    await activeMembership(store);
+    await store.append('permissionGrants', {
       id: 'g-expired',
       workspaceId: WORKSPACE,
       userId: 'user-1',
@@ -162,16 +156,14 @@ describe('Engine 03 permission enforcement — deny by default', () => {
       createdAt: new Date().toISOString(),
     });
 
-    expect(() =>
-      enforcePermission(gatewayIdentity(), { permissionKey: 'contract:read' }, authorities(store)),
-    ).toThrow('ENFORCEMENT_PERMISSION_DENIED');
+    await expect(enforcePermission(gatewayIdentity(), { permissionKey: 'contract:read' }, authorities(store))).rejects.toThrow('ENFORCEMENT_PERMISSION_DENIED');
   });
 
-  it('honours an explicit DENY over an ALLOW', () => {
+  it('honours an explicit DENY over an ALLOW', async () => {
     const store = new InMemoryTrustStore();
-    activeMembership(store);
-    grant(store, 'contract:read');
-    store.append('permissionGrants', {
+    await activeMembership(store);
+    await grant(store, 'contract:read');
+    await store.append('permissionGrants', {
       id: 'g-deny',
       workspaceId: WORKSPACE,
       userId: 'user-1',
@@ -184,39 +176,31 @@ describe('Engine 03 permission enforcement — deny by default', () => {
       createdAt: new Date().toISOString(),
     });
 
-    expect(() =>
-      enforcePermission(gatewayIdentity(), { permissionKey: 'contract:read' }, authorities(store)),
-    ).toThrow('ENFORCEMENT_PERMISSION_DENIED');
+    await expect(enforcePermission(gatewayIdentity(), { permissionKey: 'contract:read' }, authorities(store))).rejects.toThrow('ENFORCEMENT_PERMISSION_DENIED');
   });
 });
 
 describe('Engine 03 permission enforcement — membership is required, not claimed', () => {
-  it('denies a caller with no active membership even when the permission is granted', () => {
+  it('denies a caller with no active membership even when the permission is granted', async () => {
     const store = new InMemoryTrustStore();
-    grant(store, 'contract:read');
+    await grant(store, 'contract:read');
 
-    expect(() =>
-      enforcePermission(gatewayIdentity(), { permissionKey: 'contract:read' }, authorities(store)),
-    ).toThrow('ENFORCEMENT_MEMBERSHIP_REQUIRED');
+    await expect(enforcePermission(gatewayIdentity(), { permissionKey: 'contract:read' }, authorities(store))).rejects.toThrow('ENFORCEMENT_MEMBERSHIP_REQUIRED');
   });
 
-  it('denies membership in a different workspace than the one in context', () => {
+  it('denies membership in a different workspace than the one in context', async () => {
     const store = new InMemoryTrustStore();
-    activeMembership(store, 'user-1', 'workspace-other');
-    grant(store, 'contract:read');
+    await activeMembership(store, 'user-1', 'workspace-other');
+    await grant(store, 'contract:read');
 
-    expect(() =>
-      enforcePermission(gatewayIdentity(), { permissionKey: 'contract:read' }, authorities(store)),
-    ).toThrow('ENFORCEMENT_MEMBERSHIP_REQUIRED');
+    await expect(enforcePermission(gatewayIdentity(), { permissionKey: 'contract:read' }, authorities(store))).rejects.toThrow('ENFORCEMENT_MEMBERSHIP_REQUIRED');
   });
 
-  it('audits a membership denial with a bounded reason', () => {
+  it('audits a membership denial with a bounded reason', async () => {
     const store = new InMemoryTrustStore();
-    expect(() =>
-      enforcePermission(gatewayIdentity(), { permissionKey: 'contract:read' }, authorities(store)),
-    ).toThrow(PermissionEnforcementError);
+    await expect(enforcePermission(gatewayIdentity(), { permissionKey: 'contract:read' }, authorities(store))).rejects.toThrow(PermissionEnforcementError);
 
-    const records = store.list<{ eventType: string; metadata: Record<string, unknown> }>(
+    const records = await store.list<{ eventType: string; metadata: Record<string, unknown> }>(
       'auditRecords',
     );
     expect(records).toHaveLength(1);
@@ -224,26 +208,24 @@ describe('Engine 03 permission enforcement — membership is required, not claim
     expect(records[0].metadata.reason).toBe('NO_ACTIVE_MEMBERSHIP');
   });
 
-  it('requires workspace and tenant context before consulting any authority', () => {
+  it('requires workspace and tenant context before consulting any authority', async () => {
     const store = new InMemoryTrustStore();
-    activeMembership(store);
-    grant(store, 'contract:read');
+    await activeMembership(store);
+    await grant(store, 'contract:read');
 
     for (const missing of [{ activeWorkspaceId: undefined }, { tenantId: undefined }]) {
-      expect(() =>
-        enforcePermission(
+      await expect(enforcePermission(
           gatewayIdentity(missing),
           { permissionKey: 'contract:read' },
           authorities(store),
-        ),
-      ).toThrow('ENFORCEMENT_WORKSPACE_CONTEXT_REQUIRED');
+        )).rejects.toThrow('ENFORCEMENT_WORKSPACE_CONTEXT_REQUIRED');
     }
   });
 });
 
 describe('Engine 03 permission enforcement — segregation of duties', () => {
-  function blockingRule(store: InMemoryTrustStore) {
-    store.append('segregationRules', {
+  async function blockingRule(store: InMemoryTrustStore) {
+    await store.append('segregationRules', {
       id: 'sod-1',
       workspaceId: WORKSPACE,
       ruleKey: 'approve-vs-release',
@@ -257,92 +239,88 @@ describe('Engine 03 permission enforcement — segregation of duties', () => {
     });
   }
 
-  it('blocks a caller who holds both sides of the pair', () => {
+  it('blocks a caller who holds both sides of the pair', async () => {
     const store = new InMemoryTrustStore();
-    activeMembership(store);
-    grant(store, 'settlement:approve');
-    grant(store, 'settlement:release');
-    blockingRule(store);
+    await activeMembership(store);
+    await grant(store, 'settlement:approve');
+    await grant(store, 'settlement:release');
+    await blockingRule(store);
 
-    expect(() =>
-      enforcePermission(
+    await expect(enforcePermission(
         gatewayIdentity(),
         { permissionKey: 'settlement:approve', segregatedFrom: ['settlement:release'] },
         authorities(store),
-      ),
-    ).toThrow('ENFORCEMENT_SEGREGATION_VIOLATION');
+      )).rejects.toThrow('ENFORCEMENT_SEGREGATION_VIOLATION');
   });
 
-  it('allows a caller who holds only one side, even with the rule active', () => {
+  it('allows a caller who holds only one side, even with the rule active', async () => {
     // Segregation of duties constrains what one principal may hold, so the caller
     // with a single side is the compliant case. Refusing them too would make the
     // permission unusable and invite an operator to delete the rule.
     const store = new InMemoryTrustStore();
-    activeMembership(store);
-    grant(store, 'settlement:approve');
-    blockingRule(store);
+    await activeMembership(store);
+    await grant(store, 'settlement:approve');
+    await blockingRule(store);
 
     expect(
-      enforcePermission(
+      (await enforcePermission(
         gatewayIdentity(),
         { permissionKey: 'settlement:approve', segregatedFrom: ['settlement:release'] },
         authorities(store),
-      ).memberships,
+      )).memberships,
     ).toEqual([WORKSPACE]);
   });
 
-  it('blocks in either order, so neither key is the safe one to hold first', () => {
+  it('blocks in either order, so neither key is the safe one to hold first', async () => {
     const store = new InMemoryTrustStore();
-    activeMembership(store);
-    grant(store, 'settlement:approve');
-    grant(store, 'settlement:release');
-    blockingRule(store);
+    await activeMembership(store);
+    await grant(store, 'settlement:approve');
+    await grant(store, 'settlement:release');
+    await blockingRule(store);
 
-    expect(() =>
-      enforcePermission(
+    await expect(enforcePermission(
         gatewayIdentity(),
         { permissionKey: 'settlement:release', segregatedFrom: ['settlement:approve'] },
         authorities(store),
-      ),
-    ).toThrow('ENFORCEMENT_SEGREGATION_VIOLATION');
+      )).rejects.toThrow('ENFORCEMENT_SEGREGATION_VIOLATION');
   });
 
-  it('allows when no conflicting rule applies', () => {
+  it('allows when no conflicting rule applies', async () => {
     const store = new InMemoryTrustStore();
-    activeMembership(store);
-    grant(store, 'settlement:approve');
-    grant(store, 'settlement:release');
+    await activeMembership(store);
+    await grant(store, 'settlement:approve');
+    await grant(store, 'settlement:release');
 
     expect(
-      enforcePermission(
+      (await enforcePermission(
         gatewayIdentity(),
         { permissionKey: 'settlement:approve', segregatedFrom: ['settlement:release'] },
         authorities(store),
-      ).memberships,
+      )).memberships,
     ).toEqual([WORKSPACE]);
   });
 
-  it('does not consult the conflicting permission when none is declared', () => {
+  it('does not consult the conflicting permission when none is declared', async () => {
     // A requirement with no declared conflict must not pay for an evaluation, and
     // must not be able to fail on one.
     const store = new InMemoryTrustStore();
-    activeMembership(store);
-    grant(store, 'settlement:approve');
-    blockingRule(store);
+    await activeMembership(store);
+    await grant(store, 'settlement:approve');
+    await blockingRule(store);
 
     const consulted: string[] = [];
     const service = new PermissionService(store);
     const stub: PermissionAuthority = {
-      requirePermission: (context, key, scope) => service.requirePermission(context, key, scope),
-      evaluate: (context, key, scope) => {
+      requirePermission: async (context, key, scope) => await service.requirePermission(context, key, scope),
+      evaluate: async (context, key, scope) => {
         consulted.push(key);
-        return service.evaluate(context, key, scope);
+        return await service.evaluate(context, key, scope);
       },
-      assertNoSegregationConflict: (context, keys) =>
-        service.assertNoSegregationConflict(context, keys),
+      assertNoSegregationConflict: async (context, keys) =>
+        await service.assertNoSegregationConflict(context, keys),
     };
 
-    enforcePermission(
+    await enforcePermission(
       gatewayIdentity(),
       { permissionKey: 'settlement:approve' },
       { memberships: new TrustStoreMembershipReader(store), permissions: stub, store },
@@ -352,26 +330,26 @@ describe('Engine 03 permission enforcement — segregation of duties', () => {
 });
 
 describe('Engine 03 permission enforcement — authority delegation', () => {
-  it('delegates the decision rather than reimplementing it', () => {
+  it('delegates the decision rather than reimplementing it', async () => {
     const store = new InMemoryTrustStore();
-    activeMembership(store);
+    await activeMembership(store);
 
     const calls: string[] = [];
     const stub: PermissionAuthority = {
-      requirePermission(_context, permissionKey) {
+      async requirePermission(_context, permissionKey) {
         calls.push(permissionKey);
         return { allowed: true, permissionKey, reasons: [], grants: [], denials: [] };
       },
-      evaluate(_context, permissionKey) {
+      async evaluate(_context, permissionKey) {
         calls.push(`evaluate:${permissionKey}`);
         return { allowed: true, permissionKey, reasons: [], grants: [], denials: [] };
       },
-      assertNoSegregationConflict() {
+      async assertNoSegregationConflict() {
         calls.push('segregation');
       },
     };
 
-    enforcePermission(
+    await enforcePermission(
       gatewayIdentity(),
       { permissionKey: 'contract:read', segregatedFrom: ['contract:delete'] },
       { memberships: new TrustStoreMembershipReader(store), permissions: stub, store },
@@ -380,23 +358,23 @@ describe('Engine 03 permission enforcement — authority delegation', () => {
     expect(calls).toEqual(['contract:read', 'evaluate:contract:delete', 'segregation']);
   });
 
-  it('passes the resolved context to the authority, not the incoming one', () => {
+  it('passes the resolved context to the authority, not the incoming one', async () => {
     const store = new InMemoryTrustStore();
-    activeMembership(store);
+    await activeMembership(store);
 
     let seen: string[] = ['unset'];
     const stub: PermissionAuthority = {
-      requirePermission(context, permissionKey) {
+      async requirePermission(context, permissionKey) {
         seen = context.memberships;
         return { allowed: true, permissionKey, reasons: [], grants: [], denials: [] };
       },
-      evaluate(_context, permissionKey) {
+      async evaluate(_context, permissionKey) {
         return { allowed: false, permissionKey, reasons: [], grants: [], denials: [] };
       },
-      assertNoSegregationConflict() {},
+      async assertNoSegregationConflict() {},
     };
 
-    enforcePermission(
+    await enforcePermission(
       gatewayIdentity(),
       { permissionKey: 'contract:read' },
       { memberships: new TrustStoreMembershipReader(store), permissions: stub, store },
@@ -405,39 +383,37 @@ describe('Engine 03 permission enforcement — authority delegation', () => {
     expect(seen).toEqual([WORKSPACE]);
   });
 
-  it('does not consult the permission authority when membership fails', () => {
+  it('does not consult the permission authority when membership fails', async () => {
     const store = new InMemoryTrustStore();
     let consulted = false;
     const stub: PermissionAuthority = {
-      requirePermission(_context, permissionKey) {
+      async requirePermission(_context, permissionKey) {
         consulted = true;
         return { allowed: true, permissionKey, reasons: [], grants: [], denials: [] };
       },
-      evaluate(_context, permissionKey) {
+      async evaluate(_context, permissionKey) {
         return { allowed: false, permissionKey, reasons: [], grants: [], denials: [] };
       },
-      assertNoSegregationConflict() {},
+      async assertNoSegregationConflict() {},
     };
 
-    expect(() =>
-      enforcePermission(
+    await expect(enforcePermission(
         gatewayIdentity(),
         { permissionKey: 'contract:read' },
         { memberships: new TrustStoreMembershipReader(store), permissions: stub, store },
-      ),
-    ).toThrow('ENFORCEMENT_MEMBERSHIP_REQUIRED');
+      )).rejects.toThrow('ENFORCEMENT_MEMBERSHIP_REQUIRED');
     expect(consulted).toBe(false);
   });
 });
 
 describe('Engine 03 permission enforcement — boundary invariants', () => {
-  it('adds no authorization data to the returned context beyond resolved memberships', () => {
+  it('adds no authorization data to the returned context beyond resolved memberships', async () => {
     const store = new InMemoryTrustStore();
-    activeMembership(store);
-    grant(store, 'contract:read');
+    await activeMembership(store);
+    await grant(store, 'contract:read');
 
     const identity = gatewayIdentity();
-    const authorized = enforcePermission(
+    const authorized = await enforcePermission(
       identity,
       { permissionKey: 'contract:read' },
       authorities(store),
@@ -462,32 +438,30 @@ describe('Engine 03 permission enforcement — boundary invariants', () => {
     expect(authorized.identityAssuranceLevel).toBe(identity.identityAssuranceLevel);
   });
 
-  it('never elevates assurance while authorizing', () => {
+  it('never elevates assurance while authorizing', async () => {
     const store = new InMemoryTrustStore();
-    activeMembership(store);
-    grant(store, 'contract:read');
+    await activeMembership(store);
+    await grant(store, 'contract:read');
 
     const identity = gatewayIdentity({ identityAssuranceLevel: 'IAL1_BASIC' });
     expect(
-      enforcePermission(identity, { permissionKey: 'contract:read' }, authorities(store))
+      (await enforcePermission(identity, { permissionKey: 'contract:read' }, authorities(store)))
         .identityAssuranceLevel,
     ).toBe('IAL1_BASIC');
   });
 
-  it('does not mutate the context it was given', () => {
+  it('does not mutate the context it was given', async () => {
     const store = new InMemoryTrustStore();
-    activeMembership(store);
-    grant(store, 'contract:read');
+    await activeMembership(store);
+    await grant(store, 'contract:read');
 
     const identity = gatewayIdentity();
-    enforcePermission(identity, { permissionKey: 'contract:read' }, authorities(store));
+    await enforcePermission(identity, { permissionKey: 'contract:read' }, authorities(store));
     expect(identity.memberships).toEqual([]);
   });
 
-  it('raises a typed error for every denial path', () => {
+  it('raises a typed error for every denial path', async () => {
     const store = new InMemoryTrustStore();
-    expect(() =>
-      enforcePermission(gatewayIdentity(), { permissionKey: 'x' }, authorities(store)),
-    ).toThrow(PermissionEnforcementError);
+    await expect(enforcePermission(gatewayIdentity(), { permissionKey: 'x' }, authorities(store))).rejects.toThrow(PermissionEnforcementError);
   });
 });

@@ -382,14 +382,14 @@ describe('Engine 01 identity assertions — configuration', () => {
 });
 
 describe('Engine 01 identity assertions — audit trail', () => {
-  it('audits issuance and acceptance without recording the token', () => {
+  it('audits issuance and acceptance without recording the token', async () => {
     const store = new InMemoryTrustStore();
     const service = new IdentityAssertionService(store, keyring);
 
-    const { token } = service.issue(subject, 'correlation-1');
-    service.consume(token, 'correlation-2', { now: NOW });
+    const { token } = await service.issue(subject, 'correlation-1');
+    await service.consume(token, 'correlation-2', { now: NOW });
 
-    const records = store.list<{ eventType: string; metadata: Record<string, unknown> }>(
+    const records = await store.list<{ eventType: string; metadata: Record<string, unknown> }>(
       'auditRecords',
     );
     expect(records.map((record) => record.eventType)).toEqual([
@@ -403,13 +403,13 @@ describe('Engine 01 identity assertions — audit trail', () => {
     expect(records[0].metadata.keyId).toBe('key-2026-08');
   });
 
-  it('hands the store no metadata key that looks like a credential', () => {
+  it('hands the store no metadata key that looks like a credential', async () => {
     const store = new InMemoryTrustStore();
     const service = new IdentityAssertionService(store, keyring);
-    const { token } = service.issue(subject, 'correlation-8');
-    service.consume(token, 'correlation-9', { now: NOW });
+    const { token } = await service.issue(subject, 'correlation-8');
+    await service.consume(token, 'correlation-9', { now: NOW });
 
-    const records = store.list<{ metadata: Record<string, unknown> }>('auditRecords');
+    const records = await store.list<{ metadata: Record<string, unknown> }>('auditRecords');
     for (const record of records) {
       for (const key of Object.keys(record.metadata)) {
         expect(key).not.toMatch(/password|token|otp|secret|account|identityNumber/i);
@@ -417,15 +417,15 @@ describe('Engine 01 identity assertions — audit trail', () => {
     }
   });
 
-  it('audits a rejection with its stable reason code and rethrows', () => {
+  it('audits a rejection with its stable reason code and rethrows', async () => {
     const store = new InMemoryTrustStore();
     const service = new IdentityAssertionService(store, keyring);
 
-    expect(() => service.consume('v1.tampered.signature', 'correlation-3')).toThrow(
+    await expect(service.consume('v1.tampered.signature', 'correlation-3')).rejects.toThrow(
       IdentityAssertionError,
     );
 
-    const records = store.list<{ eventType: string; metadata: Record<string, unknown> }>(
+    const records = await store.list<{ eventType: string; metadata: Record<string, unknown> }>(
       'auditRecords',
     );
     expect(records).toHaveLength(1);
@@ -436,29 +436,29 @@ describe('Engine 01 identity assertions — audit trail', () => {
     );
   });
 
-  it('audits a replay attempt as a rejection', () => {
+  it('audits a replay attempt as a rejection', async () => {
     const store = new InMemoryTrustStore();
     const service = new IdentityAssertionService(store, keyring);
-    const { token } = service.issue(subject, 'correlation-4');
+    const { token } = await service.issue(subject, 'correlation-4');
 
-    service.consume(token, 'correlation-5', { now: NOW });
-    expect(() => service.consume(token, 'correlation-6', { now: NOW })).toThrow(
+    await service.consume(token, 'correlation-5', { now: NOW });
+    await expect(service.consume(token, 'correlation-6', { now: NOW })).rejects.toThrow(
       'ASSERTION_REPLAYED',
     );
 
-    const rejected = store
-      .list<{ eventType: string; metadata: Record<string, unknown> }>('auditRecords')
+    const rejected = (await store
+      .list<{ eventType: string; metadata: Record<string, unknown> }>('auditRecords'))
       .filter((record) => record.eventType === 'IdentityAssertionRejected');
     expect(rejected).toHaveLength(1);
     expect(rejected[0].metadata.reason).toBe('ASSERTION_REPLAYED');
   });
 
-  it('emits an outbox event carrying no credential material', () => {
+  it('emits an outbox event carrying no credential material', async () => {
     const store = new InMemoryTrustStore();
     const service = new IdentityAssertionService(store, keyring);
-    const { token } = service.issue(subject, 'correlation-7');
+    const { token } = await service.issue(subject, 'correlation-7');
 
-    const events = store.list<{ eventType: string; payload: Record<string, unknown> }>(
+    const events = await store.list<{ eventType: string; payload: Record<string, unknown> }>(
       'outboxEvents',
     );
     expect(events).toHaveLength(1);

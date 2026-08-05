@@ -166,7 +166,7 @@ function scoped(context: RequestContext) {
 
 export class ExecutionEngine {
   constructor(private readonly store: TrustPersistence) {}
-  create(
+  async create(
     context: RequestContext,
     input: { contractId: string; title: string; ownerUserId: string },
   ) {
@@ -181,19 +181,19 @@ export class ExecutionEngine {
       updatedAt: stamp,
       version: 1,
     };
-    this.store.append('governedExecutions', execution);
-    this.record(context, execution, undefined, 'DRAFT', 'Execution created');
+    await this.store.append('governedExecutions', execution);
+    await this.record(context, execution, undefined, 'DRAFT', 'Execution created');
     return execution;
   }
-  transition(
+  async transition(
     context: RequestContext,
     id: string,
     toState: ExecutionState,
     reason: string,
   ) {
     const workspaceId = scoped(context);
-    const execution = this.store
-      .list<Execution>('governedExecutions')
+    const execution = (await this.store
+      .list<Execution>('governedExecutions'))
       .find((x) => x.id === id && x.workspaceId === workspaceId);
     if (!execution) throw new Error('EXECUTION_NOT_FOUND');
     const allowed: Record<ExecutionState, ExecutionState[]> = {
@@ -217,25 +217,25 @@ export class ExecutionEngine {
       updatedAt: now(),
       version: execution.version + 1,
     };
-    this.store.replace('governedExecutions', updated);
-    this.record(context, updated, execution.state, toState, reason);
+    await this.store.replace('governedExecutions', updated);
+    await this.record(context, updated, execution.state, toState, reason);
     return updated;
   }
-  history(context: RequestContext, id: string) {
+  async history(context: RequestContext, id: string) {
     const workspaceId = scoped(context);
-    return this.store
-      .list<ExecutionHistory>('executionHistory')
+    return (await this.store
+      .list<ExecutionHistory>('executionHistory'))
       .filter((x) => x.workspaceId === workspaceId && x.executionId === id)
       .sort((a, b) => a.sequence - b.sequence);
   }
-  project(context: RequestContext, id: string) {
+  async project(context: RequestContext, id: string) {
     const workspaceId = scoped(context);
-    const execution = this.store
-      .list<Execution>('governedExecutions')
+    const execution = (await this.store
+      .list<Execution>('governedExecutions'))
       .find((x) => x.id === id && x.workspaceId === workspaceId);
     if (!execution) throw new Error('EXECUTION_NOT_FOUND');
-    const milestones = this.store
-      .list<MilestoneNode>('governedMilestones')
+    const milestones = (await this.store
+      .list<MilestoneNode>('governedMilestones'))
       .filter((x) => x.executionId === id && x.workspaceId === workspaceId);
     return {
       execution,
@@ -247,18 +247,18 @@ export class ExecutionEngine {
           ],
         ),
       ),
-      historyCount: this.history(context, id).length,
+      historyCount: (await this.history(context, id)).length,
     };
   }
-  private record(
+  private async record(
     context: RequestContext,
     execution: Execution,
     fromState: ExecutionState | undefined,
     toState: ExecutionState,
     reason: string,
   ) {
-    const history = this.store
-      .list<ExecutionHistory>('executionHistory')
+    const history = (await this.store
+      .list<ExecutionHistory>('executionHistory'))
       .filter((x) => x.executionId === execution.id);
     const item: ExecutionHistory = {
       id: randomUUID(),
@@ -271,8 +271,8 @@ export class ExecutionEngine {
       sequence: history.length + 1,
       occurredAt: now(),
     };
-    this.store.append('executionHistory', item);
-    this.store.audit({
+    await this.store.append('executionHistory', item);
+    await this.store.audit({
       tenantId: context.tenantId,
       workspaceId: execution.workspaceId,
       actorId: context.actorUserId,
@@ -282,7 +282,7 @@ export class ExecutionEngine {
       correlationId: context.correlationId,
       metadata: { fromState, toState, reason },
     });
-    this.store.emit({
+    await this.store.emit({
       tenantId: context.tenantId,
       workspaceId: execution.workspaceId,
       aggregateType: 'Execution',
@@ -298,7 +298,7 @@ export class ExecutionEngine {
 
 export class MilestoneEngine {
   constructor(private readonly store: TrustPersistence) {}
-  create(
+  async create(
     context: RequestContext,
     input: {
       executionId: string;
@@ -313,7 +313,7 @@ export class MilestoneEngine {
       throw new Error('INVALID_DURATION');
     if (
       input.parentMilestoneId &&
-      !this.find(workspaceId, input.parentMilestoneId)
+      !await this.find(workspaceId, input.parentMilestoneId)
     )
       throw new Error('PARENT_MILESTONE_NOT_FOUND');
     const stamp = now();
@@ -326,18 +326,18 @@ export class MilestoneEngine {
       updatedAt: stamp,
       version: 1,
     };
-    this.store.append('governedMilestones', milestone);
+    await this.store.append('governedMilestones', milestone);
     return milestone;
   }
-  addDependency(
+  async addDependency(
     context: RequestContext,
     input: { executionId: string; predecessorId: string; successorId: string },
   ) {
     const workspaceId = scoped(context);
     if (input.predecessorId === input.successorId)
       throw new Error('MILESTONE_CYCLE');
-    const nodes = this.store
-      .list<MilestoneNode>('governedMilestones')
+    const nodes = (await this.store
+      .list<MilestoneNode>('governedMilestones'))
       .filter(
         (x) =>
           x.workspaceId === workspaceId && x.executionId === input.executionId,
@@ -355,8 +355,8 @@ export class MilestoneEngine {
       createdAt: now(),
     };
     const edges = [
-      ...this.store
-        .list<MilestoneDependency>('milestoneDependencies')
+      ...(await this.store
+        .list<MilestoneDependency>('milestoneDependencies'))
         .filter(
           (x) =>
             x.workspaceId === workspaceId &&
@@ -366,17 +366,18 @@ export class MilestoneEngine {
     ];
     if (this.hasPath(edges, input.successorId, input.predecessorId))
       throw new Error('MILESTONE_CYCLE');
-    this.store.append('milestoneDependencies', candidate);
+    await this.store.append('milestoneDependencies', candidate);
     return candidate;
   }
-  evaluateReadiness(context: RequestContext, id: string) {
+  async evaluateReadiness(context: RequestContext, id: string) {
     const workspaceId = scoped(context);
-    const milestone = this.find(workspaceId, id);
+    const milestone = await this.find(workspaceId, id);
     if (!milestone) throw new Error('MILESTONE_NOT_FOUND');
-    const predecessors = this.store
-      .list<MilestoneDependency>('milestoneDependencies')
+    const predecessorPromises = (await this.store
+      .list<MilestoneDependency>('milestoneDependencies'))
       .filter((x) => x.workspaceId === workspaceId && x.successorId === id)
-      .map((x) => this.find(workspaceId, x.predecessorId));
+      .map(async (x) => await this.find(workspaceId, x.predecessorId));
+    const predecessors = await Promise.all(predecessorPromises);
     const ready = predecessors.every((x) => x?.state === 'COMPLETED');
     return {
       milestoneId: id,
@@ -386,11 +387,11 @@ export class MilestoneEngine {
         .map((x) => x?.id),
     };
   }
-  complete(context: RequestContext, id: string) {
+  async complete(context: RequestContext, id: string) {
     const workspaceId = scoped(context);
-    const milestone = this.find(workspaceId, id);
+    const milestone = await this.find(workspaceId, id);
     if (!milestone) throw new Error('MILESTONE_NOT_FOUND');
-    if (!this.evaluateReadiness(context, id).ready)
+    if (!(await this.evaluateReadiness(context, id)).ready)
       throw new Error('MILESTONE_DEPENDENCIES_INCOMPLETE');
     const updated = {
       ...milestone,
@@ -398,18 +399,18 @@ export class MilestoneEngine {
       updatedAt: now(),
       version: milestone.version + 1,
     };
-    this.store.replace('governedMilestones', updated);
+    await this.store.replace('governedMilestones', updated);
     return updated;
   }
-  criticalPath(context: RequestContext, executionId: string) {
+  async criticalPath(context: RequestContext, executionId: string) {
     const workspaceId = scoped(context);
-    const nodes = this.store
-      .list<MilestoneNode>('governedMilestones')
+    const nodes = (await this.store
+      .list<MilestoneNode>('governedMilestones'))
       .filter(
         (x) => x.workspaceId === workspaceId && x.executionId === executionId,
       );
-    const edges = this.store
-      .list<MilestoneDependency>('milestoneDependencies')
+    const edges = (await this.store
+      .list<MilestoneDependency>('milestoneDependencies'))
       .filter(
         (x) => x.workspaceId === workspaceId && x.executionId === executionId,
       );
@@ -437,9 +438,9 @@ export class MilestoneEngine {
       }
     );
   }
-  private find(workspaceId: string, id: string) {
-    return this.store
-      .list<MilestoneNode>('governedMilestones')
+  private async find(workspaceId: string, id: string) {
+    return (await this.store
+      .list<MilestoneNode>('governedMilestones'))
       .find((x) => x.workspaceId === workspaceId && x.id === id);
   }
   private hasPath(
@@ -459,7 +460,7 @@ export class MilestoneEngine {
 
 export class DefinitionOfDoneEngine {
   constructor(private readonly store: TrustPersistence) {}
-  createVersion(
+  async createVersion(
     context: RequestContext,
     milestoneId: string,
     criteria: DodCriterion[],
@@ -470,8 +471,8 @@ export class DefinitionOfDoneEngine {
       new Set(criteria.map((x) => x.key)).size !== criteria.length
     )
       throw new Error('INVALID_DOD_CRITERIA');
-    const prior = this.store
-      .list<DefinitionOfDoneVersion>('dodVersions')
+    const prior = (await this.store
+      .list<DefinitionOfDoneVersion>('dodVersions'))
       .filter(
         (x) => x.workspaceId === workspaceId && x.milestoneId === milestoneId,
       );
@@ -486,33 +487,33 @@ export class DefinitionOfDoneEngine {
       createdAt: now(),
       contentHash: digest(criteria),
     };
-    this.store.append('dodVersions', version);
+    await this.store.append('dodVersions', version);
     return version;
   }
-  publish(context: RequestContext, id: string) {
+  async publish(context: RequestContext, id: string) {
     const workspaceId = scoped(context);
-    const definition = this.store
-      .list<DefinitionOfDoneVersion>('dodVersions')
+    const definition = (await this.store
+      .list<DefinitionOfDoneVersion>('dodVersions'))
       .find((x) => x.id === id && x.workspaceId === workspaceId);
     if (!definition) throw new Error('DOD_NOT_FOUND');
     if (definition.status !== 'DRAFT')
       throw new Error('PUBLISHED_DOD_IMMUTABLE');
-    for (const active of this.store
-      .list<DefinitionOfDoneVersion>('dodVersions')
+    for (const active of (await this.store
+      .list<DefinitionOfDoneVersion>('dodVersions'))
       .filter(
         (x) =>
           x.milestoneId === definition.milestoneId && x.status === 'PUBLISHED',
       ))
-      this.store.replace('dodVersions', { ...active, status: 'SUPERSEDED' });
+      await this.store.replace('dodVersions', { ...active, status: 'SUPERSEDED' });
     const published = {
       ...definition,
       status: 'PUBLISHED' as const,
       publishedAt: now(),
     };
-    this.store.replace('dodVersions', published);
+    await this.store.replace('dodVersions', published);
     return published;
   }
-  evaluate(
+  async evaluate(
     context: RequestContext,
     id: string,
     input: {
@@ -522,8 +523,8 @@ export class DefinitionOfDoneEngine {
     },
   ) {
     const workspaceId = scoped(context);
-    const definition = this.store
-      .list<DefinitionOfDoneVersion>('dodVersions')
+    const definition = (await this.store
+      .list<DefinitionOfDoneVersion>('dodVersions'))
       .find(
         (x) =>
           x.id === id &&
@@ -571,14 +572,14 @@ export class DefinitionOfDoneEngine {
       evaluatedBy: context.actorUserId,
       evaluatedAt: now(),
     };
-    this.store.append('dodEvaluations', evaluation);
+    await this.store.append('dodEvaluations', evaluation);
     return evaluation;
   }
 }
 
 export class CertificationEngine {
   constructor(private readonly store: TrustPersistence) {}
-  request(
+  async request(
     context: RequestContext,
     input: {
       executionId: string;
@@ -588,8 +589,8 @@ export class CertificationEngine {
     },
   ) {
     const workspaceId = scoped(context);
-    const evaluation = this.store
-      .list<DodEvaluation>('dodEvaluations')
+    const evaluation = (await this.store
+      .list<DodEvaluation>('dodEvaluations'))
       .find(
         (x) =>
           x.id === input.dodEvaluationId &&
@@ -613,8 +614,8 @@ export class CertificationEngine {
       updatedAt: stamp,
       version: 1,
     };
-    this.store.append('certificationRequests', request);
-    this.store.emit({
+    await this.store.append('certificationRequests', request);
+    await this.store.emit({
       tenantId: context.tenantId,
       workspaceId,
       aggregateType: 'CertificationRequest',
@@ -626,7 +627,7 @@ export class CertificationEngine {
     });
     return request;
   }
-  decide(
+  async decide(
     context: RequestContext,
     id: string,
     decision: 'APPROVE' | 'REJECT',
@@ -634,15 +635,15 @@ export class CertificationEngine {
     evidenceReferences: string[],
   ) {
     const workspaceId = scoped(context);
-    const request = this.store
-      .list<CertificationRequest>('certificationRequests')
+    const request = (await this.store
+      .list<CertificationRequest>('certificationRequests'))
       .find((x) => x.id === id && x.workspaceId === workspaceId);
     if (!request) throw new Error('CERTIFICATION_REQUEST_NOT_FOUND');
     if (!request.reviewerIds.includes(context.actorUserId))
       throw new Error('CERTIFICATION_REVIEWER_UNAUTHORIZED');
     if (
-      this.store
-        .list<CertificationDecision>('certificationDecisions')
+      (await this.store
+        .list<CertificationDecision>('certificationDecisions'))
         .some(
           (x) =>
             x.certificationRequestId === id &&
@@ -660,7 +661,7 @@ export class CertificationEngine {
       evidenceReferences: [...evidenceReferences],
       decidedAt: now(),
     };
-    this.store.append('certificationDecisions', record);
+    await this.store.append('certificationDecisions', record);
     const updated = {
       ...request,
       status:
@@ -668,8 +669,8 @@ export class CertificationEngine {
       updatedAt: now(),
       version: request.version + 1,
     };
-    this.store.replace('certificationRequests', updated);
-    this.store.audit({
+    await this.store.replace('certificationRequests', updated);
+    await this.store.audit({
       tenantId: context.tenantId,
       workspaceId,
       actorId: context.actorUserId,
@@ -681,10 +682,10 @@ export class CertificationEngine {
     });
     return record;
   }
-  issue(context: RequestContext, id: string) {
+  async issue(context: RequestContext, id: string) {
     const workspaceId = scoped(context);
-    const request = this.store
-      .list<CertificationRequest>('certificationRequests')
+    const request = (await this.store
+      .list<CertificationRequest>('certificationRequests'))
       .find(
         (x) =>
           x.id === id &&
@@ -692,8 +693,8 @@ export class CertificationEngine {
           x.status === 'APPROVED',
       );
     if (!request) throw new Error('APPROVED_CERTIFICATION_REQUIRED');
-    const existing = this.store
-      .list<DigitalCertificationRecord>('digitalCertifications')
+    const existing = (await this.store
+      .list<DigitalCertificationRecord>('digitalCertifications'))
       .find((x) => x.certificationRequestId === id);
     if (existing) return existing;
     const payload = {
@@ -706,14 +707,14 @@ export class CertificationEngine {
       workspaceId,
       certificationRequestId: id,
       milestoneId: request.milestoneId,
-      certificateNumber: `AP-CERT-${new Date().getUTCFullYear()}-${String(this.store.list('digitalCertifications').length + 1).padStart(6, '0')}`,
+      certificateNumber: `AP-CERT-${new Date().getUTCFullYear()}-${String((await this.store.list('digitalCertifications')).length + 1).padStart(6, '0')}`,
       canonicalHash: digest(payload),
       status: 'CERTIFIED',
       issuedBy: context.actorUserId,
       issuedAt: now(),
     };
-    this.store.append('digitalCertifications', record);
-    this.store.emit({
+    await this.store.append('digitalCertifications', record);
+    await this.store.emit({
       tenantId: context.tenantId,
       workspaceId,
       aggregateType: 'DigitalCertificationRecord',
@@ -735,7 +736,7 @@ export class PaymentTriggerEngine {
     private readonly store: TrustPersistence,
     private readonly orchestrators: EscrowReleaseOrchestrator[] = [],
   ) {}
-  define(
+  async define(
     context: RequestContext,
     input: Omit<
       PaymentTriggerDefinition,
@@ -753,28 +754,28 @@ export class PaymentTriggerEngine {
       createdAt: now(),
       version: 1,
     };
-    this.store.append('paymentTriggerDefinitions', trigger);
+    await this.store.append('paymentTriggerDefinitions', trigger);
     return trigger;
   }
-  evaluate(context: RequestContext, id: string) {
+  async evaluate(context: RequestContext, id: string) {
     const workspaceId = scoped(context);
-    const trigger = this.store
-      .list<PaymentTriggerDefinition>('paymentTriggerDefinitions')
+    const trigger = (await this.store
+      .list<PaymentTriggerDefinition>('paymentTriggerDefinitions'))
       .find(
         (x) =>
           x.id === id && x.workspaceId === workspaceId && x.status === 'ACTIVE',
       );
     if (!trigger) throw new Error('PAYMENT_TRIGGER_NOT_FOUND');
-    const evaluation = this.store
-      .list<DodEvaluation>('dodEvaluations')
+    const evaluation = (await this.store
+      .list<DodEvaluation>('dodEvaluations'))
       .find(
         (x) =>
           x.definitionId === trigger.requiredDodDefinitionId &&
           x.milestoneId === trigger.milestoneId &&
           x.mandatoryPassed,
       );
-    const certificate = this.store
-      .list<DigitalCertificationRecord>('digitalCertifications')
+    const certificate = (await this.store
+      .list<DigitalCertificationRecord>('digitalCertifications'))
       .find(
         (x) =>
           x.milestoneId === trigger.milestoneId && x.status === 'CERTIFIED',
@@ -792,10 +793,10 @@ export class PaymentTriggerEngine {
       certificationId: certificate?.id,
     };
   }
-  propose(context: RequestContext, id: string, idempotencyKey: string) {
-    const result = this.evaluate(context, id);
-    const existing = this.store
-      .list<PaymentAuthorizationProposal>('paymentAuthorizationProposals')
+  async propose(context: RequestContext, id: string, idempotencyKey: string) {
+    const result = await this.evaluate(context, id);
+    const existing = (await this.store
+      .list<PaymentAuthorizationProposal>('paymentAuthorizationProposals'))
       .find(
         (x) =>
           x.workspaceId === result.trigger.workspaceId &&
@@ -816,8 +817,8 @@ export class PaymentTriggerEngine {
       proposedAt: now(),
       idempotencyKey,
     };
-    this.store.append('paymentAuthorizationProposals', proposal);
-    this.store.audit({
+    await this.store.append('paymentAuthorizationProposals', proposal);
+    await this.store.audit({
       tenantId: context.tenantId,
       workspaceId: proposal.workspaceId,
       actorId: context.actorUserId,
@@ -835,8 +836,8 @@ export class PaymentTriggerEngine {
   }
   async createEscrowReleaseIntent(context: RequestContext, proposalId: string) {
     const workspaceId = scoped(context);
-    const proposal = this.store
-      .list<PaymentAuthorizationProposal>('paymentAuthorizationProposals')
+    const proposal = (await this.store
+      .list<PaymentAuthorizationProposal>('paymentAuthorizationProposals'))
       .find(
         (x) =>
           x.id === proposalId &&
@@ -844,13 +845,13 @@ export class PaymentTriggerEngine {
           x.status === 'PROPOSED',
       );
     if (!proposal) throw new Error('ELIGIBLE_PROPOSAL_REQUIRED');
-    const trigger = this.store
-      .list<PaymentTriggerDefinition>('paymentTriggerDefinitions')
+    const trigger = (await this.store
+      .list<PaymentTriggerDefinition>('paymentTriggerDefinitions'))
       .find((x) => x.id === proposal.triggerId);
     const adapter = this.orchestrators.find(
       (x) => x.providerKey === trigger?.escrowProviderKey,
     );
     if (!adapter) throw new Error('ESCROW_ORCHESTRATOR_NOT_CONFIGURED');
-    return adapter.createReleaseIntent(proposal);
+    return await adapter.createReleaseIntent(proposal);
   }
 }

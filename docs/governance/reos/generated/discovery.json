@@ -448,6 +448,12 @@
       "testNamePattern": "21"
     },
     {
+      "command": "vitest run packages/shared packages/database packages/reos/src/reos.persistence.test.ts packages/reos/src/reos.integration.test.ts",
+      "packageDirectory": "packages/shared",
+      "script": "certify:persistence",
+      "testNamePattern": null
+    },
+    {
       "command": "vitest run packages/enterprise-analytics/src/enterprise-analytics.test.ts --testNamePattern=58",
       "packageDirectory": "packages/enterprise-analytics",
       "script": "certify:portfolio-analytics",
@@ -1879,7 +1885,7 @@
       "moduleType": null,
       "name": "@assurapay/agent-runtime",
       "sourceFiles": 2,
-      "sourceLines": 1205,
+      "sourceLines": 1208,
       "testFiles": [
         "packages/agent-runtime/src/agent-runtime.e2e.test.ts",
         "packages/agent-runtime/src/agent-runtime.integration.test.ts",
@@ -2034,8 +2040,9 @@
       "moduleType": null,
       "name": "@assurapay/database",
       "sourceFiles": 3,
-      "sourceLines": 648,
+      "sourceLines": 825,
       "testFiles": [
+        "packages/database/src/async-conformance.test.ts",
         "packages/database/src/trust-migrations.integration.test.ts",
         "packages/database/src/trust-store.test.ts"
       ],
@@ -2044,7 +2051,7 @@
         "integration": 1,
         "performance": 0,
         "security": 0,
-        "unit": 1
+        "unit": 2
       },
       "workspaceDependencies": [
         "@assurapay/shared"
@@ -2165,7 +2172,7 @@
       "moduleType": null,
       "name": "@assurapay/execution-orchestration",
       "sourceFiles": 1,
-      "sourceLines": 516,
+      "sourceLines": 526,
       "testFiles": [
         "packages/execution-orchestration/src/execution-orchestration.e2e.test.ts",
         "packages/execution-orchestration/src/execution-orchestration.integration.test.ts",
@@ -2197,7 +2204,7 @@
       "moduleType": null,
       "name": "@assurapay/governance-core",
       "sourceFiles": 1,
-      "sourceLines": 849,
+      "sourceLines": 850,
       "testFiles": [
         "packages/governance-core/src/governance-core.e2e.test.ts",
         "packages/governance-core/src/governance-core.integration.test.ts",
@@ -2231,7 +2238,7 @@
       "moduleType": null,
       "name": "@assurapay/identity",
       "sourceFiles": 4,
-      "sourceLines": 1178,
+      "sourceLines": 1179,
       "testFiles": [
         "packages/identity/src/assertions.test.ts",
         "packages/identity/src/gateway.test.ts",
@@ -2406,7 +2413,7 @@
       "moduleType": null,
       "name": "@assurapay/permissions",
       "sourceFiles": 3,
-      "sourceLines": 1002,
+      "sourceLines": 1022,
       "testFiles": [
         "packages/permissions/src/catalogue.test.ts",
         "packages/permissions/src/enforcement.test.ts",
@@ -2431,13 +2438,14 @@
       "main": "src/index.ts",
       "moduleType": "module",
       "name": "@assurapay/reos",
-      "sourceFiles": 24,
-      "sourceLines": 4164,
+      "sourceFiles": 25,
+      "sourceLines": 4462,
       "testFiles": [
         "packages/reos/src/reos.e2e.test.ts",
         "packages/reos/src/reos.governance.test.ts",
         "packages/reos/src/reos.integration.test.ts",
         "packages/reos/src/reos.ledger.test.ts",
+        "packages/reos/src/reos.persistence.test.ts",
         "packages/reos/src/reos.security.test.ts",
         "packages/reos/src/reos.test.ts"
       ],
@@ -2446,7 +2454,7 @@
         "integration": 1,
         "performance": 0,
         "security": 1,
-        "unit": 3
+        "unit": 4
       },
       "workspaceDependencies": []
     },
@@ -2524,14 +2532,16 @@
       "moduleType": null,
       "name": "@assurapay/shared",
       "sourceFiles": 2,
-      "sourceLines": 437,
-      "testFiles": [],
+      "sourceLines": 480,
+      "testFiles": [
+        "packages/shared/src/trust.test.ts"
+      ],
       "tests": {
         "e2e": 0,
         "integration": 0,
         "performance": 0,
         "security": 0,
-        "unit": 0
+        "unit": 1
       },
       "workspaceDependencies": []
     },
@@ -2578,20 +2588,50 @@
   "reosVersion": "1.0.0",
   "repository": {
     "git": {
-      "branch": "claude/git-pull-cqc04u",
+      "branch": "feat/persistence-async-repository-interface",
       "branches": [
         "claude/git-pull-cqc04u",
+        "feat/persistence-async-repository-interface",
+        "main",
         "origin/claude/git-pull-cqc04u",
         "origin/claude/implementation-02q40a",
         "origin/feat/engines-01-05-trust-foundation",
         "origin/feat/engines-06-10-governance-core",
         "origin/feat/engines-61-70-agent-runtime",
-        "origin/main"
+        "origin/feat/persistence-async-repository-interface",
+        "origin/main",
+        "origin/wip/persistence-async-migration",
+        "origin/wip/persistence-async-repository-interface",
+        "wip/persistence-async-migration",
+        "wip/persistence-async-repository-interface"
       ],
-      "clean": true,
-      "dirtyFiles": [],
-      "head": "fcdb5cab56816b20140d0cf128a8e2d347f1e015",
-      "headShort": "fcdb5ca",
+      "clean": false,
+      "dirtyFiles": [
+        "docs/governance/reos/capability-registry.json",
+        "docs/governance/reos/generated/CERTIFICATION_REPORT.md",
+        "docs/governance/reos/generated/DEPENDENCY_RESOLUTION.md",
+        "docs/governance/reos/generated/EXECUTION_MANIFEST.md",
+        "docs/governance/reos/generated/certification.json",
+        "docs/governance/reos/generated/dependency-resolution.json",
+        "docs/governance/reos/generated/discovery.json",
+        "docs/governance/reos/generated/execution-manifest.json",
+        "docs/governance/reos/generated/forensics.json",
+        "package.json",
+        "packages/agent-runtime/src/agent-runtime.security.test.ts",
+        "packages/database/src/async-conformance.test.ts",
+        "packages/database/src/conformance.ts",
+        "packages/database/src/trust-store.test.ts",
+        "packages/execution-orchestration/src/execution-orchestration.test.ts",
+        "packages/identity/src/identity.test.ts",
+        "packages/reos/src/index.ts",
+        "packages/reos/src/reos.persistence.test.ts",
+        "packages/reos/src/validators/architecture.ts",
+        "packages/reos/src/validators/persistence.ts",
+        "packages/shared/src/trust.test.ts",
+        "packages/shared/src/trust.ts"
+      ],
+      "head": "bcd78f6c73075fc5459bf43a7bcb9bae1f213e45",
+      "headShort": "bcd78f6",
       "reflogAvailable": true,
       "remotes": [
         "origin"
@@ -2600,7 +2640,7 @@
         "platform-trust-foundation",
         "rc-engine-60"
       ],
-      "upstream": "origin/claude/git-pull-cqc04u"
+      "upstream": "origin/feat/persistence-async-repository-interface"
     },
     "name": "assurapay",
     "packageManager": "pnpm@11.3.0",
@@ -2782,9 +2822,9 @@
       "integration": 15,
       "performance": 2,
       "security": 3,
-      "unit": 37
+      "unit": 40
     },
-    "files": 72
+    "files": 75
   },
   "totals": {
     "applications": 1,
@@ -2792,7 +2832,7 @@
     "engines": 60,
     "migrations": 20,
     "packages": 23,
-    "testFiles": 72
+    "testFiles": 75
   },
   "workflows": [
     {

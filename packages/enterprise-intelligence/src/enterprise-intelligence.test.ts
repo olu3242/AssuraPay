@@ -19,76 +19,74 @@ const c = {
 };
 
 describe('Engine 51 Execution Assurance Index', () => {
-  it('averages weighted factors but forces the score to zero when any mandatory gate fails', () => {
+  it('averages weighted factors but forces the score to zero when any mandatory gate fails', async () => {
     const s = new InMemoryTrustStore();
     const e = new ExecutionAssuranceIndexEngine(s);
-    expect(() =>
-      e.compute(c, { scopeId: 'wi', factors: { quality: 150 }, mandatoryGates: [] }),
-    ).toThrow('MUST_BE_BETWEEN_0_AND_100');
-    const clean = e.compute(c, {
+    await expect(e.compute(c, { scopeId: 'wi', factors: { quality: 150 }, mandatoryGates: [] })).rejects.toThrow('MUST_BE_BETWEEN_0_AND_100');
+    const clean = await e.compute(c, {
       scopeId: 'wi',
       factors: { quality: 90, timeliness: 80 },
       mandatoryGates: [{ gate: 'QUALITY_GATE', passed: true }],
     });
     expect(clean).toMatchObject({ score: 85, overridden: false, failedGates: [] });
-    const overridden = e.compute(c, {
+    const overridden = await e.compute(c, {
       scopeId: 'wi',
       factors: { quality: 95, timeliness: 95 },
       mandatoryGates: [{ gate: 'QUALITY_GATE', passed: false }],
     });
     expect(overridden).toMatchObject({ score: 0, overridden: true, failedGates: ['QUALITY_GATE'] });
-    expect(e.latest(c, 'wi')?.id).toBe(overridden.id);
+    expect((await e.latest(c, 'wi'))?.id).toBe(overridden.id);
   });
 });
 
 describe('Engine 52 Settlement Assurance Index', () => {
-  it('forces the score to zero whenever an active dispute hold is reported', () => {
+  it('forces the score to zero whenever an active dispute hold is reported', async () => {
     const s = new InMemoryTrustStore();
     const e = new SettlementAssuranceIndexEngine(s);
-    const clean = e.compute(c, { scopeId: 'm', factors: { eligibility: 100, funding: 100 }, activeHold: false });
+    const clean = await e.compute(c, { scopeId: 'm', factors: { eligibility: 100, funding: 100 }, activeHold: false });
     expect(clean).toMatchObject({ score: 100, overridden: false });
-    const held = e.compute(c, { scopeId: 'm', factors: { eligibility: 100, funding: 100 }, activeHold: true });
+    const held = await e.compute(c, { scopeId: 'm', factors: { eligibility: 100, funding: 100 }, activeHold: true });
     expect(held).toMatchObject({ score: 0, overridden: true });
   });
 });
 
 describe('Engine 53 Enterprise KPI', () => {
-  it('computes on-track status per direction and blocks recording against a retired definition', () => {
+  it('computes on-track status per direction and blocks recording against a retired definition', async () => {
     const s = new InMemoryTrustStore();
     const e = new EnterpriseKpiEngine(s);
-    const onTimeDelivery = e.define(c, {
+    const onTimeDelivery = await e.define(c, {
       kind: 'EXECUTION',
       name: 'On-time delivery rate',
       targetValue: 90,
       direction: 'HIGHER_IS_BETTER',
       unit: 'percent',
     });
-    const defectRate = e.define(c, {
+    const defectRate = await e.define(c, {
       kind: 'RISK',
       name: 'Defect rate',
       targetValue: 5,
       direction: 'LOWER_IS_BETTER',
       unit: 'percent',
     });
-    expect(e.recordValue(c, { kpiDefinitionId: onTimeDelivery.id, scopeId: 'portfolio', actualValue: 92 }).onTrack).toBe(
+    expect((await e.recordValue(c, { kpiDefinitionId: onTimeDelivery.id, scopeId: 'portfolio', actualValue: 92 })).onTrack).toBe(
       true,
     );
-    expect(e.recordValue(c, { kpiDefinitionId: defectRate.id, scopeId: 'portfolio', actualValue: 8 }).onTrack).toBe(
+    expect((await e.recordValue(c, { kpiDefinitionId: defectRate.id, scopeId: 'portfolio', actualValue: 8 })).onTrack).toBe(
       false,
     );
-    expect(e.latest(c, { kpiDefinitionId: onTimeDelivery.id, scopeId: 'portfolio' })?.actualValue).toBe(92);
-    e.retire(c, onTimeDelivery.id);
-    expect(() => e.recordValue(c, { kpiDefinitionId: onTimeDelivery.id, scopeId: 'portfolio', actualValue: 95 })).toThrow(
+    expect((await e.latest(c, { kpiDefinitionId: onTimeDelivery.id, scopeId: 'portfolio' }))?.actualValue).toBe(92);
+    await e.retire(c, onTimeDelivery.id);
+    await expect(e.recordValue(c, { kpiDefinitionId: onTimeDelivery.id, scopeId: 'portfolio', actualValue: 95 })).rejects.toThrow(
       'KPI_DEFINITION_NOT_ACTIVE',
     );
   });
 });
 
 describe('Engine 54 Executive Dashboard', () => {
-  it('filters widgets to only those visible to the requested role', () => {
+  it('filters widgets to only those visible to the requested role', async () => {
     const s = new InMemoryTrustStore();
     const e = new ExecutiveDashboardEngine(s);
-    const snapshot = e.compose(c, {
+    const snapshot = await e.compose(c, {
       role: 'FINANCE_DIRECTOR',
       widgets: [
         { key: 'execution-index', label: 'Execution Assurance Index', value: 92, allowedRoles: ['EXECUTIVE', 'FINANCE_DIRECTOR'] },
@@ -96,8 +94,8 @@ describe('Engine 54 Executive Dashboard', () => {
       ],
     });
     expect(snapshot.widgets.map((w) => w.key)).toEqual(['execution-index']);
-    expect(e.latest(c, 'FINANCE_DIRECTOR')?.id).toBe(snapshot.id);
-    expect(e.latest(c, 'OPERATIONS_LEAD')).toBeUndefined();
+    expect((await e.latest(c, 'FINANCE_DIRECTOR'))?.id).toBe(snapshot.id);
+    expect(await e.latest(c, 'OPERATIONS_LEAD')).toBeUndefined();
   });
 });
 
@@ -123,8 +121,8 @@ describe('Engine 55 Predictive Execution Intelligence', () => {
     });
     const forecast = await e.forecast(c, { scopeId: 'm', forecastType: 'DELAY', signals: { progress: 60 } });
     expect(forecast.reviewStatus).toBe('NOT_REVIEWED');
-    expect(e.review(c, { id: forecast.id, decision: 'ACCEPTED' }).reviewStatus).toBe('ACCEPTED');
-    expect(() => e.review(c, { id: forecast.id, decision: 'REJECTED' })).toThrow('FORECAST_ALREADY_REVIEWED');
-    expect(e.latest(c, { scopeId: 'm', forecastType: 'DELAY' })?.id).toBe(forecast.id);
+    expect((await e.review(c, { id: forecast.id, decision: 'ACCEPTED' })).reviewStatus).toBe('ACCEPTED');
+    await expect(e.review(c, { id: forecast.id, decision: 'REJECTED' })).rejects.toThrow('FORECAST_ALREADY_REVIEWED');
+    expect((await e.latest(c, { scopeId: 'm', forecastType: 'DELAY' }))?.id).toBe(forecast.id);
   });
 });

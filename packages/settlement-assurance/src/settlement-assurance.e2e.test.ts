@@ -21,7 +21,7 @@ describe('e2e Batch 9 certified milestone to a condition-met, non-custodial rele
       correlationId: 'c',
     };
 
-    const eligibility = new PaymentEligibilityEngine(s).assess(c, {
+    const eligibility = await new PaymentEligibilityEngine(s).assess(c, {
       milestoneId: 'erection-milestone',
       completionCertificateId: 'certificate',
       certificateStatus: 'CERTIFIED',
@@ -32,7 +32,7 @@ describe('e2e Batch 9 certified milestone to a condition-met, non-custodial rele
     expect(eligibility.eligible).toBe(true);
 
     const entitlementEngine = new FinancialEntitlementEngine(s);
-    const entitlement = entitlementEngine.calculate(c, {
+    const entitlement = await entitlementEngine.calculate(c, {
       milestoneId: 'erection-milestone',
       paymentEligibilityId: eligibility.id,
       currency: 'NGN',
@@ -42,10 +42,10 @@ describe('e2e Batch 9 certified milestone to a condition-met, non-custodial rele
       taxAmountMinor: 0,
       penaltyAmountMinor: 0,
     });
-    entitlementEngine.confirm(c, entitlement.id);
+    await entitlementEngine.confirm(c, entitlement.id);
 
     const invoices = new InvoiceClaimEngine(s);
-    const invoice = invoices.submit(c, {
+    const invoice = await invoices.submit(c, {
       milestoneId: 'erection-milestone',
       financialEntitlementId: entitlement.id,
       invoiceNumber: 'INV-2026-08421',
@@ -53,14 +53,14 @@ describe('e2e Batch 9 certified milestone to a condition-met, non-custodial rele
       currency: 'NGN',
     });
     expect(invoice.status).toBe('MATCHED');
-    invoices.approve(c, invoice.id);
+    await invoices.approve(c, invoice.id);
 
     const funding = new EscrowFundingAssuranceEngine(s, {
       async confirmFunding(input) {
         return { confirmed: true, providerConfirmationReference: `bank-escrow-ref-${input.externalCustodyReference}` };
       },
     });
-    const commitment = funding.recordCommitment(c, {
+    const commitment = await funding.recordCommitment(c, {
       milestoneId: 'erection-milestone',
       providerKey: 'partner-bank-escrow',
       externalCustodyReference: 'partner-bank://escrow/AP-2026-08421',
@@ -69,14 +69,14 @@ describe('e2e Batch 9 certified milestone to a condition-met, non-custodial rele
     });
     const confirmedCommitment = await funding.confirmCommitment(c, commitment.id);
     expect(confirmedCommitment.status).toBe('CONFIRMED');
-    const reservation = funding.reserve(c, {
+    const reservation = await funding.reserve(c, {
       fundingCommitmentId: confirmedCommitment.id,
       invoiceId: invoice.id,
       reservedAmountMinor: entitlement.netPayableAmountMinor,
     });
 
     const release = new ConditionalReleaseOrchestrationEngine(s);
-    const request = release.draft(c, {
+    const request = await release.draft(c, {
       milestoneId: 'erection-milestone',
       financialEntitlementId: entitlement.id,
       invoiceId: invoice.id,
@@ -84,7 +84,7 @@ describe('e2e Batch 9 certified milestone to a condition-met, non-custodial rele
       releaseType: 'FULL',
       requestedAmountMinor: entitlement.netPayableAmountMinor,
     });
-    const evaluated = release.evaluate(c, { id: request.id, paymentEligible: eligibility.eligible });
+    const evaluated = await release.evaluate(c, { id: request.id, paymentEligible: eligibility.eligible });
     expect(evaluated).toMatchObject({ status: 'CONDITIONS_MET', blockers: [] });
   });
 });

@@ -15,9 +15,9 @@ const c = (w: string) => ({
   correlationId: 'security',
 });
 describe('architecture and security', () => {
-  it('produces only advisory artifacts and isolates persisted records by workspace', () => {
+  it('produces only advisory artifacts and isolates persisted records by workspace', async () => {
     const store = new InMemoryTrustStore();
-    const plan = new ExceptionManagementEngine(store).createPlan(c('a'), {
+    const plan = await new ExceptionManagementEngine(store).createPlan(c('a'), {
       agreementId: 'a',
       scopeId: 'm',
       type: 'FAILED_MILESTONE',
@@ -31,7 +31,7 @@ describe('architecture and security', () => {
         rationale: 'failure',
       }).status,
     ).toBe('PROPOSED');
-    new ExecutionHealthEngine(store).compute(c('b'), {
+    await new ExecutionHealthEngine(store).compute(c('b'), {
       agreementId: 'b',
       signals: {
         milestoneCompletion: 0,
@@ -43,7 +43,7 @@ describe('architecture and security', () => {
         executionRisk: 100,
       },
     });
-    const values = store.list<{ workspaceId: string }>('executionHealthScores');
+    const values = await store.list<{ workspaceId: string }>('executionHealthScores');
     expect(values).toHaveLength(1);
     expect(values[0].workspaceId).toBe('b');
   });

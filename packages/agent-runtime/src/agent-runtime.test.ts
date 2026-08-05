@@ -33,62 +33,59 @@ describe('Engines 62–64 and 68 registries and approval', () => {
       'Coordinator',
     ]);
   });
-  it('versions agents and prompts, validates prompt contracts, and rolls published prompts back', () => {
+  it('versions agents and prompts, validates prompt contracts, and rolls published prompts back', async () => {
     const store = new InMemoryTrustStore();
     const agents = new AgentRegistryEngine(store);
     const prompts = new PromptRegistryEngine(store);
-    const first = agents.register(c, {
+    const first = await agents.register(c, {
       name: 'Atlas',
       owner: 'Agreement Intelligence',
       promptIds: ['atlas'],
       allowedCapabilityIds: ['read-agreement'],
     });
-    const second = agents.register(c, {
+    const second = await agents.register(c, {
       name: 'Atlas',
       owner: 'Agreement Intelligence',
       promptIds: ['atlas'],
       allowedCapabilityIds: ['read-agreement'],
     });
     expect(first.version).toBe(1);
-    expect(agents.activate(c, second.id).version).toBe(2);
-    expect(agents.active(c, 'Atlas')?.id).toBe(second.id);
-    expect(() =>
-      prompts.createVersion(c, {
+    expect((await agents.activate(c, second.id)).version).toBe(2);
+    expect((await agents.active(c, 'Atlas'))?.id).toBe(second.id);
+    await expect(prompts.createVersion(c, {
         promptId: 'atlas',
         template: 'missing',
         requiredVariables: ['agreement'],
         outputContract: 'Proposal',
-      }),
-    ).toThrow('PROMPT_VARIABLE_MISSING');
-    const p1 = prompts.createVersion(c, {
+      })).rejects.toThrow('PROMPT_VARIABLE_MISSING');
+    const p1 = await prompts.createVersion(c, {
       promptId: 'atlas',
       template: 'Review {{agreement}}',
       requiredVariables: ['agreement'],
       outputContract: 'Proposal',
     });
-    prompts.publish(c, p1.id);
-    const p2 = prompts.createVersion(c, {
+    await prompts.publish(c, p1.id);
+    const p2 = await prompts.createVersion(c, {
       promptId: 'atlas',
       template: 'Analyze {{agreement}}',
       requiredVariables: ['agreement'],
       outputContract: 'Proposal',
     });
-    prompts.publish(c, p2.id);
-    expect(prompts.render(c, 'atlas', { agreement: 'A-1' }).rendered).toBe(
+    await prompts.publish(c, p2.id);
+    expect((await prompts.render(c, 'atlas', { agreement: 'A-1' })).rendered).toBe(
       'Analyze A-1',
     );
-    prompts.rollback(c, 'atlas', 1);
-    expect(prompts.render(c, 'atlas', { agreement: 'A-1' }).rendered).toBe(
+    await prompts.rollback(c, 'atlas', 1);
+    expect((await prompts.render(c, 'atlas', { agreement: 'A-1' })).rendered).toBe(
       'Review A-1',
     );
   });
 
-  it('forbids protected deterministic mutation and makes human approvals one-time and proposal-bound', () => {
+  it('forbids protected deterministic mutation and makes human approvals one-time and proposal-bound', async () => {
     const store = new InMemoryTrustStore();
     const capabilities = new CapabilityRegistryEngine(store);
     const approvals = new HumanApprovalEngine(store);
-    expect(() =>
-      capabilities.register(c, {
+    await expect(capabilities.register(c, {
         name: 'issue-certificate',
         owner: 'Completion Assurance',
         permission: 'certificate:issue',
@@ -97,23 +94,22 @@ describe('Engines 62–64 and 68 registries and approval', () => {
         aiAllowed: true,
         humanApprovalRequired: true,
         protectedState: true,
-      }),
-    ).toThrow('AGENTS_MAY_ONLY_PROPOSE_PROTECTED_STATE_CHANGES');
-    const request = approvals.request(c, {
+      })).rejects.toThrow('AGENTS_MAY_ONLY_PROPOSE_PROTECTED_STATE_CHANGES');
+    const request = await approvals.request(c, {
       executionId: 'run',
       requestedByAgentId: 'atlas-agent',
       action: 'CERTIFICATION',
       proposalHash: 'abc',
     });
-    expect(() => approvals.consume(c, request.id, 'abc')).toThrow(
+    await expect(approvals.consume(c, request.id, 'abc')).rejects.toThrow(
       'APPROVAL_REQUIRED',
     );
-    approvals.decide(c, request.id, 'APPROVED');
-    expect(() => approvals.consume(c, request.id, 'wrong')).toThrow(
+    await approvals.decide(c, request.id, 'APPROVED');
+    await expect(approvals.consume(c, request.id, 'wrong')).rejects.toThrow(
       'APPROVAL_PROPOSAL_MISMATCH',
     );
-    approvals.consume(c, request.id, 'abc');
-    expect(() => approvals.consume(c, request.id, 'abc')).toThrow(
+    await approvals.consume(c, request.id, 'abc');
+    await expect(approvals.consume(c, request.id, 'abc')).rejects.toThrow(
       'APPROVAL_ALREADY_CONSUMED',
     );
   });

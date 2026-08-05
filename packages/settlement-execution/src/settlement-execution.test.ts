@@ -21,35 +21,31 @@ const approver1 = { ...requester, actorUserId: 'approver-1' };
 const approver2 = { ...requester, actorUserId: 'approver-2' };
 
 describe('Engine 46 Financial Approval & Authority', () => {
-  it('enforces segregation of duties, rejects duplicate approvers and requires every configured approval', () => {
+  it('enforces segregation of duties, rejects duplicate approvers and requires every configured approval', async () => {
     const s = new InMemoryTrustStore();
     const e = new FinancialApprovalAuthorityEngine(s);
-    expect(() =>
-      e.defineThreshold(requester, { minAmountMinor: 100, maxAmountMinor: 50, currency: 'NGN', requiredApprovals: 1 }),
-    ).toThrow('INVALID_THRESHOLD_RANGE');
-    e.defineThreshold(requester, {
+    await expect(e.defineThreshold(requester, { minAmountMinor: 100, maxAmountMinor: 50, currency: 'NGN', requiredApprovals: 1 })).rejects.toThrow('INVALID_THRESHOLD_RANGE');
+    await e.defineThreshold(requester, {
       minAmountMinor: 0,
       maxAmountMinor: 1_000_000_000,
       currency: 'NGN',
       requiredApprovals: 2,
     });
-    expect(() =>
-      e.requestAuthorization(requester, { releaseRequestId: 'r', amountMinor: 425_000_000, currency: 'USD' }),
-    ).toThrow('NO_APPROVAL_THRESHOLD_CONFIGURED');
-    const authorization = e.requestAuthorization(requester, {
+    await expect(e.requestAuthorization(requester, { releaseRequestId: 'r', amountMinor: 425_000_000, currency: 'USD' })).rejects.toThrow('NO_APPROVAL_THRESHOLD_CONFIGURED');
+    const authorization = await e.requestAuthorization(requester, {
       releaseRequestId: 'r',
       amountMinor: 425_000_000,
       currency: 'NGN',
     });
-    expect(() => e.approve(requester, { id: authorization.id, rationale: 'looks fine' })).toThrow(
+    await expect(e.approve(requester, { id: authorization.id, rationale: 'looks fine' })).rejects.toThrow(
       'SEGREGATION_OF_DUTIES_VIOLATION',
     );
-    const firstApproval = e.approve(approver1, { id: authorization.id, rationale: 'verified against entitlement' });
+    const firstApproval = await e.approve(approver1, { id: authorization.id, rationale: 'verified against entitlement' });
     expect(firstApproval.status).toBe('PENDING');
-    expect(() => e.approve(approver1, { id: authorization.id, rationale: 'again' })).toThrow('DUPLICATE_APPROVER');
-    const authorized = e.approve(approver2, { id: authorization.id, rationale: 'second independent check' });
+    await expect(e.approve(approver1, { id: authorization.id, rationale: 'again' })).rejects.toThrow('DUPLICATE_APPROVER');
+    const authorized = await e.approve(approver2, { id: authorization.id, rationale: 'second independent check' });
     expect(authorized.status).toBe('AUTHORIZED');
-    expect(() => e.approve(approver1, { id: authorization.id, rationale: 'late' })).toThrow('AUTHORIZATION_NOT_PENDING');
+    await expect(e.approve(approver1, { id: authorization.id, rationale: 'late' })).rejects.toThrow('AUTHORIZATION_NOT_PENDING');
   });
 });
 
@@ -64,8 +60,7 @@ describe('Engine 47 Payment Execution & Treasury Integration', () => {
         return { status: 'SETTLED' };
       },
     });
-    expect(() =>
-      e.issue(requester, {
+    await expect(e.issue(requester, {
         releaseRequestId: 'r',
         providerKey: 'paystack',
         idempotencyKey: 'idem-1',
@@ -73,9 +68,8 @@ describe('Engine 47 Payment Execution & Treasury Integration', () => {
         amountMinor: 425_000_000,
         currency: 'NGN',
         authorized: false,
-      }),
-    ).toThrow('AUTHORIZATION_REQUIRED');
-    const first = e.issue(requester, {
+      })).rejects.toThrow('AUTHORIZATION_REQUIRED');
+    const first = await e.issue(requester, {
       releaseRequestId: 'r',
       providerKey: 'paystack',
       idempotencyKey: 'idem-1',
@@ -84,7 +78,7 @@ describe('Engine 47 Payment Execution & Treasury Integration', () => {
       currency: 'NGN',
       authorized: true,
     });
-    const duplicate = e.issue(requester, {
+    const duplicate = await e.issue(requester, {
       releaseRequestId: 'r',
       providerKey: 'paystack',
       idempotencyKey: 'idem-1',
@@ -98,8 +92,8 @@ describe('Engine 47 Payment Execution & Treasury Integration', () => {
     expect(submitted).toMatchObject({ status: 'SUBMITTED', providerReference: 'prov-ref-1' });
     const settled = await e.refreshStatus(requester, first.id);
     expect(settled.status).toBe('SETTLED');
-    expect(() => e.reverse(requester, { id: first.id, reason: '' })).toThrow('REVERSAL_REASON_REQUIRED');
-    expect(e.reverse(requester, { id: first.id, reason: 'chargeback reported by provider' }).status).toBe('REVERSED');
+    await expect(e.reverse(requester, { id: first.id, reason: '' })).rejects.toThrow('REVERSAL_REASON_REQUIRED');
+    expect((await e.reverse(requester, { id: first.id, reason: 'chargeback reported by provider' })).status).toBe('REVERSED');
 
     const rejecting = new PaymentExecutionEngine(s, {
       async submitPayment() {
@@ -109,7 +103,7 @@ describe('Engine 47 Payment Execution & Treasury Integration', () => {
         return { status: 'PENDING' };
       },
     });
-    const toReject = rejecting.issue(requester, {
+    const toReject = await rejecting.issue(requester, {
       releaseRequestId: 'r2',
       providerKey: 'paystack',
       idempotencyKey: 'idem-2',
@@ -123,86 +117,84 @@ describe('Engine 47 Payment Execution & Treasury Integration', () => {
 });
 
 describe('Engine 48 Reconciliation & Financial Ledger', () => {
-  it('appends ledger entries and flags amount mismatches as reconciliation exceptions', () => {
+  it('appends ledger entries and flags amount mismatches as reconciliation exceptions', async () => {
     const s = new InMemoryTrustStore();
     const e = new ReconciliationLedgerEngine(s);
-    e.record(requester, {
+    await e.record(requester, {
       paymentInstructionId: 'pi',
       entryType: 'DEBIT',
       amountMinor: 425_000_000,
       currency: 'NGN',
       description: 'escrow debit for milestone payout',
     });
-    const matched = e.reconcile(requester, {
+    const matched = await e.reconcile(requester, {
       paymentInstructionId: 'pi',
       providerStatementReference: 'stmt-1',
       providerReportedAmountMinor: 425_000_000,
       recordedAmountMinor: 425_000_000,
     });
     expect(matched.matched).toBe(true);
-    const mismatched = e.reconcile(requester, {
+    const mismatched = await e.reconcile(requester, {
       paymentInstructionId: 'pi2',
       providerStatementReference: 'stmt-2',
       providerReportedAmountMinor: 400_000_000,
       recordedAmountMinor: 425_000_000,
     });
     expect(mismatched).toMatchObject({ matched: false, exceptionReason: 'AMOUNT_MISMATCH' });
-    expect(e.exceptions(requester)).toHaveLength(1);
+    expect(await e.exceptions(requester)).toHaveLength(1);
   });
 });
 
 describe('Engine 49 Dispute, Claim & Appeal Resolution', () => {
-  it('freezes the release request the moment a dispute is raised and only releases the hold on close', () => {
+  it('freezes the release request the moment a dispute is raised and only releases the hold on close', async () => {
     const s = new InMemoryTrustStore();
     const e = new DisputeResolutionEngine(s);
-    const dispute = e.raise(requester, {
+    const dispute = await e.raise(requester, {
       releaseRequestId: 'r',
       kind: 'PAYMENT_DISPUTE',
       description: 'beneficiary disputes the settled amount',
     });
-    expect(e.isHeld(requester, 'r')).toBe(true);
-    e.submitEvidence(requester, { disputeId: dispute.id, reference: 'secure://evidence', description: 'signed delivery note' });
-    e.submitPosition(requester, { disputeId: dispute.id, partyId: 'payee', position: 'amount was short by 5%' });
-    expect(() => e.appeal(requester, { disputeId: dispute.id, reason: 'too early' })).toThrow('DISPUTE_NOT_DECIDED');
-    e.decide(requester, { disputeId: dispute.id, decision: 'PARTIAL', rationale: 'partial shortfall confirmed' });
-    e.appeal(requester, { disputeId: dispute.id, reason: 'payee disagrees with partial finding' });
-    expect(e.close(requester, dispute.id).status).toBe('CLOSED');
-    expect(e.isHeld(requester, 'r')).toBe(false);
+    expect(await e.isHeld(requester, 'r')).toBe(true);
+    await e.submitEvidence(requester, { disputeId: dispute.id, reference: 'secure://evidence', description: 'signed delivery note' });
+    await e.submitPosition(requester, { disputeId: dispute.id, partyId: 'payee', position: 'amount was short by 5%' });
+    await expect(e.appeal(requester, { disputeId: dispute.id, reason: 'too early' })).rejects.toThrow('DISPUTE_NOT_DECIDED');
+    await e.decide(requester, { disputeId: dispute.id, decision: 'PARTIAL', rationale: 'partial shortfall confirmed' });
+    await e.appeal(requester, { disputeId: dispute.id, reason: 'payee disagrees with partial finding' });
+    expect((await e.close(requester, dispute.id)).status).toBe('CLOSED');
+    expect(await e.isHeld(requester, 'r')).toBe(false);
   });
 });
 
 describe('Engine 50 Final Settlement & Financial Closure', () => {
-  it('rejects over-settlement, requires a zero outstanding balance and no open disputes to close, and issues one certificate', () => {
+  it('rejects over-settlement, requires a zero outstanding balance and no open disputes to close, and issues one certificate', async () => {
     const s = new InMemoryTrustStore();
     const e = new FinalSettlementEngine(s);
-    expect(() =>
-      e.account(requester, {
+    await expect(e.account(requester, {
         milestoneId: 'm',
         totalEntitlementAmountMinor: 400_000_000,
         totalSettledAmountMinor: 425_000_000,
         currency: 'NGN',
-      }),
-    ).toThrow('OVER_SETTLEMENT');
-    const account = e.account(requester, {
+      })).rejects.toThrow('OVER_SETTLEMENT');
+    const account = await e.account(requester, {
       milestoneId: 'm',
       totalEntitlementAmountMinor: 425_000_000,
       totalSettledAmountMinor: 400_000_000,
       currency: 'NGN',
     });
-    expect(() => e.close(requester, { id: account.id, noOpenDisputes: true })).toThrow('OUTSTANDING_BALANCE_UNRESOLVED');
-    const settledAccount = e.account(requester, {
+    await expect(e.close(requester, { id: account.id, noOpenDisputes: true })).rejects.toThrow('OUTSTANDING_BALANCE_UNRESOLVED');
+    const settledAccount = await e.account(requester, {
       milestoneId: 'm2',
       totalEntitlementAmountMinor: 425_000_000,
       totalSettledAmountMinor: 425_000_000,
       currency: 'NGN',
     });
-    expect(() => e.close(requester, { id: settledAccount.id, noOpenDisputes: false })).toThrow(
+    await expect(e.close(requester, { id: settledAccount.id, noOpenDisputes: false })).rejects.toThrow(
       'OPEN_DISPUTES_UNRESOLVED',
     );
-    const closed = e.close(requester, { id: settledAccount.id, noOpenDisputes: true });
+    const closed = await e.close(requester, { id: settledAccount.id, noOpenDisputes: true });
     expect(closed.status).toBe('CLOSED');
-    const certificate = e.issueCertificate(requester, closed.id);
+    const certificate = await e.issueCertificate(requester, closed.id);
     expect(certificate.status).toBe('ISSUED');
-    expect(() => e.issueCertificate(requester, closed.id)).toThrow('CLOSURE_CERTIFICATE_ALREADY_ISSUED');
+    await expect(e.issueCertificate(requester, closed.id)).rejects.toThrow('CLOSURE_CERTIFICATE_ALREADY_ISSUED');
   });
 });

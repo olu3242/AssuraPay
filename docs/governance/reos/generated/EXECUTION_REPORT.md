@@ -6,19 +6,18 @@
 
 | Field | Value |
 | --- | --- |
-| Branch | claude/git-pull-cqc04u |
-| HEAD | 7131966b0fc5c1c2b2e4c3a38590b560580e1e75 |
+| Branch | feat/persistence-async-repository-interface |
+| HEAD | bcd78f6c73075fc5459bf43a7bcb9bae1f213e45 |
 | Worktree clean | no |
-| Uncommitted files | 12 |
-| Generated at | 2026-08-05T11:31:47.132Z |
+| Uncommitted files | 22 |
+| Generated at | 2026-08-05T19:35:43.104Z |
 
 ## Capability implemented
 
-`persistence.repository-conformance` — lifecycle **certified**
+`persistence.async-repository-interface` — lifecycle **certified**
 
-## Files modified (213)
+## Files modified (257)
 
-- `.env.example`
 - `apps/web/app/api/v1/acceptance-criteria/[id]/confirm/route.ts`
 - `apps/web/app/api/v1/acceptance-criteria/route.ts`
 - `apps/web/app/api/v1/acceptance-decisions/route.ts`
@@ -29,7 +28,10 @@
 - `apps/web/app/api/v1/approval-requests/route.ts`
 - `apps/web/app/api/v1/approval-thresholds/route.ts`
 - `apps/web/app/api/v1/auth/assertion/route.ts`
+- `apps/web/app/api/v1/auth/login/route.ts`
 - `apps/web/app/api/v1/auth/logout/route.ts`
+- `apps/web/app/api/v1/auth/register/route.ts`
+- `apps/web/app/api/v1/auth/session/route.ts`
 - `apps/web/app/api/v1/authorization-decisions/[id]/approve/route.ts`
 - `apps/web/app/api/v1/authorization-decisions/[id]/reject/route.ts`
 - `apps/web/app/api/v1/authorization-decisions/route.ts`
@@ -177,69 +179,111 @@
 - `apps/web/app/api/v1/workspaces/[id]/activate-context/route.ts`
 - `apps/web/app/api/v1/workspaces/[id]/found/route.ts`
 - `apps/web/app/api/v1/workspaces/route.ts`
-- `apps/web/lib/agent-runtime-app.ts`
-- `apps/web/lib/grant-administration.test.ts`
 - `apps/web/lib/grant-administration.ts`
-- `apps/web/lib/route-coverage.test.ts`
-- `apps/web/lib/route-permissions.test.ts`
-- `apps/web/lib/route-permissions.ts`
 - `apps/web/lib/trust-app.ts`
-- `apps/web/package.json`
-- `docs/ENGINE_CATALOG.md`
-- `docs/governance/execution-ledger/0517bb2ef691-trust.session-assertion-issuance.json`
-- `docs/governance/execution-ledger/08c0f3b719fe-trust.grant-administration-api.json`
-- `docs/governance/execution-ledger/0f517fc4f78b-trust.route-permission-rollout.json`
-- `docs/governance/execution-ledger/13f3246bdbdc-trust.route-permission-integration.json`
-- `docs/governance/execution-ledger/5e28a08ff19b-runtime.agent-registration.json`
-- `docs/governance/execution-ledger/7131966b0fc5-persistence.repository-conformance.json`
-- `docs/governance/execution-ledger/99a6077fe5da-trust.permission-grant-catalogue.json`
 - `docs/governance/execution-ledger/INDEX.md`
-- `docs/governance/execution-ledger/c8455eba0110-engine_08.json`
+- `docs/governance/execution-ledger/bcd78f6c7307-persistence.async-repository-interface.json`
 - `docs/governance/reos/capability-registry.json`
 - `docs/governance/reos/generated/CERTIFICATION_REPORT.md`
 - `docs/governance/reos/generated/DEPENDENCY_RESOLUTION.md`
 - `docs/governance/reos/generated/EXECUTION_MANIFEST.md`
-- `docs/governance/reos/generated/EXECUTION_REPORT.md`
 - `docs/governance/reos/generated/certification.json`
 - `docs/governance/reos/generated/dependency-resolution.json`
 - `docs/governance/reos/generated/discovery.json`
 - `docs/governance/reos/generated/execution-manifest.json`
-- `docs/governance/reos/generated/execution-report.json`
 - `docs/governance/reos/generated/forensics.json`
-- `docs/governance/reos/governance-policy.json`
 - `package.json`
+- `packages/agent-runtime/src/agent-runtime.e2e.test.ts`
+- `packages/agent-runtime/src/agent-runtime.integration.test.ts`
+- `packages/agent-runtime/src/agent-runtime.performance.test.ts`
 - `packages/agent-runtime/src/agent-runtime.registration.test.ts`
+- `packages/agent-runtime/src/agent-runtime.security.test.ts`
+- `packages/agent-runtime/src/agent-runtime.test.ts`
 - `packages/agent-runtime/src/index.ts`
-- `packages/agent-runtime/src/registration.ts`
-- `packages/audit-ledger/package.json`
+- `packages/agreement-creation/src/agreement-creation.e2e.test.ts`
+- `packages/agreement-creation/src/agreement-creation.test.ts`
+- `packages/agreement-creation/src/index.ts`
+- `packages/agreement-intelligence/src/agreement-intelligence.e2e.test.ts`
+- `packages/agreement-intelligence/src/agreement-intelligence.test.ts`
+- `packages/agreement-intelligence/src/index.ts`
 - `packages/audit-ledger/src/audit-ledger.test.ts`
 - `packages/audit-ledger/src/index.ts`
+- `packages/completion-assurance/src/completion-assurance.e2e.test.ts`
+- `packages/completion-assurance/src/completion-assurance.test.ts`
+- `packages/completion-assurance/src/index.ts`
+- `packages/database/src/async-conformance.test.ts`
 - `packages/database/src/conformance.ts`
-- `packages/database/src/index.ts`
 - `packages/database/src/trust-store.test.ts`
 - `packages/database/src/trust-store.ts`
+- `packages/domain/src/services/assurapay-service.ts`
+- `packages/domain/src/trust-foundation.e2e.test.ts`
+- `packages/enterprise-analytics/src/enterprise-analytics.e2e.test.ts`
+- `packages/enterprise-analytics/src/enterprise-analytics.test.ts`
+- `packages/enterprise-analytics/src/index.ts`
+- `packages/enterprise-intelligence/src/enterprise-intelligence.e2e.test.ts`
+- `packages/enterprise-intelligence/src/enterprise-intelligence.test.ts`
+- `packages/enterprise-intelligence/src/index.ts`
+- `packages/execution-orchestration/src/execution-orchestration.e2e.test.ts`
+- `packages/execution-orchestration/src/execution-orchestration.test.ts`
+- `packages/execution-orchestration/src/index.ts`
+- `packages/governance-core/src/governance-core.e2e.test.ts`
+- `packages/governance-core/src/governance-core.test.ts`
+- `packages/governance-core/src/index.ts`
+- `packages/identity/src/assertions.test.ts`
+- `packages/identity/src/assertions.ts`
+- `packages/identity/src/gateway.test.ts`
+- `packages/identity/src/gateway.ts`
+- `packages/identity/src/identity.test.ts`
 - `packages/identity/src/index.ts`
 - `packages/identity/src/issuance.test.ts`
 - `packages/identity/src/issuance.ts`
+- `packages/legal/src/index.ts`
+- `packages/legal/src/legal.test.ts`
+- `packages/organizations/src/index.ts`
+- `packages/organizations/src/organizations.test.ts`
+- `packages/parties/src/index.ts`
+- `packages/parties/src/parties.test.ts`
+- `packages/performance-blueprint/src/index.ts`
+- `packages/performance-blueprint/src/performance-blueprint.e2e.test.ts`
+- `packages/performance-blueprint/src/performance-blueprint.test.ts`
+- `packages/performance-readiness/src/index.ts`
+- `packages/performance-readiness/src/performance-readiness.e2e.test.ts`
+- `packages/performance-readiness/src/performance-readiness.test.ts`
 - `packages/permissions/src/catalogue.test.ts`
 - `packages/permissions/src/catalogue.ts`
 - `packages/permissions/src/enforcement.test.ts`
 - `packages/permissions/src/enforcement.ts`
 - `packages/permissions/src/index.ts`
-- `packages/reos/src/reos.integration.test.ts`
-- `packages/reos/src/stages/discover.ts`
-- `pnpm-lock.yaml`
-- `tsconfig.json`
-- `vitest.config.ts`
+- `packages/permissions/src/permissions.test.ts`
+- `packages/reos/src/index.ts`
+- `packages/reos/src/reos.persistence.test.ts`
+- `packages/reos/src/validators/architecture.ts`
+- `packages/reos/src/validators/persistence.ts`
+- `packages/settlement-assurance/src/index.ts`
+- `packages/settlement-assurance/src/settlement-assurance.e2e.test.ts`
+- `packages/settlement-assurance/src/settlement-assurance.non-custody.test.ts`
+- `packages/settlement-assurance/src/settlement-assurance.test.ts`
+- `packages/settlement-execution/src/index.ts`
+- `packages/settlement-execution/src/settlement-execution.e2e.test.ts`
+- `packages/settlement-execution/src/settlement-execution.non-custody.test.ts`
+- `packages/settlement-execution/src/settlement-execution.test.ts`
+- `packages/shared/src/trust.test.ts`
+- `packages/shared/src/trust.ts`
+- `packages/workflow-intelligence/src/index.ts`
+- `packages/workflow-intelligence/src/workflow-intelligence.e2e.test.ts`
+- `packages/workflow-intelligence/src/workflow-intelligence.integration.test.ts`
+- `packages/workflow-intelligence/src/workflow-intelligence.performance.test.ts`
+- `packages/workflow-intelligence/src/workflow-intelligence.security.test.ts`
+- `packages/workflow-intelligence/src/workflow-intelligence.test.ts`
 
 ## Validation
 
 | Validator | Result | Checked | Errors | Warnings |
 | --- | --- | --- | --- | --- |
-| architecture | pass | 154 | 0 | 0 |
+| architecture | pass | 163 | 0 | 0 |
 | dependencies | pass | 24 | 0 | 0 |
-| security | pass | 255 | 0 | 0 |
-| execution-contract | pass | 201 | 0 | 0 |
+| security | pass | 256 | 0 | 0 |
+| execution-contract | pass | 247 | 0 | 0 |
 
 ## Governance
 
@@ -251,22 +295,21 @@ No newly introduced violations.
 
 **PASSED** — every certification gate is green.
 
-## Remaining backlog (3)
+## Remaining backlog (2)
 
 | Capability | Status | Executable | Blocked by |
 | --- | --- | --- | --- |
-| persistence.async-repository-interface | missing | yes |  |
-| persistence.postgres-repository | missing | no | persistence.async-repository-interface |
+| persistence.postgres-repository | missing | yes |  |
 | persistence.rls-certification | missing | no | persistence.postgres-repository |
 
 ## Recommended next capability
 
-`persistence.async-repository-interface` — Asynchronous repository interface
+`persistence.postgres-repository` — PostgreSQL repository implementation
 
 ## Ledger
 
-Recorded as `7131966b0fc5-persistence.repository-conformance` in `docs/governance/execution-ledger/`.
+Recorded as `bcd78f6c7307-persistence.async-repository-interface` in `docs/governance/execution-ledger/`.
 
 ## Commit
 
-`7131966b0fc5c1c2b2e4c3a38590b560580e1e75`
+`bcd78f6c73075fc5459bf43a7bcb9bae1f213e45`

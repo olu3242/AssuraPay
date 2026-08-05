@@ -3,7 +3,7 @@
     {
       "git": {
         "historicalCommits": [],
-        "reachableFromHead": false,
+        "reachableFromHead": true,
         "refsContaining": [],
         "removedFromHead": false
       },
@@ -13,28 +13,56 @@
       "probes": [
         {
           "kind": "path",
-          "matches": [],
-          "query": "packages/shared/src/async-trust.ts",
-          "satisfied": false
+          "matches": [
+            "packages/reos/src/validators/persistence.ts"
+          ],
+          "query": "packages/reos/src/validators/persistence.ts",
+          "satisfied": true
         },
         {
           "kind": "symbol",
-          "matches": [],
-          "query": "AsyncTrustPersistence",
-          "satisfied": false
+          "matches": [
+            "packages/reos/src/index.ts",
+            "packages/reos/src/reos.persistence.test.ts",
+            "packages/reos/src/validators/architecture.ts",
+            "packages/reos/src/validators/persistence.ts"
+          ],
+          "query": "ASYNC_PERSISTENCE_RULES",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "packages/reos/src/index.ts",
+            "packages/reos/src/reos.persistence.test.ts",
+            "packages/reos/src/validators/architecture.ts",
+            "packages/reos/src/validators/persistence.ts"
+          ],
+          "query": "collectAsyncPersistenceFindings",
+          "satisfied": true
         },
         {
           "kind": "test",
-          "matches": [],
+          "matches": [
+            "packages/database/src/async-conformance.test.ts"
+          ],
           "query": "packages/database/src/async-conformance.test.ts",
-          "satisfied": false
+          "satisfied": true
+        },
+        {
+          "kind": "test",
+          "matches": [
+            "packages/reos/src/reos.persistence.test.ts"
+          ],
+          "query": "packages/reos/src/reos.persistence.test.ts",
+          "satisfied": true
         }
       ],
-      "rationale": "No evidence at HEAD, on any ref, or in history.",
-      "satisfiedProbes": 0,
-      "status": "missing",
+      "rationale": "All 5 evidence probes satisfied at HEAD.",
+      "satisfiedProbes": 5,
+      "status": "implemented",
       "title": "Asynchronous repository interface",
-      "totalProbes": 3
+      "totalProbes": 5
     },
     {
       "git": {
@@ -81,7 +109,7 @@
       },
       "id": "persistence.repository-conformance",
       "kind": "platform",
-      "onDefaultBranch": false,
+      "onDefaultBranch": true,
       "probes": [
         {
           "kind": "path",
@@ -257,7 +285,7 @@
       },
       "id": "runtime.agent-registration",
       "kind": "platform",
-      "onDefaultBranch": false,
+      "onDefaultBranch": true,
       "probes": [
         {
           "kind": "path",
@@ -358,7 +386,7 @@
       },
       "id": "trust.grant-administration-api",
       "kind": "platform",
-      "onDefaultBranch": false,
+      "onDefaultBranch": true,
       "probes": [
         {
           "kind": "path",
@@ -592,7 +620,7 @@
       },
       "id": "trust.permission-grant-catalogue",
       "kind": "platform",
-      "onDefaultBranch": false,
+      "onDefaultBranch": true,
       "probes": [
         {
           "kind": "path",
@@ -685,7 +713,7 @@
       },
       "id": "trust.route-permission-integration",
       "kind": "platform",
-      "onDefaultBranch": false,
+      "onDefaultBranch": true,
       "probes": [
         {
           "kind": "path",
@@ -916,7 +944,7 @@
       },
       "id": "trust.route-permission-rollout",
       "kind": "platform",
-      "onDefaultBranch": false,
+      "onDefaultBranch": true,
       "probes": [
         {
           "kind": "path",
@@ -969,7 +997,7 @@
       },
       "id": "trust.session-assertion-issuance",
       "kind": "platform",
-      "onDefaultBranch": false,
+      "onDefaultBranch": true,
       "probes": [
         {
           "kind": "path",
@@ -1023,14 +1051,14 @@
       "totalProbes": 5
     }
   ],
-  "head": "fcdb5cab56816b20140d0cf128a8e2d347f1e015",
+  "head": "bcd78f6c73075fc5459bf43a7bcb9bae1f213e45",
   "reosVersion": "1.0.0",
   "stage": "forensics",
   "summary": {
     "deferred": 0,
-    "implemented": 12,
+    "implemented": 13,
     "lost": 0,
-    "missing": 3,
+    "missing": 2,
     "partial": 0,
     "unreachable": 0
   }

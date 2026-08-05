@@ -286,18 +286,18 @@ export class AuditLedgerEngine {
   constructor(private readonly store: TrustPersistence) {}
 
   /** Verifies the whole chain as stored. */
-  verify(): AuditChainVerification {
-    return verifyAuditChain(this.store.list<AuditRecord>('auditRecords'));
+  async verify(): Promise<AuditChainVerification> {
+    return verifyAuditChain(await this.store.list<AuditRecord>('auditRecords'));
   }
 
   /** The current chain state as a single value, for recording elsewhere. */
-  head(): string | undefined {
-    return this.store.list<AuditRecord>('auditRecords').at(-1)?.integrityHash;
+  async head(): Promise<string | undefined> {
+    return (await this.store.list<AuditRecord>('auditRecords')).at(-1)?.integrityHash;
   }
 
   /** Compares the chain now against an earlier observation of it. */
-  compareWith(before: readonly AuditRecord[]): AuditSnapshotComparison {
-    return diffAuditSnapshots(before, this.store.list<AuditRecord>('auditRecords'));
+  async compareWith(before: readonly AuditRecord[]): Promise<AuditSnapshotComparison> {
+    return diffAuditSnapshots(before, await this.store.list<AuditRecord>('auditRecords'));
   }
 
   /**
@@ -307,14 +307,14 @@ export class AuditLedgerEngine {
    * it records, and reading another workspace's history is not something a caller
    * becomes entitled to by knowing an id.
    */
-  trailFor(
+  async trailFor(
     context: RequestContext,
     aggregateType: string,
     aggregateId: string,
-  ): AuditRecord[] {
+  ): Promise<AuditRecord[]> {
     requireActiveWorkspace(context);
-    return this.store
-      .list<AuditRecord>('auditRecords')
+    return (await this.store
+      .list<AuditRecord>('auditRecords'))
       .filter(
         (record) =>
           record.workspaceId === context.activeWorkspaceId &&
@@ -330,10 +330,10 @@ export class AuditLedgerEngine {
    * relied on without becoming an unredactable copy of potentially sensitive
    * material.
    */
-  recordEvidence(
+  async recordEvidence(
     context: RequestContext,
     input: RecordEvidenceInput,
-  ): EvidenceLedgerEntry {
+  ): Promise<EvidenceLedgerEntry> {
     requireActiveWorkspace(context);
 
     if (!input?.subjectType?.trim() || !input?.subjectId?.trim()) {
@@ -354,7 +354,7 @@ export class AuditLedgerEngine {
     // The audit record is written first so the entry can name it. An entry
     // referencing an audit record that does not exist would be the one link an
     // auditor cannot follow.
-    const audit = this.store.audit({
+    const audit = await this.store.audit({
       tenantId: context.tenantId,
       workspaceId: context.activeWorkspaceId,
       actorId: context.actorUserId,
@@ -382,19 +382,19 @@ export class AuditLedgerEngine {
       recordedAt,
       auditRecordId: audit.id,
     };
-    this.store.append('evidenceLedgerEntries', entry);
+    await this.store.append('evidenceLedgerEntries', entry);
     return entry;
   }
 
   /** Evidence recorded for one subject, scoped to the caller's workspace. */
-  evidenceFor(
+  async evidenceFor(
     context: RequestContext,
     subjectType: string,
     subjectId: string,
-  ): EvidenceLedgerEntry[] {
+  ): Promise<EvidenceLedgerEntry[]> {
     requireActiveWorkspace(context);
-    return this.store
-      .list<EvidenceLedgerEntry>('evidenceLedgerEntries')
+    return (await this.store
+      .list<EvidenceLedgerEntry>('evidenceLedgerEntries'))
       .filter(
         (entry) =>
           entry.workspaceId === context.activeWorkspaceId &&
@@ -409,13 +409,13 @@ export class AuditLedgerEngine {
    * Takes the hash rather than the content, so verification never requires handing
    * the material back to this engine.
    */
-  evidenceMatches(
+  async evidenceMatches(
     context: RequestContext,
     subjectType: string,
     subjectId: string,
     contentHash: string,
-  ): boolean {
-    return this.evidenceFor(context, subjectType, subjectId).some(
+  ): Promise<boolean> {
+    return (await this.evidenceFor(context, subjectType, subjectId)).some(
       (entry) => entry.contentHash === contentHash,
     );
   }

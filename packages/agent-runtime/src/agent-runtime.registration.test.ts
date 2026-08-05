@@ -194,7 +194,7 @@ describe('Engines 61-70 sandbox provider honesty', () => {
 });
 
 describe('Engines 61-70 registration touches no protected state', () => {
-  it('writes nothing to the store merely by registering', () => {
+  it('writes nothing to the store merely by registering', async () => {
     const { store } = build();
     for (const collection of [
       'agentExecutions',
@@ -204,7 +204,7 @@ describe('Engines 61-70 registration touches no protected state', () => {
       'completionCertificates',
       'paymentEligibility',
     ]) {
-      expect(store.list(collection), `${collection} was written during registration`).toEqual(
+      expect(await store.list(collection), `${collection} was written during registration`).toEqual(
         [],
       );
     }

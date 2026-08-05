@@ -9,19 +9,19 @@ function ws(context: RequestContext) {
   requireActiveWorkspace(context);
   return context.activeWorkspaceId;
 }
-function get<T extends { id: string; workspaceId: string }>(
+async function get<T extends { id: string; workspaceId: string }>(
   store: TrustPersistence,
   collection: string,
   context: RequestContext,
   id: string,
 ) {
-  const found = store
-    .list<T>(collection)
+  const found = (await store
+    .list<T>(collection))
     .find((x) => x.id === id && x.workspaceId === ws(context));
   if (!found) throw new Error('NOT_FOUND');
   return found;
 }
-function emit(
+async function emit(
   store: TrustPersistence,
   context: RequestContext,
   eventType: string,
@@ -29,7 +29,7 @@ function emit(
   aggregateId: string,
   payload: Record<string, unknown> = {},
 ) {
-  store.audit({
+  await store.audit({
     tenantId: context.tenantId,
     workspaceId: ws(context),
     actorId: context.actorUserId,
@@ -39,7 +39,7 @@ function emit(
     correlationId: context.correlationId,
     metadata: payload,
   });
-  store.emit({
+  await store.emit({
     tenantId: context.tenantId,
     workspaceId: ws(context),
     aggregateType,
@@ -69,7 +69,7 @@ export type PerformanceBlueprint = {
 export class PerformanceBlueprintEngine {
   constructor(private readonly store: TrustPersistence) {}
 
-  draft(
+  async draft(
     context: RequestContext,
     input: {
       contractId: string;
@@ -78,8 +78,8 @@ export class PerformanceBlueprintEngine {
     },
   ) {
     const workspaceId = ws(context);
-    const existing = this.store
-      .list<PerformanceBlueprint>('performanceBlueprints')
+    const existing = (await this.store
+      .list<PerformanceBlueprint>('performanceBlueprints'))
       .filter((x) => x.workspaceId === workspaceId && x.contractId === input.contractId);
     const blueprint: PerformanceBlueprint = {
       id: randomUUID(),
@@ -91,39 +91,39 @@ export class PerformanceBlueprintEngine {
       createdAt: now(),
       contentHash: digest(input),
     };
-    this.store.append('performanceBlueprints', blueprint);
-    emit(this.store, context, 'PerformanceBlueprintDrafted', 'PerformanceBlueprint', blueprint.id, {
+    await this.store.append('performanceBlueprints', blueprint);
+    await emit(this.store, context, 'PerformanceBlueprintDrafted', 'PerformanceBlueprint', blueprint.id, {
       contractId: blueprint.contractId,
       version: blueprint.version,
     });
     return blueprint;
   }
 
-  activate(context: RequestContext, id: string) {
-    const blueprint = get<PerformanceBlueprint>(this.store, 'performanceBlueprints', context, id);
+  async activate(context: RequestContext, id: string) {
+    const blueprint = await get<PerformanceBlueprint>(this.store, 'performanceBlueprints', context, id);
     if (blueprint.status !== 'DRAFT') throw new Error('BLUEPRINT_NOT_DRAFT');
     const workspaceId = ws(context);
-    const scope = this.store
-      .list<ScopeItem>('scopeItems')
+    const scope = (await this.store
+      .list<ScopeItem>('scopeItems'))
       .filter((x) => x.workspaceId === workspaceId && x.blueprintId === id);
     if (!scope.some((x) => x.status === 'CONFIRMED')) throw new Error('CONFIRMED_SCOPE_REQUIRED');
-    const milestones = this.store
-      .list<BlueprintMilestone>('blueprintMilestones')
+    const milestones = (await this.store
+      .list<BlueprintMilestone>('blueprintMilestones'))
       .filter((x) => x.workspaceId === workspaceId && x.blueprintId === id && x.status === 'SCHEDULED');
     if (!milestones.length) throw new Error('MILESTONE_REQUIRED');
-    const dodPackages = this.store.list<DodPackage>('dodPackages').filter((x) => x.workspaceId === workspaceId);
+    const dodPackages = (await this.store.list<DodPackage>('dodPackages')).filter((x) => x.workspaceId === workspaceId);
     for (const milestone of milestones)
       if (!dodPackages.some((x) => x.milestoneId === milestone.id && x.status === 'PUBLISHED'))
         throw new Error('DOD_PACKAGE_REQUIRED');
     const allocatedPercent = milestones.reduce((sum, x) => sum + x.valueAllocationPercent, 0);
     if (allocatedPercent > 100) throw new Error('VALUE_ALLOCATION_EXCEEDS_TOTAL');
-    for (const previous of this.store
-      .list<PerformanceBlueprint>('performanceBlueprints')
+    for (const previous of (await this.store
+      .list<PerformanceBlueprint>('performanceBlueprints'))
       .filter((x) => x.workspaceId === workspaceId && x.contractId === blueprint.contractId && x.status === 'ACTIVE'))
-      this.store.replace('performanceBlueprints', { ...previous, status: 'SUPERSEDED' });
+      await this.store.replace('performanceBlueprints', { ...previous, status: 'SUPERSEDED' });
     const activated: PerformanceBlueprint = { ...blueprint, status: 'ACTIVE' };
-    this.store.replace('performanceBlueprints', activated);
-    emit(this.store, context, 'PerformanceBlueprintActivated', 'PerformanceBlueprint', id, {
+    await this.store.replace('performanceBlueprints', activated);
+    await emit(this.store, context, 'PerformanceBlueprintActivated', 'PerformanceBlueprint', id, {
       milestoneCount: milestones.length,
       valueAllocationPercent: allocatedPercent,
     });
@@ -149,7 +149,7 @@ export type ScopeItem = {
 export class ScopeDefinitionEngine {
   constructor(private readonly store: TrustPersistence) {}
 
-  define(
+  async define(
     context: RequestContext,
     input: {
       blueprintId: string;
@@ -161,7 +161,7 @@ export class ScopeDefinitionEngine {
     },
   ) {
     if (!input.description.trim()) throw new Error('DESCRIPTION_REQUIRED');
-    const blueprint = get<PerformanceBlueprint>(this.store, 'performanceBlueprints', context, input.blueprintId);
+    const blueprint = await get<PerformanceBlueprint>(this.store, 'performanceBlueprints', context, input.blueprintId);
     if (blueprint.status !== 'DRAFT') throw new Error('BLUEPRINT_NOT_DRAFT');
     const item: ScopeItem = {
       id: randomUUID(),
@@ -170,21 +170,21 @@ export class ScopeDefinitionEngine {
       status: 'DRAFT',
       createdAt: now(),
     };
-    this.store.append('scopeItems', item);
-    emit(this.store, context, 'ScopeItemDefined', 'ScopeItem', item.id, {
+    await this.store.append('scopeItems', item);
+    await emit(this.store, context, 'ScopeItemDefined', 'ScopeItem', item.id, {
       blueprintId: item.blueprintId,
       kind: item.kind,
     });
     return item;
   }
 
-  confirm(context: RequestContext, id: string) {
-    const item = get<ScopeItem>(this.store, 'scopeItems', context, id);
+  async confirm(context: RequestContext, id: string) {
+    const item = await get<ScopeItem>(this.store, 'scopeItems', context, id);
     if (item.status !== 'DRAFT') throw new Error('SCOPE_ITEM_IMMUTABLE');
     if (item.kind === 'INCLUDED' && !item.ownerId) throw new Error('OWNER_REQUIRED');
     const confirmed: ScopeItem = { ...item, status: 'CONFIRMED' };
-    this.store.replace('scopeItems', confirmed);
-    emit(this.store, context, 'ScopeItemConfirmed', 'ScopeItem', id, { kind: item.kind });
+    await this.store.replace('scopeItems', confirmed);
+    await emit(this.store, context, 'ScopeItemConfirmed', 'ScopeItem', id, { kind: item.kind });
     return confirmed;
   }
 }
@@ -211,7 +211,7 @@ export type Deliverable = {
 export class DeliverablesEngine {
   constructor(private readonly store: TrustPersistence) {}
 
-  define(
+  async define(
     context: RequestContext,
     input: {
       blueprintId: string;
@@ -229,7 +229,7 @@ export class DeliverablesEngine {
     if (!Number.isFinite(input.quantity) || input.quantity <= 0) throw new Error('INVALID_QUANTITY');
     if (!input.acceptanceCriteria.length) throw new Error('ACCEPTANCE_CRITERIA_REQUIRED');
     if (!input.evidenceRequirements.length) throw new Error('EVIDENCE_REQUIREMENT_REQUIRED');
-    const scope = get<ScopeItem>(this.store, 'scopeItems', context, input.scopeItemId);
+    const scope = await get<ScopeItem>(this.store, 'scopeItems', context, input.scopeItemId);
     if (scope.blueprintId !== input.blueprintId) throw new Error('SCOPE_ITEM_MISMATCH');
     if (scope.kind !== 'INCLUDED') throw new Error('EXCLUDED_SCOPE_NOT_DELIVERABLE');
     const deliverable: Deliverable = {
@@ -239,20 +239,20 @@ export class DeliverablesEngine {
       status: 'DRAFT',
       createdAt: now(),
     };
-    this.store.append('deliverables', deliverable);
-    emit(this.store, context, 'DeliverableDefined', 'Deliverable', deliverable.id, {
+    await this.store.append('deliverables', deliverable);
+    await emit(this.store, context, 'DeliverableDefined', 'Deliverable', deliverable.id, {
       blueprintId: deliverable.blueprintId,
       scopeItemId: deliverable.scopeItemId,
     });
     return deliverable;
   }
 
-  confirm(context: RequestContext, id: string) {
-    const deliverable = get<Deliverable>(this.store, 'deliverables', context, id);
+  async confirm(context: RequestContext, id: string) {
+    const deliverable = await get<Deliverable>(this.store, 'deliverables', context, id);
     if (deliverable.status !== 'DRAFT') throw new Error('DELIVERABLE_IMMUTABLE');
     const confirmed: Deliverable = { ...deliverable, status: 'CONFIRMED' };
-    this.store.replace('deliverables', confirmed);
-    emit(this.store, context, 'DeliverableConfirmed', 'Deliverable', id, { scopeItemId: deliverable.scopeItemId });
+    await this.store.replace('deliverables', confirmed);
+    await emit(this.store, context, 'DeliverableConfirmed', 'Deliverable', id, { scopeItemId: deliverable.scopeItemId });
     return confirmed;
   }
 }
@@ -286,7 +286,7 @@ export type MilestoneSequenceEdge = {
 export class MilestonePlanningEngine {
   constructor(private readonly store: TrustPersistence) {}
 
-  schedule(
+  async schedule(
     context: RequestContext,
     input: {
       blueprintId: string;
@@ -305,16 +305,16 @@ export class MilestonePlanningEngine {
     if (input.valueAllocationPercent <= 0 || input.valueAllocationPercent > 100)
       throw new Error('INVALID_VALUE_ALLOCATION');
     const workspaceId = ws(context);
-    const deliverables = this.store
-      .list<Deliverable>('deliverables')
+    const deliverables = (await this.store
+      .list<Deliverable>('deliverables'))
       .filter((x) => x.workspaceId === workspaceId && input.deliverableIds.includes(x.id));
     if (
       deliverables.length !== input.deliverableIds.length ||
       deliverables.some((x) => x.status !== 'CONFIRMED' || x.blueprintId !== input.blueprintId)
     )
       throw new Error('CONFIRMED_DELIVERABLE_REQUIRED');
-    const scheduled = this.store
-      .list<BlueprintMilestone>('blueprintMilestones')
+    const scheduled = (await this.store
+      .list<BlueprintMilestone>('blueprintMilestones'))
       .filter((x) => x.workspaceId === workspaceId && x.blueprintId === input.blueprintId && x.status === 'SCHEDULED');
     const allocatedPercent =
       scheduled.reduce((sum, x) => sum + x.valueAllocationPercent, 0) + input.valueAllocationPercent;
@@ -326,34 +326,34 @@ export class MilestonePlanningEngine {
       status: 'SCHEDULED',
       createdAt: now(),
     };
-    this.store.append('blueprintMilestones', milestone);
-    emit(this.store, context, 'MilestoneScheduled', 'BlueprintMilestone', milestone.id, {
+    await this.store.append('blueprintMilestones', milestone);
+    await emit(this.store, context, 'MilestoneScheduled', 'BlueprintMilestone', milestone.id, {
       blueprintId: milestone.blueprintId,
       valueAllocationPercent: milestone.valueAllocationPercent,
     });
     return milestone;
   }
 
-  addDependency(
+  async addDependency(
     context: RequestContext,
     input: { blueprintId: string; predecessorId: string; successorId: string },
   ) {
     if (input.predecessorId === input.successorId) throw new Error('MILESTONE_CYCLE');
     const workspaceId = ws(context);
-    const nodes = this.store
-      .list<BlueprintMilestone>('blueprintMilestones')
+    const nodes = (await this.store
+      .list<BlueprintMilestone>('blueprintMilestones'))
       .filter((x) => x.workspaceId === workspaceId && x.blueprintId === input.blueprintId);
     if (!nodes.some((x) => x.id === input.predecessorId) || !nodes.some((x) => x.id === input.successorId))
       throw new Error('MILESTONE_NOT_FOUND');
     const edges = [
-      ...this.store
-        .list<MilestoneSequenceEdge>('milestoneSequenceEdges')
+      ...(await this.store
+        .list<MilestoneSequenceEdge>('milestoneSequenceEdges'))
         .filter((x) => x.workspaceId === workspaceId && x.blueprintId === input.blueprintId),
     ];
     if (this.hasPath(edges, input.successorId, input.predecessorId)) throw new Error('MILESTONE_CYCLE');
     const edge: MilestoneSequenceEdge = { id: randomUUID(), workspaceId, ...input, createdAt: now() };
-    this.store.append('milestoneSequenceEdges', edge);
-    emit(this.store, context, 'MilestoneDependencyAdded', 'MilestoneSequenceEdge', edge.id, {
+    await this.store.append('milestoneSequenceEdges', edge);
+    await emit(this.store, context, 'MilestoneDependencyAdded', 'MilestoneSequenceEdge', edge.id, {
       blueprintId: edge.blueprintId,
       predecessorId: edge.predecessorId,
       successorId: edge.successorId,
@@ -361,13 +361,13 @@ export class MilestonePlanningEngine {
     return edge;
   }
 
-  criticalPath(context: RequestContext, blueprintId: string) {
+  async criticalPath(context: RequestContext, blueprintId: string) {
     const workspaceId = ws(context);
-    const nodes = this.store
-      .list<BlueprintMilestone>('blueprintMilestones')
+    const nodes = (await this.store
+      .list<BlueprintMilestone>('blueprintMilestones'))
       .filter((x) => x.workspaceId === workspaceId && x.blueprintId === blueprintId);
-    const edges = this.store
-      .list<MilestoneSequenceEdge>('milestoneSequenceEdges')
+    const edges = (await this.store
+      .list<MilestoneSequenceEdge>('milestoneSequenceEdges'))
       .filter((x) => x.workspaceId === workspaceId && x.blueprintId === blueprintId);
     const durationDays = (milestone: BlueprintMilestone) =>
       Math.max(1, Math.round((Date.parse(milestone.dueDate) - Date.parse(milestone.startDate)) / 86_400_000));
@@ -433,7 +433,7 @@ export type DodPackage = {
 export class DefinitionOfDonePackageEngine {
   constructor(private readonly store: TrustPersistence) {}
 
-  draft(
+  async draft(
     context: RequestContext,
     input: {
       milestoneId: string;
@@ -450,17 +450,17 @@ export class DefinitionOfDonePackageEngine {
     if (!input.criteria.some((x) => x.mandatory)) throw new Error('MANDATORY_CRITERION_REQUIRED');
     if (!input.evidenceRequirements.length) throw new Error('EVIDENCE_REQUIREMENT_REQUIRED');
     const workspaceId = ws(context);
-    const milestone = get<BlueprintMilestone>(this.store, 'blueprintMilestones', context, input.milestoneId);
-    const deliverables = this.store
-      .list<Deliverable>('deliverables')
+    const milestone = await get<BlueprintMilestone>(this.store, 'blueprintMilestones', context, input.milestoneId);
+    const deliverables = (await this.store
+      .list<Deliverable>('deliverables'))
       .filter((x) => x.workspaceId === workspaceId && input.deliverableGateIds.includes(x.id));
     if (
       deliverables.length !== input.deliverableGateIds.length ||
       deliverables.some((x) => !milestone.deliverableIds.includes(x.id))
     )
       throw new Error('DELIVERABLE_GATE_NOT_IN_MILESTONE');
-    const existing = this.store
-      .list<DodPackage>('dodPackages')
+    const existing = (await this.store
+      .list<DodPackage>('dodPackages'))
       .filter((x) => x.workspaceId === workspaceId && x.milestoneId === input.milestoneId);
     const draft: DodPackage = {
       id: randomUUID(),
@@ -472,25 +472,25 @@ export class DefinitionOfDonePackageEngine {
       createdAt: now(),
       contentHash: digest(input),
     };
-    this.store.append('dodPackages', draft);
-    emit(this.store, context, 'DefinitionOfDoneDrafted', 'DodPackage', draft.id, {
+    await this.store.append('dodPackages', draft);
+    await emit(this.store, context, 'DefinitionOfDoneDrafted', 'DodPackage', draft.id, {
       milestoneId: draft.milestoneId,
       version: draft.version,
     });
     return draft;
   }
 
-  publish(context: RequestContext, id: string) {
-    const draft = get<DodPackage>(this.store, 'dodPackages', context, id);
+  async publish(context: RequestContext, id: string) {
+    const draft = await get<DodPackage>(this.store, 'dodPackages', context, id);
     if (draft.status !== 'DRAFT') throw new Error('DOD_PACKAGE_IMMUTABLE');
     const workspaceId = ws(context);
-    for (const previous of this.store
-      .list<DodPackage>('dodPackages')
+    for (const previous of (await this.store
+      .list<DodPackage>('dodPackages'))
       .filter((x) => x.workspaceId === workspaceId && x.milestoneId === draft.milestoneId && x.status === 'PUBLISHED'))
-      this.store.replace('dodPackages', { ...previous, status: 'SUPERSEDED' });
+      await this.store.replace('dodPackages', { ...previous, status: 'SUPERSEDED' });
     const published: DodPackage = { ...draft, status: 'PUBLISHED' };
-    this.store.replace('dodPackages', published);
-    emit(this.store, context, 'DefinitionOfDonePublished', 'DodPackage', id, {
+    await this.store.replace('dodPackages', published);
+    await emit(this.store, context, 'DefinitionOfDonePublished', 'DodPackage', id, {
       milestoneId: draft.milestoneId,
       contentHash: draft.contentHash,
     });

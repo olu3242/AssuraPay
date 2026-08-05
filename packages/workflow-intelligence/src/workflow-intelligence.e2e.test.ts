@@ -16,7 +16,7 @@ const c = {
   correlationId: 'e2e',
 };
 describe('e2e: deterministic execution-aware recommendation', () => {
-  it('finds downstream impact, bottleneck, safe schedule and stable health score', () => {
+  it('finds downstream impact, bottleneck, safe schedule and stable health score', async () => {
     const edges = [{ from: 'm1', to: 'm2', type: 'MILESTONE' as const }];
     expect(
       new DependencyIntelligenceEngine().analyze(['m1', 'm2'], edges).downstream
@@ -40,7 +40,7 @@ describe('e2e: deterministic execution-aware recommendation', () => {
         capacityHoursByOwner: { o: 8 },
       }).status,
     ).toBe('PROPOSED');
-    const health = new ExecutionHealthEngine(new InMemoryTrustStore()).compute(
+    const health = await new ExecutionHealthEngine(new InMemoryTrustStore()).compute(
       c,
       {
         agreementId: 'a',
