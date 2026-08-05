@@ -24,6 +24,7 @@
         "@assurapay/performance-blueprint",
         "@assurapay/performance-readiness",
         "@assurapay/permissions",
+        "@assurapay/runtime",
         "@assurapay/settlement-assurance",
         "@assurapay/settlement-execution",
         "@assurapay/shared",
@@ -46,7 +47,7 @@
       "PaymentInstruction",
       "ReconciliationRecord"
     ],
-    "packageCount": 24,
+    "packageCount": 25,
     "waves": [
       {
         "engines": [
@@ -226,6 +227,7 @@
       "certify:reconciliation-ledger",
       "certify:renewal-relationship-intelligence",
       "certify:reos",
+      "certify:runtime",
       "certify:scope-definition",
       "certify:settlement-assurance-index",
       "certify:success-metrics",
@@ -234,7 +236,7 @@
       "certify:vendor-customer-performance",
       "certify:workflow-intelligence"
     ],
-    "targets": 85,
+    "targets": 86,
     "unscripted": [
       "packages/database",
       "packages/database-testing",
@@ -2400,6 +2402,7 @@
     {
       "blocks": [
         "persistence.postgres-repository",
+        "persistence.production-runtime-wiring",
         "persistence.rls-certification"
       ],
       "dependsOn": [
@@ -2411,12 +2414,22 @@
     },
     {
       "blocks": [
+        "persistence.production-runtime-wiring",
         "persistence.rls-certification"
       ],
       "dependsOn": [
         "persistence.async-repository-interface"
       ],
       "id": "persistence.postgres-repository",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [],
+      "dependsOn": [
+        "persistence.postgres-repository"
+      ],
+      "id": "persistence.production-runtime-wiring",
       "lifecycle": "certified",
       "status": "implemented"
     },
@@ -2424,6 +2437,7 @@
       "blocks": [
         "persistence.async-repository-interface",
         "persistence.postgres-repository",
+        "persistence.production-runtime-wiring",
         "persistence.rls-certification"
       ],
       "dependsOn": [
@@ -2446,6 +2460,7 @@
       "blocks": [
         "persistence.async-repository-interface",
         "persistence.postgres-repository",
+        "persistence.production-runtime-wiring",
         "persistence.repository-conformance",
         "persistence.rls-certification",
         "runtime.agent-registration",
@@ -2495,6 +2510,7 @@
       "blocks": [
         "persistence.async-repository-interface",
         "persistence.postgres-repository",
+        "persistence.production-runtime-wiring",
         "persistence.repository-conformance",
         "persistence.rls-certification",
         "runtime.agent-registration",
@@ -2517,6 +2533,7 @@
       "blocks": [
         "persistence.async-repository-interface",
         "persistence.postgres-repository",
+        "persistence.production-runtime-wiring",
         "persistence.repository-conformance",
         "persistence.rls-certification",
         "runtime.agent-registration",
@@ -2538,6 +2555,7 @@
       "blocks": [
         "persistence.async-repository-interface",
         "persistence.postgres-repository",
+        "persistence.production-runtime-wiring",
         "persistence.repository-conformance",
         "persistence.rls-certification",
         "runtime.agent-registration",
@@ -3289,9 +3307,9 @@
     }
   ],
   "identity": {
-    "branch": "feat/persistence-postgres-trust-store",
+    "branch": "feat/persistence-production-runtime-wiring",
     "clean": false,
-    "head": "6571dfcb30c7d5d552c0b186872bd6162cfb57ce",
+    "head": "2387406b853ac2b1e7040eddd663d8f813294498",
     "repository": "assurapay",
     "version": "0.1.0"
   },
@@ -3354,6 +3372,7 @@
     "engine:60",
     "persistence.async-repository-interface",
     "persistence.postgres-repository",
+    "persistence.production-runtime-wiring",
     "persistence.repository-conformance",
     "reos.execution-os",
     "runtime.agent-registration",
@@ -3374,10 +3393,10 @@
     "implementing": 0,
     "missing": 0,
     "planned": 1,
-    "released": 69,
+    "released": 70,
     "validated": 0
   },
-  "manifestDigest": "8de1ea9abdd7",
+  "manifestDigest": "4f5d524eb6e0",
   "missingCapabilities": [
     "persistence.rls-certification"
   ],
@@ -3565,7 +3584,7 @@
       "moduleType": null,
       "name": "@assurapay/database",
       "sourceFiles": 6,
-      "sourceLines": 2088,
+      "sourceLines": 2109,
       "testFiles": [
         "packages/database/src/async-conformance.test.ts",
         "packages/database/src/trust-migrations.integration.test.ts",
@@ -3991,7 +4010,7 @@
       "moduleType": "module",
       "name": "@assurapay/reos",
       "sourceFiles": 25,
-      "sourceLines": 4566,
+      "sourceLines": 4641,
       "testFiles": [
         "packages/reos/src/reos.e2e.test.ts",
         "packages/reos/src/reos.governance.test.ts",
@@ -4009,6 +4028,39 @@
         "unit": 4
       },
       "workspaceDependencies": []
+    },
+    {
+      "directory": "packages/runtime",
+      "exportedClasses": [
+        "PersistenceConfigError",
+        "ProtectedWorkGateError",
+        "RuntimeStartupError"
+      ],
+      "externalDependencies": [],
+      "main": "src/index.ts",
+      "moduleType": null,
+      "name": "@assurapay/runtime",
+      "sourceFiles": 3,
+      "sourceLines": 669,
+      "testFiles": [
+        "packages/runtime/src/config.test.ts",
+        "packages/runtime/src/persistence-runtime.postgres.test.ts"
+      ],
+      "tests": {
+        "e2e": 0,
+        "integration": 0,
+        "performance": 0,
+        "security": 0,
+        "unit": 2
+      },
+      "workspaceDependencies": [
+        "@assurapay/audit-ledger",
+        "@assurapay/database",
+        "@assurapay/database-testing",
+        "@assurapay/identity",
+        "@assurapay/permissions",
+        "@assurapay/shared"
+      ]
     },
     {
       "directory": "packages/settlement-assurance",
@@ -4211,7 +4263,7 @@
       },
       "id": "persistence.postgres-repository",
       "kind": "platform",
-      "onDefaultBranch": false,
+      "onDefaultBranch": true,
       "probes": [
         {
           "kind": "path",
@@ -4251,7 +4303,12 @@
             "packages/audit-ledger/src/audit-ledger.postgres.test.ts",
             "packages/database-testing/src/postgres-store.postgres.test.ts",
             "packages/database/src/conformance.ts",
-            "packages/database/src/postgres-store.ts"
+            "packages/database/src/postgres-store.ts",
+            "packages/reos/src/reos.persistence.test.ts",
+            "packages/runtime/src/config.test.ts",
+            "packages/runtime/src/config.ts",
+            "packages/runtime/src/persistence-runtime.postgres.test.ts",
+            "packages/runtime/src/persistence-runtime.ts"
           ],
           "query": "PostgresTrustStore",
           "satisfied": true
@@ -4270,7 +4327,8 @@
           "kind": "symbol",
           "matches": [
             "packages/database-testing/src/migrations.postgres.test.ts",
-            "packages/database/src/migrations.ts"
+            "packages/database/src/migrations.ts",
+            "packages/runtime/src/persistence-runtime.ts"
           ],
           "query": "verifySchemaCompatibility",
           "satisfied": true
@@ -4304,6 +4362,111 @@
       "satisfiedProbes": 10,
       "status": "implemented",
       "title": "PostgreSQL repository implementation",
+      "totalProbes": 10
+    },
+    {
+      "git": {
+        "historicalCommits": [],
+        "reachableFromHead": true,
+        "refsContaining": [],
+        "removedFromHead": false
+      },
+      "id": "persistence.production-runtime-wiring",
+      "kind": "platform",
+      "onDefaultBranch": false,
+      "probes": [
+        {
+          "kind": "path",
+          "matches": [
+            "packages/runtime/src/persistence-runtime.ts"
+          ],
+          "query": "packages/runtime/src/persistence-runtime.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "path",
+          "matches": [
+            "packages/runtime/src/config.ts"
+          ],
+          "query": "packages/runtime/src/config.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "path",
+          "matches": [
+            "apps/web/lib/persistence.ts"
+          ],
+          "query": "apps/web/lib/persistence.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "path",
+          "matches": [
+            "apps/web/instrumentation.ts"
+          ],
+          "query": "apps/web/instrumentation.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "apps/web/lib/persistence.ts",
+            "packages/runtime/src/persistence-runtime.postgres.test.ts",
+            "packages/runtime/src/persistence-runtime.ts"
+          ],
+          "query": "createPersistenceRuntime",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "packages/runtime/src/config.test.ts",
+            "packages/runtime/src/config.ts",
+            "packages/runtime/src/persistence-runtime.postgres.test.ts",
+            "packages/runtime/src/persistence-runtime.ts"
+          ],
+          "query": "loadPersistenceConfig",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "apps/web/lib/persistence.ts",
+            "packages/runtime/src/persistence-runtime.postgres.test.ts",
+            "packages/runtime/src/persistence-runtime.ts"
+          ],
+          "query": "requirePersistenceReady",
+          "satisfied": true
+        },
+        {
+          "kind": "test",
+          "matches": [
+            "packages/runtime/src/config.test.ts"
+          ],
+          "query": "packages/runtime/src/config.test.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "test",
+          "matches": [
+            "packages/runtime/src/persistence-runtime.postgres.test.ts"
+          ],
+          "query": "packages/runtime/src/persistence-runtime.postgres.test.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "test",
+          "matches": [
+            "apps/web/lib/persistence.test.ts"
+          ],
+          "query": "apps/web/lib/persistence.test.ts",
+          "satisfied": true
+        }
+      ],
+      "rationale": "All 10 evidence probes satisfied at HEAD.",
+      "satisfiedProbes": 10,
+      "status": "implemented",
+      "title": "Production persistence runtime wiring",
       "totalProbes": 10
     },
     {
@@ -4790,7 +4953,8 @@
           "matches": [
             "apps/web/lib/trust-app.ts",
             "packages/permissions/src/enforcement.test.ts",
-            "packages/permissions/src/enforcement.ts"
+            "packages/permissions/src/enforcement.ts",
+            "packages/runtime/src/persistence-runtime.postgres.test.ts"
           ],
           "query": "enforcePermission",
           "satisfied": true
@@ -5122,6 +5286,7 @@
             "apps/web/app/api/v1/workspaces/[id]/activate-context/route.ts",
             "apps/web/app/api/v1/workspaces/[id]/found/route.ts",
             "apps/web/app/api/v1/workspaces/route.ts",
+            "apps/web/lib/persistence.test.ts",
             "apps/web/lib/route-coverage.test.ts",
             "apps/web/lib/trust-app.ts"
           ],

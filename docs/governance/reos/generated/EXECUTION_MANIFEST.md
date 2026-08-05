@@ -9,15 +9,15 @@
 | --- | --- |
 | Repository | assurapay |
 | Version | 0.1.0 |
-| Branch | feat/persistence-postgres-trust-store |
-| HEAD | 6571dfcb30c7d5d552c0b186872bd6162cfb57ce |
+| Branch | feat/persistence-production-runtime-wiring |
+| HEAD | 2387406b853ac2b1e7040eddd663d8f813294498 |
 | Worktree clean | no |
-| Manifest digest | 8de1ea9abdd7 |
+| Manifest digest | 4f5d524eb6e0 |
 | REOS version | 1.0.0 |
 
 ## Architecture
 
-- Packages: 24
+- Packages: 25
 - Applications: 1
 - Waves: 6
 - Canonical chain: Contract → PerformanceBlueprint → Milestone → DefinitionOfDonePackage → ExecutionWorkspace → CompletionCertificate → PaymentEligibility → FinancialEntitlement → ReleaseRequest → PaymentInstruction → ReconciliationRecord
@@ -28,7 +28,7 @@
 | --- | --- |
 | planned | 1 |
 | certified | 1 |
-| released | 69 |
+| released | 70 |
 | deferred | 4 |
 
 ## Engine reconciliation
@@ -104,7 +104,8 @@ from repository evidence: package presence, test files, and certification wiring
 | Capability | Title | Status | Lifecycle | Probes | Rationale |
 | --- | --- | --- | --- | --- | --- |
 | persistence.async-repository-interface | Asynchronous repository interface | implemented | released | 5/5 | All 5 evidence probes satisfied at HEAD. |
-| persistence.postgres-repository | PostgreSQL repository implementation | implemented | certified | 10/10 | All 10 evidence probes satisfied at HEAD. |
+| persistence.postgres-repository | PostgreSQL repository implementation | implemented | released | 10/10 | All 10 evidence probes satisfied at HEAD. |
+| persistence.production-runtime-wiring | Production persistence runtime wiring | implemented | certified | 10/10 | All 10 evidence probes satisfied at HEAD. |
 | persistence.repository-conformance | TrustPersistence conformance specification | implemented | released | 4/4 | All 4 evidence probes satisfied at HEAD. |
 | persistence.rls-certification | Row Level Security certification | missing | planned | 0/4 | No evidence at HEAD, on any ref, or in history. |
 | reos.execution-os | Repository Execution Operating System | implemented | released | 7/7 | All 7 evidence probes satisfied at HEAD. |
@@ -149,5 +150,5 @@ from repository evidence: package presence, test files, and certification wiring
 
 ## Certification coverage
 
-- Certification scripts: 85
+- Certification scripts: 86
 - Packages without a certification script: packages/database, packages/database-testing, packages/domain

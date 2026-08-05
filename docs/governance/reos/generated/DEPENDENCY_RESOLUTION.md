@@ -32,7 +32,7 @@ Nothing blocked.
 
 - persistence.rls-certification
 
-## Completed (70)
+## Completed (71)
 
 - engine:01
 - engine:02
@@ -92,6 +92,7 @@ Nothing blocked.
 - engine:60
 - persistence.async-repository-interface
 - persistence.postgres-repository
+- persistence.production-runtime-wiring
 - persistence.repository-conformance
 - reos.execution-os
 - runtime.agent-registration

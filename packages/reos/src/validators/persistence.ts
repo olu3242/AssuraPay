@@ -93,6 +93,30 @@ export const ASYNC_PERSISTENCE_RULES: readonly AsyncPersistenceRule[] = Object.f
     rationale:
       'Test helpers create and drop databases and skip the checks production configuration performs. Reachable from production code, they turn a deployment into an unguarded schema operation.',
   },
+  {
+    rule: 'persistence/store-constructed-outside-runtime',
+    rationale:
+      'A store built in an application module is a store chosen by that module. Persistence must be selected once, from validated configuration that refuses volatile storage in a durable environment, or a single import quietly reintroduces the fallback the runtime exists to remove.',
+  },
+  {
+    rule: 'persistence/client-database-variable',
+    rationale:
+      'A NEXT_PUBLIC_ variable is compiled into the browser bundle. One naming a database or a persistence mode publishes deployment topology and offers a client a say in where data goes.',
+  },
+]);
+
+/**
+ * Modules permitted to construct a store directly.
+ *
+ * The runtime, which selects between them from configuration, and the two stores' own
+ * modules. Everything else — every handler, service, engine and composition root —
+ * receives a `TrustPersistence` it did not choose.
+ */
+const STORE_CONSTRUCTION_MODULES = Object.freeze([
+  'packages/runtime/src/persistence-runtime.ts',
+  'packages/database/src/trust-store.ts',
+  'packages/database/src/postgres-store.ts',
+  'packages/database-testing/src/index.ts',
 ]);
 
 /**
@@ -116,6 +140,26 @@ const UNSAFE_SQL_MODULES = Object.freeze([
 
 /** Test-only modules that production code must not reach. */
 const TEST_HELPER_MODULES = Object.freeze(['@assurapay/database-testing']);
+
+/**
+ * Modules permitted to create the pool.
+ *
+ * The runtime, which owns exactly one per process and disposes it, plus the driver module
+ * that implements creation and the test harness that needs its own.
+ */
+const POOL_CREATION_MODULES = Object.freeze([
+  'packages/runtime/src/persistence-runtime.ts',
+  'packages/database/src/postgres-client.ts',
+  'packages/database-testing/src/index.ts',
+]);
+
+/**
+ * The module that names the forbidden client variables in order to reject them.
+ *
+ * Scoped to this one rule rather than exempting the file wholesale: `config.ts` is
+ * production code, and every other persistence rule still applies to it.
+ */
+const CLIENT_VARIABLE_VOCABULARY = Object.freeze(['packages/runtime/src/config.ts']);
 
 function isTestFile(file: string): boolean {
   return /\.(test|spec)\.tsx?$/.test(file);
@@ -371,11 +415,47 @@ function checkAdapterBoundaries(repoRoot: string, files: readonly string[]): Fin
           subject: file,
         });
 
-      if (/\bcreatePostgresPool\s*\(/.test(line) && !isTestFile(file) && !DRIVER_MODULES.includes(file))
+      if (
+        /\bcreatePostgresPool\s*\(/.test(line) &&
+        !isTestFile(file) &&
+        !POOL_CREATION_MODULES.includes(file)
+      )
         findings.push({
           rule: 'persistence/pool-outside-runtime',
           severity: 'error',
           message: `${at} creates a connection pool. Pools belong to the application runtime, which owns exactly one and disposes it.`,
+          location: at,
+          subject: file,
+        });
+
+      // A store built anywhere but the runtime is a store chosen by that module. This is
+      // the rule that would have caught `trust-app.ts`'s
+      // `globalThis.assurapayTrustStore ??= new InMemoryTrustStore()` — a production
+      // composition root selecting volatile storage in one line that reads as caching.
+      if (
+        /\bnew\s+(InMemory|Postgres)TrustStore\s*\(/.test(line) &&
+        !isTestFile(file) &&
+        !STORE_CONSTRUCTION_MODULES.includes(file)
+      )
+        findings.push({
+          rule: 'persistence/store-constructed-outside-runtime',
+          severity: 'error',
+          message: `${at} constructs a trust store directly. Obtain one from the persistence runtime, which selects the adapter from validated configuration and refuses volatile storage in a durable environment.`,
+          location: at,
+          subject: file,
+        });
+
+      // A client-visible variable naming a database. Matched on the name, so it is caught
+      // in configuration code, a Next.js config file, or a deployment manifest alike.
+      if (
+        /NEXT_PUBLIC_[A-Z_]*(DATABASE|POSTGRES|PERSISTENCE)[A-Z_]*/.test(line) &&
+        !isTestFile(file) &&
+        !CLIENT_VARIABLE_VOCABULARY.includes(file)
+      )
+        findings.push({
+          rule: 'persistence/client-database-variable',
+          severity: 'error',
+          message: `${at} references a NEXT_PUBLIC_ variable naming a database or persistence mode. Such a variable is compiled into the browser bundle; use the server-only equivalent.`,
           location: at,
           subject: file,
         });

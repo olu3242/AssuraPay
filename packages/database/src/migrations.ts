@@ -219,10 +219,28 @@ export async function applyMigrations(
   }
 }
 
+/**
+ * Migrations the repository contract cannot work without.
+ *
+ * Scoped deliberately. `supabase/migrations` also holds twenty migrations describing a
+ * per-engine relational model that `TrustPersistence` never reads, and a trust runtime
+ * that refused to start until those were applied would be gating on a different bounded
+ * context's schema. Divergence in *any* applied migration remains fatal — that means the
+ * code and the database disagree about history — but only these must be present.
+ */
+export const REQUIRED_TRUST_MIGRATIONS: readonly string[] = Object.freeze([
+  '202608060001_trust_repository_store',
+]);
+
 export type SchemaCompatibility = {
   compatible: boolean;
   /** Migrations the files declare that the database has not applied. */
   pending: string[];
+  /**
+   * Pending migrations the repository contract requires. A host may start with `pending`
+   * entries belonging to another context; it may not start missing one of these.
+   */
+  pendingRequired: string[];
   /** Ledger entries whose file no longer matches, or no longer exists. */
   divergent: string[];
   /** Required tables the database is missing. */
@@ -267,6 +285,7 @@ export async function verifySchemaCompatibility(
     return {
       compatible: false,
       pending: migrations.map((migration) => migration.id),
+      pendingRequired: [...REQUIRED_TRUST_MIGRATIONS],
       divergent: [],
       missingTables: [...REQUIRED_TRUST_TABLES],
     };
@@ -290,9 +309,13 @@ export async function verifySchemaCompatibility(
   const names = new Set(present.map((row) => row.table_name));
   const missingTables = REQUIRED_TRUST_TABLES.filter((table) => !names.has(table));
 
+  const pendingRequired = REQUIRED_TRUST_MIGRATIONS.filter((id) => !ledger.has(id));
+
   return {
-    compatible: pending.length === 0 && divergent.length === 0 && missingTables.length === 0,
+    compatible:
+      pendingRequired.length === 0 && divergent.length === 0 && missingTables.length === 0,
     pending,
+    pendingRequired,
     divergent: divergent.sort(),
     missingTables,
   };

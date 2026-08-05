@@ -111,6 +111,9 @@ importers:
       '@assurapay/permissions':
         specifier: workspace:*
         version: link:../../packages/permissions
+      '@assurapay/runtime':
+        specifier: workspace:*
+        version: link:../../packages/runtime
       '@assurapay/settlement-assurance':
         specifier: workspace:*
         version: link:../../packages/settlement-assurance
@@ -326,6 +329,27 @@ importers:
         version: link:../shared
 
   packages/reos: {}
+
+  packages/runtime:
+    dependencies:
+      '@assurapay/audit-ledger':
+        specifier: workspace:*
+        version: link:../audit-ledger
+      '@assurapay/database':
+        specifier: workspace:*
+        version: link:../database
+      '@assurapay/database-testing':
+        specifier: workspace:*
+        version: link:../database-testing
+      '@assurapay/identity':
+        specifier: workspace:*
+        version: link:../identity
+      '@assurapay/permissions':
+        specifier: workspace:*
+        version: link:../permissions
+      '@assurapay/shared':
+        specifier: workspace:*
+        version: link:../shared
 
   packages/settlement-assurance:
     dependencies:

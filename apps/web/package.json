@@ -26,6 +26,7 @@
     "@assurapay/performance-blueprint": "workspace:*",
     "@assurapay/performance-readiness": "workspace:*",
     "@assurapay/permissions": "workspace:*",
+    "@assurapay/runtime": "workspace:*",
     "@assurapay/settlement-assurance": "workspace:*",
     "@assurapay/settlement-execution": "workspace:*",
     "@assurapay/shared": "workspace:*",

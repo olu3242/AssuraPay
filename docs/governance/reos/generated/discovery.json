@@ -25,6 +25,7 @@
         "@assurapay/performance-blueprint",
         "@assurapay/performance-readiness",
         "@assurapay/permissions",
+        "@assurapay/runtime",
         "@assurapay/settlement-assurance",
         "@assurapay/settlement-execution",
         "@assurapay/shared",
@@ -499,6 +500,12 @@
       "command": "vitest run packages/reos",
       "packageDirectory": "packages/reos",
       "script": "certify:reos",
+      "testNamePattern": null
+    },
+    {
+      "command": "vitest run packages/runtime apps/web/lib",
+      "packageDirectory": "packages/runtime",
+      "script": "certify:runtime",
       "testNamePattern": null
     },
     {
@@ -2061,7 +2068,7 @@
       "moduleType": null,
       "name": "@assurapay/database",
       "sourceFiles": 6,
-      "sourceLines": 2088,
+      "sourceLines": 2109,
       "testFiles": [
         "packages/database/src/async-conformance.test.ts",
         "packages/database/src/trust-migrations.integration.test.ts",
@@ -2487,7 +2494,7 @@
       "moduleType": "module",
       "name": "@assurapay/reos",
       "sourceFiles": 25,
-      "sourceLines": 4566,
+      "sourceLines": 4641,
       "testFiles": [
         "packages/reos/src/reos.e2e.test.ts",
         "packages/reos/src/reos.governance.test.ts",
@@ -2505,6 +2512,39 @@
         "unit": 4
       },
       "workspaceDependencies": []
+    },
+    {
+      "directory": "packages/runtime",
+      "exportedClasses": [
+        "PersistenceConfigError",
+        "ProtectedWorkGateError",
+        "RuntimeStartupError"
+      ],
+      "externalDependencies": [],
+      "main": "src/index.ts",
+      "moduleType": null,
+      "name": "@assurapay/runtime",
+      "sourceFiles": 3,
+      "sourceLines": 669,
+      "testFiles": [
+        "packages/runtime/src/config.test.ts",
+        "packages/runtime/src/persistence-runtime.postgres.test.ts"
+      ],
+      "tests": {
+        "e2e": 0,
+        "integration": 0,
+        "performance": 0,
+        "security": 0,
+        "unit": 2
+      },
+      "workspaceDependencies": [
+        "@assurapay/audit-ledger",
+        "@assurapay/database",
+        "@assurapay/database-testing",
+        "@assurapay/identity",
+        "@assurapay/permissions",
+        "@assurapay/shared"
+      ]
     },
     {
       "directory": "packages/settlement-assurance",
@@ -2636,11 +2676,12 @@
   "reosVersion": "1.0.0",
   "repository": {
     "git": {
-      "branch": "feat/persistence-postgres-trust-store",
+      "branch": "feat/persistence-production-runtime-wiring",
       "branches": [
         "claude/git-pull-cqc04u",
         "feat/persistence-async-repository-interface",
         "feat/persistence-postgres-trust-store",
+        "feat/persistence-production-runtime-wiring",
         "main",
         "origin/claude/git-pull-cqc04u",
         "origin/claude/implementation-02q40a",
@@ -2658,6 +2699,17 @@
       "clean": false,
       "dirtyFiles": [
         ".github/workflows/ci.yml",
+        "apps/web/app/api/health/live/route.ts",
+        "apps/web/app/api/health/ready/route.ts",
+        "apps/web/instrumentation.ts",
+        "apps/web/lib/persistence.test.ts",
+        "apps/web/lib/persistence.ts",
+        "apps/web/lib/route-coverage.test.ts",
+        "apps/web/lib/route-permissions.test.ts",
+        "apps/web/lib/route-permissions.ts",
+        "apps/web/lib/shutdown.ts",
+        "apps/web/lib/trust-app.ts",
+        "apps/web/package.json",
         "docs/governance/reos/capability-registry.json",
         "docs/governance/reos/generated/CERTIFICATION_REPORT.md",
         "docs/governance/reos/generated/DEPENDENCY_RESOLUTION.md",
@@ -2666,10 +2718,25 @@
         "docs/governance/reos/generated/dependency-resolution.json",
         "docs/governance/reos/generated/discovery.json",
         "docs/governance/reos/generated/execution-manifest.json",
-        "docs/governance/reos/generated/forensics.json"
+        "docs/governance/reos/generated/forensics.json",
+        "package.json",
+        "packages/database-testing/src/migrations.postgres.test.ts",
+        "packages/database/src/migrations.ts",
+        "packages/reos/src/reos.persistence.test.ts",
+        "packages/reos/src/validators/persistence.ts",
+        "packages/runtime/package.json",
+        "packages/runtime/src/config.test.ts",
+        "packages/runtime/src/config.ts",
+        "packages/runtime/src/index.ts",
+        "packages/runtime/src/persistence-runtime.postgres.test.ts",
+        "packages/runtime/src/persistence-runtime.ts",
+        "pnpm-lock.yaml",
+        "tsconfig.json",
+        "vitest.config.ts",
+        "vitest.postgres.config.ts"
       ],
-      "head": "6571dfcb30c7d5d552c0b186872bd6162cfb57ce",
-      "headShort": "6571dfc",
+      "head": "2387406b853ac2b1e7040eddd663d8f813294498",
+      "headShort": "2387406",
       "reflogAvailable": true,
       "remotes": [
         "origin"
@@ -2678,7 +2745,7 @@
         "platform-trust-foundation",
         "rc-engine-60"
       ],
-      "upstream": "origin/feat/persistence-postgres-trust-store"
+      "upstream": null
     },
     "name": "assurapay",
     "packageManager": "pnpm@11.3.0",
@@ -2860,17 +2927,17 @@
       "integration": 15,
       "performance": 2,
       "security": 3,
-      "unit": 43
+      "unit": 45
     },
-    "files": 78
+    "files": 80
   },
   "totals": {
     "applications": 1,
     "documents": 140,
     "engines": 60,
     "migrations": 21,
-    "packages": 24,
-    "testFiles": 78
+    "packages": 25,
+    "testFiles": 80
   },
   "workflows": [
     {

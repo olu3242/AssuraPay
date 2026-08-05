@@ -283,6 +283,10 @@ describe('integration: compatibility is reported without changing anything', () 
     expect(compatibility).toEqual({
       compatible: true,
       pending: [],
+      // Empty for the same reason `pending` is — everything is applied here. The two differ
+      // when a host's database is missing a migration belonging to another bounded context:
+      // that is reported as pending but does not block a trust runtime from starting.
+      pendingRequired: [],
       divergent: [],
       missingTables: [],
     });

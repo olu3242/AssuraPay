@@ -236,6 +236,40 @@
       }
     },
     {
+      "id": "persistence.production-runtime-wiring",
+      "title": "Production persistence runtime wiring",
+      "kind": "platform",
+      "priority": 41,
+      "dependsOn": [
+        "persistence.postgres-repository"
+      ],
+      "evidence": {
+        "paths": [
+          "packages/runtime/src/persistence-runtime.ts",
+          "packages/runtime/src/config.ts",
+          "apps/web/lib/persistence.ts",
+          "apps/web/instrumentation.ts"
+        ],
+        "symbols": [
+          "createPersistenceRuntime",
+          "loadPersistenceConfig",
+          "requirePersistenceReady"
+        ],
+        "tests": [
+          "packages/runtime/src/config.test.ts",
+          "packages/runtime/src/persistence-runtime.postgres.test.ts",
+          "apps/web/lib/persistence.test.ts"
+        ]
+      },
+      "certify": "certify:runtime",
+      "scope": {
+        "files": 10,
+        "tests": 3
+      },
+      "requiresLiveInfrastructure": true,
+      "notes": "apps/web/lib/trust-app.ts constructed an InMemoryTrustStore on globalThis - a production composition root choosing volatile storage in one line that reads as caching. Every grant, membership and audit record the deployed application wrote was lost when the process recycled, while the application kept answering and authorization kept deciding. Persistence is now selected once by createPersistenceRuntime from validated server-only configuration that refuses the memory adapter for every durable deployment class, refuses a missing database URL with no localhost fallback, requires TLS to be stated explicitly, and rejects any NEXT_PUBLIC_ variable that could influence it. There is no fallback anywhere: an unreachable database fails startup or reports unready, and never substitutes a store. Readiness is more than connectivity - a reachable database with no tables, or a required migration unapplied, is not ready - and is checked live rather than cached, so a probe cannot report healthy through an outage. Liveness is separate and does no I/O, so an orchestrator does not restart a healthy process because its database blinked. The readiness gate is applied inside authorizedContextForRoute, which every protected route already passes through, rather than in 161 handlers that would each have to remember it. One production host exists (the Next.js app); no worker, scheduler, consumer, webhook or outbox dispatcher exists in the repository, so none was migrated and none was invented. FileAssuraStore is left alone: it implements AssuraRepository, a separate bounded context covering engine 06-60 domain state, writes a JSON file, and seeds demo data - a legacy production store needing retirement, which is its own capability rather than a side effect of this one. Certified against a real database through the production path only, never by constructing PostgresTrustStore directly."
+    },
+    {
       "id": "persistence.rls-certification",
       "title": "Row Level Security certification",
       "kind": "platform",

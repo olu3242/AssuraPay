@@ -1,0 +1,14 @@
+{
+  "name": "@assurapay/runtime",
+  "version": "0.1.0",
+  "private": true,
+  "main": "src/index.ts",
+  "dependencies": {
+    "@assurapay/audit-ledger": "workspace:*",
+    "@assurapay/database": "workspace:*",
+    "@assurapay/database-testing": "workspace:*",
+    "@assurapay/identity": "workspace:*",
+    "@assurapay/permissions": "workspace:*",
+    "@assurapay/shared": "workspace:*"
+  }
+}

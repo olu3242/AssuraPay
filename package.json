@@ -118,7 +118,8 @@
     "certify:batch13": "npm run certify && npm run test:integration && npm run test:e2e && npm run build",
     "certify:workflow-intelligence": "vitest run packages/workflow-intelligence",
     "certify:batch14": "npm run certify && npm run test:integration && npm run test:e2e && npm run build",
-    "certify:audit-ledger": "vitest run packages/audit-ledger"
+    "certify:audit-ledger": "vitest run packages/audit-ledger",
+    "certify:runtime": "vitest run packages/runtime apps/web/lib"
   },
   "dependencies": {
     "framer-motion": "^11.11.9",
