@@ -57,7 +57,7 @@ describe('e2e Batch 7 activated blueprint to financially earned, submitted work 
       notes: 'within tolerance',
       evidencePackageId: pkg.id,
     });
-    expect(validation.passed(c, { workItemId: workItem.id, acceptanceCriterionIds: ['plumb-level'] })).toBe(true);
+    expect(await validation.passed(c, { workItemId: workItem.id, acceptanceCriterionIds: ['plumb-level'] })).toBe(true);
 
     const quality = new QualityAssuranceEngine(s);
     await quality.definePlan(c, { executionWorkspaceId: workspace.id, standards: ['NIS-1'], inspectionFrequency: 'WEEKLY' });

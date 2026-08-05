@@ -22,7 +22,7 @@ describe('Engine 26 Acceptance Criteria', () => {
   it('validates tolerance ranges and retest configuration, and becomes immutable once confirmed', async () => {
     const s = new InMemoryTrustStore();
     const e = new AcceptanceCriteriaEngine(s);
-    await expect(await e.define(c, {
+    await expect(e.define(c, {
         deliverableId: 'd',
         description: 'Frame plumb within tolerance',
         testMethod: 'MEASUREMENT',
@@ -32,7 +32,7 @@ describe('Engine 26 Acceptance Criteria', () => {
         retestAllowed: true,
         maxRetests: 1,
       })).rejects.toThrow('INVALID_TOLERANCE_RANGE');
-    await expect(await e.define(c, {
+    await expect(e.define(c, {
         deliverableId: 'd',
         description: 'Frame plumb within tolerance',
         testMethod: 'MEASUREMENT',
@@ -53,7 +53,7 @@ describe('Engine 26 Acceptance Criteria', () => {
       maxRetests: 2,
     });
     expect(await e.confirm(c, criterion.id)).toMatchObject({ status: 'CONFIRMED' });
-    await expect(await e.confirm(c, criterion.id)).rejects.toThrow('IMMUTABLE');
+    await expect(e.confirm(c, criterion.id)).rejects.toThrow('IMMUTABLE');
   });
 });
 
@@ -80,7 +80,7 @@ describe('Engine 27 Success Metrics', () => {
       weightPercent: 40,
     });
     await e.confirm(c, first.id);
-    await expect(await e.confirm(c, second.id)).rejects.toThrow('WEIGHT_ALLOCATION_EXCEEDS_TOTAL');
+    await expect(e.confirm(c, second.id)).rejects.toThrow('WEIGHT_ALLOCATION_EXCEEDS_TOTAL');
   });
 });
 
@@ -99,7 +99,7 @@ describe('Engine 28 Dependency Intelligence', () => {
     expect(await e.blockers(c, 'm')).toHaveLength(1);
     await e.resolve(c, dependency.id);
     expect(await e.blockers(c, 'm')).toHaveLength(0);
-    await expect(await e.resolve(c, dependency.id)).rejects.toThrow('DEPENDENCY_NOT_OPEN');
+    await expect(e.resolve(c, dependency.id)).rejects.toThrow('DEPENDENCY_NOT_OPEN');
   });
 });
 
@@ -107,7 +107,7 @@ describe('Engine 29 Payment Trigger', () => {
   it('requires the right references per rule type and blocks eligibility until evidence is satisfied', async () => {
     const s = new InMemoryTrustStore();
     const e = new PaymentTriggerRuleEngine(s);
-    await expect(await e.define(c, {
+    await expect(e.define(c, {
         milestoneId: 'm',
         name: 'Frame payment',
         ruleType: 'HYBRID',
@@ -124,7 +124,7 @@ describe('Engine 29 Payment Trigger', () => {
       amountMinor: 425_000_000,
       currency: 'NGN',
     });
-    await expect(await e.evaluate(c, rule.id, { dodPublished: true, acceptedCriterionIds: ['ac1'], blockingDependencyCount: 0 })).rejects.toThrow('NOT_ACTIVE');
+    await expect(e.evaluate(c, rule.id, { dodPublished: true, acceptedCriterionIds: ['ac1'], blockingDependencyCount: 0 })).rejects.toThrow('NOT_ACTIVE');
     await e.activate(c, rule.id);
     expect(await e.evaluate(c, rule.id, { dodPublished: false, acceptedCriterionIds: [], blockingDependencyCount: 1 })).toMatchObject(
       { eligible: false, blockers: ['UNRESOLVED_BLOCKING_DEPENDENCIES', 'DOD_NOT_PUBLISHED', 'ACCEPTANCE_CRITERIA_NOT_MET'] },
@@ -149,7 +149,7 @@ describe('Engine 30 Performance Baseline', () => {
       plannedQualityScore: 90,
       plannedRiskScore: 20,
     });
-    await expect(await e.baseline(c, {
+    await expect(e.baseline(c, {
         blueprintId: 'bp',
         milestoneId: 'm',
         plannedStartDate: '2026-08-01',

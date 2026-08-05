@@ -146,17 +146,17 @@ describe('Engine 01 identity gateway — issuance', () => {
 
   it('rejects a principal with no subject or session', async () => {
     const { gateway } = build();
-    await expect(await gateway.issue({ ...principal, subject: ' ' }, 'c')).rejects.toThrow(
+    await expect(gateway.issue({ ...principal, subject: ' ' }, 'c')).rejects.toThrow(
       'GATEWAY_PRINCIPAL_INVALID',
     );
-    await expect(await gateway.issue({ ...principal, sessionId: '' }, 'c')).rejects.toThrow(
+    await expect(gateway.issue({ ...principal, sessionId: '' }, 'c')).rejects.toThrow(
       'GATEWAY_PRINCIPAL_INVALID',
     );
   });
 
   it('rejects an unsupported assurance level rather than signing it', async () => {
     const { gateway } = build();
-    await expect(await gateway.issue(
+    await expect(gateway.issue(
         { ...principal, identityAssuranceLevel: 'IAL9_GOD_MODE' as never },
         'c',
       )).rejects.toThrow('GATEWAY_PRINCIPAL_INVALID');
@@ -164,10 +164,10 @@ describe('Engine 01 identity gateway — issuance', () => {
 
   it('rejects ambiguous tenant context when configuration demands it', async () => {
     const { gateway } = build({ requireTenantContext: true });
-    await expect(await gateway.issue({ ...principal, tenantId: undefined }, 'c')).rejects.toThrow(
+    await expect(gateway.issue({ ...principal, tenantId: undefined }, 'c')).rejects.toThrow(
       'GATEWAY_TENANT_CONTEXT_REQUIRED',
     );
-    await expect(await gateway.issue({ ...principal, workspaceId: '' }, 'c')).rejects.toThrow(
+    await expect(gateway.issue({ ...principal, workspaceId: '' }, 'c')).rejects.toThrow(
       'GATEWAY_TENANT_CONTEXT_REQUIRED',
     );
   });
@@ -207,15 +207,15 @@ describe('Engine 01 identity gateway — verification', () => {
 
     await gateway.verify(token, { now: NOW });
     await gateway.verify(token, { now: NOW });
-    await expect(await gateway.consume(token, 'c', { now: NOW })).resolves.not.toThrow();
+    await expect(gateway.consume(token, 'c', { now: NOW })).resolves.not.toThrow();
   });
 
   it('rejects a missing assertion', async () => {
     const { gateway } = build();
     for (const absent of ['', '   ']) {
-      await expect(await gateway.consume(absent, 'c')).rejects.toThrow('GATEWAY_ASSERTION_MISSING');
+      await expect(gateway.consume(absent, 'c')).rejects.toThrow('GATEWAY_ASSERTION_MISSING');
     }
-    await expect(await gateway.authenticate(requestWith(''), 'c')).rejects.toThrow(
+    await expect(gateway.authenticate(requestWith(''), 'c')).rejects.toThrow(
       'GATEWAY_ASSERTION_MISSING',
     );
   });
@@ -226,7 +226,7 @@ describe('Engine 01 identity gateway — verification', () => {
       { ...principal, issuer: config.issuer, audience: 'other-service', now: NOW },
       keyring,
     );
-    await expect(await gateway.verify(foreign.token, { now: NOW })).rejects.toThrow(
+    await expect(gateway.verify(foreign.token, { now: NOW })).rejects.toThrow(
       'ASSERTION_AUDIENCE_MISMATCH',
     );
   });
@@ -237,7 +237,7 @@ describe('Engine 01 identity gateway — verification', () => {
       { ...principal, issuer: 'someone-else', audience: config.audience, now: NOW },
       keyring,
     );
-    await expect(await gateway.verify(foreign.token, { now: NOW })).rejects.toThrow(
+    await expect(gateway.verify(foreign.token, { now: NOW })).rejects.toThrow(
       'ASSERTION_ISSUER_MISMATCH',
     );
   });
@@ -246,7 +246,7 @@ describe('Engine 01 identity gateway — verification', () => {
     // Fail closed: an absent audience must not pass an audience expectation.
     const { gateway } = build();
     const unbound = createIdentityAssertion({ ...principal, now: NOW }, keyring);
-    await expect(await gateway.verify(unbound.token, { now: NOW })).rejects.toThrow(
+    await expect(gateway.verify(unbound.token, { now: NOW })).rejects.toThrow(
       'ASSERTION_ISSUER_MISMATCH',
     );
   });
@@ -255,9 +255,9 @@ describe('Engine 01 identity gateway — verification', () => {
     const { gateway } = build();
     const { token } = await gateway.issue(principal, 'c', { now: NOW });
 
-    await expect(await gateway.verify(token, { now: NOW, expectedTenantId: 'tenant-2' })).rejects.toThrow('ASSERTION_TENANT_MISMATCH');
-    await expect(await gateway.verify(token, { now: NOW, expectedWorkspaceId: 'workspace-2' })).rejects.toThrow('ASSERTION_WORKSPACE_MISMATCH');
-    await expect(await gateway.verify(token, { now: NOW, expectedSessionId: 'session-2' })).rejects.toThrow('ASSERTION_SESSION_MISMATCH');
+    await expect(gateway.verify(token, { now: NOW, expectedTenantId: 'tenant-2' })).rejects.toThrow('ASSERTION_TENANT_MISMATCH');
+    await expect(gateway.verify(token, { now: NOW, expectedWorkspaceId: 'workspace-2' })).rejects.toThrow('ASSERTION_WORKSPACE_MISMATCH');
+    await expect(gateway.verify(token, { now: NOW, expectedSessionId: 'session-2' })).rejects.toThrow('ASSERTION_SESSION_MISMATCH');
   });
 
   it('accepts matching tenant, workspace and session', async () => {
@@ -276,12 +276,12 @@ describe('Engine 01 identity gateway — verification', () => {
   it('rejects a purpose mismatch and an assertion with no purpose', async () => {
     const { gateway } = build();
     const scoped = await gateway.issue(principal, 'c', { purpose: 'read', now: NOW });
-    await expect(await gateway.verify(scoped.token, { now: NOW, purpose: 'release' })).rejects.toThrow(
+    await expect(gateway.verify(scoped.token, { now: NOW, purpose: 'release' })).rejects.toThrow(
       'ASSERTION_PURPOSE_MISMATCH',
     );
 
     const unscoped = await gateway.issue(principal, 'c', { now: NOW });
-    await expect(await gateway.verify(unscoped.token, { now: NOW, purpose: 'read' })).rejects.toThrow(
+    await expect(gateway.verify(unscoped.token, { now: NOW, purpose: 'read' })).rejects.toThrow(
       'ASSERTION_PURPOSE_MISMATCH',
     );
   });
@@ -293,16 +293,16 @@ describe('Engine 01 identity gateway — verification', () => {
       'c',
       { now: NOW },
     );
-    await expect(await gateway.verify(weak.token, { now: NOW, minimumAssuranceLevel: 'IAL2_VERIFIED' })).rejects.toThrow('ASSERTION_ASSURANCE_INSUFFICIENT');
+    await expect(gateway.verify(weak.token, { now: NOW, minimumAssuranceLevel: 'IAL2_VERIFIED' })).rejects.toThrow('ASSERTION_ASSURANCE_INSUFFICIENT');
   });
 
   it('propagates malformed, expired, premature and unknown-key rejections', async () => {
     const { gateway } = build({ assertionTtlMs: 1_000 });
     const { token } = await gateway.issue(principal, 'c', { now: NOW });
 
-    await expect(await gateway.verify('garbage', { now: NOW })).rejects.toThrow(IdentityAssertionError);
-    await expect(await gateway.verify(token, { now: new Date(NOW.getTime() + 2_000) })).rejects.toThrow('ASSERTION_EXPIRED');
-    await expect(await gateway.verify(token, { now: new Date(NOW.getTime() - 2_000) })).rejects.toThrow('ASSERTION_NOT_YET_VALID');
+    await expect(gateway.verify('garbage', { now: NOW })).rejects.toThrow(IdentityAssertionError);
+    await expect(gateway.verify(token, { now: new Date(NOW.getTime() + 2_000) })).rejects.toThrow('ASSERTION_EXPIRED');
+    await expect(gateway.verify(token, { now: new Date(NOW.getTime() - 2_000) })).rejects.toThrow('ASSERTION_NOT_YET_VALID');
 
     const foreign = new IdentityGateway(
       new InMemoryTrustStore(),
@@ -310,7 +310,7 @@ describe('Engine 01 identity gateway — verification', () => {
       new InMemoryAssertionReplayStore(),
       config,
     );
-    await expect(await foreign.verify(token, { now: NOW })).rejects.toThrow('ASSERTION_UNKNOWN_KEY');
+    await expect(foreign.verify(token, { now: NOW })).rejects.toThrow('ASSERTION_UNKNOWN_KEY');
   });
 });
 
@@ -320,7 +320,7 @@ describe('Engine 01 identity gateway — consumption and replay', () => {
     const { token } = await gateway.issue(principal, 'c', { now: NOW });
 
     expect((await gateway.consume(token, 'c', { now: NOW })).subject).toBe('subject-1');
-    await expect(await gateway.consume(token, 'c', { now: NOW })).rejects.toThrow('ASSERTION_REPLAYED');
+    await expect(gateway.consume(token, 'c', { now: NOW })).rejects.toThrow('ASSERTION_REPLAYED');
   });
 
   it('exercises the atomic store contract rather than check-then-insert', async () => {
@@ -331,7 +331,7 @@ describe('Engine 01 identity gateway — consumption and replay', () => {
     await gateway.consume(token, 'c', { now: NOW });
     expect(distributed.calls).toEqual([claims.nonce]);
 
-    await expect(await gateway.consume(token, 'c', { now: NOW })).rejects.toThrow('ASSERTION_REPLAYED');
+    await expect(gateway.consume(token, 'c', { now: NOW })).rejects.toThrow('ASSERTION_REPLAYED');
     expect(distributed.calls).toHaveLength(2);
   });
 
@@ -345,7 +345,7 @@ describe('Engine 01 identity gateway — consumption and replay', () => {
 
     // Pruning the expired unrelated nonce must not forget the live one.
     const later = new Date(NOW.getTime() + 1_000);
-    await expect(await gateway.consume(live.token, 'c', { now: later })).rejects.toThrow(
+    await expect(gateway.consume(live.token, 'c', { now: later })).rejects.toThrow(
       'ASSERTION_REPLAYED',
     );
   });
@@ -356,7 +356,7 @@ describe('Engine 01 identity gateway — consumption and replay', () => {
     const { token } = await gateway.issue(principal, 'c', { now: past });
 
     await gateway.consume(token, 'c', { now: past });
-    await expect(await gateway.consume(token, 'c', { now: past })).rejects.toThrow('ASSERTION_REPLAYED');
+    await expect(gateway.consume(token, 'c', { now: past })).rejects.toThrow('ASSERTION_REPLAYED');
   });
 });
 
@@ -393,7 +393,7 @@ describe('Engine 01 identity gateway — identity context', () => {
     expect(
       (await gateway.consumeRequestContext(requestWith(token), 'c', { now: NOW })).actorUserId,
     ).toBe('subject-1');
-    await expect(await gateway.consumeRequestContext(requestWith(token), 'c', { now: NOW })).rejects.toThrow('ASSERTION_REPLAYED');
+    await expect(gateway.consumeRequestContext(requestWith(token), 'c', { now: NOW })).rejects.toThrow('ASSERTION_REPLAYED');
   });
 });
 
@@ -498,7 +498,7 @@ describe('Engine 01 identity gateway — audit and secret handling', () => {
     const [version, payload] = token.split('.');
     const forged = `${version}.${payload}.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa`;
 
-    await expect(await gateway.consume(forged, 'c', { now: NOW })).rejects.toThrow();
+    await expect(gateway.consume(forged, 'c', { now: NOW })).rejects.toThrow();
 
     const rejected = (await auditRecords(trustStore)).filter(
       (record) => record.eventType === 'IdentityAssertionRejected',
@@ -510,13 +510,13 @@ describe('Engine 01 identity gateway — audit and secret handling', () => {
 
   it('records a malformed assertion as malformed, not as a signature failure', async () => {
     const { gateway, trustStore } = build();
-    await expect(await gateway.consume('v1.notbase64json.sig', 'c', { now: NOW })).rejects.toThrow();
+    await expect(gateway.consume('v1.notbase64json.sig', 'c', { now: NOW })).rejects.toThrow();
     expect((await auditRecords(trustStore))[0].metadata.reason).toBe('ASSERTION_MALFORMED');
   });
 
   it('records a missing assertion without inventing an actor', async () => {
     const { gateway, trustStore } = build();
-    await expect(await gateway.authenticate(requestWith(''), 'c')).rejects.toThrow();
+    await expect(gateway.authenticate(requestWith(''), 'c')).rejects.toThrow();
 
     const records = await auditRecords(trustStore);
     expect(records).toHaveLength(1);
@@ -561,7 +561,7 @@ describe('Engine 01 identity gateway — audit and secret handling', () => {
 
   it('raises a typed gateway error, distinct from an assertion error', async () => {
     const { gateway } = build();
-    await expect(await gateway.consume('', 'c')).rejects.toThrow(IdentityGatewayError);
-    await expect(await gateway.verify('garbage', { now: NOW })).rejects.toThrow(IdentityAssertionError);
+    await expect(gateway.consume('', 'c')).rejects.toThrow(IdentityGatewayError);
+    await expect(gateway.verify('garbage', { now: NOW })).rejects.toThrow(IdentityAssertionError);
   });
 });

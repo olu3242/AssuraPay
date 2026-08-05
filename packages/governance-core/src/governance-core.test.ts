@@ -27,7 +27,7 @@ describe('Engine 06 Execution Engine', () => {
     });
     await service.transition(ctx, e.id, 'PLANNED', 'approved plan');
     await service.transition(ctx, e.id, 'ACTIVE', 'start');
-    await expect(await service.transition(ctx, e.id, 'DRAFT', 'rewind')).rejects.toThrow(
+    await expect(service.transition(ctx, e.id, 'DRAFT', 'rewind')).rejects.toThrow(
       'INVALID_EXECUTION_TRANSITION',
     );
     expect((await service.history(ctx, e.id)).map((x) => x.toState)).toEqual([
@@ -60,7 +60,7 @@ describe('Engine 07 Milestone Engine', () => {
       predecessorId: a.id,
       successorId: b.id,
     });
-    await expect(await service.addDependency(ctx, {
+    await expect(service.addDependency(ctx, {
         executionId: 'e',
         predecessorId: b.id,
         successorId: a.id,
@@ -96,7 +96,7 @@ describe('Engine 08 Definition of Done Engine', () => {
         },
       ])).id,
     );
-    await expect(await service.publish(ctx, dod.id)).rejects.toThrow('IMMUTABLE');
+    await expect(service.publish(ctx, dod.id)).rejects.toThrow('IMMUTABLE');
     const failed = await service.evaluate(ctx, dod.id, {
       facts: { count: 10 },
       evidence: { manifest: 'ev1', review: 'ev2' },
@@ -135,7 +135,7 @@ describe('Engine 09 Certification Engine', () => {
       evidence: { ev: 'hash' },
     });
     const certification = new CertificationEngine(store);
-    await expect(await certification.request(ctx, {
+    await expect(certification.request(ctx, {
         executionId: 'e',
         milestoneId: 'm',
         dodEvaluationId: evaluation.id,
@@ -151,7 +151,7 @@ describe('Engine 09 Certification Engine', () => {
     await certification.decide(reviewer, request.id, 'APPROVE', 'Evidence verified', [
       'hash',
     ]);
-    await expect(await certification.decide(reviewer, request.id, 'APPROVE', 'again', [])).rejects.toThrow('IMMUTABLE');
+    await expect(certification.decide(reviewer, request.id, 'APPROVE', 'again', [])).rejects.toThrow('IMMUTABLE');
     const first = await certification.issue(reviewer, request.id);
     expect((await certification.issue(reviewer, request.id)).id).toBe(first.id);
   });
@@ -190,7 +190,7 @@ describe('Engine 10 Payment Trigger Engine', () => {
     expect(proposal.status).toBe('PROPOSED');
     expect((await service.propose(ctx, trigger.id, 'key-1')).id).toBe(proposal.id);
     await expect(
-      await service.createEscrowReleaseIntent(ctx, proposal.id),
+      service.createEscrowReleaseIntent(ctx, proposal.id),
     ).rejects.toThrow('NOT_CONFIGURED');
   });
 });

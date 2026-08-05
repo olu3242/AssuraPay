@@ -421,7 +421,7 @@ describe('Engine 01 identity assertions — audit trail', () => {
     const store = new InMemoryTrustStore();
     const service = new IdentityAssertionService(store, keyring);
 
-    await expect(await service.consume('v1.tampered.signature', 'correlation-3')).rejects.toThrow(
+    await expect(service.consume('v1.tampered.signature', 'correlation-3')).rejects.toThrow(
       IdentityAssertionError,
     );
 
@@ -442,7 +442,7 @@ describe('Engine 01 identity assertions — audit trail', () => {
     const { token } = await service.issue(subject, 'correlation-4');
 
     await service.consume(token, 'correlation-5', { now: NOW });
-    await expect(await service.consume(token, 'correlation-6', { now: NOW })).rejects.toThrow(
+    await expect(service.consume(token, 'correlation-6', { now: NOW })).rejects.toThrow(
       'ASSERTION_REPLAYED',
     );
 

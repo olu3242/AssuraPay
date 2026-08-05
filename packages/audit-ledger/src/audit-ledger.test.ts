@@ -322,7 +322,7 @@ describe('Engine 08 evidence ledger', () => {
   it('rejects a content hash that is not a lowercase hex sha256', async () => {
     const engine = new AuditLedgerEngine(new InMemoryTrustStore());
     for (const bad of ['', 'not-a-hash', CONTENT.toUpperCase(), CONTENT.slice(0, 63)]) {
-      await expect(await engine.recordEvidence(context(), {
+      await expect(engine.recordEvidence(context(), {
           subjectType: 'Thing',
           subjectId: 'thing-1',
           evidenceType: 'X',
@@ -336,14 +336,14 @@ describe('Engine 08 evidence ledger', () => {
     const store = new InMemoryTrustStore();
     const engine = new AuditLedgerEngine(store);
 
-    await expect(await engine.recordEvidence(context(), {
+    await expect(engine.recordEvidence(context(), {
         subjectType: '',
         subjectId: 'thing-1',
         evidenceType: 'X',
         contentHash: CONTENT,
         contentLocation: 'somewhere',
       })).rejects.toThrow(EvidenceLedgerError);
-    await expect(await engine.recordEvidence(context(), {
+    await expect(engine.recordEvidence(context(), {
         subjectType: 'Thing',
         subjectId: 'thing-1',
         evidenceType: 'X',
@@ -357,7 +357,7 @@ describe('Engine 08 evidence ledger', () => {
 
   it('requires an active workspace', async () => {
     const engine = new AuditLedgerEngine(new InMemoryTrustStore());
-    await expect(await engine.recordEvidence(context({ memberships: [] }), {
+    await expect(engine.recordEvidence(context({ memberships: [] }), {
         subjectType: 'Thing',
         subjectId: 'thing-1',
         evidenceType: 'X',

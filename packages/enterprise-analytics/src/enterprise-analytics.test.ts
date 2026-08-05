@@ -23,7 +23,7 @@ describe('Engine 56 Financial & Payment Intelligence', () => {
     const s = new InMemoryTrustStore();
     const noGateway = new FinancialPaymentIntelligenceEngine(s);
     await expect(
-      await noGateway.forecast(c, { scopeId: 'm', forecastType: 'LEAKAGE', signals: { reconciliationExceptions: 2 } }),
+      noGateway.forecast(c, { scopeId: 'm', forecastType: 'LEAKAGE', signals: { reconciliationExceptions: 2 } }),
     ).rejects.toThrow('GOVERNED_FORECAST_GATEWAY_REQUIRED');
     const invalidGateway = new FinancialPaymentIntelligenceEngine(s, {
       async forecast() {
@@ -31,7 +31,7 @@ describe('Engine 56 Financial & Payment Intelligence', () => {
       },
     });
     await expect(
-      await invalidGateway.forecast(c, { scopeId: 'm', forecastType: 'LEAKAGE', signals: { reconciliationExceptions: 2 } }),
+      invalidGateway.forecast(c, { scopeId: 'm', forecastType: 'LEAKAGE', signals: { reconciliationExceptions: 2 } }),
     ).rejects.toThrow('INVALID_CONFIDENCE');
     const e = new FinancialPaymentIntelligenceEngine(s, {
       async forecast(input) {
@@ -41,7 +41,7 @@ describe('Engine 56 Financial & Payment Intelligence', () => {
     const forecast = await e.forecast(c, { scopeId: 'm', forecastType: 'LEAKAGE', signals: { reconciliationExceptions: 2 } });
     expect(forecast.reviewStatus).toBe('NOT_REVIEWED');
     expect((await e.review(c, { id: forecast.id, decision: 'ACCEPTED' })).reviewStatus).toBe('ACCEPTED');
-    await expect(await e.review(c, { id: forecast.id, decision: 'REJECTED' })).rejects.toThrow('FORECAST_ALREADY_REVIEWED');
+    await expect(e.review(c, { id: forecast.id, decision: 'REJECTED' })).rejects.toThrow('FORECAST_ALREADY_REVIEWED');
   });
 });
 
@@ -49,7 +49,7 @@ describe('Engine 57 Vendor & Customer Performance', () => {
   it('validates the period range and metric bounds and averages metrics into an overall score', async () => {
     const s = new InMemoryTrustStore();
     const e = new VendorCustomerPerformanceEngine(s);
-    await expect(await e.score(c, {
+    await expect(e.score(c, {
         partyId: 'vendor-1',
         partyRole: 'VENDOR',
         periodStart: '2026-08-01',
@@ -73,7 +73,7 @@ describe('Engine 58 Portfolio Analytics', () => {
   it('rejects negative counts/amounts and out-of-range concentration, and tracks a trend per scope', async () => {
     const s = new InMemoryTrustStore();
     const e = new PortfolioAnalyticsEngine(s);
-    await expect(await e.snapshot(c, {
+    await expect(e.snapshot(c, {
         scopeId: 'portfolio',
         atRiskCount: -1,
         blockedCount: 0,
@@ -83,7 +83,7 @@ describe('Engine 58 Portfolio Analytics', () => {
         concentrationTopPartyPercent: 10,
         currency: 'NGN',
       })).rejects.toThrow('MUST_BE_NON_NEGATIVE');
-    await expect(await e.snapshot(c, {
+    await expect(e.snapshot(c, {
         scopeId: 'portfolio',
         atRiskCount: 1,
         blockedCount: 0,
@@ -93,7 +93,7 @@ describe('Engine 58 Portfolio Analytics', () => {
         concentrationTopPartyPercent: 150,
         currency: 'NGN',
       })).rejects.toThrow('MUST_BE_BETWEEN_0_AND_100');
-    await expect(await e.snapshot(c, {
+    await expect(e.snapshot(c, {
         scopeId: 'portfolio',
         atRiskCount: 1,
         blockedCount: 0,
@@ -132,14 +132,14 @@ describe('Engine 59 Renewal & Relationship Intelligence', () => {
   it('requires a valid readiness score and rationale, and returns the latest assessment per contract', async () => {
     const s = new InMemoryTrustStore();
     const e = new RenewalRelationshipIntelligenceEngine(s);
-    await expect(await e.assess(c, {
+    await expect(e.assess(c, {
         contractId: 'contract',
         renewalReadinessScore: 150,
         performanceHistorySummary: 'strong',
         recommendedAction: 'RENEW',
         rationale: 'consistent on-time delivery',
       })).rejects.toThrow('MUST_BE_BETWEEN_0_AND_100');
-    await expect(await e.assess(c, {
+    await expect(e.assess(c, {
         contractId: 'contract',
         renewalReadinessScore: 80,
         performanceHistorySummary: 'strong',
@@ -173,7 +173,7 @@ describe('Engine 60 AI Decision Support & Continuous Improvement', () => {
     expect(openDrifts).toHaveLength(1);
     expect(openDrifts[0].severity).toBe('HIGH');
     await e.acknowledgeDrift(c, openDrifts[0].id);
-    await expect(await e.acknowledgeDrift(c, openDrifts[0].id)).rejects.toThrow('DRIFT_ALERT_NOT_OPEN');
+    await expect(e.acknowledgeDrift(c, openDrifts[0].id)).rejects.toThrow('DRIFT_ALERT_NOT_OPEN');
     await e.resolveDrift(c, openDrifts[0].id);
     expect(await e.openDrifts(c, model.id)).toHaveLength(0);
 
@@ -193,10 +193,10 @@ describe('Engine 60 AI Decision Support & Continuous Improvement', () => {
     expect(recommendation.status).toBe('PENDING');
     const decided = await e.decideRecommendation(c, { id: recommendation.id, decision: 'ACCEPTED' });
     expect(decided.status).toBe('ACCEPTED');
-    await expect(await e.decideRecommendation(c, { id: recommendation.id, decision: 'DISMISSED' })).rejects.toThrow(
+    await expect(e.decideRecommendation(c, { id: recommendation.id, decision: 'DISMISSED' })).rejects.toThrow(
       'RECOMMENDATION_ALREADY_DECIDED',
     );
     await e.deprecateModel(c, model.id);
-    await expect(await e.deprecateModel(c, model.id)).rejects.toThrow('MODEL_NOT_ACTIVE');
+    await expect(e.deprecateModel(c, model.id)).rejects.toThrow('MODEL_NOT_ACTIVE');
   });
 });

@@ -34,7 +34,7 @@ describe('Engine 21 Performance Blueprint', () => {
       agreementIntelligenceVersionId: 'i2',
     });
     expect(second.version).toBe(2);
-    await expect(await e.activate(c, second.id)).rejects.toThrow('CONFIRMED_SCOPE_REQUIRED');
+    await expect(e.activate(c, second.id)).rejects.toThrow('CONFIRMED_SCOPE_REQUIRED');
   });
 });
 
@@ -47,7 +47,7 @@ describe('Engine 22 Scope Definition', () => {
       agreementIntelligenceVersionId: 'i1',
     });
     const e = new ScopeDefinitionEngine(s);
-    await expect(await e.define(c, {
+    await expect(e.define(c, {
         blueprintId: blueprint.id,
         kind: 'INCLUDED',
         description: '',
@@ -64,7 +64,7 @@ describe('Engine 22 Scope Definition', () => {
       ownerId: 'owner',
     });
     expect(await e.confirm(c, item.id)).toMatchObject({ status: 'CONFIRMED' });
-    await expect(await e.confirm(c, item.id)).rejects.toThrow('IMMUTABLE');
+    await expect(e.confirm(c, item.id)).rejects.toThrow('IMMUTABLE');
   });
 });
 
@@ -85,7 +85,7 @@ describe('Engine 23 Deliverables', () => {
       ownerId: '',
     });
     const e = new DeliverablesEngine(s);
-    await expect(await e.define(c, {
+    await expect(e.define(c, {
         blueprintId: blueprint.id,
         scopeItemId: excluded.id,
         title: 'Fence',
@@ -105,7 +105,7 @@ describe('Engine 23 Deliverables', () => {
       constraints: [],
       ownerId: 'owner',
     });
-    await expect(await e.define(c, {
+    await expect(e.define(c, {
         blueprintId: blueprint.id,
         scopeItemId: included.id,
         title: 'Frame',
@@ -130,7 +130,7 @@ describe('Engine 23 Deliverables', () => {
       evidenceRequirements: ['photo'],
     });
     expect(await e.confirm(c, deliverable.id)).toMatchObject({ status: 'CONFIRMED' });
-    await expect(await e.confirm(c, deliverable.id)).rejects.toThrow('IMMUTABLE');
+    await expect(e.confirm(c, deliverable.id)).rejects.toThrow('IMMUTABLE');
   });
 });
 
@@ -164,7 +164,7 @@ describe('Engine 24 Milestone Planning', () => {
       evidenceRequirements: ['photo'],
     });
     const e = new MilestonePlanningEngine(s);
-    await expect(await e.schedule(c, {
+    await expect(e.schedule(c, {
         blueprintId: blueprint.id,
         title: 'Frame erected',
         deliverableIds: [draftDeliverable.id],
@@ -185,7 +185,7 @@ describe('Engine 24 Milestone Planning', () => {
       currency: 'NGN',
       valueAllocationPercent: 60,
     });
-    await expect(await e.schedule(c, {
+    await expect(e.schedule(c, {
         blueprintId: blueprint.id,
         title: 'Handover',
         deliverableIds: [draftDeliverable.id],
@@ -206,7 +206,7 @@ describe('Engine 24 Milestone Planning', () => {
       valueAllocationPercent: 40,
     });
     await e.addDependency(c, { blueprintId: blueprint.id, predecessorId: first.id, successorId: second.id });
-    await expect(await e.addDependency(c, { blueprintId: blueprint.id, predecessorId: second.id, successorId: first.id })).rejects.toThrow('MILESTONE_CYCLE');
+    await expect(e.addDependency(c, { blueprintId: blueprint.id, predecessorId: second.id, successorId: first.id })).rejects.toThrow('MILESTONE_CYCLE');
     expect((await e.criticalPath(c, blueprint.id)).path).toEqual([first.id, second.id]);
   });
 });
@@ -252,7 +252,7 @@ describe('Engine 25 Definition of Done', () => {
       valueAllocationPercent: 60,
     });
     const e = new DefinitionOfDonePackageEngine(s);
-    await expect(await e.draft(c, {
+    await expect(e.draft(c, {
         milestoneId: milestone.id,
         deliverableGateIds: [deliverable.id],
         criteria: [{ key: 'inspected', description: 'Frame inspected', mandatory: false, evaluationType: 'MANUAL' }],

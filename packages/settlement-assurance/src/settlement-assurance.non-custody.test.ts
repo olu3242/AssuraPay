@@ -57,11 +57,11 @@ describe('non-custody constraint', () => {
       committedAmountMinor: 425_000_000,
       currency: 'NGN',
     });
-    await expect(await new EscrowFundingAssuranceEngine(s).confirmCommitment(c, commitment.id)).rejects.toThrow(
+    await expect(new EscrowFundingAssuranceEngine(s).confirmCommitment(c, commitment.id)).rejects.toThrow(
       'EXTERNAL_CUSTODY_GATEWAY_REQUIRED',
     );
     const decliningGateway = { async confirmFunding() { return { confirmed: false, providerConfirmationReference: '' }; } };
-    await expect(await new EscrowFundingAssuranceEngine(s, decliningGateway).confirmCommitment(c, commitment.id)).rejects.toThrow(
+    await expect(new EscrowFundingAssuranceEngine(s, decliningGateway).confirmCommitment(c, commitment.id)).rejects.toThrow(
       'PROVIDER_FUNDING_NOT_CONFIRMED',
     );
     expect((await s.list<{ id: string; status: string }>('fundingCommitments')).find((x) => x.id === commitment.id)?.status).toBe(

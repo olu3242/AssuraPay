@@ -138,13 +138,13 @@ describe('Engine 01 assertion issuance — the session is the only source of ide
 
   it('refuses an unknown, revoked or expired session without saying which', async () => {
     const store = await workspaceStore();
-    await expect(await issue(store, null)).rejects.toThrow('ISSUANCE_SESSION_INVALID');
-    await expect(await issue(store, null)).rejects.toThrow(AssertionIssuanceError);
+    await expect(issue(store, null)).rejects.toThrow('ISSUANCE_SESSION_INVALID');
+    await expect(issue(store, null)).rejects.toThrow(AssertionIssuanceError);
   });
 
   it('writes nothing when the session is refused', async () => {
     const store = await workspaceStore();
-    await expect(await issue(store, null)).rejects.toThrow(AssertionIssuanceError);
+    await expect(issue(store, null)).rejects.toThrow(AssertionIssuanceError);
     expect(await store.list('auditRecords')).toEqual([]);
   });
 });
@@ -174,12 +174,12 @@ describe('Engine 01 assertion issuance — never outlives the session', () => {
 
   it('refuses a session that has already expired', async () => {
     const store = await workspaceStore();
-    await expect(await issue(store, session({ expiresAt: '2026-06-01T11:59:59.000Z' }))).rejects.toThrow('ISSUANCE_SESSION_EXPIRED');
+    await expect(issue(store, session({ expiresAt: '2026-06-01T11:59:59.000Z' }))).rejects.toThrow('ISSUANCE_SESSION_EXPIRED');
   });
 
   it('refuses a session whose expiry is unparseable rather than treating it as valid', async () => {
     const store = await workspaceStore();
-    await expect(await issue(store, session({ expiresAt: 'whenever' }))).rejects.toThrow(
+    await expect(issue(store, session({ expiresAt: 'whenever' }))).rejects.toThrow(
       'ISSUANCE_SESSION_EXPIRED',
     );
   });
@@ -196,21 +196,21 @@ describe('Engine 01 assertion issuance — workspace selection requires membersh
 
   it('refuses a workspace the caller is not a member of', async () => {
     const store = await workspaceStore({ member: false });
-    await expect(await issue(store, session(), { workspaceId: WORKSPACE })).rejects.toThrow(
+    await expect(issue(store, session(), { workspaceId: WORKSPACE })).rejects.toThrow(
       'ISSUANCE_WORKSPACE_FORBIDDEN',
     );
   });
 
   it('refuses a workspace that does not exist or is not active', async () => {
-    await expect(await issue(await workspaceStore(), session(), { workspaceId: 'workspace-9' })).rejects.toThrow('ISSUANCE_WORKSPACE_UNKNOWN');
-    await expect(await issue(await workspaceStore({ status: 'ARCHIVED' }), session(), { workspaceId: WORKSPACE })).rejects.toThrow('ISSUANCE_WORKSPACE_UNKNOWN');
+    await expect(issue(await workspaceStore(), session(), { workspaceId: 'workspace-9' })).rejects.toThrow('ISSUANCE_WORKSPACE_UNKNOWN');
+    await expect(issue(await workspaceStore({ status: 'ARCHIVED' }), session(), { workspaceId: WORKSPACE })).rejects.toThrow('ISSUANCE_WORKSPACE_UNKNOWN');
   });
 
   it('checks membership for the session default too, not only an explicit request', async () => {
     // A stale session.workspaceId would otherwise bypass the check that an explicit
     // request is subject to.
     const store = await workspaceStore({ member: false });
-    await expect(await issue(store, session({ workspaceId: WORKSPACE }))).rejects.toThrow(
+    await expect(issue(store, session({ workspaceId: WORKSPACE }))).rejects.toThrow(
       'ISSUANCE_WORKSPACE_FORBIDDEN',
     );
   });
@@ -227,7 +227,7 @@ describe('Engine 01 assertion issuance — workspace selection requires membersh
 describe('Engine 01 assertion issuance — assurance is never amplified', () => {
   it('refuses to issue below a required assurance level', async () => {
     const store = await workspaceStore();
-    await expect(await issue(store, session({ identityAssuranceLevel: 'IAL1_BASIC' }), {
+    await expect(issue(store, session({ identityAssuranceLevel: 'IAL1_BASIC' }), {
         minimumAssuranceLevel: 'IAL2_VERIFIED',
       })).rejects.toThrow('ISSUANCE_ASSURANCE_INSUFFICIENT');
   });

@@ -22,7 +22,7 @@ describe('Engine 51 Execution Assurance Index', () => {
   it('averages weighted factors but forces the score to zero when any mandatory gate fails', async () => {
     const s = new InMemoryTrustStore();
     const e = new ExecutionAssuranceIndexEngine(s);
-    await expect(await e.compute(c, { scopeId: 'wi', factors: { quality: 150 }, mandatoryGates: [] })).rejects.toThrow('MUST_BE_BETWEEN_0_AND_100');
+    await expect(e.compute(c, { scopeId: 'wi', factors: { quality: 150 }, mandatoryGates: [] })).rejects.toThrow('MUST_BE_BETWEEN_0_AND_100');
     const clean = await e.compute(c, {
       scopeId: 'wi',
       factors: { quality: 90, timeliness: 80 },
@@ -76,7 +76,7 @@ describe('Engine 53 Enterprise KPI', () => {
     );
     expect((await e.latest(c, { kpiDefinitionId: onTimeDelivery.id, scopeId: 'portfolio' }))?.actualValue).toBe(92);
     await e.retire(c, onTimeDelivery.id);
-    await expect(await e.recordValue(c, { kpiDefinitionId: onTimeDelivery.id, scopeId: 'portfolio', actualValue: 95 })).rejects.toThrow(
+    await expect(e.recordValue(c, { kpiDefinitionId: onTimeDelivery.id, scopeId: 'portfolio', actualValue: 95 })).rejects.toThrow(
       'KPI_DEFINITION_NOT_ACTIVE',
     );
   });
@@ -103,7 +103,7 @@ describe('Engine 55 Predictive Execution Intelligence', () => {
   it('requires a governed gateway, validates confidence and starts every forecast unreviewed', async () => {
     const s = new InMemoryTrustStore();
     const noGateway = new PredictiveExecutionIntelligenceEngine(s);
-    await expect(await noGateway.forecast(c, { scopeId: 'm', forecastType: 'DELAY', signals: { progress: 60 } })).rejects.toThrow(
+    await expect(noGateway.forecast(c, { scopeId: 'm', forecastType: 'DELAY', signals: { progress: 60 } })).rejects.toThrow(
       'GOVERNED_FORECAST_GATEWAY_REQUIRED',
     );
     const invalidGateway = new PredictiveExecutionIntelligenceEngine(s, {
@@ -112,7 +112,7 @@ describe('Engine 55 Predictive Execution Intelligence', () => {
       },
     });
     await expect(
-      await invalidGateway.forecast(c, { scopeId: 'm', forecastType: 'DELAY', signals: { progress: 60 } }),
+      invalidGateway.forecast(c, { scopeId: 'm', forecastType: 'DELAY', signals: { progress: 60 } }),
     ).rejects.toThrow('INVALID_CONFIDENCE');
     const e = new PredictiveExecutionIntelligenceEngine(s, {
       async forecast(input) {
@@ -122,7 +122,7 @@ describe('Engine 55 Predictive Execution Intelligence', () => {
     const forecast = await e.forecast(c, { scopeId: 'm', forecastType: 'DELAY', signals: { progress: 60 } });
     expect(forecast.reviewStatus).toBe('NOT_REVIEWED');
     expect((await e.review(c, { id: forecast.id, decision: 'ACCEPTED' })).reviewStatus).toBe('ACCEPTED');
-    await expect(await e.review(c, { id: forecast.id, decision: 'REJECTED' })).rejects.toThrow('FORECAST_ALREADY_REVIEWED');
+    await expect(e.review(c, { id: forecast.id, decision: 'REJECTED' })).rejects.toThrow('FORECAST_ALREADY_REVIEWED');
     expect((await e.latest(c, { scopeId: 'm', forecastType: 'DELAY' }))?.id).toBe(forecast.id);
   });
 });

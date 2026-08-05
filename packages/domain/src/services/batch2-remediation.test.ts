@@ -72,7 +72,7 @@ describe('Batch 2 remediation', () => {
     await service.approveDefinitionOfDone(milestone.id);
     await service.activateMilestone(milestone.id);
 
-    await expect(await service.createAcceptanceRequest({ milestoneId: milestone.id, workspaceId: workspace.id, tenantId: 'tenant-a', submittedBy: 'vendor-a', authorityRequired: true })).rejects.toThrow('Authorization required');
+    await expect(service.createAcceptanceRequest({ milestoneId: milestone.id, workspaceId: workspace.id, tenantId: 'tenant-a', submittedBy: 'vendor-a', authorityRequired: true })).rejects.toThrow('Authorization required');
   });
 
   it('revokes payment eligibility after certificate revocation', async () => {

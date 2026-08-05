@@ -47,7 +47,7 @@ describe('non-custody constraint', () => {
       currency: 'NGN',
       authorized: true,
     });
-    await expect(await noGateway.submit(c, draft.id)).rejects.toThrow('PAYMENT_PROVIDER_GATEWAY_REQUIRED');
+    await expect(noGateway.submit(c, draft.id)).rejects.toThrow('PAYMENT_PROVIDER_GATEWAY_REQUIRED');
     expect(
       (await s.list<{ id: string; status: string }>('paymentInstructions')).find((x) => x.id === draft.id)?.status,
     ).toBe('DRAFT');
@@ -60,7 +60,7 @@ describe('non-custody constraint', () => {
         return { status: 'PENDING' as const };
       },
     });
-    await expect(await rejectingGateway.submit(c, draft.id)).rejects.toThrow('PROVIDER_REJECTED_PAYMENT');
+    await expect(rejectingGateway.submit(c, draft.id)).rejects.toThrow('PROVIDER_REJECTED_PAYMENT');
     expect(
       (await s.list<{ id: string; status: string }>('paymentInstructions')).find((x) => x.id === draft.id)?.status,
     ).toBe('FAILED');

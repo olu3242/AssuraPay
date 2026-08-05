@@ -52,7 +52,7 @@ describe('AssuraPayService', () => {
     await service.approveContract(contract.id, 'owner-a');
     const blueprint = await service.createBlueprint({ contractId: contract.id, workspaceId: workspace.id, tenantId: 'tenant-a', title: 'Blueprint' });
     const milestone = await service.createMilestone({ blueprintId: blueprint.id, workspaceId: workspace.id, tenantId: 'tenant-a', title: 'Milestone' });
-    await expect(await service.activateMilestone(milestone.id)).rejects.toThrow('Milestone activation requires an approved definition of done');
+    await expect(service.activateMilestone(milestone.id)).rejects.toThrow('Milestone activation requires an approved definition of done');
   });
 
   it('creates a certificate and payment eligibility from a completed milestone', async () => {

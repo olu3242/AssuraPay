@@ -313,7 +313,7 @@ describe('Engine 03 workspace founding — refusals', () => {
     // Founding must not be able to invent a principal: the workspace owner is
     // established when the workspace is created, and this only grants to them.
     const store = new InMemoryTrustStore();
-    await expect(await bootstrapWorkspaceGrants(
+    await expect(bootstrapWorkspaceGrants(
         store,
         {
           tenantId: TENANT,
@@ -346,7 +346,7 @@ describe('Engine 03 workspace founding — refusals', () => {
         version: 1,
       });
 
-      await expect(await bootstrapWorkspaceGrants(
+      await expect(bootstrapWorkspaceGrants(
           store,
           {
             tenantId: TENANT,
@@ -363,7 +363,7 @@ describe('Engine 03 workspace founding — refusals', () => {
     const { store } = await founded();
     await ownerMembership(store, 'user-second');
 
-    await expect(await bootstrapWorkspaceGrants(
+    await expect(bootstrapWorkspaceGrants(
         store,
         {
           tenantId: TENANT,
@@ -379,7 +379,7 @@ describe('Engine 03 workspace founding — refusals', () => {
     const store = new InMemoryTrustStore();
     await ownerMembership(store);
 
-    await expect(await bootstrapWorkspaceGrants(
+    await expect(bootstrapWorkspaceGrants(
         store,
         {
           tenantId: TENANT,
@@ -397,7 +397,7 @@ describe('Engine 03 workspace founding — refusals', () => {
     const store = new InMemoryTrustStore();
     await ownerMembership(store);
 
-    await expect(await bootstrapWorkspaceGrants(
+    await expect(bootstrapWorkspaceGrants(
         store,
         {
           tenantId: TENANT,
@@ -473,7 +473,7 @@ describe('Engine 03 role granting', () => {
     });
     const before = (await store.list('permissionGrants')).length;
 
-    await expect(await grantRole(service, store, context, {
+    await expect(grantRole(service, store, context, {
         userId: 'user-approver',
         role: 'PAYMENT_OPERATOR',
       })).rejects.toThrow('CATALOGUE_SEGREGATION_CONFLICT');
@@ -486,7 +486,7 @@ describe('Engine 03 role granting', () => {
     const context = adminContext();
     await grantRole(service, store, context, { userId: 'user-ops', role: 'PAYMENT_OPERATOR' });
 
-    await expect(await grantRole(service, store, context, {
+    await expect(grantRole(service, store, context, {
         userId: 'user-ops',
         role: 'SETTLEMENT_APPROVER',
       })).rejects.toThrow('CATALOGUE_SEGREGATION_CONFLICT');
@@ -522,7 +522,7 @@ describe('Engine 03 role granting', () => {
     const context = adminContext();
 
     await grantRole(service, store, context, { userId: 'user-a', role: 'CONTRACT_AUTHOR' });
-    await expect(await grantRole(service, store, context, { userId: 'user-a', role: 'ASSURANCE_ANALYST' })).resolves.not.toThrow();
+    await expect(grantRole(service, store, context, { userId: 'user-a', role: 'ASSURANCE_ANALYST' })).resolves.not.toThrow();
   });
 
   it('does not re-grant a key the user already holds', async () => {
@@ -556,13 +556,13 @@ describe('Engine 03 role granting', () => {
   it('refuses an unknown role', async () => {
     const { store } = await founded();
     const service = new PermissionService(store);
-    await expect(await grantRole(service, store, adminContext(), { userId: 'user-a', role: 'ROOT' })).rejects.toThrow('CATALOGUE_UNKNOWN_ROLE');
+    await expect(grantRole(service, store, adminContext(), { userId: 'user-a', role: 'ROOT' })).rejects.toThrow('CATALOGUE_UNKNOWN_ROLE');
   });
 
   it('requires a workspace context', async () => {
     const { store } = await founded();
     const service = new PermissionService(store);
-    await expect(await grantRole(
+    await expect(grantRole(
         service,
         store,
         { ...adminContext(), memberships: [] },
@@ -590,7 +590,7 @@ describe('Engine 03 held permissions', () => {
     });
 
     const service = new PermissionService(store);
-    await expect(await grantRole(service, store, adminContext(), {
+    await expect(grantRole(service, store, adminContext(), {
         userId: 'user-approver',
         role: 'SETTLEMENT_APPROVER',
       })).rejects.toThrow('CATALOGUE_SEGREGATION_CONFLICT');

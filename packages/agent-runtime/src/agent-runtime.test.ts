@@ -52,7 +52,7 @@ describe('Engines 62–64 and 68 registries and approval', () => {
     expect(first.version).toBe(1);
     expect((await agents.activate(c, second.id)).version).toBe(2);
     expect((await agents.active(c, 'Atlas'))?.id).toBe(second.id);
-    await expect(await prompts.createVersion(c, {
+    await expect(prompts.createVersion(c, {
         promptId: 'atlas',
         template: 'missing',
         requiredVariables: ['agreement'],
@@ -85,7 +85,7 @@ describe('Engines 62–64 and 68 registries and approval', () => {
     const store = new InMemoryTrustStore();
     const capabilities = new CapabilityRegistryEngine(store);
     const approvals = new HumanApprovalEngine(store);
-    await expect(await capabilities.register(c, {
+    await expect(capabilities.register(c, {
         name: 'issue-certificate',
         owner: 'Completion Assurance',
         permission: 'certificate:issue',
@@ -101,15 +101,15 @@ describe('Engines 62–64 and 68 registries and approval', () => {
       action: 'CERTIFICATION',
       proposalHash: 'abc',
     });
-    await expect(await approvals.consume(c, request.id, 'abc')).rejects.toThrow(
+    await expect(approvals.consume(c, request.id, 'abc')).rejects.toThrow(
       'APPROVAL_REQUIRED',
     );
     await approvals.decide(c, request.id, 'APPROVED');
-    await expect(await approvals.consume(c, request.id, 'wrong')).rejects.toThrow(
+    await expect(approvals.consume(c, request.id, 'wrong')).rejects.toThrow(
       'APPROVAL_PROPOSAL_MISMATCH',
     );
     await approvals.consume(c, request.id, 'abc');
-    await expect(await approvals.consume(c, request.id, 'abc')).rejects.toThrow(
+    await expect(approvals.consume(c, request.id, 'abc')).rejects.toThrow(
       'APPROVAL_ALREADY_CONSUMED',
     );
   });

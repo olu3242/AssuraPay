@@ -147,7 +147,7 @@ describe('Engines 71–80 workflow intelligence', () => {
   });
   it('77 requires a governed model and returns confidence, rationale and unreviewed status', async () => {
     await expect(
-      await new PredictiveRiskIntelligenceEngine().predict({
+      new PredictiveRiskIntelligenceEngine().predict({
         agreementId: 'a',
         signals: {},
       }),

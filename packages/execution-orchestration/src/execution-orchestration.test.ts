@@ -23,8 +23,8 @@ describe('Engine 31 Execution Orchestration', () => {
     const s = new InMemoryTrustStore();
     const e = new ExecutionOrchestrationEngine(s);
     const workspace = await e.open(c, { blueprintId: 'bp', milestoneId: 'm' });
-    await expect(await e.open(c, { blueprintId: 'bp', milestoneId: 'm' })).rejects.toThrow('ALREADY_OPEN');
-    await expect(await e.assignWorkItem(c, {
+    await expect(e.open(c, { blueprintId: 'bp', milestoneId: 'm' })).rejects.toThrow('ALREADY_OPEN');
+    await expect(e.assignWorkItem(c, {
         executionWorkspaceId: workspace.id,
         deliverableId: 'd',
         title: 'Erect frame',
@@ -37,8 +37,8 @@ describe('Engine 31 Execution Orchestration', () => {
       title: 'Erect frame',
       assigneeId: 'contractor',
     });
-    await expect(await e.submit(c, workspace.id)).rejects.toThrow('WORK_ITEMS_NOT_TERMINAL');
-    await expect(await e.transitionWorkItem(c, { id: item.id, to: 'SUBMITTED' })).rejects.toThrow('INVALID_WORK_ITEM_TRANSITION');
+    await expect(e.submit(c, workspace.id)).rejects.toThrow('WORK_ITEMS_NOT_TERMINAL');
+    await expect(e.transitionWorkItem(c, { id: item.id, to: 'SUBMITTED' })).rejects.toThrow('INVALID_WORK_ITEM_TRANSITION');
     await e.transitionWorkItem(c, { id: item.id, to: 'IN_PROGRESS' });
     await e.transitionWorkItem(c, { id: item.id, to: 'SUBMITTED' });
     expect((await e.submit(c, workspace.id)).status).toBe('SUBMITTED');
@@ -48,10 +48,10 @@ describe('Engine 31 Execution Orchestration', () => {
     const s = new InMemoryTrustStore();
     const e = new ExecutionOrchestrationEngine(s);
     const workspace = await e.activate(c, (await e.open(c, { blueprintId: 'bp', milestoneId: 'm' })).id);
-    await expect(await e.suspend(c, { id: workspace.id, reason: '' })).rejects.toThrow('SUSPENSION_REASON_REQUIRED');
+    await expect(e.suspend(c, { id: workspace.id, reason: '' })).rejects.toThrow('SUSPENSION_REASON_REQUIRED');
     const suspended = await e.suspend(c, { id: workspace.id, reason: 'weather delay' });
     expect(suspended.status).toBe('SUSPENDED');
-    await expect(await e.submit(c, workspace.id)).rejects.toThrow('EXECUTION_WORKSPACE_NOT_ACTIVE');
+    await expect(e.submit(c, workspace.id)).rejects.toThrow('EXECUTION_WORKSPACE_NOT_ACTIVE');
     expect((await e.resume(c, workspace.id)).status).toBe('ACTIVE');
     expect((await e.submit(c, workspace.id)).status).toBe('SUBMITTED');
   });
@@ -62,18 +62,18 @@ describe('Engine 32 Progress Measurement', () => {
     const s = new InMemoryTrustStore();
     const e = new ProgressMeasurementEngine(s);
     await e.record(c, { workItemId: 'wi', stage: 'DECLARED', percentComplete: 20 });
-    await expect(await e.record(c, { workItemId: 'wi', stage: 'DECLARED', percentComplete: 10 })).rejects.toThrow(
+    await expect(e.record(c, { workItemId: 'wi', stage: 'DECLARED', percentComplete: 10 })).rejects.toThrow(
       'PROGRESS_PERCENT_REGRESSION',
     );
     await e.record(c, { workItemId: 'wi', stage: 'EVIDENCED', percentComplete: 60 });
-    await expect(await e.record(c, { workItemId: 'wi', stage: 'DECLARED', percentComplete: 70 })).rejects.toThrow(
+    await expect(e.record(c, { workItemId: 'wi', stage: 'DECLARED', percentComplete: 70 })).rejects.toThrow(
       'PROGRESS_STAGE_REGRESSION',
     );
-    await expect(await e.record(c, { workItemId: 'wi', stage: 'FINANCIALLY_EARNED', percentComplete: 100, earnedValueAmountMinor: 100 })).rejects.toThrow('ACCEPTED_PROGRESS_REQUIRED');
+    await expect(e.record(c, { workItemId: 'wi', stage: 'FINANCIALLY_EARNED', percentComplete: 100, earnedValueAmountMinor: 100 })).rejects.toThrow('ACCEPTED_PROGRESS_REQUIRED');
     await e.record(c, { workItemId: 'wi', stage: 'VALIDATED', percentComplete: 80 });
     await e.record(c, { workItemId: 'wi', stage: 'ACCEPTED', percentComplete: 100 });
-    await expect(await e.record(c, { workItemId: 'wi', stage: 'FINANCIALLY_EARNED', percentComplete: 100 })).rejects.toThrow('EARNED_VALUE_MUST_BE_POSITIVE_INTEGER_MINOR_UNITS');
-    await expect(await e.record(c, { workItemId: 'wi', stage: 'FINANCIALLY_EARNED', percentComplete: 100, earnedValueAmountMinor: 100.5 })).rejects.toThrow('EARNED_VALUE_MUST_BE_POSITIVE_INTEGER_MINOR_UNITS');
+    await expect(e.record(c, { workItemId: 'wi', stage: 'FINANCIALLY_EARNED', percentComplete: 100 })).rejects.toThrow('EARNED_VALUE_MUST_BE_POSITIVE_INTEGER_MINOR_UNITS');
+    await expect(e.record(c, { workItemId: 'wi', stage: 'FINANCIALLY_EARNED', percentComplete: 100, earnedValueAmountMinor: 100.5 })).rejects.toThrow('EARNED_VALUE_MUST_BE_POSITIVE_INTEGER_MINOR_UNITS');
     const earned = await e.record(c, {
       workItemId: 'wi',
       stage: 'FINANCIALLY_EARNED',
@@ -95,7 +95,7 @@ describe('Engine 33 Evidence Management', () => {
       description: 'Engineer sign-off',
       mandatory: true,
     });
-    await expect(await e.submit(c, {
+    await expect(e.submit(c, {
         workItemId: 'wi',
         deliverableId: 'd',
         files: [{ requirementId: photo.id, reference: 'secure://photo', hash: 'h1', mimeType: 'image/jpeg' }],
@@ -108,10 +108,10 @@ describe('Engine 33 Evidence Management', () => {
         { requirementId: signoff.id, reference: 'secure://signoff', hash: 'h2', mimeType: 'application/pdf' },
       ],
     });
-    await expect(await e.verify(c, { id: pkg.id, decision: 'VERIFIED', notes: '' })).rejects.toThrow('VERIFICATION_NOTES_REQUIRED');
+    await expect(e.verify(c, { id: pkg.id, decision: 'VERIFIED', notes: '' })).rejects.toThrow('VERIFICATION_NOTES_REQUIRED');
     const verified = await e.verify(c, { id: pkg.id, decision: 'VERIFIED', notes: 'matches site conditions' });
     expect(verified.status).toBe('VERIFIED');
-    await expect(await e.verify(c, { id: pkg.id, decision: 'VERIFIED', notes: 'again' })).rejects.toThrow(
+    await expect(e.verify(c, { id: pkg.id, decision: 'VERIFIED', notes: 'again' })).rejects.toThrow(
       'EVIDENCE_PACKAGE_NOT_SUBMITTED',
     );
   });
@@ -121,7 +121,7 @@ describe('Engine 34 Validation & Acceptance Testing', () => {
   it('requires notes for conditional pass, requires prior failure for a retest, and aggregates pass status', async () => {
     const s = new InMemoryTrustStore();
     const e = new ValidationAcceptanceTestingEngine(s);
-    await expect(await e.record(c, {
+    await expect(e.record(c, {
         workItemId: 'wi',
         acceptanceCriterionId: 'ac',
         method: 'MANUAL',
@@ -135,8 +135,8 @@ describe('Engine 34 Validation & Acceptance Testing', () => {
       result: 'FAIL',
       notes: 'plumb deviation exceeded',
     });
-    expect(e.passed(c, { workItemId: 'wi', acceptanceCriterionIds: ['ac'] })).toBe(false);
-    await expect(await e.record(c, {
+    expect(await e.passed(c, { workItemId: 'wi', acceptanceCriterionIds: ['ac'] })).toBe(false);
+    await expect(e.record(c, {
         workItemId: 'wi',
         acceptanceCriterionId: 'ac2',
         method: 'MANUAL',
@@ -152,7 +152,7 @@ describe('Engine 34 Validation & Acceptance Testing', () => {
       notes: 'retested and within tolerance',
       retestOf: failed.id,
     });
-    expect(e.passed(c, { workItemId: 'wi', acceptanceCriterionIds: ['ac'] })).toBe(true);
+    expect(await e.passed(c, { workItemId: 'wi', acceptanceCriterionIds: ['ac'] })).toBe(true);
   });
 });
 
@@ -163,7 +163,7 @@ describe('Engine 35 Quality Assurance', () => {
     await e.definePlan(c, { executionWorkspaceId: 'ew', standards: ['NIS-1'], inspectionFrequency: 'WEEKLY' });
     const defect = await e.raiseDefect(c, { workItemId: 'wi', severity: 'CRITICAL', description: 'Weld porosity found' });
     expect(await e.evaluateGate(c, 'wi')).toMatchObject({ passed: false, criticalDefectCount: 1 });
-    await expect(await e.resolve(c, defect.id)).rejects.toThrow('DEFECT_NOT_IN_REWORK');
+    await expect(e.resolve(c, defect.id)).rejects.toThrow('DEFECT_NOT_IN_REWORK');
     await e.assignRootCause(c, { id: defect.id, rootCause: 'Contaminated filler rod' });
     const resolved = await e.resolve(c, defect.id);
     expect(resolved.status).toBe('RESOLVED');

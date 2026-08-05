@@ -59,7 +59,7 @@ describe('Engine 42 Financial Entitlement', () => {
       triggerBlockers: [],
     });
     const e = new FinancialEntitlementEngine(s);
-    await expect(await e.calculate(c, {
+    await expect(e.calculate(c, {
         milestoneId: 'm',
         paymentEligibilityId: eligibility.id,
         currency: 'NGN',
@@ -69,7 +69,7 @@ describe('Engine 42 Financial Entitlement', () => {
         taxAmountMinor: 0,
         penaltyAmountMinor: 0,
       })).rejects.toThrow('MUST_BE_POSITIVE_INTEGER_MINOR_UNITS');
-    await expect(await e.calculate(c, {
+    await expect(e.calculate(c, {
         milestoneId: 'm',
         paymentEligibilityId: eligibility.id,
         currency: 'NGN',
@@ -79,7 +79,7 @@ describe('Engine 42 Financial Entitlement', () => {
         taxAmountMinor: 0,
         penaltyAmountMinor: 200_000_00,
       })).rejects.toThrow('NEGATIVE_NET_PAYABLE');
-    await expect(await e.calculate(c, {
+    await expect(e.calculate(c, {
         milestoneId: 'm',
         paymentEligibilityId: eligibility.id,
         currency: 'NGN',
@@ -101,7 +101,7 @@ describe('Engine 42 Financial Entitlement', () => {
     });
     expect(entitlement.netPayableAmountMinor).toBe(425_000_000 + 10_000_00 - 20_000_00 - 5_000_00);
     expect((await e.confirm(c, entitlement.id)).status).toBe('CONFIRMED');
-    await expect(await e.confirm(c, entitlement.id)).rejects.toThrow('IMMUTABLE');
+    await expect(e.confirm(c, entitlement.id)).rejects.toThrow('IMMUTABLE');
   });
 });
 
@@ -128,7 +128,7 @@ describe('Engine 43 Invoice & Claim Management', () => {
       penaltyAmountMinor: 0,
     });
     const e = new InvoiceClaimEngine(s);
-    await expect(await e.submit(c, {
+    await expect(e.submit(c, {
         milestoneId: 'm',
         financialEntitlementId: entitlement.id,
         invoiceNumber: 'INV-001',
@@ -144,7 +144,7 @@ describe('Engine 43 Invoice & Claim Management', () => {
       currency: 'NGN',
     });
     expect(unmatched.status).toBe('SUBMITTED');
-    await expect(await e.approve(c, unmatched.id)).rejects.toThrow('INVOICE_NOT_MATCHED');
+    await expect(e.approve(c, unmatched.id)).rejects.toThrow('INVOICE_NOT_MATCHED');
     const matched = await e.submit(c, {
       milestoneId: 'm',
       financialEntitlementId: entitlement.id,
@@ -153,7 +153,7 @@ describe('Engine 43 Invoice & Claim Management', () => {
       currency: 'NGN',
     });
     expect(matched.status).toBe('MATCHED');
-    await expect(await e.submit(c, {
+    await expect(e.submit(c, {
         milestoneId: 'm',
         financialEntitlementId: entitlement.id,
         invoiceNumber: 'INV-001',
@@ -172,7 +172,7 @@ describe('Engine 44 Escrow & Funding Assurance', () => {
         return { confirmed: true, providerConfirmationReference: 'prov-ref-1' };
       },
     });
-    await expect(await engine.recordCommitment(c, {
+    await expect(engine.recordCommitment(c, {
         milestoneId: 'm',
         providerKey: 'paystack',
         externalCustodyReference: '',
@@ -194,7 +194,7 @@ describe('Engine 44 Escrow & Funding Assurance', () => {
       invoiceId: 'inv',
       reservedAmountMinor: 400_000_000,
     });
-    await expect(await engine.reserve(c, { fundingCommitmentId: confirmed.id, invoiceId: 'inv2', reservedAmountMinor: 30_000_000 })).rejects.toThrow('INSUFFICIENT_COMMITTED_FUNDS');
+    await expect(engine.reserve(c, { fundingCommitmentId: confirmed.id, invoiceId: 'inv2', reservedAmountMinor: 30_000_000 })).rejects.toThrow('INSUFFICIENT_COMMITTED_FUNDS');
     expect((await engine.releaseReservation(c, reservation.id)).status).toBe('RELEASED');
   });
 });
@@ -251,7 +251,7 @@ describe('Engine 45 Conditional Release Orchestration', () => {
       reservedAmountMinor: 425_000_000,
     });
     const e = new ConditionalReleaseOrchestrationEngine(s);
-    await expect(await e.draft(c, {
+    await expect(e.draft(c, {
         milestoneId: 'm',
         financialEntitlementId: entitlement.id,
         invoiceId: invoice.id,
@@ -272,7 +272,7 @@ describe('Engine 45 Conditional Release Orchestration', () => {
     await invoices.approve(c, invoice.id);
     const conditionsMet = await e.evaluate(c, { id: request.id, paymentEligible: true });
     expect(conditionsMet.status).toBe('CONDITIONS_MET');
-    await expect(await e.cancel(c, { id: request.id, reason: '' })).rejects.toThrow('CANCELLATION_REASON_REQUIRED');
+    await expect(e.cancel(c, { id: request.id, reason: '' })).rejects.toThrow('CANCELLATION_REASON_REQUIRED');
     expect((await e.cancel(c, { id: request.id, reason: 'superseded by staged release' })).status).toBe('CANCELLED');
   });
 });

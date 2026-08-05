@@ -419,11 +419,21 @@ export class ValidationAcceptanceTestingEngine {
     return tests[tests.length - 1];
   }
 
-  passed(context: RequestContext, input: { workItemId: string; acceptanceCriterionIds: string[] }) {
-    return input.acceptanceCriterionIds.every(async (acceptanceCriterionId) => {
-      const latest = await this.latestResult(context, { workItemId: input.workItemId, acceptanceCriterionId });
-      return !!latest && ACCEPTABLE_TEST_RESULTS.includes(latest.result);
-    });
+  async passed(
+    context: RequestContext,
+    input: { workItemId: string; acceptanceCriterionIds: string[] },
+  ): Promise<boolean> {
+    // Results are resolved before the aggregate is computed. `every` with an async
+    // predicate returns true for any non-empty list, because each predicate call
+    // yields a truthy promise rather than a verdict — a validation gate that
+    // always passes.
+    const results = await Promise.all(
+      input.acceptanceCriterionIds.map(async (acceptanceCriterionId) => {
+        const latest = await this.latestResult(context, { workItemId: input.workItemId, acceptanceCriterionId });
+        return !!latest && ACCEPTABLE_TEST_RESULTS.includes(latest.result);
+      }),
+    );
+    return results.every((accepted) => accepted);
   }
 }
 

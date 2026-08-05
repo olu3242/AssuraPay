@@ -66,7 +66,7 @@ describe('e2e Batch 5 published intelligence to activated performance blueprint'
       valueAllocationPercent: 100,
     });
 
-    await expect(await blueprints.activate(c, blueprint.id)).rejects.toThrow('DOD_PACKAGE_REQUIRED');
+    await expect(blueprints.activate(c, blueprint.id)).rejects.toThrow('DOD_PACKAGE_REQUIRED');
 
     const dod = new DefinitionOfDonePackageEngine(s);
     const draft = await dod.draft(c, {

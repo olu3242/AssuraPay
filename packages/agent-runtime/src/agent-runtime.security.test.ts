@@ -26,7 +26,7 @@ describe('security and architecture boundaries', () => {
       historyRefs: [],
       permissions: [],
     });
-    await expect(await contexts.get(context('b'), created.id)).rejects.toThrow('NOT_FOUND');
+    await expect(contexts.get(context('b'), created.id)).rejects.toThrow('NOT_FOUND');
     await memory.append(context('a'), {
       executionId: 'run',
       agentId: 'agent',
@@ -34,7 +34,7 @@ describe('security and architecture boundaries', () => {
       content: { sources: ['agreement:a'] },
     });
     expect(await memory.history(context('b'), 'run')).toEqual([]);
-    await expect(await governance.authorize(context('a'), {
+    await expect(governance.authorize(context('a'), {
         roles: ['admin'],
         promptId: 'p',
         capabilityId: 'c',
