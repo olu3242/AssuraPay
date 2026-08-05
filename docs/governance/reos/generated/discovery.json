@@ -2648,6 +2648,7 @@
         "origin/feat/engines-06-10-governance-core",
         "origin/feat/engines-61-70-agent-runtime",
         "origin/feat/persistence-async-repository-interface",
+        "origin/feat/persistence-postgres-trust-store",
         "origin/main",
         "origin/wip/persistence-async-migration",
         "origin/wip/persistence-async-repository-interface",
@@ -2656,6 +2657,8 @@
       ],
       "clean": false,
       "dirtyFiles": [
+        ".github/workflows/ci.yml",
+        "docs/governance/reos/capability-registry.json",
         "docs/governance/reos/generated/CERTIFICATION_REPORT.md",
         "docs/governance/reos/generated/DEPENDENCY_RESOLUTION.md",
         "docs/governance/reos/generated/EXECUTION_MANIFEST.md",
@@ -2663,35 +2666,10 @@
         "docs/governance/reos/generated/dependency-resolution.json",
         "docs/governance/reos/generated/discovery.json",
         "docs/governance/reos/generated/execution-manifest.json",
-        "docs/governance/reos/generated/forensics.json",
-        "package.json",
-        "packages/audit-ledger/package.json",
-        "packages/audit-ledger/src/audit-ledger.postgres.test.ts",
-        "packages/audit-ledger/src/index.ts",
-        "packages/database-testing/package.json",
-        "packages/database-testing/src/index.ts",
-        "packages/database-testing/src/migrations.postgres.test.ts",
-        "packages/database-testing/src/postgres-store.postgres.test.ts",
-        "packages/database/package.json",
-        "packages/database/src/conformance.ts",
-        "packages/database/src/index.ts",
-        "packages/database/src/migrations.ts",
-        "packages/database/src/postgres-client.ts",
-        "packages/database/src/postgres-store.ts",
-        "packages/database/src/trust-store.test.ts",
-        "packages/database/src/trust-store.ts",
-        "packages/reos/src/reos.persistence.test.ts",
-        "packages/reos/src/validators/dependency.ts",
-        "packages/reos/src/validators/persistence.ts",
-        "packages/shared/src/trust.ts",
-        "pnpm-lock.yaml",
-        "supabase/migrations/202608060001_trust_repository_store.sql",
-        "tsconfig.json",
-        "vitest.config.ts",
-        "vitest.postgres.config.ts"
+        "docs/governance/reos/generated/forensics.json"
       ],
-      "head": "70a8c63d96cd3ba3fc455859575036ae9658055f",
-      "headShort": "70a8c63",
+      "head": "6571dfcb30c7d5d552c0b186872bd6162cfb57ce",
+      "headShort": "6571dfc",
       "reflogAvailable": true,
       "remotes": [
         "origin"
@@ -2700,7 +2678,7 @@
         "platform-trust-foundation",
         "rc-engine-60"
       ],
-      "upstream": null
+      "upstream": "origin/feat/persistence-postgres-trust-store"
     },
     "name": "assurapay",
     "packageManager": "pnpm@11.3.0",
@@ -2897,6 +2875,7 @@
   "workflows": [
     {
       "jobs": [
+        "postgres",
         "verify"
       ],
       "name": "AssuraPay CI",

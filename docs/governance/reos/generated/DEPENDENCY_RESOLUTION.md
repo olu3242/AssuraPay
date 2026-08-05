@@ -6,15 +6,15 @@
 
 | Field | Value |
 | --- | --- |
-| Capability | persistence.postgres-repository |
-| Title | PostgreSQL repository implementation |
-| Current status | partial |
-| Lifecycle | implementing |
-| Priority | 40 |
-| Reason | Highest-priority executable capability (priority 40, lifecycle implementing) — selected despite needing live infrastructure, nothing else is executable — unblocks 1 downstream capability/-ies |
-| Depends on | persistence.async-repository-interface |
+| Capability | persistence.rls-certification |
+| Title | Row Level Security certification |
+| Current status | missing |
+| Lifecycle | planned |
+| Priority | 41 |
+| Reason | Highest-priority executable capability (priority 41, lifecycle planned) — selected despite needing live infrastructure, nothing else is executable |
+| Depends on | persistence.postgres-repository |
 | Unmet dependencies | none |
-| Blocks (transitive) | persistence.rls-certification |
+| Blocks (transitive) | — |
 | Declared scope | 1 file(s), 1 test suite(s) |
 | Requires live infrastructure | yes |
 
@@ -22,20 +22,17 @@
 
 | Capability | Title | Lifecycle | Priority | Blocks | Live infra |
 | --- | --- | --- | --- | --- | --- |
-| persistence.postgres-repository | PostgreSQL repository implementation | implementing | 40 | 1 | yes |
+| persistence.rls-certification | Row Level Security certification | planned | 41 | — | yes |
 
 ## Blocked
 
-| Capability | Status | Blocked by |
-| --- | --- | --- |
-| persistence.rls-certification | missing | persistence.postgres-repository |
+Nothing blocked.
 
 ## Awaiting live infrastructure
 
-- persistence.postgres-repository
 - persistence.rls-certification
 
-## Completed (69)
+## Completed (70)
 
 - engine:01
 - engine:02
@@ -94,6 +91,7 @@
 - engine:59
 - engine:60
 - persistence.async-repository-interface
+- persistence.postgres-repository
 - persistence.repository-conformance
 - reos.execution-os
 - runtime.agent-registration

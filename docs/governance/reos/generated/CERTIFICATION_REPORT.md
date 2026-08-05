@@ -5,8 +5,8 @@
 | Field | Value |
 | --- | --- |
 | Branch | feat/persistence-postgres-trust-store |
-| HEAD | 70a8c63d96cd3ba3fc455859575036ae9658055f |
-| Generated at | 2026-08-05T22:11:34.058Z |
+| HEAD | 6571dfcb30c7d5d552c0b186872bd6162cfb57ce |
+| Generated at | 2026-08-05T22:14:08.518Z |
 | Result | **PASSED** |
 | Steps | 11 passed, 0 failed, 0 skipped |
 
@@ -14,14 +14,14 @@
 
 | Step | Description | Result | Duration | Findings |
 | --- | --- | --- | --- | --- |
-| lint | ESLint across the workspace | pass | 6650 ms | — |
-| typecheck | TypeScript project typecheck | pass | 2340 ms | — |
-| test:unit | Unit tests | pass | 20070 ms | — |
-| test:integration | Integration tests | pass | 10494 ms | — |
-| test:e2e | End-to-end tests | pass | 19020 ms | — |
-| architecture | Architecture validation | pass | 131 ms | — |
-| dependencies | Dependency validation | pass | 12 ms | — |
-| security | Security validation | pass | 27 ms | — |
-| contract | Execution contract validation | pass | 22 ms | 1 |
-| governance | Reconciliation governance policy | pass | 0 ms | 15 |
-| build | Production build | pass | 24907 ms | — |
+| lint | ESLint across the workspace | pass | 4819 ms | — |
+| typecheck | TypeScript project typecheck | pass | 2125 ms | — |
+| test:unit | Unit tests | pass | 15035 ms | — |
+| test:integration | Integration tests | pass | 9820 ms | — |
+| test:e2e | End-to-end tests | pass | 14802 ms | — |
+| architecture | Architecture validation | pass | 123 ms | — |
+| dependencies | Dependency validation | pass | 11 ms | — |
+| security | Security validation | pass | 26 ms | — |
+| contract | Execution contract validation | pass | 20 ms | 1 |
+| governance | Reconciliation governance policy | pass | 1 ms | 15 |
+| build | Production build | pass | 21796 ms | — |
