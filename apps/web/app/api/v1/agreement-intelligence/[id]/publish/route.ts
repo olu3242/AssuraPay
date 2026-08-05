@@ -1,1 +1,1 @@
-import {errorResponse,intelligence,requestContext} from '../../../../../../lib/trust-app';export async function POST(r:Request,{params}:{params:{id:string}}){try{return Response.json(intelligence.structured.publish(requestContext(r),params.id))}catch(e){return errorResponse(e)}}
+import {errorResponse,intelligence,authorizedContextForRoute} from '../../../../../../lib/trust-app';export async function POST(r:Request,{params}:{params:{id:string}}){try{return Response.json(intelligence.structured.publish(authorizedContextForRoute(r),params.id))}catch(e){return errorResponse(e)}}

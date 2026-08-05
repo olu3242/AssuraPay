@@ -1,12 +1,23 @@
 import { NextResponse } from 'next/server';
 import { getAssuraService } from '../../../../../../lib/assurapay-app';
+import { authorizedContextForRoute, errorResponse } from '../../../../../../lib/trust-app';
 
-export async function GET(_request: Request, { params }: { params: { id: string } }) {
-  const { store } = await getAssuraService();
-  const snapshot = store.getSnapshot();
-  const eligibility = snapshot?.paymentEligibility?.find((entry: any) => entry.id === params.id);
-  return NextResponse.json({
-    eligibilityId: params.id,
-    blockers: eligibility?.status === 'ELIGIBLE' ? [] : ['Certificate or acceptance decision is not yet valid'],
-  });
+export async function GET(request: Request, { params }: { params: { id: string } }) {
+  try {
+    authorizedContextForRoute(request);
+    const { store } = await getAssuraService();
+    const snapshot = store.getSnapshot();
+    const eligibility = snapshot?.paymentEligibility?.find(
+      (entry: { id: string }) => entry.id === params.id,
+    );
+    return NextResponse.json({
+      eligibilityId: params.id,
+      blockers:
+        eligibility?.status === 'ELIGIBLE'
+          ? []
+          : ['Certificate or acceptance decision is not yet valid'],
+    });
+  } catch (error) {
+    return errorResponse(error);
+  }
 }

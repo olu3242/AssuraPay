@@ -1,1 +1,1 @@
-import {errorResponse,orchestration,requestContext} from '../../../../lib/trust-app';export async function POST(r:Request){try{return Response.json(orchestration.evidence.submit(requestContext(r),await r.json()),{status:201})}catch(e){return errorResponse(e)}}
+import {errorResponse,orchestration,authorizedContextForRoute} from '../../../../lib/trust-app';export async function POST(r:Request){try{return Response.json(orchestration.evidence.submit(authorizedContextForRoute(r),await r.json()),{status:201})}catch(e){return errorResponse(e)}}

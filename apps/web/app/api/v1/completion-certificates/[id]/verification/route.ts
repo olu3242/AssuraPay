@@ -1,1 +1,1 @@
-import {completion,errorResponse,requestContext} from '../../../../../../lib/trust-app';export async function POST(r:Request,{params}:{params:{id:string}}){try{return Response.json(completion.certification.verify(requestContext(r),params.id))}catch(e){return errorResponse(e)}}
+import {completion,errorResponse,authorizedContextForRoute} from '../../../../../../lib/trust-app';export async function POST(r:Request,{params}:{params:{id:string}}){try{return Response.json(completion.certification.verify(authorizedContextForRoute(r),params.id))}catch(e){return errorResponse(e)}}

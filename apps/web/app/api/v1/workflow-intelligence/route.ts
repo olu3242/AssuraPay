@@ -1,12 +1,12 @@
 import {
   errorResponse,
-  requestContext,
+  authorizedContextForRoute,
   workflowIntelligence,
 } from '../../../../lib/trust-app';
 
 export async function POST(request: Request) {
   try {
-    const context = requestContext(request);
+    const context = authorizedContextForRoute(request);
     const body = await request.json();
     switch (body.operation) {
       case 'workflow-status':

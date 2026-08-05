@@ -1,1 +1,1 @@
-import {blueprint,errorResponse,requestContext} from '../../../../lib/trust-app';export async function POST(r:Request){try{return Response.json(blueprint.deliverables.define(requestContext(r),await r.json()),{status:201})}catch(e){return errorResponse(e)}}
+import {blueprint,errorResponse,authorizedContextForRoute} from '../../../../lib/trust-app';export async function POST(r:Request){try{return Response.json(blueprint.deliverables.define(authorizedContextForRoute(r),await r.json()),{status:201})}catch(e){return errorResponse(e)}}

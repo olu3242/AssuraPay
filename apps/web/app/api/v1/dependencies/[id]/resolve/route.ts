@@ -1,1 +1,1 @@
-import {errorResponse,readiness,requestContext} from '../../../../../../lib/trust-app';export async function POST(r:Request,{params}:{params:{id:string}}){try{return Response.json(readiness.dependencies.resolve(requestContext(r),params.id))}catch(e){return errorResponse(e)}}
+import {errorResponse,readiness,authorizedContextForRoute} from '../../../../../../lib/trust-app';export async function POST(r:Request,{params}:{params:{id:string}}){try{return Response.json(readiness.dependencies.resolve(authorizedContextForRoute(r),params.id))}catch(e){return errorResponse(e)}}

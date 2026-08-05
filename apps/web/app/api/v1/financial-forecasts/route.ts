@@ -1,1 +1,1 @@
-import {analytics,errorResponse,requestContext} from '../../../../lib/trust-app';export async function POST(r:Request){try{return Response.json(await analytics.financialForecasts.forecast(requestContext(r),await r.json()),{status:201})}catch(e){return errorResponse(e)}}
+import {analytics,errorResponse,authorizedContextForRoute} from '../../../../lib/trust-app';export async function POST(r:Request){try{return Response.json(await analytics.financialForecasts.forecast(authorizedContextForRoute(r),await r.json()),{status:201})}catch(e){return errorResponse(e)}}
