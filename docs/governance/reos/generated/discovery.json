@@ -2588,19 +2588,10 @@
         "origin/feat/engines-61-70-agent-runtime",
         "origin/main"
       ],
-      "clean": false,
-      "dirtyFiles": [
-        "docs/governance/reos/generated/CERTIFICATION_REPORT.md",
-        "docs/governance/reos/generated/EXECUTION_MANIFEST.md",
-        "docs/governance/reos/generated/certification.json",
-        "docs/governance/reos/generated/dependency-resolution.json",
-        "docs/governance/reos/generated/discovery.json",
-        "docs/governance/reos/generated/execution-manifest.json",
-        "docs/governance/reos/generated/forensics.json",
-        "package.json"
-      ],
-      "head": "a39cbb0f2c0a40aaf4a5a25418397e128c2560df",
-      "headShort": "a39cbb0",
+      "clean": true,
+      "dirtyFiles": [],
+      "head": "ce6d00c7610171e66f9df8625129b6788d5e806f",
+      "headShort": "ce6d00c",
       "reflogAvailable": true,
       "remotes": [
         "origin"
