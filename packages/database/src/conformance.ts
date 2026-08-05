@@ -26,7 +26,13 @@ export type ConformanceCheck = {
   name: string;
   /** Why an implementation getting this wrong matters. */
   rationale: string;
-  run: (store: TrustPersistence) => void;
+  /**
+   * Asynchronous, because the repository contract is. A synchronous signature
+   * would still typecheck — TypeScript accepts a Promise where void is expected —
+   * while the runner discarded the promise, so a failing check reported success
+   * and its rejection escaped as an unhandled one.
+   */
+  run: (store: TrustPersistence) => Promise<void>;
 };
 
 class ConformanceFailure extends Error {
@@ -319,19 +325,23 @@ export type ConformanceResult = {
  * writes — an implementation that passed only in a particular order would be
  * hiding exactly the state leakage worth catching.
  */
-export function runTrustPersistenceConformance(
+export async function runTrustPersistenceConformance(
   factory: () => TrustPersistence,
-): ConformanceResult[] {
-  return TRUST_PERSISTENCE_CONFORMANCE.map((check) => {
+): Promise<ConformanceResult[]> {
+  const results: ConformanceResult[] = [];
+  // Sequential rather than Promise.all: each check gets its own store, and running
+  // them concurrently would make a failure report depend on scheduling order.
+  for (const check of TRUST_PERSISTENCE_CONFORMANCE) {
     try {
-      check.run(factory());
-      return { name: check.name, passed: true };
+      await check.run(factory());
+      results.push({ name: check.name, passed: true });
     } catch (error) {
-      return {
+      results.push({
         name: check.name,
         passed: false,
         failure: error instanceof Error ? error.message : String(error),
-      };
+      });
     }
-  });
+  }
+  return results;
 }

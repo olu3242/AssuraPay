@@ -16,19 +16,19 @@ import {
 
 describe('TrustPersistence conformance — InMemoryTrustStore', () => {
   for (const check of TRUST_PERSISTENCE_CONFORMANCE) {
-    it(check.name, () => {
+    it(check.name, async () => {
       // Reported through expect so a failure shows the assertion message rather
       // than an opaque thrown error.
-      expect(() => check.run(new InMemoryTrustStore())).not.toThrow();
+      await expect(check.run(new InMemoryTrustStore())).resolves.not.toThrow();
     });
   }
 });
 
 describe('TrustPersistence conformance — the suite itself', () => {
-  it('passes every check against the in-memory store', () => {
-    const failures = runTrustPersistenceConformance(() => new InMemoryTrustStore()).filter(
-      (result) => !result.passed,
-    );
+  it('passes every check against the in-memory store', async () => {
+    const failures = (
+      await runTrustPersistenceConformance(() => new InMemoryTrustStore())
+    ).filter((result) => !result.passed);
     expect(failures).toEqual([]);
   });
 
@@ -49,18 +49,18 @@ describe('TrustPersistence conformance — the suite itself', () => {
     expect(TRUST_PERSISTENCE_CONFORMANCE.length).toBeGreaterThanOrEqual(15);
   });
 
-  it('constructs a fresh store per check, so none can depend on another', () => {
+  it('constructs a fresh store per check, so none can depend on another', async () => {
     // If checks shared a store, one that wrote three records would make a later
     // "one record stored" assertion fail for a correct implementation.
     let built = 0;
-    runTrustPersistenceConformance(() => {
+    await runTrustPersistenceConformance(() => {
       built += 1;
       return new InMemoryTrustStore();
     });
     expect(built).toBe(TRUST_PERSISTENCE_CONFORMANCE.length);
   });
 
-  it('reports a failing implementation rather than throwing', () => {
+  it('reports a failing implementation rather than throwing', async () => {
     // The suite must be usable as a report — an adapter under development will
     // fail several checks, and stopping at the first would hide the rest.
     class Broken extends InMemoryTrustStore {
@@ -69,7 +69,7 @@ describe('TrustPersistence conformance — the suite itself', () => {
       }
     }
 
-    const results = runTrustPersistenceConformance(() => new Broken());
+    const results = await runTrustPersistenceConformance(() => new Broken());
     const failures = results.filter((result) => !result.passed);
     expect(failures.length).toBeGreaterThan(3);
     for (const failure of failures) {
