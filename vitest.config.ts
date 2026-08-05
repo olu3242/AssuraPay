@@ -92,6 +92,10 @@ export default defineConfig({
         __dirname,
         'packages/workflow-intelligence/src/index.ts',
       ),
+      '@assurapay/audit-ledger': path.resolve(
+        __dirname,
+        'packages/audit-ledger/src/index.ts',
+      ),
       '@assurapay/reos': path.resolve(__dirname, 'packages/reos/src/index.ts'),
     },
   },

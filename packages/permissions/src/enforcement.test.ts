@@ -242,10 +242,7 @@ describe('Engine 03 permission enforcement — membership is required, not claim
 });
 
 describe('Engine 03 permission enforcement — segregation of duties', () => {
-  it('blocks a conflicting permission pair', () => {
-    const store = new InMemoryTrustStore();
-    activeMembership(store);
-    grant(store, 'settlement:approve');
+  function blockingRule(store: InMemoryTrustStore) {
     store.append('segregationRules', {
       id: 'sod-1',
       workspaceId: WORKSPACE,
@@ -258,6 +255,14 @@ describe('Engine 03 permission enforcement — segregation of duties', () => {
       createdAt: new Date().toISOString(),
       version: 1,
     });
+  }
+
+  it('blocks a caller who holds both sides of the pair', () => {
+    const store = new InMemoryTrustStore();
+    activeMembership(store);
+    grant(store, 'settlement:approve');
+    grant(store, 'settlement:release');
+    blockingRule(store);
 
     expect(() =>
       enforcePermission(
@@ -268,10 +273,14 @@ describe('Engine 03 permission enforcement — segregation of duties', () => {
     ).toThrow('ENFORCEMENT_SEGREGATION_VIOLATION');
   });
 
-  it('allows when no conflicting rule applies', () => {
+  it('allows a caller who holds only one side, even with the rule active', () => {
+    // Segregation of duties constrains what one principal may hold, so the caller
+    // with a single side is the compliant case. Refusing them too would make the
+    // permission unusable and invite an operator to delete the rule.
     const store = new InMemoryTrustStore();
     activeMembership(store);
     grant(store, 'settlement:approve');
+    blockingRule(store);
 
     expect(
       enforcePermission(
@@ -280,6 +289,65 @@ describe('Engine 03 permission enforcement — segregation of duties', () => {
         authorities(store),
       ).memberships,
     ).toEqual([WORKSPACE]);
+  });
+
+  it('blocks in either order, so neither key is the safe one to hold first', () => {
+    const store = new InMemoryTrustStore();
+    activeMembership(store);
+    grant(store, 'settlement:approve');
+    grant(store, 'settlement:release');
+    blockingRule(store);
+
+    expect(() =>
+      enforcePermission(
+        gatewayIdentity(),
+        { permissionKey: 'settlement:release', segregatedFrom: ['settlement:approve'] },
+        authorities(store),
+      ),
+    ).toThrow('ENFORCEMENT_SEGREGATION_VIOLATION');
+  });
+
+  it('allows when no conflicting rule applies', () => {
+    const store = new InMemoryTrustStore();
+    activeMembership(store);
+    grant(store, 'settlement:approve');
+    grant(store, 'settlement:release');
+
+    expect(
+      enforcePermission(
+        gatewayIdentity(),
+        { permissionKey: 'settlement:approve', segregatedFrom: ['settlement:release'] },
+        authorities(store),
+      ).memberships,
+    ).toEqual([WORKSPACE]);
+  });
+
+  it('does not consult the conflicting permission when none is declared', () => {
+    // A requirement with no declared conflict must not pay for an evaluation, and
+    // must not be able to fail on one.
+    const store = new InMemoryTrustStore();
+    activeMembership(store);
+    grant(store, 'settlement:approve');
+    blockingRule(store);
+
+    const consulted: string[] = [];
+    const service = new PermissionService(store);
+    const stub: PermissionAuthority = {
+      requirePermission: (context, key, scope) => service.requirePermission(context, key, scope),
+      evaluate: (context, key, scope) => {
+        consulted.push(key);
+        return service.evaluate(context, key, scope);
+      },
+      assertNoSegregationConflict: (context, keys) =>
+        service.assertNoSegregationConflict(context, keys),
+    };
+
+    enforcePermission(
+      gatewayIdentity(),
+      { permissionKey: 'settlement:approve' },
+      { memberships: new TrustStoreMembershipReader(store), permissions: stub, store },
+    );
+    expect(consulted).toEqual([]);
   });
 });
 
@@ -294,6 +362,10 @@ describe('Engine 03 permission enforcement — authority delegation', () => {
         calls.push(permissionKey);
         return { allowed: true, permissionKey, reasons: [], grants: [], denials: [] };
       },
+      evaluate(_context, permissionKey) {
+        calls.push(`evaluate:${permissionKey}`);
+        return { allowed: true, permissionKey, reasons: [], grants: [], denials: [] };
+      },
       assertNoSegregationConflict() {
         calls.push('segregation');
       },
@@ -305,7 +377,7 @@ describe('Engine 03 permission enforcement — authority delegation', () => {
       { memberships: new TrustStoreMembershipReader(store), permissions: stub, store },
     );
 
-    expect(calls).toEqual(['contract:read', 'segregation']);
+    expect(calls).toEqual(['contract:read', 'evaluate:contract:delete', 'segregation']);
   });
 
   it('passes the resolved context to the authority, not the incoming one', () => {
@@ -317,6 +389,9 @@ describe('Engine 03 permission enforcement — authority delegation', () => {
       requirePermission(context, permissionKey) {
         seen = context.memberships;
         return { allowed: true, permissionKey, reasons: [], grants: [], denials: [] };
+      },
+      evaluate(_context, permissionKey) {
+        return { allowed: false, permissionKey, reasons: [], grants: [], denials: [] };
       },
       assertNoSegregationConflict() {},
     };
@@ -337,6 +412,9 @@ describe('Engine 03 permission enforcement — authority delegation', () => {
       requirePermission(_context, permissionKey) {
         consulted = true;
         return { allowed: true, permissionKey, reasons: [], grants: [], denials: [] };
+      },
+      evaluate(_context, permissionKey) {
+        return { allowed: false, permissionKey, reasons: [], grants: [], denials: [] };
       },
       assertNoSegregationConflict() {},
     };

@@ -10,14 +10,14 @@
 | Repository | assurapay |
 | Version | 0.1.0 |
 | Branch | claude/git-pull-cqc04u |
-| HEAD | cbe143540c9dba8ae93680e2e7387e8d0d085f8b |
-| Worktree clean | no |
-| Manifest digest | 51713f5c2ba5 |
+| HEAD | fcdb5cab56816b20140d0cf128a8e2d347f1e015 |
+| Worktree clean | yes |
+| Manifest digest | d146a688afe9 |
 | REOS version | 1.0.0 |
 
 ## Architecture
 
-- Packages: 22
+- Packages: 23
 - Applications: 1
 - Waves: 6
 - Canonical chain: Contract → PerformanceBlueprint → Milestone → DefinitionOfDonePackage → ExecutionWorkspace → CompletionCertificate → PaymentEligibility → FinancialEntitlement → ReleaseRequest → PaymentInstruction → ReconciliationRecord
@@ -26,10 +26,10 @@
 
 | Lifecycle | Count |
 | --- | --- |
-| missing | 1 |
-| planned | 4 |
-| certified | 5 |
-| released | 55 |
+| missing | 2 |
+| planned | 1 |
+| certified | 8 |
+| released | 60 |
 | deferred | 4 |
 
 ## Engine reconciliation
@@ -46,7 +46,7 @@ from repository evidence: package presence, test files, and certification wiring
 | 05 | Legal Governance | 1 | Conditionally implemented | implemented | released | packages/legal | **yes** |
 | 06 | Third-Party Risk | 1 | Deferred | deferred | deferred | — | no |
 | 07 | Compliance Foundation | 1 | Deferred | deferred | deferred | — | no |
-| 08 | Audit & Evidence Ledger | 1 | Foundation only | missing | planned | — | **yes** |
+| 08 | Audit & Evidence Ledger | 1 | Conditionally implemented | implemented | certified | packages/audit-ledger | **yes** |
 | 09 | Notification & Communication | 1 | Deferred | deferred | deferred | — | no |
 | 10 | Enterprise Configuration | 1 | Deferred | deferred | deferred | — | no |
 | 11 | Contract Authoring | 2 | — | implemented | released | packages/agreement-creation | no |
@@ -104,22 +104,28 @@ from repository evidence: package presence, test files, and certification wiring
 
 | Capability | Title | Status | Lifecycle | Probes | Rationale |
 | --- | --- | --- | --- | --- | --- |
-| persistence.postgres-repository | PostgreSQL repository implementation | missing | planned | 0/3 | No evidence at HEAD, on any ref, or in history. |
+| persistence.async-repository-interface | Asynchronous repository interface | missing | planned | 0/3 | No evidence at HEAD, on any ref, or in history. |
+| persistence.postgres-repository | PostgreSQL repository implementation | missing | missing | 0/3 | No evidence at HEAD, on any ref, or in history. |
+| persistence.repository-conformance | TrustPersistence conformance specification | implemented | certified | 4/4 | All 4 evidence probes satisfied at HEAD. |
 | persistence.rls-certification | Row Level Security certification | missing | missing | 0/4 | No evidence at HEAD, on any ref, or in history. |
-| reos.execution-os | Repository Execution Operating System | implemented | certified | 7/7 | All 7 evidence probes satisfied at HEAD. |
-| runtime.agent-registration | Agent Runtime registration | missing | planned | 0/3 | No evidence at HEAD, on any ref, or in history. |
-| settlement.non-custody-guard | Non-custody architectural guard | implemented | certified | 4/4 | All 4 evidence probes satisfied at HEAD. |
-| trust.identity-assertions | HMAC identity assertions | implemented | certified | 4/4 | All 4 evidence probes satisfied at HEAD. |
-| trust.identity-gateway | Production identity gateway | implemented | certified | 4/4 | All 4 evidence probes satisfied at HEAD. |
-| trust.permission-enforcement | Permission enforcement middleware | implemented | certified | 4/4 | All 4 evidence probes satisfied at HEAD. |
-| trust.route-permission-integration | Route-level permission mapping | missing | planned | 0/4 | No evidence at HEAD, on any ref, or in history. |
+| reos.execution-os | Repository Execution Operating System | implemented | released | 7/7 | All 7 evidence probes satisfied at HEAD. |
+| runtime.agent-registration | Agent Runtime registration | implemented | certified | 3/3 | All 3 evidence probes satisfied at HEAD. |
+| settlement.non-custody-guard | Non-custody architectural guard | implemented | released | 4/4 | All 4 evidence probes satisfied at HEAD. |
+| trust.grant-administration-api | HTTP surface for workspace founding and role assignment | implemented | certified | 6/6 | All 6 evidence probes satisfied at HEAD. |
+| trust.identity-assertions | HMAC identity assertions | implemented | released | 4/4 | All 4 evidence probes satisfied at HEAD. |
+| trust.identity-gateway | Production identity gateway | implemented | released | 4/4 | All 4 evidence probes satisfied at HEAD. |
+| trust.permission-enforcement | Permission enforcement middleware | implemented | released | 4/4 | All 4 evidence probes satisfied at HEAD. |
+| trust.permission-grant-catalogue | Permission grant catalogue and workspace bootstrap | implemented | certified | 8/8 | All 8 evidence probes satisfied at HEAD. |
+| trust.route-permission-integration | Route-level permission mapping | implemented | certified | 6/6 | All 6 evidence probes satisfied at HEAD. |
+| trust.route-permission-rollout | Route migration to authorized context | implemented | certified | 4/4 | All 4 evidence probes satisfied at HEAD. |
+| trust.session-assertion-issuance | Identity assertion issuance from an authenticated session | implemented | certified | 5/5 | All 5 evidence probes satisfied at HEAD. |
 
 ## Reconciliation findings
 
 | Severity | Rule | Finding |
 | --- | --- | --- |
 | warning | catalog/certification-numbering-collision | certify:certification certifies packages/governance-core using batch number 09, but catalog engine 09 (Notification & Communication) maps to no implementation package. The certify:* batch numbering and the catalog engine numbering are two different identifier spaces using the same numbers. |
-| warning | catalog/certification-numbering-collision | certify:dod certifies packages/governance-core using batch number 08, but catalog engine 08 (Audit & Evidence Ledger) maps to no implementation package. The certify:* batch numbering and the catalog engine numbering are two different identifier spaces using the same numbers. |
+| warning | catalog/certification-numbering-collision | certify:dod certifies packages/governance-core using batch number 08, but catalog engine 08 (Audit & Evidence Ledger) maps to packages/audit-ledger. The certify:* batch numbering and the catalog engine numbering are two different identifier spaces using the same numbers. |
 | warning | catalog/certification-numbering-collision | certify:execution certifies packages/governance-core using batch number 06, but catalog engine 06 (Third-Party Risk) maps to no implementation package. The certify:* batch numbering and the catalog engine numbering are two different identifier spaces using the same numbers. |
 | warning | catalog/certification-numbering-collision | certify:milestones certifies packages/governance-core using batch number 07, but catalog engine 07 (Compliance Foundation) maps to no implementation package. The certify:* batch numbering and the catalog engine numbering are two different identifier spaces using the same numbers. |
 | warning | catalog/certification-numbering-collision | certify:payment-triggers certifies packages/governance-core using batch number 10, but catalog engine 10 (Enterprise Configuration) maps to no implementation package. The certify:* batch numbering and the catalog engine numbering are two different identifier spaces using the same numbers. |
@@ -128,26 +134,23 @@ from repository evidence: package presence, test files, and certification wiring
 | warning | catalog/status-divergence | Engine 03 (Roles, Permissions & Governance) is declared "Conditionally implemented" but repository evidence shows "implemented". |
 | warning | catalog/status-divergence | Engine 04 (Party Verification) is declared "Conditionally implemented" but repository evidence shows "implemented". |
 | warning | catalog/status-divergence | Engine 05 (Legal Governance) is declared "Conditionally implemented" but repository evidence shows "implemented". |
-| warning | catalog/status-divergence | Engine 08 (Audit & Evidence Ledger) is declared "Foundation only" but repository evidence shows "missing". |
+| warning | catalog/status-divergence | Engine 08 (Audit & Evidence Ledger) is declared "Conditionally implemented" but repository evidence shows "implemented". |
 | warning | catalog/unmapped-engine-package | packages/agent-runtime exports 10 engine class(es) but is not mapped to any catalog engine, so its scope is not represented in docs/ENGINE_CATALOG.md. |
 | warning | catalog/unmapped-engine-package | packages/governance-core exports 5 engine class(es) but is not mapped to any catalog engine, so its scope is not represented in docs/ENGINE_CATALOG.md. |
 | warning | catalog/unmapped-engine-package | packages/workflow-intelligence exports 10 engine class(es) but is not mapped to any catalog engine, so its scope is not represented in docs/ENGINE_CATALOG.md. |
 | error | runtime/duplicate-abstraction | DependencyIntelligenceEngine is exported by 2 packages, which duplicates an abstraction. |
-| warning | runtime/unregistered-engine | 18 exported engine class(es) are not instantiated in any composition root, so they are unreachable at runtime. |
 
 ## Execution backlog
 
-5 open item(s). Highest-priority first.
+3 open item(s). Highest-priority first.
 
 | Capability | Title | Lifecycle | Priority | Executable | Blocked by | Blocks |
 | --- | --- | --- | --- | --- | --- | --- |
-| runtime.agent-registration | Agent Runtime registration | planned | 20 | yes | — | — |
-| trust.route-permission-integration | Route-level permission mapping | planned | 30 | yes | — | — |
-| persistence.postgres-repository | PostgreSQL repository implementation | planned | 40 | yes | — | 1 |
+| persistence.async-repository-interface | Asynchronous repository interface | planned | 39 | yes | — | 2 |
+| persistence.postgres-repository | PostgreSQL repository implementation | missing | 40 | no | persistence.async-repository-interface | 1 |
 | persistence.rls-certification | Row Level Security certification | missing | 41 | no | persistence.postgres-repository | — |
-| engine:08 | Engine 08 — Audit & Evidence Ledger | planned | 108 | yes | — | 52 |
 
 ## Certification coverage
 
-- Certification scripts: 82
+- Certification scripts: 83
 - Packages without a certification script: packages/database, packages/domain, packages/shared

@@ -41,6 +41,23 @@ describe('integration: stage 1 discovers the real repository', () => {
     ).toBe(true);
   });
 
+  it('counts only engine classes as engines', () => {
+    // Counting every exported class made the unregistered figure grow whenever a
+    // package gained an error type, which is the opposite of the intended signal.
+    for (const name of discovery.runtime.exportedEngines) {
+      expect(name.endsWith('Engine'), `${name} is not an engine class`).toBe(true);
+    }
+    expect(discovery.runtime.exportedEngines.length).toBeGreaterThan(50);
+  });
+
+  it('treats an engine instantiated in a registration module as reachable', () => {
+    // The agent runtime is composed in packages/agent-runtime/src/registration.ts
+    // and mounted by the app, so requiring the `new` to appear literally under
+    // apps/*/lib would report a correctly wired runtime as unreachable.
+    expect(discovery.runtime.exportedEngines).toContain('AgentRuntimeEngine');
+    expect(discovery.runtime.unregisteredEngines).not.toContain('AgentRuntimeEngine');
+  });
+
   it('inventories CI workflows', () => {
     expect(discovery.workflows.map((workflow) => workflow.path)).toContain(
       '.github/workflows/ci.yml',
@@ -90,9 +107,11 @@ describe('integration: stage 3 reconciles the engine catalog', () => {
 
   it('reconciles all 60 engines and maps them to packages where they exist', () => {
     expect(manifest.engines).toHaveLength(60);
-    // Engines 01-05 and 11-60 map to packages; 06-10 are deferred trust engines.
+    // Engines 01-05, 08 and 11-60 map to packages. 06, 07, 09 and 10 remain
+    // deferred; 08 was declared "Foundation only" and is now implemented, which is
+    // why this figure is 56 rather than 55.
     const mapped = manifest.engines.filter((engine) => engine.packageDirectory !== null);
-    expect(mapped.length).toBe(55);
+    expect(mapped.length).toBe(56);
   });
 
   it('reads the canonical chain from CLAUDE.md', () => {

@@ -1,13 +1,13 @@
 import {
   agreements,
   errorResponse,
-  requestContext,
+  authorizedContextForRoute,
 } from '../../../../../lib/trust-app';
 export async function POST(r: Request) {
   try {
     return Response.json(
       agreements.authoring.createTemplateVersion(
-        requestContext(r),
+        authorizedContextForRoute(r),
         await r.json(),
       ),
       { status: 201 },

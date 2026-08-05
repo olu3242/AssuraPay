@@ -3,7 +3,15 @@ import type { AuditRecord, OutboxEvent, TrustPersistence } from '@assurapay/shar
 
 export class InMemoryTrustStore implements TrustPersistence {
   private readonly collections = new Map<string, unknown[]>();
-  list<T>(collection: string): T[] { return [...(this.collections.get(collection) ?? [])] as T[]; }
+  /**
+   * Reads are deep copies, not just a fresh array.
+   *
+   * A shallow copy handed out live references to the stored records, so any caller
+   * that read a collection could edit it in place — including `auditRecords`, with
+   * no write call and nothing to audit. `append` already cloned on write; reads
+   * were the open side, and CLAUDE.md constraint 3 forbids mutating history at all.
+   */
+  list<T>(collection: string): T[] { return structuredClone(this.collections.get(collection) ?? []) as T[]; }
   append<T>(collection: string, value: T): void { this.collections.set(collection, [...(this.collections.get(collection) ?? []), structuredClone(value)]); }
   replace<T extends { id: string }>(collection: string, value: T): void {
     const entries = this.list<T>(collection); const index = entries.findIndex((entry) => entry.id === value.id);

@@ -231,17 +231,33 @@ function discoverRuntime(
     }
   }
 
-  const registeredEverywhere = new Set(
-    registrations.flatMap((registration) => registration.registeredEngines),
-  );
-  const exportedEngines = [...exportedCounts.keys()].sort();
+  // Only engine classes. An exported error, store or value class is never
+  // "registered" in a composition root, so counting them made the unregistered
+  // figure grow every time a package gained an error type — the opposite of what
+  // the finding is supposed to signal.
+  const exportedEngines = [...exportedCounts.keys()]
+    .filter((name) => name.endsWith('Engine'))
+    .sort();
+
+  // Reachability, not location. A class instantiated in a registration module that
+  // a composition root mounts is reachable; requiring the `new` to appear literally
+  // under apps/*/lib would report a correctly wired runtime as unreachable.
+  const instantiated = new Set<string>();
+  for (const root of ['packages', 'apps']) {
+    for (const file of walkFiles(path.join(repoRoot, root), repoRoot)) {
+      if (!/\.tsx?$/.test(file) || classifyTestFile(file) !== null) continue;
+      const text = readTextIfPresent(path.join(repoRoot, file));
+      if (text === null) continue;
+      for (const match of text.matchAll(/new\s+([A-Za-z0-9_]+Engine)\s*\(/g)) {
+        instantiated.add(match[1]);
+      }
+    }
+  }
 
   return {
     registrations: sortBy(registrations, (record) => record.compositionRoot),
     exportedEngines,
-    unregisteredEngines: exportedEngines.filter(
-      (name) => !registeredEverywhere.has(name),
-    ),
+    unregisteredEngines: exportedEngines.filter((name) => !instantiated.has(name)),
     duplicatedEngines: exportedEngines.filter(
       (name) => (exportedCounts.get(name) ?? 0) > 1,
     ),

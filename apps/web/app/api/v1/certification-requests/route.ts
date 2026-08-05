@@ -1,11 +1,11 @@
 import {
   governance,
-  requestContext,
+  authorizedContextForRoute,
   errorResponse,
 } from '../../../../lib/trust-app';
 export async function POST(request: Request) {
   try {
-    const context = requestContext(request);
+    const context = authorizedContextForRoute(request);
     return Response.json(
       governance.certifications.request(context, await request.json()),
       { status: 201 },

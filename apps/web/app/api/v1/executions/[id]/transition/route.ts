@@ -1,6 +1,6 @@
 import {
   governance,
-  requestContext,
+  authorizedContextForRoute,
   errorResponse,
 } from '../../../../../../lib/trust-app';
 export async function POST(
@@ -8,7 +8,7 @@ export async function POST(
   { params }: { params: { id: string } },
 ) {
   try {
-    const context = requestContext(request);
+    const context = authorizedContextForRoute(request);
     const body = await request.json();
     return Response.json(
       governance.executions.transition(

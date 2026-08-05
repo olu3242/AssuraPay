@@ -1,12 +1,12 @@
 import {
   agreements,
   errorResponse,
-  requestContext,
+  authorizedContextForRoute,
 } from '../../../../../../lib/trust-app';
 export async function POST(r: Request, { params }: { params: { id: string } }) {
   try {
     return Response.json(
-      agreements.authoring.submit(requestContext(r), params.id),
+      agreements.authoring.submit(authorizedContextForRoute(r), params.id),
     );
   } catch (e) {
     return errorResponse(e);

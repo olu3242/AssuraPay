@@ -1,1 +1,1 @@
-import {errorResponse,requestContext,treasury} from '../../../../lib/trust-app';export async function POST(r:Request){try{return Response.json(treasury.payments.issue(requestContext(r),await r.json()),{status:201})}catch(e){return errorResponse(e)}}
+import {errorResponse,authorizedContextForRoute,treasury} from '../../../../lib/trust-app';export async function POST(r:Request){try{return Response.json(treasury.payments.issue(authorizedContextForRoute(r),await r.json()),{status:201})}catch(e){return errorResponse(e)}}

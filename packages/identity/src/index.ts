@@ -2,6 +2,7 @@ import { createHash, randomUUID } from 'node:crypto';
 
 export * from './assertions';
 export * from './gateway';
+export * from './issuance';
 
 import type { AssuranceLevel, RequestContext, TrustPersistence } from '@assurapay/shared';
 

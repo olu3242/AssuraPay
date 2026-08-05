@@ -7,8 +7,10 @@
       "name": "@assurapay/web",
       "routes": 24,
       "workspaceDependencies": [
+        "@assurapay/agent-runtime",
         "@assurapay/agreement-creation",
         "@assurapay/agreement-intelligence",
+        "@assurapay/audit-ledger",
         "@assurapay/completion-assurance",
         "@assurapay/database",
         "@assurapay/domain",
@@ -86,13 +88,19 @@
       "testNamePattern": "14"
     },
     {
+      "command": "vitest run packages/audit-ledger",
+      "packageDirectory": "packages/audit-ledger",
+      "script": "certify:audit-ledger",
+      "testNamePattern": null
+    },
+    {
       "command": "vitest run packages/agreement-creation/src/agreement-creation.test.ts --testNamePattern=11",
       "packageDirectory": "packages/agreement-creation",
       "script": "certify:authoring",
       "testNamePattern": "11"
     },
     {
-      "command": "vitest run packages/permissions",
+      "command": "vitest run packages/permissions apps/web/lib/route-permissions.test.ts",
       "packageDirectory": "packages/permissions",
       "script": "certify:authorization",
       "testNamePattern": null
@@ -500,7 +508,7 @@
       "testNamePattern": "27"
     },
     {
-      "command": "vitest run packages/organizations packages/database/src/trust-migrations.integration.test.ts",
+      "command": "vitest run packages/organizations packages/database",
       "packageDirectory": "packages/organizations",
       "script": "certify:tenancy",
       "testNamePattern": null
@@ -1247,7 +1255,7 @@
       "declaredStatus": "Conditionally implemented",
       "id": "03",
       "name": "Roles, Permissions & Governance",
-      "responsibility": "RBAC, ABAC, record/field access, delegation, authority, segregation of duties",
+      "responsibility": "RBAC, ABAC, record/field access, delegation, authority, segregation of duties, grant catalogue and workspace founding",
       "wave": 1,
       "waveName": "Trust Foundation"
     },
@@ -1284,10 +1292,10 @@
       "waveName": "Trust Foundation"
     },
     {
-      "declaredStatus": "Foundation only",
+      "declaredStatus": "Conditionally implemented",
       "id": "08",
       "name": "Audit & Evidence Ledger",
-      "responsibility": "Append-only decisions, approvals, signatures, evidence and financial audit",
+      "responsibility": "Append-only decisions, approvals, signatures, evidence and financial audit; hash-chain verification and snapshot comparison",
       "wave": 1,
       "waveName": "Trust Foundation"
     },
@@ -1857,6 +1865,7 @@
         "AgentGovernanceEngine",
         "AgentRegistryEngine",
         "AgentRuntimeEngine",
+        "AgentRuntimeRegistrationError",
         "AgentTelemetryEngine",
         "AiGatewayEngine",
         "CapabilityRegistryEngine",
@@ -1869,12 +1878,13 @@
       "main": "src/index.ts",
       "moduleType": null,
       "name": "@assurapay/agent-runtime",
-      "sourceFiles": 1,
-      "sourceLines": 998,
+      "sourceFiles": 2,
+      "sourceLines": 1205,
       "testFiles": [
         "packages/agent-runtime/src/agent-runtime.e2e.test.ts",
         "packages/agent-runtime/src/agent-runtime.integration.test.ts",
         "packages/agent-runtime/src/agent-runtime.performance.test.ts",
+        "packages/agent-runtime/src/agent-runtime.registration.test.ts",
         "packages/agent-runtime/src/agent-runtime.security.test.ts",
         "packages/agent-runtime/src/agent-runtime.test.ts"
       ],
@@ -1883,7 +1893,7 @@
         "integration": 1,
         "performance": 1,
         "security": 1,
-        "unit": 1
+        "unit": 2
       },
       "workspaceDependencies": [
         "@assurapay/database",
@@ -1955,6 +1965,33 @@
       ]
     },
     {
+      "directory": "packages/audit-ledger",
+      "exportedClasses": [
+        "AuditLedgerEngine",
+        "EvidenceLedgerError"
+      ],
+      "externalDependencies": [],
+      "main": "src/index.ts",
+      "moduleType": null,
+      "name": "@assurapay/audit-ledger",
+      "sourceFiles": 1,
+      "sourceLines": 384,
+      "testFiles": [
+        "packages/audit-ledger/src/audit-ledger.test.ts"
+      ],
+      "tests": {
+        "e2e": 0,
+        "integration": 0,
+        "performance": 0,
+        "security": 0,
+        "unit": 1
+      },
+      "workspaceDependencies": [
+        "@assurapay/database",
+        "@assurapay/shared"
+      ]
+    },
+    {
       "directory": "packages/completion-assurance",
       "exportedClasses": [
         "AcceptanceDecisionEngine",
@@ -1996,17 +2033,18 @@
       "main": "src/index.ts",
       "moduleType": null,
       "name": "@assurapay/database",
-      "sourceFiles": 2,
-      "sourceLines": 319,
+      "sourceFiles": 3,
+      "sourceLines": 648,
       "testFiles": [
-        "packages/database/src/trust-migrations.integration.test.ts"
+        "packages/database/src/trust-migrations.integration.test.ts",
+        "packages/database/src/trust-store.test.ts"
       ],
       "tests": {
         "e2e": 0,
         "integration": 1,
         "performance": 0,
         "security": 0,
-        "unit": 0
+        "unit": 1
       },
       "workspaceDependencies": [
         "@assurapay/shared"
@@ -2180,6 +2218,7 @@
     {
       "directory": "packages/identity",
       "exportedClasses": [
+        "AssertionIssuanceError",
         "IdentityAssertionError",
         "IdentityAssertionService",
         "IdentityGateway",
@@ -2191,19 +2230,20 @@
       "main": "src/index.ts",
       "moduleType": null,
       "name": "@assurapay/identity",
-      "sourceFiles": 3,
-      "sourceLines": 932,
+      "sourceFiles": 4,
+      "sourceLines": 1178,
       "testFiles": [
         "packages/identity/src/assertions.test.ts",
         "packages/identity/src/gateway.test.ts",
-        "packages/identity/src/identity.test.ts"
+        "packages/identity/src/identity.test.ts",
+        "packages/identity/src/issuance.test.ts"
       ],
       "tests": {
         "e2e": 0,
         "integration": 0,
         "performance": 0,
         "security": 0,
-        "unit": 3
+        "unit": 4
       },
       "workspaceDependencies": [
         "@assurapay/database",
@@ -2356,6 +2396,7 @@
     {
       "directory": "packages/permissions",
       "exportedClasses": [
+        "CatalogueError",
         "PermissionEnforcementError",
         "PermissionService",
         "TrustStoreMembershipReader"
@@ -2364,9 +2405,10 @@
       "main": "src/index.ts",
       "moduleType": null,
       "name": "@assurapay/permissions",
-      "sourceFiles": 2,
-      "sourceLines": 221,
+      "sourceFiles": 3,
+      "sourceLines": 1002,
       "testFiles": [
+        "packages/permissions/src/catalogue.test.ts",
         "packages/permissions/src/enforcement.test.ts",
         "packages/permissions/src/permissions.test.ts"
       ],
@@ -2375,7 +2417,7 @@
         "integration": 0,
         "performance": 0,
         "security": 0,
-        "unit": 2
+        "unit": 3
       },
       "workspaceDependencies": [
         "@assurapay/database",
@@ -2390,7 +2432,7 @@
       "moduleType": "module",
       "name": "@assurapay/reos",
       "sourceFiles": 24,
-      "sourceLines": 4149,
+      "sourceLines": 4164,
       "testFiles": [
         "packages/reos/src/reos.e2e.test.ts",
         "packages/reos/src/reos.governance.test.ts",
@@ -2546,25 +2588,16 @@
         "origin/feat/engines-61-70-agent-runtime",
         "origin/main"
       ],
-      "clean": false,
-      "dirtyFiles": [
-        "docs/governance/reos/capability-registry.json",
-        "docs/governance/reos/generated/CERTIFICATION_REPORT.md",
-        "docs/governance/reos/generated/DEPENDENCY_RESOLUTION.md",
-        "docs/governance/reos/generated/EXECUTION_MANIFEST.md",
-        "docs/governance/reos/generated/certification.json",
-        "docs/governance/reos/generated/dependency-resolution.json",
-        "docs/governance/reos/generated/discovery.json",
-        "docs/governance/reos/generated/execution-manifest.json",
-        "docs/governance/reos/generated/forensics.json"
-      ],
-      "head": "cbe143540c9dba8ae93680e2e7387e8d0d085f8b",
-      "headShort": "cbe1435",
+      "clean": true,
+      "dirtyFiles": [],
+      "head": "fcdb5cab56816b20140d0cf128a8e2d347f1e015",
+      "headShort": "fcdb5ca",
       "reflogAvailable": true,
       "remotes": [
         "origin"
       ],
       "tags": [
+        "platform-trust-foundation",
         "rc-engine-60"
       ],
       "upstream": "origin/claude/git-pull-cqc04u"
@@ -2588,7 +2621,7 @@
       "AiDecisionSupportEngine",
       "AiGatewayEngine",
       "ApprovalWorkflowEngine",
-      "AssuraPayService",
+      "AuditLedgerEngine",
       "BottleneckDetectionEngine",
       "CapabilityRegistryEngine",
       "CertificationEngine",
@@ -2606,7 +2639,6 @@
       "DefinitionOfDonePackageEngine",
       "DeliverablesEngine",
       "DependencyIntelligenceEngine",
-      "DeterministicVerificationProvider",
       "DigitalExecutionEngine",
       "DisputeResolutionEngine",
       "EnterpriseKpiEngine",
@@ -2620,36 +2652,23 @@
       "ExecutionMemoryEngine",
       "ExecutionOrchestrationEngine",
       "ExecutiveDashboardEngine",
-      "FileAssuraStore",
       "FinalSettlementEngine",
       "FinancialApprovalAuthorityEngine",
       "FinancialEntitlementEngine",
       "FinancialPaymentIntelligenceEngine",
       "HumanApprovalEngine",
-      "IdentityAssertionError",
-      "IdentityAssertionService",
-      "IdentityGateway",
-      "IdentityGatewayError",
-      "IdentityService",
-      "InMemoryAssertionReplayStore",
-      "InMemoryTrustStore",
       "InspectionEngine",
       "InvoiceClaimEngine",
       "IssueRiskCorrectiveActionEngine",
-      "LegalService",
       "MilestoneEngine",
       "MilestonePlanningEngine",
       "NegotiationEngine",
-      "OrganizationService",
-      "PartyService",
       "PaymentEligibilityEngine",
       "PaymentExecutionEngine",
       "PaymentTriggerEngine",
       "PaymentTriggerRuleEngine",
       "PerformanceBaselineEngine",
       "PerformanceBlueprintEngine",
-      "PermissionEnforcementError",
-      "PermissionService",
       "PortfolioAnalyticsEngine",
       "PredictiveExecutionIntelligenceEngine",
       "PredictiveRiskIntelligenceEngine",
@@ -2664,7 +2683,6 @@
       "SettlementAssuranceIndexEngine",
       "SlaIntelligenceEngine",
       "SuccessMetricsEngine",
-      "TrustStoreMembershipReader",
       "ValidationAcceptanceTestingEngine",
       "VendorCustomerPerformanceEngine",
       "WorkflowIntelligenceEngine"
@@ -2684,6 +2702,7 @@
           "AgreementIntelligenceEngine",
           "AiDecisionSupportEngine",
           "ApprovalWorkflowEngine",
+          "AuditLedgerEngine",
           "BottleneckDetectionEngine",
           "CertificationEngine",
           "ChangeControlEngine",
@@ -2754,26 +2773,7 @@
         ]
       }
     ],
-    "unregisteredEngines": [
-      "AgentGovernanceEngine",
-      "AgentRegistryEngine",
-      "AgentRuntimeEngine",
-      "AgentTelemetryEngine",
-      "AiGatewayEngine",
-      "CapabilityRegistryEngine",
-      "ContextEngine",
-      "ExecutionMemoryEngine",
-      "FileAssuraStore",
-      "HumanApprovalEngine",
-      "IdentityAssertionError",
-      "IdentityGateway",
-      "IdentityGatewayError",
-      "InMemoryAssertionReplayStore",
-      "InMemoryTrustStore",
-      "PermissionEnforcementError",
-      "PromptRegistryEngine",
-      "TrustStoreMembershipReader"
-    ]
+    "unregisteredEngines": []
   },
   "stage": "discover",
   "tests": {
@@ -2782,17 +2782,17 @@
       "integration": 15,
       "performance": 2,
       "security": 3,
-      "unit": 32
+      "unit": 37
     },
-    "files": 67
+    "files": 72
   },
   "totals": {
     "applications": 1,
     "documents": 140,
     "engines": 60,
     "migrations": 20,
-    "packages": 22,
-    "testFiles": 67
+    "packages": 23,
+    "testFiles": 72
   },
   "workflows": [
     {

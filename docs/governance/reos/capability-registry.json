@@ -8,7 +8,7 @@
     "05": "packages/legal",
     "06": null,
     "07": null,
-    "08": null,
+    "08": "packages/audit-ledger",
     "09": null,
     "10": null,
     "11": "packages/agreement-creation",
@@ -207,7 +207,7 @@
       "kind": "platform",
       "priority": 40,
       "dependsOn": [
-        "trust.permission-enforcement"
+        "persistence.async-repository-interface"
       ],
       "evidence": {
         "paths": [
@@ -222,7 +222,7 @@
       },
       "certify": "certify:tenancy",
       "requiresLiveInfrastructure": true,
-      "notes": "Requires DATABASE_URL. Repository interface already exists; only the Postgres adapter is missing."
+      "notes": "Requires DATABASE_URL and a Postgres driver, which the repository has none of - it currently ships zero runtime dependencies. Blocked before that on persistence.async-repository-interface: TrustPersistence is synchronous, so no network-backed store can implement it. Definition of done is passing TRUST_PERSISTENCE_CONFORMANCE plus persistence.rls-certification against a live instance; an adapter that compiles is not the capability."
     },
     {
       "id": "persistence.rls-certification",
@@ -258,11 +258,13 @@
       ],
       "evidence": {
         "paths": [
-          "apps/web/lib/route-permissions.ts"
+          "apps/web/lib/route-permissions.ts",
+          "apps/web/lib/trust-app.ts"
         ],
         "symbols": [
           "ROUTE_PERMISSION_REQUIREMENTS",
-          "requirementForRoute"
+          "requirementForRoute",
+          "authorizedContextForRoute"
         ],
         "tests": [
           "apps/web/lib/route-permissions.test.ts"
@@ -270,10 +272,178 @@
       },
       "certify": "certify:authorization",
       "scope": {
-        "files": 1,
+        "files": 2,
         "tests": 1
       },
-      "notes": "Maps each existing API route to an explicit action/resource permission requirement so it calls authorizedContext instead of requestContext. Registered separately so the 146-route migration is never folded into unrelated runtime or agent work. Evidence shape may be revised when the capability is selected."
+      "notes": "Declares the authorization policy for the whole HTTP surface as a route table keyed on template|METHOD, resolves a requirement from a live request path and method, and applies it at the composition root through authorizedContextForRoute. Fails closed: an unmapped route or method throws rather than defaulting to allow. This capability is the policy and the enforcement entry point, not the per-route migration \u2014 see trust.permission-grant-catalogue and trust.route-permission-rollout, which cannot precede it."
+    },
+    {
+      "id": "trust.permission-grant-catalogue",
+      "title": "Permission grant catalogue and workspace bootstrap",
+      "kind": "platform",
+      "priority": 31,
+      "dependsOn": [
+        "trust.route-permission-integration"
+      ],
+      "evidence": {
+        "paths": [
+          "packages/permissions/src/catalogue.ts",
+          "apps/web/lib/trust-app.ts"
+        ],
+        "symbols": [
+          "PERMISSION_CATALOGUE",
+          "SEGREGATION_CATALOGUE",
+          "bootstrapWorkspaceGrants",
+          "grantRole",
+          "bootstrapFoundingAdministrator"
+        ],
+        "tests": [
+          "packages/permissions/src/catalogue.test.ts"
+        ]
+      },
+      "certify": "certify:authorization",
+      "scope": {
+        "files": 2,
+        "tests": 2
+      },
+      "notes": "Closes the circle that blocked the route migration: deny-by-default over an empty grant table denies everyone, including whoever would issue the first grant. PERMISSION_CATALOGUE is the closed set of roles and the keys each may hold, so a key no role names cannot be granted. SEGREGATION_CATALOGUE is the canonical duty pairs, mirrored by the route table and kept in step by a test. bootstrapWorkspaceGrants grants the founding administrator with no authorizing caller, once per workspace, against an owner membership that must already exist. grantRole is the ordinary authorized path and refuses a grant whose resulting permission set would breach segregation of duties. No superuser role exists: the founding administrator holds no certification, release or payment key, so founding a workspace does not create a principal who can move money alone."
+    },
+    {
+      "id": "trust.route-permission-rollout",
+      "title": "Route migration to authorized context",
+      "kind": "platform",
+      "priority": 32,
+      "dependsOn": [
+        "trust.permission-grant-catalogue"
+      ],
+      "evidence": {
+        "paths": [
+          "apps/web/lib/route-coverage.test.ts"
+        ],
+        "symbols": [
+          "ROUTE_COVERAGE_PUBLIC_ALLOWLIST",
+          "workspaceScoped"
+        ],
+        "tests": [
+          "apps/web/lib/route-coverage.test.ts"
+        ]
+      },
+      "certify": "certify:authorization",
+      "scope": {
+        "files": 155,
+        "tests": 1
+      },
+      "notes": "All 154 non-public route handlers call authorizedContextForRoute; no handler calls requestContext. A source-scanning coverage suite fails certification if a route skips authorization, if the policy table and the filesystem disagree in either direction, or if a handler reads actor, workspace or tenant from the request body. Eight legacy routes additionally had no authentication at all and took tenantId, workspaceId and actorId from the body with demo defaults; those now derive all three from the authorized context. The allowlist is three auth routes, each with a stated reason."
+    },
+    {
+      "id": "trust.session-assertion-issuance",
+      "title": "Identity assertion issuance from an authenticated session",
+      "kind": "platform",
+      "priority": 33,
+      "dependsOn": [
+        "trust.route-permission-rollout"
+      ],
+      "evidence": {
+        "paths": [
+          "packages/identity/src/issuance.ts",
+          "apps/web/app/api/v1/auth/assertion/route.ts"
+        ],
+        "symbols": [
+          "issueAssertionForSession",
+          "issueSessionAssertion"
+        ],
+        "tests": [
+          "packages/identity/src/issuance.test.ts"
+        ]
+      },
+      "certify": "certify:identity",
+      "scope": {
+        "files": 3,
+        "tests": 1
+      },
+      "notes": "Joins sign-in to the authorized API. Deliberately not IdentityGateway.exchange, which stays unsupported: exchange transfers privilege between assertions under ungoverned attenuation rules, whereas issuance starts from a session the identity engine owns and can revoke, and mints something strictly weaker. Four rules make that true - every claim is copied from the stored session so no request field can name a subject or raise assurance; the assertion expires at the lesser of the configured TTL and the session remaining, so revocation cannot be outlasted; a workspace may be selected only from ACTIVE memberships; and the session-to-assertion binding is audited as its own event, keyed on the session, distinct from the gateway record keyed on the nonce."
+    },
+    {
+      "id": "trust.grant-administration-api",
+      "title": "HTTP surface for workspace founding and role assignment",
+      "kind": "platform",
+      "priority": 34,
+      "dependsOn": [
+        "trust.session-assertion-issuance"
+      ],
+      "evidence": {
+        "paths": [
+          "apps/web/lib/grant-administration.ts",
+          "apps/web/app/api/v1/roles/assignments/route.ts"
+        ],
+        "symbols": [
+          "GRANT_ADMINISTRATION_ROUTES",
+          "foundWorkspace",
+          "assignWorkspaceRole"
+        ],
+        "tests": [
+          "apps/web/lib/grant-administration.test.ts"
+        ]
+      },
+      "certify": "certify:authorization",
+      "scope": {
+        "files": 6,
+        "tests": 1
+      },
+      "notes": "Three routes make the authorization model operable: found a workspace, read the role catalogue, assign a role. Founding is identity-class because it creates the first grant and requiring a permission would restore the deadlock; it is safe because bootstrapWorkspaceGrants refuses unless the caller is already an ACTIVE OWNER and the workspace holds no grant. The founder is the authenticated caller and the assignment workspace is the caller active one, so neither can be named from the request. No route grants a permission key directly - grants are made by assigning a catalogue role, which is what applies the segregation-of-duties check."
+    },
+    {
+      "id": "persistence.repository-conformance",
+      "title": "TrustPersistence conformance specification",
+      "kind": "platform",
+      "priority": 39,
+      "dependsOn": [
+        "trust.permission-enforcement"
+      ],
+      "evidence": {
+        "paths": [
+          "packages/database/src/conformance.ts"
+        ],
+        "symbols": [
+          "TRUST_PERSISTENCE_CONFORMANCE",
+          "runTrustPersistenceConformance"
+        ],
+        "tests": [
+          "packages/database/src/trust-store.test.ts"
+        ]
+      },
+      "certify": "certify:tenancy",
+      "scope": {
+        "files": 3,
+        "tests": 1
+      },
+      "notes": "Every engine reads and writes through TrustPersistence and the audit hash chain is computed inside it, yet nothing tested it directly - the behaviour the platform depends on was whatever the single implementation happened to do. The suite states that behaviour as framework-free checks a Postgres adapter runs by importing the same module, so both stores are held to one standard rather than two descriptions of the same intent. Writing it immediately found a defect: list() shallow-copied, handing out live references to stored records, so any caller could edit auditRecords in place with no write call."
+    },
+    {
+      "id": "persistence.async-repository-interface",
+      "title": "Asynchronous repository interface",
+      "kind": "platform",
+      "priority": 39,
+      "dependsOn": [
+        "persistence.repository-conformance"
+      ],
+      "evidence": {
+        "paths": [
+          "packages/shared/src/async-trust.ts"
+        ],
+        "symbols": [
+          "AsyncTrustPersistence"
+        ],
+        "tests": [
+          "packages/database/src/async-conformance.test.ts"
+        ]
+      },
+      "certify": "certify:tenancy",
+      "scope": {
+        "files": 40,
+        "tests": 2
+      },
+      "notes": "The real blocker on the Postgres adapter, and it needs no infrastructure to fix. TrustPersistence is synchronous in every method - list returns T[], append returns void - and no call site anywhere awaits the store. A network-backed store cannot implement it. CLAUDE.md states Postgres can be swapped without touching engine logic; that is not true as built, because making the interface async changes every engine call site. A test in trust-store.test.ts pins the constraint so whoever attempts the adapter discovers it immediately rather than halfway through. Scope is large and mechanical: the decision to make is whether engines become async or a synchronous read-through cache sits in front of the store."
     }
   ]
 }

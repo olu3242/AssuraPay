@@ -4,6 +4,9 @@ import {
   IdentityGateway,
   IdentityService,
   InMemoryAssertionReplayStore,
+  issueAssertionForSession,
+  type IssueAssertionInput,
+  type IssuedAssertion,
   loadAssertionKeyring,
   loadGatewayConfig,
 } from '@assurapay/identity';
@@ -11,16 +14,24 @@ import { OrganizationService } from '@assurapay/organizations';
 import {
   PermissionService,
   TrustStoreMembershipReader,
+  bootstrapWorkspaceGrants,
   enforcePermission,
+  grantRole,
+  loadCatalogueConfig,
   resolveMemberships,
+  type BootstrapInput,
+  type CatalogueConfig,
+  type GrantRoleInput,
+  type PermissionGrant,
   type PermissionRequirement,
+  type WorkspaceBootstrap,
 } from '@assurapay/permissions';
 import {
   DeterministicVerificationProvider,
   PartyService,
 } from '@assurapay/parties';
 import { LegalService } from '@assurapay/legal';
-import type { RequestContext } from '@assurapay/shared';
+import { requireActiveWorkspace, type RequestContext } from '@assurapay/shared';
 import {
   CertificationEngine,
   DefinitionOfDoneEngine,
@@ -118,6 +129,9 @@ import {
   WorkflowIntelligenceEngine,
   deterministicRiskPredictionGateway,
 } from '@assurapay/workflow-intelligence';
+import { AuditLedgerEngine } from '@assurapay/audit-ledger';
+import { RouteAccessError, requirementForRoute } from './route-permissions';
+
 const globalTrust = globalThis as typeof globalThis & {
   assurapayTrustStore?: InMemoryTrustStore;
   assurapayAssertionReplayStore?: InMemoryAssertionReplayStore;
@@ -171,6 +185,9 @@ export function getIdentityGateway(): IdentityGateway {
 }
 export const trust = {
   identity: new IdentityService(trustStore),
+  // Engine 08. It reads the chain the store writes and never rewrites it, so it is
+  // safe to share one instance across every request.
+  auditLedger: new AuditLedgerEngine(trustStore),
   organizations: new OrganizationService(trustStore),
   permissions: new PermissionService(trustStore),
   parties: new PartyService(trustStore, [
@@ -330,6 +347,42 @@ export function actingRequestContext(request: Request): RequestContext {
 }
 
 /**
+ * Authorized context derived from the route policy table.
+ *
+ * The route's own path and method select the requirement, so a route does not
+ * restate its permission key and the two cannot drift apart. Unmapped routes
+ * throw: deny by default.
+ *
+ * A `public` classification is a programming error here — a public route must not
+ * ask for an authorized context — so it is refused rather than silently allowed.
+ */
+export function authorizedContextForRoute(request: Request): RequestContext {
+  const access = requirementForRoute(new URL(request.url).pathname, request.method);
+  const correlationId = correlationOf(request);
+
+  if (access.access === 'public') {
+    throw new RouteAccessError(
+      'ROUTE_NOT_MAPPED',
+      'a public route must not request an authorized context',
+    );
+  }
+
+  const identity = getIdentityGateway().authenticate(request, correlationId);
+
+  // An identity-class route is authenticated and membership-scoped, but carries no
+  // permission requirement; see route-permissions.ts for why that is not a gap.
+  if (access.access === 'identity') {
+    return resolveMemberships(identity, membershipReader);
+  }
+
+  return enforcePermission(identity, access, {
+    memberships: membershipReader,
+    permissions: trust.permissions,
+    store: trustStore,
+  });
+}
+
+/**
  * Authorized context for a route that names the permission it requires.
  *
  * Enforcement is applied here, at the composition root, never inside an engine:
@@ -349,6 +402,101 @@ export function authorizedContext(
   });
 }
 
+/**
+ * A context proven to carry workspace scope.
+ *
+ * `RequestContext` types `activeWorkspaceId` and `tenantId` as optional because an
+ * identity-class context legitimately has neither. Enforcement guarantees both for
+ * a permission-class route, but the type cannot express that, so a route needing to
+ * scope a write says so and gets a stable failure instead of a cast.
+ */
+export type WorkspaceScopedContext = RequestContext & {
+  activeWorkspaceId: string;
+  tenantId: string;
+};
+
+export function workspaceScoped(context: RequestContext): WorkspaceScopedContext {
+  requireActiveWorkspace(context);
+  return context;
+}
+
+/**
+ * Mints an identity assertion for the holder of a valid session cookie.
+ *
+ * This is the bridge that makes the authorized API reachable. Sign-in produces a
+ * session cookie; every authorized route authenticates a signed assertion; nothing
+ * joined the two, so a real client could reach nothing.
+ *
+ * Deliberately not exposed through the gateway's `exchange`, which stays
+ * unsupported: exchange transfers privilege between assertions under attenuation
+ * rules that are not defined, whereas this starts from a session the identity
+ * engine owns and can revoke, and mints something strictly weaker.
+ */
+export function issueSessionAssertion(input: IssueAssertionInput): IssuedAssertion {
+  return issueAssertionForSession(
+    getIdentityGateway(),
+    trust.identity,
+    trustStore,
+    input,
+  );
+}
+
+let catalogueConfig: CatalogueConfig | undefined;
+
+/**
+ * Catalogue configuration for this deployment.
+ *
+ * Read once and cached, so an invalid value fails the first path that needs it
+ * rather than differing between requests.
+ */
+export function getCatalogueConfig(): CatalogueConfig {
+  catalogueConfig ??= loadCatalogueConfig(process.env);
+  return catalogueConfig;
+}
+
+/**
+ * Grants the founding administrator for a newly created workspace.
+ *
+ * This is the one path in the application that produces a grant without an
+ * authorized caller, and it is why the rest of the authorization surface can exist
+ * at all: deny-by-default over an empty grant table denies everyone, including the
+ * person who would issue the first grant.
+ *
+ * It is not an escape hatch. The workspace owner membership must already exist, the
+ * workspace must hold no grant yet, the role must be the bootstrappable one, and
+ * configuration must permit it. Every refusal carries a `CATALOGUE_*` code.
+ */
+export function bootstrapFoundingAdministrator(
+  input: BootstrapInput,
+): WorkspaceBootstrap {
+  return bootstrapWorkspaceGrants(trustStore, input, getCatalogueConfig());
+}
+
+/**
+ * Assigns a catalogue role on the authorized path.
+ *
+ * The caller's own authority is established by `authorizedContextForRoute` before
+ * this is reached; what this adds is the segregation-of-duties check on the
+ * resulting permission set, which a single request cannot see.
+ */
+export function assignRole(
+  context: RequestContext,
+  input: GrantRoleInput,
+): PermissionGrant[] {
+  return grantRole(trust.permissions, trustStore, context, input);
+}
+
+/**
+ * Catalogue refusals that describe the state of the workspace rather than the
+ * caller's authority, so they answer 409 instead of 403. Repeating a founding call
+ * or granting a conflicting role is a conflict with what already exists; retrying
+ * with better credentials would not help.
+ */
+const CONFLICT_CODES = new Set([
+  'CATALOGUE_ALREADY_BOOTSTRAPPED',
+  'CATALOGUE_SEGREGATION_CONFLICT',
+]);
+
 export function errorResponse(error: unknown) {
   const message = error instanceof Error ? error.message : 'UNKNOWN_ERROR';
   // Assertion and gateway failures are authentication failures, not bad requests.
@@ -357,10 +505,15 @@ export function errorResponse(error: unknown) {
     message.startsWith('ASSERTION_') ||
     message.startsWith('GATEWAY_')
       ? 401
-      : message.startsWith('ENFORCEMENT_') || message.startsWith('PERMISSION_DENIED')
-        ? 403
-        : message.includes('DENIED') || message.includes('REQUIRED')
+      : CONFLICT_CODES.has(message)
+        ? 409
+        : message.startsWith('ENFORCEMENT_') || message.startsWith('PERMISSION_DENIED')
           ? 403
-          : 400;
+          : message.startsWith('CATALOGUE_BOOTSTRAP_DISABLED') ||
+              message.startsWith('CATALOGUE_ROLE_NOT_BOOTSTRAPPABLE')
+            ? 403
+            : message.includes('DENIED') || message.includes('REQUIRED')
+              ? 403
+              : 400;
   return Response.json({ error: message }, { status });
 }

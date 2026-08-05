@@ -10,12 +10,12 @@ AssuraPay is an Execution Assurance and Conditional Payment Platform. The engine
 |---|---|---|---|
 | 01 | Identity & Digital Trust | Authentication, MFA, SSO, device trust, sessions, identity assurance | Conditionally implemented |
 | 02 | Organization & Multi-Tenant | Personal and organization workspaces, hierarchy, membership, tenant isolation | Conditionally implemented |
-| 03 | Roles, Permissions & Governance | RBAC, ABAC, record/field access, delegation, authority, segregation of duties | Conditionally implemented |
+| 03 | Roles, Permissions & Governance | RBAC, ABAC, record/field access, delegation, authority, segregation of duties, grant catalogue and workspace founding | Conditionally implemented |
 | 04 | Party Verification | KYC/KYB, company, director, tax, licence, insurance, beneficiary verification | Conditionally implemented |
 | 05 | Legal Governance | Terms, privacy, consent, jurisdiction, legal holds, signature policy packs | Conditionally implemented |
 | 06 | Third-Party Risk | Vendor, cyber, financial, AML, ESG and resilience risk | Deferred |
 | 07 | Compliance Foundation | Configurable privacy, AML, sanctions, quality and internal-policy controls | Deferred |
-| 08 | Audit & Evidence Ledger | Append-only decisions, approvals, signatures, evidence and financial audit | Foundation only |
+| 08 | Audit & Evidence Ledger | Append-only decisions, approvals, signatures, evidence and financial audit; hash-chain verification and snapshot comparison | Conditionally implemented |
 | 09 | Notification & Communication | Email, SMS, WhatsApp, push, in-app, webhooks and delivery evidence | Deferred |
 | 10 | Enterprise Configuration | Profiles, inheritance, object/field controls, workflows, rules and policy packs | Deferred |
 

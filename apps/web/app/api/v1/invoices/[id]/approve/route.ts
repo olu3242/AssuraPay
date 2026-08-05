@@ -1,1 +1,1 @@
-import {errorResponse,requestContext,settlement} from '../../../../../../lib/trust-app';export async function POST(r:Request,{params}:{params:{id:string}}){try{return Response.json(settlement.invoices.approve(requestContext(r),params.id))}catch(e){return errorResponse(e)}}
+import {errorResponse,authorizedContextForRoute,settlement} from '../../../../../../lib/trust-app';export async function POST(r:Request,{params}:{params:{id:string}}){try{return Response.json(settlement.invoices.approve(authorizedContextForRoute(r),params.id))}catch(e){return errorResponse(e)}}

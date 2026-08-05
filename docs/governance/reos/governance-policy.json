@@ -14,8 +14,7 @@
     "catalog/unmapped-engine-package:packages/agent-runtime",
     "catalog/unmapped-engine-package:packages/governance-core",
     "catalog/unmapped-engine-package:packages/workflow-intelligence",
-    "runtime/duplicate-abstraction:DependencyIntelligenceEngine",
-    "runtime/unregistered-engine:runtime"
+    "runtime/duplicate-abstraction:DependencyIntelligenceEngine"
   ],
   "exemptRules": {},
   "phase": 2

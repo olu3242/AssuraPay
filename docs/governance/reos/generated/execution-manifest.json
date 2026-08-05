@@ -6,8 +6,10 @@
       "name": "@assurapay/web",
       "routes": 24,
       "workspaceDependencies": [
+        "@assurapay/agent-runtime",
         "@assurapay/agreement-creation",
         "@assurapay/agreement-intelligence",
+        "@assurapay/audit-ledger",
         "@assurapay/completion-assurance",
         "@assurapay/database",
         "@assurapay/domain",
@@ -44,7 +46,7 @@
       "PaymentInstruction",
       "ReconciliationRecord"
     ],
-    "packageCount": 22,
+    "packageCount": 23,
     "waves": [
       {
         "engines": [
@@ -155,6 +157,7 @@
       "certify:agreement-intelligence",
       "certify:ai-decision-support",
       "certify:approvals",
+      "certify:audit-ledger",
       "certify:authoring",
       "certify:authorization",
       "certify:batch1",
@@ -229,7 +232,7 @@
       "certify:vendor-customer-performance",
       "certify:workflow-intelligence"
     ],
-    "targets": 82,
+    "targets": 83,
     "unscripted": [
       "packages/database",
       "packages/domain",
@@ -647,8 +650,8 @@
         "engine:05"
       ],
       "id": "engine:08",
-      "lifecycle": "planned",
-      "status": "missing"
+      "lifecycle": "certified",
+      "status": "implemented"
     },
     {
       "blocks": [],
@@ -2394,14 +2397,39 @@
     },
     {
       "blocks": [
+        "persistence.postgres-repository",
+        "persistence.rls-certification"
+      ],
+      "dependsOn": [
+        "persistence.repository-conformance"
+      ],
+      "id": "persistence.async-repository-interface",
+      "lifecycle": "planned",
+      "status": "missing"
+    },
+    {
+      "blocks": [
+        "persistence.rls-certification"
+      ],
+      "dependsOn": [
+        "persistence.async-repository-interface"
+      ],
+      "id": "persistence.postgres-repository",
+      "lifecycle": "missing",
+      "status": "missing"
+    },
+    {
+      "blocks": [
+        "persistence.async-repository-interface",
+        "persistence.postgres-repository",
         "persistence.rls-certification"
       ],
       "dependsOn": [
         "trust.permission-enforcement"
       ],
-      "id": "persistence.postgres-repository",
-      "lifecycle": "planned",
-      "status": "missing"
+      "id": "persistence.repository-conformance",
+      "lifecycle": "certified",
+      "status": "implemented"
     },
     {
       "blocks": [],
@@ -2414,18 +2442,24 @@
     },
     {
       "blocks": [
+        "persistence.async-repository-interface",
         "persistence.postgres-repository",
+        "persistence.repository-conformance",
         "persistence.rls-certification",
         "runtime.agent-registration",
         "settlement.non-custody-guard",
+        "trust.grant-administration-api",
         "trust.identity-assertions",
         "trust.identity-gateway",
         "trust.permission-enforcement",
-        "trust.route-permission-integration"
+        "trust.permission-grant-catalogue",
+        "trust.route-permission-integration",
+        "trust.route-permission-rollout",
+        "trust.session-assertion-issuance"
       ],
       "dependsOn": [],
       "id": "reos.execution-os",
-      "lifecycle": "certified",
+      "lifecycle": "released",
       "status": "implemented"
     },
     {
@@ -2434,8 +2468,8 @@
         "trust.permission-enforcement"
       ],
       "id": "runtime.agent-registration",
-      "lifecycle": "planned",
-      "status": "missing"
+      "lifecycle": "certified",
+      "status": "implemented"
     },
     {
       "blocks": [],
@@ -2443,62 +2477,130 @@
         "reos.execution-os"
       ],
       "id": "settlement.non-custody-guard",
-      "lifecycle": "certified",
-      "status": "implemented"
-    },
-    {
-      "blocks": [
-        "persistence.postgres-repository",
-        "persistence.rls-certification",
-        "runtime.agent-registration",
-        "trust.identity-gateway",
-        "trust.permission-enforcement",
-        "trust.route-permission-integration"
-      ],
-      "dependsOn": [
-        "reos.execution-os"
-      ],
-      "id": "trust.identity-assertions",
-      "lifecycle": "certified",
-      "status": "implemented"
-    },
-    {
-      "blocks": [
-        "persistence.postgres-repository",
-        "persistence.rls-certification",
-        "runtime.agent-registration",
-        "trust.permission-enforcement",
-        "trust.route-permission-integration"
-      ],
-      "dependsOn": [
-        "trust.identity-assertions"
-      ],
-      "id": "trust.identity-gateway",
-      "lifecycle": "certified",
-      "status": "implemented"
-    },
-    {
-      "blocks": [
-        "persistence.postgres-repository",
-        "persistence.rls-certification",
-        "runtime.agent-registration",
-        "trust.route-permission-integration"
-      ],
-      "dependsOn": [
-        "trust.identity-gateway"
-      ],
-      "id": "trust.permission-enforcement",
-      "lifecycle": "certified",
+      "lifecycle": "released",
       "status": "implemented"
     },
     {
       "blocks": [],
       "dependsOn": [
+        "trust.session-assertion-issuance"
+      ],
+      "id": "trust.grant-administration-api",
+      "lifecycle": "certified",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "persistence.async-repository-interface",
+        "persistence.postgres-repository",
+        "persistence.repository-conformance",
+        "persistence.rls-certification",
+        "runtime.agent-registration",
+        "trust.grant-administration-api",
+        "trust.identity-gateway",
+        "trust.permission-enforcement",
+        "trust.permission-grant-catalogue",
+        "trust.route-permission-integration",
+        "trust.route-permission-rollout",
+        "trust.session-assertion-issuance"
+      ],
+      "dependsOn": [
+        "reos.execution-os"
+      ],
+      "id": "trust.identity-assertions",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "persistence.async-repository-interface",
+        "persistence.postgres-repository",
+        "persistence.repository-conformance",
+        "persistence.rls-certification",
+        "runtime.agent-registration",
+        "trust.grant-administration-api",
+        "trust.permission-enforcement",
+        "trust.permission-grant-catalogue",
+        "trust.route-permission-integration",
+        "trust.route-permission-rollout",
+        "trust.session-assertion-issuance"
+      ],
+      "dependsOn": [
+        "trust.identity-assertions"
+      ],
+      "id": "trust.identity-gateway",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "persistence.async-repository-interface",
+        "persistence.postgres-repository",
+        "persistence.repository-conformance",
+        "persistence.rls-certification",
+        "runtime.agent-registration",
+        "trust.grant-administration-api",
+        "trust.permission-grant-catalogue",
+        "trust.route-permission-integration",
+        "trust.route-permission-rollout",
+        "trust.session-assertion-issuance"
+      ],
+      "dependsOn": [
+        "trust.identity-gateway"
+      ],
+      "id": "trust.permission-enforcement",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "trust.grant-administration-api",
+        "trust.route-permission-rollout",
+        "trust.session-assertion-issuance"
+      ],
+      "dependsOn": [
+        "trust.route-permission-integration"
+      ],
+      "id": "trust.permission-grant-catalogue",
+      "lifecycle": "certified",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "trust.grant-administration-api",
+        "trust.permission-grant-catalogue",
+        "trust.route-permission-rollout",
+        "trust.session-assertion-issuance"
+      ],
+      "dependsOn": [
         "trust.permission-enforcement"
       ],
       "id": "trust.route-permission-integration",
-      "lifecycle": "planned",
-      "status": "missing"
+      "lifecycle": "certified",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "trust.grant-administration-api",
+        "trust.session-assertion-issuance"
+      ],
+      "dependsOn": [
+        "trust.permission-grant-catalogue"
+      ],
+      "id": "trust.route-permission-rollout",
+      "lifecycle": "certified",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "trust.grant-administration-api"
+      ],
+      "dependsOn": [
+        "trust.route-permission-rollout"
+      ],
+      "id": "trust.session-assertion-issuance",
+      "lifecycle": "certified",
+      "status": "implemented"
     }
   ],
   "engines": [
@@ -2580,14 +2682,14 @@
       "wave": 1
     },
     {
-      "certificationScript": "certify:batch1",
-      "declaredStatus": "Foundation only",
+      "certificationScript": "certify:audit-ledger",
+      "declaredStatus": "Conditionally implemented",
       "divergent": true,
       "id": "08",
-      "lifecycle": "planned",
+      "lifecycle": "certified",
       "name": "Audit & Evidence Ledger",
-      "observedStatus": "missing",
-      "packageDirectory": null,
+      "observedStatus": "implemented",
+      "packageDirectory": "packages/audit-ledger",
       "wave": 1
     },
     {
@@ -3166,53 +3268,39 @@
   "executionBacklog": [
     {
       "blockedBy": [],
-      "blocks": [],
+      "blocks": [
+        "persistence.postgres-repository",
+        "persistence.rls-certification"
+      ],
       "dependsOn": [
-        "trust.permission-enforcement"
+        "persistence.repository-conformance"
       ],
       "executable": true,
-      "id": "runtime.agent-registration",
+      "id": "persistence.async-repository-interface",
       "lifecycle": "planned",
-      "priority": 20,
-      "requiresLiveInfrastructure": false,
-      "scope": {
-        "estimated": false,
-        "files": 1,
-        "tests": 1
-      },
-      "status": "missing",
-      "title": "Agent Runtime registration"
-    },
-    {
-      "blockedBy": [],
-      "blocks": [],
-      "dependsOn": [
-        "trust.permission-enforcement"
-      ],
-      "executable": true,
-      "id": "trust.route-permission-integration",
-      "lifecycle": "planned",
-      "priority": 30,
+      "priority": 39,
       "requiresLiveInfrastructure": false,
       "scope": {
         "estimated": true,
-        "files": 1,
-        "tests": 1
+        "files": 40,
+        "tests": 2
       },
       "status": "missing",
-      "title": "Route-level permission mapping"
+      "title": "Asynchronous repository interface"
     },
     {
-      "blockedBy": [],
+      "blockedBy": [
+        "persistence.async-repository-interface"
+      ],
       "blocks": [
         "persistence.rls-certification"
       ],
       "dependsOn": [
-        "trust.permission-enforcement"
+        "persistence.async-repository-interface"
       ],
-      "executable": true,
+      "executable": false,
       "id": "persistence.postgres-repository",
-      "lifecycle": "planned",
+      "lifecycle": "missing",
       "priority": 40,
       "requiresLiveInfrastructure": true,
       "scope": {
@@ -3243,84 +3331,12 @@
       },
       "status": "missing",
       "title": "Row Level Security certification"
-    },
-    {
-      "blockedBy": [],
-      "blocks": [
-        "engine:09",
-        "engine:10",
-        "engine:11",
-        "engine:12",
-        "engine:13",
-        "engine:14",
-        "engine:15",
-        "engine:16",
-        "engine:17",
-        "engine:18",
-        "engine:19",
-        "engine:20",
-        "engine:21",
-        "engine:22",
-        "engine:23",
-        "engine:24",
-        "engine:25",
-        "engine:26",
-        "engine:27",
-        "engine:28",
-        "engine:29",
-        "engine:30",
-        "engine:31",
-        "engine:32",
-        "engine:33",
-        "engine:34",
-        "engine:35",
-        "engine:36",
-        "engine:37",
-        "engine:38",
-        "engine:39",
-        "engine:40",
-        "engine:41",
-        "engine:42",
-        "engine:43",
-        "engine:44",
-        "engine:45",
-        "engine:46",
-        "engine:47",
-        "engine:48",
-        "engine:49",
-        "engine:50",
-        "engine:51",
-        "engine:52",
-        "engine:53",
-        "engine:54",
-        "engine:55",
-        "engine:56",
-        "engine:57",
-        "engine:58",
-        "engine:59",
-        "engine:60"
-      ],
-      "dependsOn": [
-        "engine:05"
-      ],
-      "executable": true,
-      "id": "engine:08",
-      "lifecycle": "planned",
-      "priority": 108,
-      "requiresLiveInfrastructure": false,
-      "scope": {
-        "estimated": false,
-        "files": 0,
-        "tests": 0
-      },
-      "status": "missing",
-      "title": "Engine 08 — Audit & Evidence Ledger"
     }
   ],
   "identity": {
     "branch": "claude/git-pull-cqc04u",
-    "clean": false,
-    "head": "cbe143540c9dba8ae93680e2e7387e8d0d085f8b",
+    "clean": true,
+    "head": "fcdb5cab56816b20140d0cf128a8e2d347f1e015",
     "repository": "assurapay",
     "version": "0.1.0"
   },
@@ -3330,6 +3346,7 @@
     "engine:03",
     "engine:04",
     "engine:05",
+    "engine:08",
     "engine:11",
     "engine:12",
     "engine:13",
@@ -3380,29 +3397,34 @@
     "engine:58",
     "engine:59",
     "engine:60",
+    "persistence.repository-conformance",
     "reos.execution-os",
+    "runtime.agent-registration",
     "settlement.non-custody-guard",
+    "trust.grant-administration-api",
     "trust.identity-assertions",
     "trust.identity-gateway",
-    "trust.permission-enforcement"
+    "trust.permission-enforcement",
+    "trust.permission-grant-catalogue",
+    "trust.route-permission-integration",
+    "trust.route-permission-rollout",
+    "trust.session-assertion-issuance"
   ],
   "lifecycleSummary": {
-    "certified": 5,
+    "certified": 8,
     "deferred": 4,
     "implemented": 0,
     "implementing": 0,
-    "missing": 1,
-    "planned": 4,
-    "released": 55,
+    "missing": 2,
+    "planned": 1,
+    "released": 60,
     "validated": 0
   },
-  "manifestDigest": "51713f5c2ba5",
+  "manifestDigest": "d146a688afe9",
   "missingCapabilities": [
-    "engine:08",
+    "persistence.async-repository-interface",
     "persistence.postgres-repository",
-    "persistence.rls-certification",
-    "runtime.agent-registration",
-    "trust.route-permission-integration"
+    "persistence.rls-certification"
   ],
   "packages": [
     {
@@ -3411,6 +3433,7 @@
         "AgentGovernanceEngine",
         "AgentRegistryEngine",
         "AgentRuntimeEngine",
+        "AgentRuntimeRegistrationError",
         "AgentTelemetryEngine",
         "AiGatewayEngine",
         "CapabilityRegistryEngine",
@@ -3423,12 +3446,13 @@
       "main": "src/index.ts",
       "moduleType": null,
       "name": "@assurapay/agent-runtime",
-      "sourceFiles": 1,
-      "sourceLines": 998,
+      "sourceFiles": 2,
+      "sourceLines": 1205,
       "testFiles": [
         "packages/agent-runtime/src/agent-runtime.e2e.test.ts",
         "packages/agent-runtime/src/agent-runtime.integration.test.ts",
         "packages/agent-runtime/src/agent-runtime.performance.test.ts",
+        "packages/agent-runtime/src/agent-runtime.registration.test.ts",
         "packages/agent-runtime/src/agent-runtime.security.test.ts",
         "packages/agent-runtime/src/agent-runtime.test.ts"
       ],
@@ -3437,7 +3461,7 @@
         "integration": 1,
         "performance": 1,
         "security": 1,
-        "unit": 1
+        "unit": 2
       },
       "workspaceDependencies": [
         "@assurapay/database",
@@ -3509,6 +3533,33 @@
       ]
     },
     {
+      "directory": "packages/audit-ledger",
+      "exportedClasses": [
+        "AuditLedgerEngine",
+        "EvidenceLedgerError"
+      ],
+      "externalDependencies": [],
+      "main": "src/index.ts",
+      "moduleType": null,
+      "name": "@assurapay/audit-ledger",
+      "sourceFiles": 1,
+      "sourceLines": 384,
+      "testFiles": [
+        "packages/audit-ledger/src/audit-ledger.test.ts"
+      ],
+      "tests": {
+        "e2e": 0,
+        "integration": 0,
+        "performance": 0,
+        "security": 0,
+        "unit": 1
+      },
+      "workspaceDependencies": [
+        "@assurapay/database",
+        "@assurapay/shared"
+      ]
+    },
+    {
       "directory": "packages/completion-assurance",
       "exportedClasses": [
         "AcceptanceDecisionEngine",
@@ -3550,17 +3601,18 @@
       "main": "src/index.ts",
       "moduleType": null,
       "name": "@assurapay/database",
-      "sourceFiles": 2,
-      "sourceLines": 319,
+      "sourceFiles": 3,
+      "sourceLines": 648,
       "testFiles": [
-        "packages/database/src/trust-migrations.integration.test.ts"
+        "packages/database/src/trust-migrations.integration.test.ts",
+        "packages/database/src/trust-store.test.ts"
       ],
       "tests": {
         "e2e": 0,
         "integration": 1,
         "performance": 0,
         "security": 0,
-        "unit": 0
+        "unit": 1
       },
       "workspaceDependencies": [
         "@assurapay/shared"
@@ -3734,6 +3786,7 @@
     {
       "directory": "packages/identity",
       "exportedClasses": [
+        "AssertionIssuanceError",
         "IdentityAssertionError",
         "IdentityAssertionService",
         "IdentityGateway",
@@ -3745,19 +3798,20 @@
       "main": "src/index.ts",
       "moduleType": null,
       "name": "@assurapay/identity",
-      "sourceFiles": 3,
-      "sourceLines": 932,
+      "sourceFiles": 4,
+      "sourceLines": 1178,
       "testFiles": [
         "packages/identity/src/assertions.test.ts",
         "packages/identity/src/gateway.test.ts",
-        "packages/identity/src/identity.test.ts"
+        "packages/identity/src/identity.test.ts",
+        "packages/identity/src/issuance.test.ts"
       ],
       "tests": {
         "e2e": 0,
         "integration": 0,
         "performance": 0,
         "security": 0,
-        "unit": 3
+        "unit": 4
       },
       "workspaceDependencies": [
         "@assurapay/database",
@@ -3910,6 +3964,7 @@
     {
       "directory": "packages/permissions",
       "exportedClasses": [
+        "CatalogueError",
         "PermissionEnforcementError",
         "PermissionService",
         "TrustStoreMembershipReader"
@@ -3918,9 +3973,10 @@
       "main": "src/index.ts",
       "moduleType": null,
       "name": "@assurapay/permissions",
-      "sourceFiles": 2,
-      "sourceLines": 221,
+      "sourceFiles": 3,
+      "sourceLines": 1002,
       "testFiles": [
+        "packages/permissions/src/catalogue.test.ts",
         "packages/permissions/src/enforcement.test.ts",
         "packages/permissions/src/permissions.test.ts"
       ],
@@ -3929,7 +3985,7 @@
         "integration": 0,
         "performance": 0,
         "security": 0,
-        "unit": 2
+        "unit": 3
       },
       "workspaceDependencies": [
         "@assurapay/database",
@@ -3944,7 +4000,7 @@
       "moduleType": "module",
       "name": "@assurapay/reos",
       "sourceFiles": 24,
-      "sourceLines": 4149,
+      "sourceLines": 4164,
       "testFiles": [
         "packages/reos/src/reos.e2e.test.ts",
         "packages/reos/src/reos.governance.test.ts",
@@ -4095,6 +4151,42 @@
         "refsContaining": [],
         "removedFromHead": false
       },
+      "id": "persistence.async-repository-interface",
+      "kind": "platform",
+      "onDefaultBranch": false,
+      "probes": [
+        {
+          "kind": "path",
+          "matches": [],
+          "query": "packages/shared/src/async-trust.ts",
+          "satisfied": false
+        },
+        {
+          "kind": "symbol",
+          "matches": [],
+          "query": "AsyncTrustPersistence",
+          "satisfied": false
+        },
+        {
+          "kind": "test",
+          "matches": [],
+          "query": "packages/database/src/async-conformance.test.ts",
+          "satisfied": false
+        }
+      ],
+      "rationale": "No evidence at HEAD, on any ref, or in history.",
+      "satisfiedProbes": 0,
+      "status": "missing",
+      "title": "Asynchronous repository interface",
+      "totalProbes": 3
+    },
+    {
+      "git": {
+        "historicalCommits": [],
+        "reachableFromHead": false,
+        "refsContaining": [],
+        "removedFromHead": false
+      },
       "id": "persistence.postgres-repository",
       "kind": "platform",
       "onDefaultBranch": false,
@@ -4123,6 +4215,58 @@
       "status": "missing",
       "title": "PostgreSQL repository implementation",
       "totalProbes": 3
+    },
+    {
+      "git": {
+        "historicalCommits": [],
+        "reachableFromHead": true,
+        "refsContaining": [],
+        "removedFromHead": false
+      },
+      "id": "persistence.repository-conformance",
+      "kind": "platform",
+      "onDefaultBranch": false,
+      "probes": [
+        {
+          "kind": "path",
+          "matches": [
+            "packages/database/src/conformance.ts"
+          ],
+          "query": "packages/database/src/conformance.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "packages/database/src/conformance.ts",
+            "packages/database/src/trust-store.test.ts"
+          ],
+          "query": "TRUST_PERSISTENCE_CONFORMANCE",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "packages/database/src/conformance.ts",
+            "packages/database/src/trust-store.test.ts"
+          ],
+          "query": "runTrustPersistenceConformance",
+          "satisfied": true
+        },
+        {
+          "kind": "test",
+          "matches": [
+            "packages/database/src/trust-store.test.ts"
+          ],
+          "query": "packages/database/src/trust-store.test.ts",
+          "satisfied": true
+        }
+      ],
+      "rationale": "All 4 evidence probes satisfied at HEAD.",
+      "satisfiedProbes": 4,
+      "status": "implemented",
+      "title": "TrustPersistence conformance specification",
+      "totalProbes": 4
     },
     {
       "git": {
@@ -4175,7 +4319,7 @@
       },
       "id": "reos.execution-os",
       "kind": "platform",
-      "onDefaultBranch": false,
+      "onDefaultBranch": true,
       "probes": [
         {
           "kind": "path",
@@ -4251,7 +4395,7 @@
     {
       "git": {
         "historicalCommits": [],
-        "reachableFromHead": false,
+        "reachableFromHead": true,
         "refsContaining": [],
         "removedFromHead": false
       },
@@ -4261,26 +4405,34 @@
       "probes": [
         {
           "kind": "path",
-          "matches": [],
+          "matches": [
+            "apps/web/lib/agent-runtime-app.ts"
+          ],
           "query": "apps/web/lib/agent-runtime-app.ts",
-          "satisfied": false
+          "satisfied": true
         },
         {
           "kind": "symbol",
-          "matches": [],
+          "matches": [
+            "apps/web/lib/agent-runtime-app.ts",
+            "packages/agent-runtime/src/agent-runtime.registration.test.ts",
+            "packages/agent-runtime/src/registration.ts"
+          ],
           "query": "registerAgentRuntime",
-          "satisfied": false
+          "satisfied": true
         },
         {
           "kind": "test",
-          "matches": [],
+          "matches": [
+            "packages/agent-runtime/src/agent-runtime.registration.test.ts"
+          ],
           "query": "packages/agent-runtime/src/agent-runtime.registration.test.ts",
-          "satisfied": false
+          "satisfied": true
         }
       ],
-      "rationale": "No evidence at HEAD, on any ref, or in history.",
-      "satisfiedProbes": 0,
-      "status": "missing",
+      "rationale": "All 3 evidence probes satisfied at HEAD.",
+      "satisfiedProbes": 3,
+      "status": "implemented",
       "title": "Agent Runtime registration",
       "totalProbes": 3
     },
@@ -4293,7 +4445,7 @@
       },
       "id": "settlement.non-custody-guard",
       "kind": "platform",
-      "onDefaultBranch": false,
+      "onDefaultBranch": true,
       "probes": [
         {
           "kind": "path",
@@ -4348,9 +4500,78 @@
         "refsContaining": [],
         "removedFromHead": false
       },
-      "id": "trust.identity-assertions",
+      "id": "trust.grant-administration-api",
       "kind": "platform",
       "onDefaultBranch": false,
+      "probes": [
+        {
+          "kind": "path",
+          "matches": [
+            "apps/web/lib/grant-administration.ts"
+          ],
+          "query": "apps/web/lib/grant-administration.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "path",
+          "matches": [
+            "apps/web/app/api/v1/roles/assignments/route.ts"
+          ],
+          "query": "apps/web/app/api/v1/roles/assignments/route.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "apps/web/lib/grant-administration.test.ts",
+            "apps/web/lib/grant-administration.ts"
+          ],
+          "query": "GRANT_ADMINISTRATION_ROUTES",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "apps/web/app/api/v1/workspaces/[id]/found/route.ts",
+            "apps/web/lib/grant-administration.ts"
+          ],
+          "query": "foundWorkspace",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "apps/web/app/api/v1/roles/assignments/route.ts",
+            "apps/web/lib/grant-administration.ts"
+          ],
+          "query": "assignWorkspaceRole",
+          "satisfied": true
+        },
+        {
+          "kind": "test",
+          "matches": [
+            "apps/web/lib/grant-administration.test.ts"
+          ],
+          "query": "apps/web/lib/grant-administration.test.ts",
+          "satisfied": true
+        }
+      ],
+      "rationale": "All 6 evidence probes satisfied at HEAD.",
+      "satisfiedProbes": 6,
+      "status": "implemented",
+      "title": "HTTP surface for workspace founding and role assignment",
+      "totalProbes": 6
+    },
+    {
+      "git": {
+        "historicalCommits": [],
+        "reachableFromHead": true,
+        "refsContaining": [],
+        "removedFromHead": false
+      },
+      "id": "trust.identity-assertions",
+      "kind": "platform",
+      "onDefaultBranch": true,
       "probes": [
         {
           "kind": "path",
@@ -4376,7 +4597,8 @@
           "matches": [
             "packages/identity/src/assertions.test.ts",
             "packages/identity/src/assertions.ts",
-            "packages/identity/src/gateway.ts"
+            "packages/identity/src/gateway.ts",
+            "packages/identity/src/issuance.test.ts"
           ],
           "query": "verifyIdentityAssertion",
           "satisfied": true
@@ -4405,7 +4627,7 @@
       },
       "id": "trust.identity-gateway",
       "kind": "platform",
-      "onDefaultBranch": false,
+      "onDefaultBranch": true,
       "probes": [
         {
           "kind": "path",
@@ -4421,7 +4643,9 @@
             "apps/web/lib/trust-app.ts",
             "packages/identity/src/assertions.ts",
             "packages/identity/src/gateway.test.ts",
-            "packages/identity/src/gateway.ts"
+            "packages/identity/src/gateway.ts",
+            "packages/identity/src/issuance.test.ts",
+            "packages/identity/src/issuance.ts"
           ],
           "query": "IdentityGateway",
           "satisfied": true
@@ -4459,7 +4683,7 @@
       },
       "id": "trust.permission-enforcement",
       "kind": "platform",
-      "onDefaultBranch": false,
+      "onDefaultBranch": true,
       "probes": [
         {
           "kind": "path",
@@ -4506,7 +4730,100 @@
     {
       "git": {
         "historicalCommits": [],
-        "reachableFromHead": false,
+        "reachableFromHead": true,
+        "refsContaining": [],
+        "removedFromHead": false
+      },
+      "id": "trust.permission-grant-catalogue",
+      "kind": "platform",
+      "onDefaultBranch": false,
+      "probes": [
+        {
+          "kind": "path",
+          "matches": [
+            "packages/permissions/src/catalogue.ts"
+          ],
+          "query": "packages/permissions/src/catalogue.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "path",
+          "matches": [
+            "apps/web/lib/trust-app.ts"
+          ],
+          "query": "apps/web/lib/trust-app.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "apps/web/lib/grant-administration.ts",
+            "packages/permissions/src/catalogue.test.ts",
+            "packages/permissions/src/catalogue.ts"
+          ],
+          "query": "PERMISSION_CATALOGUE",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "apps/web/lib/route-permissions.test.ts",
+            "packages/permissions/src/catalogue.test.ts",
+            "packages/permissions/src/catalogue.ts"
+          ],
+          "query": "SEGREGATION_CATALOGUE",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "apps/web/app/api/v1/workspaces/[id]/found/route.ts",
+            "apps/web/lib/grant-administration.ts",
+            "apps/web/lib/trust-app.ts",
+            "packages/permissions/src/catalogue.test.ts",
+            "packages/permissions/src/catalogue.ts"
+          ],
+          "query": "bootstrapWorkspaceGrants",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "apps/web/lib/trust-app.ts",
+            "packages/permissions/src/catalogue.test.ts",
+            "packages/permissions/src/catalogue.ts"
+          ],
+          "query": "grantRole",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "apps/web/lib/grant-administration.ts",
+            "apps/web/lib/trust-app.ts"
+          ],
+          "query": "bootstrapFoundingAdministrator",
+          "satisfied": true
+        },
+        {
+          "kind": "test",
+          "matches": [
+            "packages/permissions/src/catalogue.test.ts"
+          ],
+          "query": "packages/permissions/src/catalogue.test.ts",
+          "satisfied": true
+        }
+      ],
+      "rationale": "All 8 evidence probes satisfied at HEAD.",
+      "satisfiedProbes": 8,
+      "status": "implemented",
+      "title": "Permission grant catalogue and workspace bootstrap",
+      "totalProbes": 8
+    },
+    {
+      "git": {
+        "historicalCommits": [],
+        "reachableFromHead": true,
         "refsContaining": [],
         "removedFromHead": false
       },
@@ -4516,34 +4833,338 @@
       "probes": [
         {
           "kind": "path",
-          "matches": [],
+          "matches": [
+            "apps/web/lib/route-permissions.ts"
+          ],
           "query": "apps/web/lib/route-permissions.ts",
-          "satisfied": false
+          "satisfied": true
+        },
+        {
+          "kind": "path",
+          "matches": [
+            "apps/web/lib/trust-app.ts"
+          ],
+          "query": "apps/web/lib/trust-app.ts",
+          "satisfied": true
         },
         {
           "kind": "symbol",
-          "matches": [],
+          "matches": [
+            "apps/web/lib/grant-administration.test.ts",
+            "apps/web/lib/route-coverage.test.ts",
+            "apps/web/lib/route-permissions.test.ts",
+            "apps/web/lib/route-permissions.ts"
+          ],
           "query": "ROUTE_PERMISSION_REQUIREMENTS",
-          "satisfied": false
+          "satisfied": true
         },
         {
           "kind": "symbol",
-          "matches": [],
+          "matches": [
+            "apps/web/lib/grant-administration.test.ts",
+            "apps/web/lib/route-coverage.test.ts",
+            "apps/web/lib/route-permissions.test.ts",
+            "apps/web/lib/route-permissions.ts",
+            "apps/web/lib/trust-app.ts"
+          ],
           "query": "requirementForRoute",
-          "satisfied": false
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "apps/web/app/api/v1/acceptance-criteria/[id]/confirm/route.ts",
+            "apps/web/app/api/v1/acceptance-criteria/route.ts",
+            "apps/web/app/api/v1/acceptance-decisions/route.ts",
+            "apps/web/app/api/v1/agreement-contracts/route.ts",
+            "apps/web/app/api/v1/agreement-intelligence/[id]/publish/route.ts",
+            "apps/web/app/api/v1/agreement-intelligence/route.ts",
+            "apps/web/app/api/v1/approval-requests/[id]/decisions/route.ts",
+            "apps/web/app/api/v1/approval-requests/route.ts",
+            "apps/web/app/api/v1/approval-thresholds/route.ts",
+            "apps/web/app/api/v1/auth/logout/route.ts",
+            "apps/web/app/api/v1/authorization-decisions/[id]/approve/route.ts",
+            "apps/web/app/api/v1/authorization-decisions/[id]/reject/route.ts",
+            "apps/web/app/api/v1/authorization-decisions/route.ts",
+            "apps/web/app/api/v1/blueprint-milestones/critical-path/route.ts",
+            "apps/web/app/api/v1/blueprint-milestones/dependencies/route.ts",
+            "apps/web/app/api/v1/blueprint-milestones/route.ts",
+            "apps/web/app/api/v1/certification-requests/[id]/decisions/route.ts",
+            "apps/web/app/api/v1/certification-requests/[id]/issue/route.ts",
+            "apps/web/app/api/v1/certification-requests/route.ts",
+            "apps/web/app/api/v1/change-requests/[id]/decide/route.ts",
+            "apps/web/app/api/v1/change-requests/[id]/implement/route.ts",
+            "apps/web/app/api/v1/change-requests/[id]/submit/route.ts",
+            "apps/web/app/api/v1/change-requests/route.ts",
+            "apps/web/app/api/v1/clauses/route.ts",
+            "apps/web/app/api/v1/completion-certificates/[id]/revoke/route.ts",
+            "apps/web/app/api/v1/completion-certificates/[id]/verification/route.ts",
+            "apps/web/app/api/v1/completion-certificates/[id]/verify/route.ts",
+            "apps/web/app/api/v1/completion-certificates/route.ts",
+            "apps/web/app/api/v1/contract-analysis/route.ts",
+            "apps/web/app/api/v1/contract-drafts/[id]/submit/route.ts",
+            "apps/web/app/api/v1/contract-repository/search/route.ts",
+            "apps/web/app/api/v1/contract-risks/route.ts",
+            "apps/web/app/api/v1/contract-templates/versions/route.ts",
+            "apps/web/app/api/v1/contract-versions/route.ts",
+            "apps/web/app/api/v1/contracts/[id]/approve/route.ts",
+            "apps/web/app/api/v1/contracts/route.ts",
+            "apps/web/app/api/v1/corrective-action-plans/[id]/complete/route.ts",
+            "apps/web/app/api/v1/corrective-action-plans/[id]/verify/route.ts",
+            "apps/web/app/api/v1/corrective-action-plans/route.ts",
+            "apps/web/app/api/v1/dashboard-snapshots/route.ts",
+            "apps/web/app/api/v1/defects/[id]/close/route.ts",
+            "apps/web/app/api/v1/defects/[id]/resolve/route.ts",
+            "apps/web/app/api/v1/defects/[id]/root-cause/route.ts",
+            "apps/web/app/api/v1/defects/route.ts",
+            "apps/web/app/api/v1/definition-of-done-packages/[id]/publish/route.ts",
+            "apps/web/app/api/v1/definition-of-done-packages/route.ts",
+            "apps/web/app/api/v1/definitions-of-done/[id]/evaluate/route.ts",
+            "apps/web/app/api/v1/definitions-of-done/[id]/publish/route.ts",
+            "apps/web/app/api/v1/definitions-of-done/route.ts",
+            "apps/web/app/api/v1/deliverables/[id]/confirm/route.ts",
+            "apps/web/app/api/v1/deliverables/route.ts",
+            "apps/web/app/api/v1/dependencies/[id]/resolve/route.ts",
+            "apps/web/app/api/v1/dependencies/route.ts",
+            "apps/web/app/api/v1/disputes/[id]/appeal/route.ts",
+            "apps/web/app/api/v1/disputes/[id]/close/route.ts",
+            "apps/web/app/api/v1/disputes/[id]/decide/route.ts",
+            "apps/web/app/api/v1/disputes/[id]/evidence/route.ts",
+            "apps/web/app/api/v1/disputes/[id]/positions/route.ts",
+            "apps/web/app/api/v1/disputes/route.ts",
+            "apps/web/app/api/v1/drift-alerts/[id]/acknowledge/route.ts",
+            "apps/web/app/api/v1/drift-alerts/[id]/resolve/route.ts",
+            "apps/web/app/api/v1/drift-alerts/route.ts",
+            "apps/web/app/api/v1/evaluation-records/route.ts",
+            "apps/web/app/api/v1/evidence-packages/[id]/verify/route.ts",
+            "apps/web/app/api/v1/evidence-packages/route.ts",
+            "apps/web/app/api/v1/evidence-requirements/route.ts",
+            "apps/web/app/api/v1/execution-assurance-indices/route.ts",
+            "apps/web/app/api/v1/execution-forecasts/[id]/review/route.ts",
+            "apps/web/app/api/v1/execution-forecasts/route.ts",
+            "apps/web/app/api/v1/execution-workspaces/[id]/activate/route.ts",
+            "apps/web/app/api/v1/execution-workspaces/[id]/resume/route.ts",
+            "apps/web/app/api/v1/execution-workspaces/[id]/submit/route.ts",
+            "apps/web/app/api/v1/execution-workspaces/[id]/suspend/route.ts",
+            "apps/web/app/api/v1/execution-workspaces/route.ts",
+            "apps/web/app/api/v1/executions/[id]/transition/route.ts",
+            "apps/web/app/api/v1/executions/route.ts",
+            "apps/web/app/api/v1/final-settlement-accounts/[id]/close/route.ts",
+            "apps/web/app/api/v1/final-settlement-accounts/route.ts",
+            "apps/web/app/api/v1/financial-closure-certificates/route.ts",
+            "apps/web/app/api/v1/financial-entitlements/[id]/confirm/route.ts",
+            "apps/web/app/api/v1/financial-entitlements/route.ts",
+            "apps/web/app/api/v1/financial-forecasts/[id]/review/route.ts",
+            "apps/web/app/api/v1/financial-forecasts/route.ts",
+            "apps/web/app/api/v1/fund-reservations/[id]/cancel/route.ts",
+            "apps/web/app/api/v1/fund-reservations/[id]/release/route.ts",
+            "apps/web/app/api/v1/fund-reservations/route.ts",
+            "apps/web/app/api/v1/funding-commitments/[id]/confirm/route.ts",
+            "apps/web/app/api/v1/funding-commitments/route.ts",
+            "apps/web/app/api/v1/inspections/[id]/complete/route.ts",
+            "apps/web/app/api/v1/inspections/route.ts",
+            "apps/web/app/api/v1/invoices/[id]/approve/route.ts",
+            "apps/web/app/api/v1/invoices/[id]/reject/route.ts",
+            "apps/web/app/api/v1/invoices/route.ts",
+            "apps/web/app/api/v1/issues/[id]/close/route.ts",
+            "apps/web/app/api/v1/issues/[id]/escalate/route.ts",
+            "apps/web/app/api/v1/issues/route.ts",
+            "apps/web/app/api/v1/kpi-definitions/[id]/retire/route.ts",
+            "apps/web/app/api/v1/kpi-definitions/route.ts",
+            "apps/web/app/api/v1/kpi-values/route.ts",
+            "apps/web/app/api/v1/ledger-entries/route.ts",
+            "apps/web/app/api/v1/legal/holds/route.ts",
+            "apps/web/app/api/v1/legal/policies/route.ts",
+            "apps/web/app/api/v1/legal/policy-versions/[id]/accept/route.ts",
+            "apps/web/app/api/v1/me/workspaces/route.ts",
+            "apps/web/app/api/v1/milestones/[id]/assurance/route.ts",
+            "apps/web/app/api/v1/milestones/route.ts",
+            "apps/web/app/api/v1/model-feedback/route.ts",
+            "apps/web/app/api/v1/model-registrations/[id]/deprecate/route.ts",
+            "apps/web/app/api/v1/model-registrations/route.ts",
+            "apps/web/app/api/v1/negotiation-rounds/route.ts",
+            "apps/web/app/api/v1/organizations/route.ts",
+            "apps/web/app/api/v1/parties/[id]/verification-requests/route.ts",
+            "apps/web/app/api/v1/parties/route.ts",
+            "apps/web/app/api/v1/payment-eligibilities/route.ts",
+            "apps/web/app/api/v1/payment-eligibility/[id]/blockers/route.ts",
+            "apps/web/app/api/v1/payment-instructions/[id]/refresh-status/route.ts",
+            "apps/web/app/api/v1/payment-instructions/[id]/reverse/route.ts",
+            "apps/web/app/api/v1/payment-instructions/[id]/submit/route.ts",
+            "apps/web/app/api/v1/payment-instructions/route.ts",
+            "apps/web/app/api/v1/payment-trigger-rules/[id]/activate/route.ts",
+            "apps/web/app/api/v1/payment-trigger-rules/[id]/evaluate/route.ts",
+            "apps/web/app/api/v1/payment-trigger-rules/route.ts",
+            "apps/web/app/api/v1/payment-triggers/[id]/evaluate/route.ts",
+            "apps/web/app/api/v1/payment-triggers/[id]/proposals/route.ts",
+            "apps/web/app/api/v1/payment-triggers/route.ts",
+            "apps/web/app/api/v1/performance-baselines/route.ts",
+            "apps/web/app/api/v1/performance-baselines/variances/route.ts",
+            "apps/web/app/api/v1/performance-blueprints/[id]/activate/route.ts",
+            "apps/web/app/api/v1/performance-blueprints/route.ts",
+            "apps/web/app/api/v1/performance-scorecards/route.ts",
+            "apps/web/app/api/v1/permissions/evaluate/route.ts",
+            "apps/web/app/api/v1/portfolio-snapshots/route.ts",
+            "apps/web/app/api/v1/progress-records/route.ts",
+            "apps/web/app/api/v1/quality-gate-evaluations/route.ts",
+            "apps/web/app/api/v1/quality-plans/route.ts",
+            "apps/web/app/api/v1/recommendations/[id]/decide/route.ts",
+            "apps/web/app/api/v1/recommendations/route.ts",
+            "apps/web/app/api/v1/reconciliation-records/route.ts",
+            "apps/web/app/api/v1/release-requests/[id]/cancel/route.ts",
+            "apps/web/app/api/v1/release-requests/[id]/evaluate/route.ts",
+            "apps/web/app/api/v1/release-requests/route.ts",
+            "apps/web/app/api/v1/renewal-assessments/route.ts",
+            "apps/web/app/api/v1/roles/assignments/route.ts",
+            "apps/web/app/api/v1/roles/route.ts",
+            "apps/web/app/api/v1/scope-items/[id]/confirm/route.ts",
+            "apps/web/app/api/v1/scope-items/route.ts",
+            "apps/web/app/api/v1/settlement-assurance-indices/route.ts",
+            "apps/web/app/api/v1/signature-packages/route.ts",
+            "apps/web/app/api/v1/success-metrics/[id]/confirm/route.ts",
+            "apps/web/app/api/v1/success-metrics/route.ts",
+            "apps/web/app/api/v1/validation-tests/route.ts",
+            "apps/web/app/api/v1/work-items/[id]/transition/route.ts",
+            "apps/web/app/api/v1/work-items/route.ts",
+            "apps/web/app/api/v1/workflow-intelligence/route.ts",
+            "apps/web/app/api/v1/workspaces/[id]/activate-context/route.ts",
+            "apps/web/app/api/v1/workspaces/[id]/found/route.ts",
+            "apps/web/app/api/v1/workspaces/route.ts",
+            "apps/web/lib/route-coverage.test.ts",
+            "apps/web/lib/trust-app.ts"
+          ],
+          "query": "authorizedContextForRoute",
+          "satisfied": true
         },
         {
           "kind": "test",
-          "matches": [],
+          "matches": [
+            "apps/web/lib/route-permissions.test.ts"
+          ],
           "query": "apps/web/lib/route-permissions.test.ts",
-          "satisfied": false
+          "satisfied": true
         }
       ],
-      "rationale": "No evidence at HEAD, on any ref, or in history.",
-      "satisfiedProbes": 0,
-      "status": "missing",
+      "rationale": "All 6 evidence probes satisfied at HEAD.",
+      "satisfiedProbes": 6,
+      "status": "implemented",
       "title": "Route-level permission mapping",
+      "totalProbes": 6
+    },
+    {
+      "git": {
+        "historicalCommits": [],
+        "reachableFromHead": true,
+        "refsContaining": [],
+        "removedFromHead": false
+      },
+      "id": "trust.route-permission-rollout",
+      "kind": "platform",
+      "onDefaultBranch": false,
+      "probes": [
+        {
+          "kind": "path",
+          "matches": [
+            "apps/web/lib/route-coverage.test.ts"
+          ],
+          "query": "apps/web/lib/route-coverage.test.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "apps/web/lib/route-coverage.test.ts"
+          ],
+          "query": "ROUTE_COVERAGE_PUBLIC_ALLOWLIST",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "apps/web/app/api/v1/contracts/route.ts",
+            "apps/web/app/api/v1/organizations/route.ts",
+            "apps/web/app/api/v1/workspaces/route.ts",
+            "apps/web/lib/trust-app.ts"
+          ],
+          "query": "workspaceScoped",
+          "satisfied": true
+        },
+        {
+          "kind": "test",
+          "matches": [
+            "apps/web/lib/route-coverage.test.ts"
+          ],
+          "query": "apps/web/lib/route-coverage.test.ts",
+          "satisfied": true
+        }
+      ],
+      "rationale": "All 4 evidence probes satisfied at HEAD.",
+      "satisfiedProbes": 4,
+      "status": "implemented",
+      "title": "Route migration to authorized context",
       "totalProbes": 4
+    },
+    {
+      "git": {
+        "historicalCommits": [],
+        "reachableFromHead": true,
+        "refsContaining": [],
+        "removedFromHead": false
+      },
+      "id": "trust.session-assertion-issuance",
+      "kind": "platform",
+      "onDefaultBranch": false,
+      "probes": [
+        {
+          "kind": "path",
+          "matches": [
+            "packages/identity/src/issuance.ts"
+          ],
+          "query": "packages/identity/src/issuance.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "path",
+          "matches": [
+            "apps/web/app/api/v1/auth/assertion/route.ts"
+          ],
+          "query": "apps/web/app/api/v1/auth/assertion/route.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "apps/web/lib/route-coverage.test.ts",
+            "apps/web/lib/trust-app.ts",
+            "packages/identity/src/issuance.test.ts",
+            "packages/identity/src/issuance.ts"
+          ],
+          "query": "issueAssertionForSession",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "apps/web/app/api/v1/auth/assertion/route.ts",
+            "apps/web/lib/trust-app.ts"
+          ],
+          "query": "issueSessionAssertion",
+          "satisfied": true
+        },
+        {
+          "kind": "test",
+          "matches": [
+            "packages/identity/src/issuance.test.ts"
+          ],
+          "query": "packages/identity/src/issuance.test.ts",
+          "satisfied": true
+        }
+      ],
+      "rationale": "All 5 evidence probes satisfied at HEAD.",
+      "satisfiedProbes": 5,
+      "status": "implemented",
+      "title": "Identity assertion issuance from an authenticated session",
+      "totalProbes": 5
     }
   ],
   "reconciliationFindings": [
@@ -4562,7 +5183,7 @@
         "vitest run packages/governance-core/src/governance-core.test.ts --testNamePattern=08"
       ],
       "location": "package.json",
-      "message": "certify:dod certifies packages/governance-core using batch number 08, but catalog engine 08 (Audit & Evidence Ledger) maps to no implementation package. The certify:* batch numbering and the catalog engine numbering are two different identifier spaces using the same numbers.",
+      "message": "certify:dod certifies packages/governance-core using batch number 08, but catalog engine 08 (Audit & Evidence Ledger) maps to packages/audit-ledger. The certify:* batch numbering and the catalog engine numbering are two different identifier spaces using the same numbers.",
       "rule": "catalog/certification-numbering-collision",
       "severity": "warning",
       "subject": "certify:dod"
@@ -4634,7 +5255,7 @@
     },
     {
       "location": "docs/ENGINE_CATALOG.md",
-      "message": "Engine 08 (Audit & Evidence Ledger) is declared \"Foundation only\" but repository evidence shows \"missing\".",
+      "message": "Engine 08 (Audit & Evidence Ledger) is declared \"Conditionally implemented\" but repository evidence shows \"implemented\".",
       "rule": "catalog/status-divergence",
       "severity": "warning",
       "subject": "engine:08"
@@ -4696,26 +5317,6 @@
       "rule": "runtime/duplicate-abstraction",
       "severity": "error",
       "subject": "DependencyIntelligenceEngine"
-    },
-    {
-      "evidence": [
-        "AgentGovernanceEngine",
-        "AgentRegistryEngine",
-        "AgentRuntimeEngine",
-        "AgentTelemetryEngine",
-        "AiGatewayEngine",
-        "CapabilityRegistryEngine",
-        "ContextEngine",
-        "ExecutionMemoryEngine",
-        "FileAssuraStore",
-        "HumanApprovalEngine",
-        "IdentityAssertionError",
-        "IdentityGateway"
-      ],
-      "message": "18 exported engine class(es) are not instantiated in any composition root, so they are unreachable at runtime.",
-      "rule": "runtime/unregistered-engine",
-      "severity": "warning",
-      "subject": "runtime"
     }
   ],
   "reosVersion": "1.0.0",
@@ -4734,7 +5335,7 @@
       "AiDecisionSupportEngine",
       "AiGatewayEngine",
       "ApprovalWorkflowEngine",
-      "AssuraPayService",
+      "AuditLedgerEngine",
       "BottleneckDetectionEngine",
       "CapabilityRegistryEngine",
       "CertificationEngine",
@@ -4752,7 +5353,6 @@
       "DefinitionOfDonePackageEngine",
       "DeliverablesEngine",
       "DependencyIntelligenceEngine",
-      "DeterministicVerificationProvider",
       "DigitalExecutionEngine",
       "DisputeResolutionEngine",
       "EnterpriseKpiEngine",
@@ -4766,36 +5366,23 @@
       "ExecutionMemoryEngine",
       "ExecutionOrchestrationEngine",
       "ExecutiveDashboardEngine",
-      "FileAssuraStore",
       "FinalSettlementEngine",
       "FinancialApprovalAuthorityEngine",
       "FinancialEntitlementEngine",
       "FinancialPaymentIntelligenceEngine",
       "HumanApprovalEngine",
-      "IdentityAssertionError",
-      "IdentityAssertionService",
-      "IdentityGateway",
-      "IdentityGatewayError",
-      "IdentityService",
-      "InMemoryAssertionReplayStore",
-      "InMemoryTrustStore",
       "InspectionEngine",
       "InvoiceClaimEngine",
       "IssueRiskCorrectiveActionEngine",
-      "LegalService",
       "MilestoneEngine",
       "MilestonePlanningEngine",
       "NegotiationEngine",
-      "OrganizationService",
-      "PartyService",
       "PaymentEligibilityEngine",
       "PaymentExecutionEngine",
       "PaymentTriggerEngine",
       "PaymentTriggerRuleEngine",
       "PerformanceBaselineEngine",
       "PerformanceBlueprintEngine",
-      "PermissionEnforcementError",
-      "PermissionService",
       "PortfolioAnalyticsEngine",
       "PredictiveExecutionIntelligenceEngine",
       "PredictiveRiskIntelligenceEngine",
@@ -4810,7 +5397,6 @@
       "SettlementAssuranceIndexEngine",
       "SlaIntelligenceEngine",
       "SuccessMetricsEngine",
-      "TrustStoreMembershipReader",
       "ValidationAcceptanceTestingEngine",
       "VendorCustomerPerformanceEngine",
       "WorkflowIntelligenceEngine"
@@ -4830,6 +5416,7 @@
           "AgreementIntelligenceEngine",
           "AiDecisionSupportEngine",
           "ApprovalWorkflowEngine",
+          "AuditLedgerEngine",
           "BottleneckDetectionEngine",
           "CertificationEngine",
           "ChangeControlEngine",
@@ -4900,26 +5487,7 @@
         ]
       }
     ],
-    "unregisteredEngines": [
-      "AgentGovernanceEngine",
-      "AgentRegistryEngine",
-      "AgentRuntimeEngine",
-      "AgentTelemetryEngine",
-      "AiGatewayEngine",
-      "CapabilityRegistryEngine",
-      "ContextEngine",
-      "ExecutionMemoryEngine",
-      "FileAssuraStore",
-      "HumanApprovalEngine",
-      "IdentityAssertionError",
-      "IdentityGateway",
-      "IdentityGatewayError",
-      "InMemoryAssertionReplayStore",
-      "InMemoryTrustStore",
-      "PermissionEnforcementError",
-      "PromptRegistryEngine",
-      "TrustStoreMembershipReader"
-    ]
+    "unregisteredEngines": []
   },
   "stage": "manifest"
 }

@@ -8,8 +8,10 @@
     "start": "next start --hostname 0.0.0.0 --port 3000"
   },
   "dependencies": {
+    "@assurapay/agent-runtime": "workspace:*",
     "@assurapay/agreement-creation": "workspace:*",
     "@assurapay/agreement-intelligence": "workspace:*",
+    "@assurapay/audit-ledger": "workspace:*",
     "@assurapay/completion-assurance": "workspace:*",
     "@assurapay/database": "workspace:*",
     "@assurapay/domain": "workspace:*",

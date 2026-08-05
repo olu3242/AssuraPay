@@ -6,31 +6,29 @@
 
 | Field | Value |
 | --- | --- |
-| Capability | runtime.agent-registration |
-| Title | Agent Runtime registration |
+| Capability | persistence.async-repository-interface |
+| Title | Asynchronous repository interface |
 | Current status | missing |
 | Lifecycle | planned |
-| Priority | 20 |
-| Reason | Highest-priority executable capability (priority 20, lifecycle planned) |
-| Depends on | trust.permission-enforcement |
+| Priority | 39 |
+| Reason | Highest-priority executable capability (priority 39, lifecycle planned) — unblocks 2 downstream capability/-ies |
+| Depends on | persistence.repository-conformance |
 | Unmet dependencies | none |
-| Blocks (transitive) | — |
-| Declared scope | 1 file(s), 1 test suite(s) |
+| Blocks (transitive) | persistence.postgres-repository, persistence.rls-certification |
+| Declared scope | 40 file(s), 2 test suite(s) (registry estimate) |
 | Requires live infrastructure | no |
 
 ## Executable queue
 
 | Capability | Title | Lifecycle | Priority | Blocks | Live infra |
 | --- | --- | --- | --- | --- | --- |
-| runtime.agent-registration | Agent Runtime registration | planned | 20 | — | no |
-| trust.route-permission-integration | Route-level permission mapping | planned | 30 | — | no |
-| persistence.postgres-repository | PostgreSQL repository implementation | planned | 40 | 1 | yes |
-| engine:08 | Engine 08 — Audit & Evidence Ledger | planned | 108 | 52 | no |
+| persistence.async-repository-interface | Asynchronous repository interface | planned | 39 | 2 | no |
 
 ## Blocked
 
 | Capability | Status | Blocked by |
 | --- | --- | --- |
+| persistence.postgres-repository | missing | persistence.async-repository-interface |
 | persistence.rls-certification | missing | persistence.postgres-repository |
 
 ## Awaiting live infrastructure
@@ -38,13 +36,14 @@
 - persistence.postgres-repository
 - persistence.rls-certification
 
-## Completed (60)
+## Completed (68)
 
 - engine:01
 - engine:02
 - engine:03
 - engine:04
 - engine:05
+- engine:08
 - engine:11
 - engine:12
 - engine:13
@@ -95,8 +94,15 @@
 - engine:58
 - engine:59
 - engine:60
+- persistence.repository-conformance
 - reos.execution-os
+- runtime.agent-registration
 - settlement.non-custody-guard
+- trust.grant-administration-api
 - trust.identity-assertions
 - trust.identity-gateway
 - trust.permission-enforcement
+- trust.permission-grant-catalogue
+- trust.route-permission-integration
+- trust.route-permission-rollout
+- trust.session-assertion-issuance

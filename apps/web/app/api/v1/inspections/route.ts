@@ -1,1 +1,1 @@
-import {completion,errorResponse,requestContext} from '../../../../lib/trust-app';export async function POST(r:Request){try{return Response.json(completion.inspections.schedule(requestContext(r),await r.json()),{status:201})}catch(e){return errorResponse(e)}}
+import {completion,errorResponse,authorizedContextForRoute} from '../../../../lib/trust-app';export async function POST(r:Request){try{return Response.json(completion.inspections.schedule(authorizedContextForRoute(r),await r.json()),{status:201})}catch(e){return errorResponse(e)}}

@@ -88,6 +88,15 @@ export interface PermissionAuthority {
     permissionKey: string,
     scopeId?: string,
   ): PermissionDecision;
+  /**
+   * Non-throwing decision, used to establish which of a requirement's conflicting
+   * permissions the caller actually holds.
+   */
+  evaluate(
+    context: RequestContext,
+    permissionKey: string,
+    scopeId?: string,
+  ): PermissionDecision;
   assertNoSegregationConflict(context: RequestContext, permissions: string[]): void;
 }
 
@@ -192,16 +201,29 @@ export function enforcePermission(
   }
 
   if (requirement.segregatedFrom && requirement.segregatedFrom.length > 0) {
-    try {
-      authorities.permissions.assertNoSegregationConflict(authorized, [
-        requirement.permissionKey,
-        ...requirement.segregatedFrom,
-      ]);
-    } catch {
-      throw new PermissionEnforcementError(
-        'ENFORCEMENT_SEGREGATION_VIOLATION',
-        requirement.permissionKey,
-      );
+    // Only conflicting permissions the caller actually holds are in play. Passing
+    // the requirement's declared conflicts instead would make the rule fire for
+    // every caller once the rule existed, including the compliant one holding a
+    // single side — which reads as strict but renders the permission unusable and
+    // pressures an operator into deleting the rule.
+    const heldConflicts = requirement.segregatedFrom.filter(
+      (permissionKey) =>
+        authorities.permissions.evaluate(authorized, permissionKey, requirement.scopeId)
+          .allowed,
+    );
+
+    if (heldConflicts.length > 0) {
+      try {
+        authorities.permissions.assertNoSegregationConflict(authorized, [
+          requirement.permissionKey,
+          ...heldConflicts,
+        ]);
+      } catch {
+        throw new PermissionEnforcementError(
+          'ENFORCEMENT_SEGREGATION_VIOLATION',
+          requirement.permissionKey,
+        );
+      }
     }
   }
 

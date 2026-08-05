@@ -1,14 +1,14 @@
 import {
   agreements,
   errorResponse,
-  requestContext,
+  authorizedContextForRoute,
 } from '../../../../../../lib/trust-app';
 export async function POST(r: Request, { params }: { params: { id: string } }) {
   try {
     const b = await r.json();
     return Response.json(
       agreements.approvals.decide(
-        requestContext(r),
+        authorizedContextForRoute(r),
         params.id,
         b.decision,
         b.conditions,
