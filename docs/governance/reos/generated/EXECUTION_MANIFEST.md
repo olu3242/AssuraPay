@@ -10,9 +10,9 @@
 | Repository | assurapay |
 | Version | 0.1.0 |
 | Branch | claude/git-pull-cqc04u |
-| HEAD | 99a6077fe5da2424bc1a7301da0cfef38d28b658 |
+| HEAD | 9bd4ad1a87d051f93baec463e7db34a372c68c31 |
 | Worktree clean | no |
-| Manifest digest | 03559e30284b |
+| Manifest digest | a89df919bc52 |
 | REOS version | 1.0.0 |
 
 ## Architecture

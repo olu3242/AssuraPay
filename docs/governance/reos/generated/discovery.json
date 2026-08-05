@@ -2553,26 +2553,16 @@
       ],
       "clean": false,
       "dirtyFiles": [
-        "apps/web/lib/route-permissions.test.ts",
-        "apps/web/lib/trust-app.ts",
-        "docs/ENGINE_CATALOG.md",
-        "docs/governance/reos/capability-registry.json",
         "docs/governance/reos/generated/CERTIFICATION_REPORT.md",
-        "docs/governance/reos/generated/DEPENDENCY_RESOLUTION.md",
         "docs/governance/reos/generated/EXECUTION_MANIFEST.md",
         "docs/governance/reos/generated/certification.json",
         "docs/governance/reos/generated/dependency-resolution.json",
         "docs/governance/reos/generated/discovery.json",
         "docs/governance/reos/generated/execution-manifest.json",
-        "docs/governance/reos/generated/forensics.json",
-        "packages/permissions/src/catalogue.test.ts",
-        "packages/permissions/src/catalogue.ts",
-        "packages/permissions/src/enforcement.test.ts",
-        "packages/permissions/src/enforcement.ts",
-        "packages/permissions/src/index.ts"
+        "docs/governance/reos/generated/forensics.json"
       ],
-      "head": "99a6077fe5da2424bc1a7301da0cfef38d28b658",
-      "headShort": "99a6077",
+      "head": "9bd4ad1a87d051f93baec463e7db34a372c68c31",
+      "headShort": "9bd4ad1",
       "reflogAvailable": true,
       "remotes": [
         "origin"
