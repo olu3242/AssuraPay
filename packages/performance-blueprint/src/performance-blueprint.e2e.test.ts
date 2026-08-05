@@ -9,7 +9,7 @@ import {
 } from './index';
 
 describe('e2e Batch 5 published intelligence to activated performance blueprint', () => {
-  it('carries scope, deliverables, milestones and a published Definition of Done gate into an activated blueprint', () => {
+  it('carries scope, deliverables, milestones and a published Definition of Done gate into an activated blueprint', async () => {
     const s = new InMemoryTrustStore();
     const c = {
       actorUserId: 'planner',
@@ -22,14 +22,14 @@ describe('e2e Batch 5 published intelligence to activated performance blueprint'
     };
 
     const blueprints = new PerformanceBlueprintEngine(s);
-    const blueprint = blueprints.draft(c, {
+    const blueprint = await blueprints.draft(c, {
       contractId: 'contract',
       contractVersionId: 'executed-version',
       agreementIntelligenceVersionId: 'published-intelligence',
     });
 
     const scope = new ScopeDefinitionEngine(s);
-    const included = scope.define(c, {
+    const included = await scope.define(c, {
       blueprintId: blueprint.id,
       kind: 'INCLUDED',
       description: 'Fabricate and erect the structural steel frame',
@@ -37,10 +37,10 @@ describe('e2e Batch 5 published intelligence to activated performance blueprint'
       constraints: ['dry-season construction window'],
       ownerId: 'contractor',
     });
-    scope.confirm(c, included.id);
+    await scope.confirm(c, included.id);
 
     const deliverables = new DeliverablesEngine(s);
-    const frame = deliverables.define(c, {
+    const frame = await deliverables.define(c, {
       blueprintId: blueprint.id,
       scopeItemId: included.id,
       title: 'Structural steel frame',
@@ -52,10 +52,10 @@ describe('e2e Batch 5 published intelligence to activated performance blueprint'
       acceptanceCriteria: ['frame plumb and level within tolerance'],
       evidenceRequirements: ['inspection photos', 'engineer sign-off'],
     });
-    deliverables.confirm(c, frame.id);
+    await deliverables.confirm(c, frame.id);
 
     const milestones = new MilestonePlanningEngine(s);
-    const erection = milestones.schedule(c, {
+    const erection = await milestones.schedule(c, {
       blueprintId: blueprint.id,
       title: 'Frame erected',
       deliverableIds: [frame.id],
@@ -66,10 +66,10 @@ describe('e2e Batch 5 published intelligence to activated performance blueprint'
       valueAllocationPercent: 100,
     });
 
-    expect(() => blueprints.activate(c, blueprint.id)).toThrow('DOD_PACKAGE_REQUIRED');
+    await expect(await blueprints.activate(c, blueprint.id)).rejects.toThrow('DOD_PACKAGE_REQUIRED');
 
     const dod = new DefinitionOfDonePackageEngine(s);
-    const draft = dod.draft(c, {
+    const draft = await dod.draft(c, {
       milestoneId: erection.id,
       deliverableGateIds: [frame.id],
       criteria: [
@@ -81,10 +81,10 @@ describe('e2e Batch 5 published intelligence to activated performance blueprint'
       riskGate: false,
       paymentGate: true,
     });
-    dod.publish(c, draft.id);
+    await dod.publish(c, draft.id);
 
-    const activated = blueprints.activate(c, blueprint.id);
+    const activated = await blueprints.activate(c, blueprint.id);
     expect(activated).toMatchObject({ status: 'ACTIVE', contractId: 'contract' });
-    expect(milestones.criticalPath(c, blueprint.id).days).toBeGreaterThan(0);
+    expect((await milestones.criticalPath(c, blueprint.id)).days).toBeGreaterThan(0);
   });
 });

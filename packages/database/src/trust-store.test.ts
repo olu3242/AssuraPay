@@ -16,19 +16,19 @@ import {
 
 describe('TrustPersistence conformance — InMemoryTrustStore', () => {
   for (const check of TRUST_PERSISTENCE_CONFORMANCE) {
-    it(check.name, () => {
+    it(check.name, async () => {
       // Reported through expect so a failure shows the assertion message rather
       // than an opaque thrown error.
-      expect(() => check.run(new InMemoryTrustStore())).not.toThrow();
+      await expect(check.run(new InMemoryTrustStore())).resolves.not.toThrow();
     });
   }
 });
 
 describe('TrustPersistence conformance — the suite itself', () => {
-  it('passes every check against the in-memory store', () => {
-    const failures = runTrustPersistenceConformance(() => new InMemoryTrustStore()).filter(
-      (result) => !result.passed,
-    );
+  it('passes every check against the in-memory store', async () => {
+    const failures = (
+      await runTrustPersistenceConformance(() => new InMemoryTrustStore())
+    ).filter((result) => !result.passed);
     expect(failures).toEqual([]);
   });
 
@@ -49,27 +49,27 @@ describe('TrustPersistence conformance — the suite itself', () => {
     expect(TRUST_PERSISTENCE_CONFORMANCE.length).toBeGreaterThanOrEqual(15);
   });
 
-  it('constructs a fresh store per check, so none can depend on another', () => {
+  it('constructs a fresh store per check, so none can depend on another', async () => {
     // If checks shared a store, one that wrote three records would make a later
     // "one record stored" assertion fail for a correct implementation.
     let built = 0;
-    runTrustPersistenceConformance(() => {
+    await runTrustPersistenceConformance(() => {
       built += 1;
       return new InMemoryTrustStore();
     });
     expect(built).toBe(TRUST_PERSISTENCE_CONFORMANCE.length);
   });
 
-  it('reports a failing implementation rather than throwing', () => {
+  it('reports a failing implementation rather than throwing', async () => {
     // The suite must be usable as a report — an adapter under development will
     // fail several checks, and stopping at the first would hide the rest.
     class Broken extends InMemoryTrustStore {
-      list<T>(): T[] {
+      async list<T>(): Promise<T[]> {
         return [];
       }
     }
 
-    const results = runTrustPersistenceConformance(() => new Broken());
+    const results = await runTrustPersistenceConformance(() => new Broken());
     const failures = results.filter((result) => !result.passed);
     expect(failures.length).toBeGreaterThan(3);
     for (const failure of failures) {
@@ -79,7 +79,7 @@ describe('TrustPersistence conformance — the suite itself', () => {
 });
 
 describe('the repository interface cannot be implemented over a network', () => {
-  it('is synchronous in every method, which no network-backed store can satisfy', () => {
+  it('is synchronous in every method, which no network-backed store can satisfy', async () => {
     // CLAUDE.md says Postgres "can be swapped without touching engine logic". That
     // is not true as built: every method returns a value rather than a promise, so
     // a Postgres adapter would have to block on I/O, and making it async would
@@ -90,8 +90,8 @@ describe('the repository interface cannot be implemented over a network', () => 
     const store: TrustPersistence = new InMemoryTrustStore();
 
     for (const result of [
-      store.list('things'),
-      store.audit({
+      await store.list('things'),
+      await store.audit({
         actorId: 'user-1',
         eventType: 'Thing',
         aggregateType: 'Thing',
@@ -99,7 +99,7 @@ describe('the repository interface cannot be implemented over a network', () => 
         correlationId: 'corr-1',
         metadata: {},
       }),
-      store.emit({
+      await store.emit({
         aggregateType: 'Thing',
         aggregateId: 'thing-1',
         eventType: 'Thing',

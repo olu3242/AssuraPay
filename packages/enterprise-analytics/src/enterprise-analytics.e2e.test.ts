@@ -22,7 +22,7 @@ describe('e2e Batch 12 vendor performance and portfolio risk into a governed ren
     };
 
     const performance = new VendorCustomerPerformanceEngine(s);
-    const scorecard = performance.score(c, {
+    const scorecard = await performance.score(c, {
       partyId: 'lagos-steel-supply',
       partyRole: 'VENDOR',
       periodStart: '2026-01-01',
@@ -32,7 +32,7 @@ describe('e2e Batch 12 vendor performance and portfolio risk into a governed ren
     expect(scorecard.overallScore).toBeGreaterThan(0);
 
     const portfolio = new PortfolioAnalyticsEngine(s);
-    const snapshot = portfolio.snapshot(c, {
+    const snapshot = await portfolio.snapshot(c, {
       scopeId: 'trade-finance-portfolio',
       atRiskCount: 1,
       blockedCount: 0,
@@ -59,29 +59,29 @@ describe('e2e Batch 12 vendor performance and portfolio risk into a governed ren
       forecastType: 'RELEASE_DELAY',
       signals: { atRiskCount: snapshot.atRiskCount, vendorScore: scorecard.overallScore },
     });
-    financialIntelligence.review(c, { id: forecast.id, decision: 'ACCEPTED' });
+    await financialIntelligence.review(c, { id: forecast.id, decision: 'ACCEPTED' });
 
     const decisionSupport = new AiDecisionSupportEngine(s);
-    const model = decisionSupport.registerModel(c, {
+    const model = await decisionSupport.registerModel(c, {
       modelId: 'deterministic-financial-forecast',
       modelVersion: '1',
       purpose: 'Forecast release delay risk from portfolio and vendor signals',
       governedBy: 'FinancialPaymentIntelligenceEngine',
     });
-    decisionSupport.recordEvaluation(c, { modelRegistrationId: model.id, metric: 'accuracy', score: 85, threshold: 70 });
-    expect(decisionSupport.openDrifts(c, model.id)).toHaveLength(0);
+    await decisionSupport.recordEvaluation(c, { modelRegistrationId: model.id, metric: 'accuracy', score: 85, threshold: 70 });
+    expect(await decisionSupport.openDrifts(c, model.id)).toHaveLength(0);
 
-    const recommendation = decisionSupport.recommend(c, {
+    const recommendation = await decisionSupport.recommend(c, {
       scopeId: 'lagos-steel-supply',
       modelRegistrationId: model.id,
       recommendation: 'Renew with tightened milestone cadence given elevated release-delay risk',
       confidence: forecast.confidence,
     });
-    const decided = decisionSupport.decideRecommendation(c, { id: recommendation.id, decision: 'ACCEPTED' });
+    const decided = await decisionSupport.decideRecommendation(c, { id: recommendation.id, decision: 'ACCEPTED' });
     expect(decided.status).toBe('ACCEPTED');
 
     const renewal = new RenewalRelationshipIntelligenceEngine(s);
-    const assessment = renewal.assess(c, {
+    const assessment = await renewal.assess(c, {
       contractId: 'lagos-steel-supply-msa',
       renewalReadinessScore: scorecard.overallScore,
       performanceHistorySummary: 'Consistent on-time delivery with one at-risk milestone flagged by portfolio analytics',

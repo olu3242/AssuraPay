@@ -68,7 +68,7 @@ describe('Batch 4 extensions', () => {
   });
 
   it('validates KPI formulas and preserves versioning', async () => {
-    await expect(service.createKPIDefinition({
+    await expect(await service.createKPIDefinition({
       tenantId: 'tenant-a',
       workspaceId: 'workspace-a',
       kpiKey: 'bad-formula',
@@ -186,8 +186,8 @@ describe('Batch 4 extensions', () => {
   it('enforces checkpoint uniqueness and monotonic event sequences', async () => {
     const checkpoint = await service.createProjectionCheckpoint({ tenantId: 'tenant-a', workspaceId: 'workspace-a', projectionName: 'portfolio', consumerName: 'worker-a' });
     await service.updateProjectionCheckpoint(checkpoint.id, { tenantId: 'tenant-a', workspaceId: 'workspace-a', lastEventId: 'event-2', lastEventSequence: 2 });
-    await expect(service.updateProjectionCheckpoint(checkpoint.id, { tenantId: 'tenant-a', workspaceId: 'workspace-a', lastEventId: 'event-1', lastEventSequence: 1 })).rejects.toThrow('backwards');
-    await expect(service.createProjectionCheckpoint({ tenantId: 'tenant-a', workspaceId: 'workspace-a', projectionName: 'portfolio', consumerName: 'worker-a' })).rejects.toThrow('already exists');
+    await expect(await service.updateProjectionCheckpoint(checkpoint.id, { tenantId: 'tenant-a', workspaceId: 'workspace-a', lastEventId: 'event-1', lastEventSequence: 1 })).rejects.toThrow('backwards');
+    await expect(await service.createProjectionCheckpoint({ tenantId: 'tenant-a', workspaceId: 'workspace-a', projectionName: 'portfolio', consumerName: 'worker-a' })).rejects.toThrow('already exists');
   });
 
   it('preserves forecast inputs while recording outcomes', async () => {

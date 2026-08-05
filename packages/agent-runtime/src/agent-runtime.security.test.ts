@@ -15,32 +15,30 @@ const context = (workspaceId: string) => ({
   correlationId: 'security',
 });
 describe('security and architecture boundaries', () => {
-  it('isolates context and memory by workspace and denies governance by default', () => {
+  it('isolates context and memory by workspace and denies governance by default', async () => {
     const store = new InMemoryTrustStore();
     const contexts = new ContextEngine(store);
     const memory = new ExecutionMemoryEngine(store);
     const governance = new AgentGovernanceEngine(store);
-    const created = contexts.create(context('a'), {
+    const created = await contexts.create(context('a'), {
       milestoneIds: [],
       definitionOfDoneIds: [],
       historyRefs: [],
       permissions: [],
     });
-    expect(() => contexts.get(context('b'), created.id)).toThrow('NOT_FOUND');
-    memory.append(context('a'), {
+    await expect(await contexts.get(context('b'), created.id)).rejects.toThrow('NOT_FOUND');
+    await memory.append(context('a'), {
       executionId: 'run',
       agentId: 'agent',
       kind: 'REASONING_METADATA',
       content: { sources: ['agreement:a'] },
     });
-    expect(memory.history(context('b'), 'run')).toEqual([]);
-    expect(() =>
-      governance.authorize(context('a'), {
+    expect(await memory.history(context('b'), 'run')).toEqual([]);
+    await expect(await governance.authorize(context('a'), {
         roles: ['admin'],
         promptId: 'p',
         capabilityId: 'c',
         model: 'm',
-      }),
-    ).toThrow('ACTIVE_AGENT_GOVERNANCE_POLICY_REQUIRED');
+      })).rejects.toThrow('ACTIVE_AGENT_GOVERNANCE_POLICY_REQUIRED');
   });
 });

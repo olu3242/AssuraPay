@@ -31,9 +31,9 @@ function context(overrides: Partial<RequestContext> = {}): RequestContext {
  * point of verification is that it reproduces what the writer actually did. A
  * synthetic fixture would test the verifier against itself.
  */
-function chainOf(count: number, store = new InMemoryTrustStore()) {
+async function chainOf(count: number, store = new InMemoryTrustStore()) {
   for (let index = 0; index < count; index += 1) {
-    store.audit({
+    await store.audit({
       tenantId: TENANT,
       workspaceId: WORKSPACE,
       actorId: 'user-1',
@@ -44,14 +44,14 @@ function chainOf(count: number, store = new InMemoryTrustStore()) {
       metadata: { index },
     });
   }
-  return { store, records: store.list<AuditRecord>('auditRecords') };
+  return { store, records: await store.list<AuditRecord>('auditRecords') };
 }
 
 const hashOf = (value: string) => createHash('sha256').update(value).digest('hex');
 
 describe('Engine 08 chain verification — accepts an untampered chain', () => {
-  it('verifies a chain the store actually wrote', () => {
-    const { records } = chainOf(5);
+  it('verifies a chain the store actually wrote', async () => {
+    const { records } = await chainOf(5);
     const outcome = verifyAuditChain(records);
 
     expect(outcome.valid).toBe(true);
@@ -60,10 +60,10 @@ describe('Engine 08 chain verification — accepts an untampered chain', () => {
     expect(outcome.head).toBe(records.at(-1)?.integrityHash);
   });
 
-  it('recomputes the writer’s hash exactly', () => {
+  it('recomputes the writer’s hash exactly', async () => {
     // If this drifts, every other assertion here becomes vacuous: a verifier that
     // computes a different hash would report a clean chain as tampered.
-    for (const record of chainOf(3).records) {
+    for (const record of (await chainOf(3)).records) {
       expect(recomputeIntegrityHash(record)).toBe(record.integrityHash);
     }
   });
@@ -72,15 +72,15 @@ describe('Engine 08 chain verification — accepts an untampered chain', () => {
     expect(verifyAuditChain([])).toMatchObject({ valid: true, checked: 0, findings: [] });
   });
 
-  it('verifies a single-record chain, whose first record links to nothing', () => {
-    const { records } = chainOf(1);
+  it('verifies a single-record chain, whose first record links to nothing', async () => {
+    const { records } = await chainOf(1);
     expect(verifyAuditChain(records).valid).toBe(true);
     expect(records[0].previousHash).toBeUndefined();
   });
 
-  it('verifies records whose optional fields are absent', () => {
+  it('verifies records whose optional fields are absent', async () => {
     const store = new InMemoryTrustStore();
-    store.audit({
+    await store.audit({
       actorId: 'user-1',
       eventType: 'NoWorkspace',
       aggregateType: 'Thing',
@@ -88,14 +88,14 @@ describe('Engine 08 chain verification — accepts an untampered chain', () => {
       correlationId: 'corr-1',
       metadata: {},
     });
-    expect(verifyAuditChain(store.list<AuditRecord>('auditRecords')).valid).toBe(true);
+    expect(verifyAuditChain(await store.list<AuditRecord>('auditRecords')).valid).toBe(true);
   });
 
-  it('verifies records the store redacted a sensitive field from', () => {
+  it('verifies records the store redacted a sensitive field from', async () => {
     // The store strips password/token/secret-shaped keys before hashing, so the
     // verifier must hash the redacted metadata, not the metadata that was passed in.
     const store = new InMemoryTrustStore();
-    store.audit({
+    await store.audit({
       actorId: 'user-1',
       eventType: 'Sensitive',
       aggregateType: 'Thing',
@@ -104,15 +104,15 @@ describe('Engine 08 chain verification — accepts an untampered chain', () => {
       metadata: { token: 'super-secret', reason: 'kept' },
     });
 
-    const records = store.list<AuditRecord>('auditRecords');
+    const records = await store.list<AuditRecord>('auditRecords');
     expect(records[0].metadata).toEqual({ reason: 'kept' });
     expect(verifyAuditChain(records).valid).toBe(true);
   });
 });
 
 describe('Engine 08 chain verification — detects tampering', () => {
-  it('detects a mutated record', () => {
-    const { records } = chainOf(4);
+  it('detects a mutated record', async () => {
+    const { records } = await chainOf(4);
     records[2] = { ...records[2], eventType: 'SomethingElse' };
 
     const outcome = verifyAuditChain(records);
@@ -121,14 +121,14 @@ describe('Engine 08 chain verification — detects tampering', () => {
     expect(outcome.findings[0].index).toBe(2);
   });
 
-  it('detects mutated metadata, not only mutated headers', () => {
-    const { records } = chainOf(3);
+  it('detects mutated metadata, not only mutated headers', async () => {
+    const { records } = await chainOf(3);
     records[1] = { ...records[1], metadata: { index: 99 } };
     expect(verifyAuditChain(records).valid).toBe(false);
   });
 
-  it('detects a removed record through the broken link', () => {
-    const { records } = chainOf(5);
+  it('detects a removed record through the broken link', async () => {
+    const { records } = await chainOf(5);
     const truncated = [...records.slice(0, 2), ...records.slice(3)];
 
     const outcome = verifyAuditChain(truncated);
@@ -136,24 +136,24 @@ describe('Engine 08 chain verification — detects tampering', () => {
     expect(outcome.findings.map((finding) => finding.kind)).toContain('link-broken');
   });
 
-  it('detects a removed first record, which no link would otherwise reveal', () => {
+  it('detects a removed first record, which no link would otherwise reveal', async () => {
     // Dropping the head leaves a chain that is internally consistent from its new
     // start; the only evidence is that the new first record points backwards.
-    const { records } = chainOf(4);
+    const { records } = await chainOf(4);
     const outcome = verifyAuditChain(records.slice(1));
 
     expect(outcome.valid).toBe(false);
     expect(outcome.findings.map((finding) => finding.kind)).toContain('genesis-linked');
   });
 
-  it('detects reordering', () => {
-    const { records } = chainOf(4);
+  it('detects reordering', async () => {
+    const { records } = await chainOf(4);
     const swapped = [records[0], records[2], records[1], records[3]];
     expect(verifyAuditChain(swapped).valid).toBe(false);
   });
 
-  it('detects an inserted record even when its own hash is self-consistent', () => {
-    const { records } = chainOf(3);
+  it('detects an inserted record even when its own hash is self-consistent', async () => {
+    const { records } = await chainOf(3);
     const forged = { ...records[1], id: 'forged', aggregateId: 'thing-forged' };
     const withHash = { ...forged, integrityHash: recomputeIntegrityHash(forged) };
 
@@ -164,16 +164,16 @@ describe('Engine 08 chain verification — detects tampering', () => {
     expect(outcome.findings.map((finding) => finding.kind)).toContain('link-broken');
   });
 
-  it('detects a duplicated record', () => {
-    const { records } = chainOf(3);
+  it('detects a duplicated record', async () => {
+    const { records } = await chainOf(3);
     const outcome = verifyAuditChain([records[0], records[1], records[1], records[2]]);
     expect(outcome.findings.map((finding) => finding.kind)).toContain('duplicate-id');
   });
 
-  it('reports every damaged record, not only the first', () => {
+  it('reports every damaged record, not only the first', async () => {
     // An auditor needs the extent of the damage; stopping at the first finding
     // would report one tampered record and hide the rest.
-    const { records } = chainOf(6);
+    const { records } = await chainOf(6);
     records[1] = { ...records[1], eventType: 'A' };
     records[4] = { ...records[4], eventType: 'B' };
 
@@ -183,8 +183,8 @@ describe('Engine 08 chain verification — detects tampering', () => {
     expect(mismatches.map((finding) => finding.index)).toEqual([1, 4]);
   });
 
-  it('locates each finding by position and record id', () => {
-    const { records } = chainOf(3);
+  it('locates each finding by position and record id', async () => {
+    const { records } = await chainOf(3);
     records[1] = { ...records[1], actorId: 'someone-else' };
 
     const finding = verifyAuditChain(records).findings[0];
@@ -195,48 +195,48 @@ describe('Engine 08 chain verification — detects tampering', () => {
 });
 
 describe('Engine 08 snapshot comparison — catches a rewritten chain', () => {
-  it('accepts pure appends', () => {
-    const { store, records } = chainOf(3);
+  it('accepts pure appends', async () => {
+    const { store, records } = await chainOf(3);
     const engine = new AuditLedgerEngine(store);
-    chainOf(2, store);
+    await chainOf(2, store);
 
-    const comparison = engine.compareWith(records);
+    const comparison = await engine.compareWith(records);
     expect(comparison.appendOnly).toBe(true);
     expect(comparison.appended).toBe(2);
   });
 
-  it('accepts an unchanged chain', () => {
-    const { store, records } = chainOf(3);
-    expect(new AuditLedgerEngine(store).compareWith(records)).toMatchObject({
+  it('accepts an unchanged chain', async () => {
+    const { store, records } = await chainOf(3);
+    expect(await new AuditLedgerEngine(store).compareWith(records)).toMatchObject({
       appendOnly: true,
       appended: 0,
     });
   });
 
-  it('catches a wholesale rewrite that verifies cleanly on its own', () => {
+  it('catches a wholesale rewrite that verifies cleanly on its own', async () => {
     // This is the attack a hash chain alone cannot detect: rebuild the chain from
     // scratch and every hash agrees. Only an earlier observation reveals it.
-    const { records: original } = chainOf(3);
-    const { store: rebuilt } = chainOf(3);
+    const { records: original } = await chainOf(3);
+    const { store: rebuilt } = await chainOf(3);
 
-    expect(verifyAuditChain(rebuilt.list<AuditRecord>('auditRecords')).valid).toBe(true);
-    const comparison = new AuditLedgerEngine(rebuilt).compareWith(original);
+    expect(verifyAuditChain(await rebuilt.list<AuditRecord>('auditRecords')).valid).toBe(true);
+    const comparison = await new AuditLedgerEngine(rebuilt).compareWith(original);
     expect(comparison.appendOnly).toBe(false);
     expect(comparison.differences.map((difference) => difference.kind)).toContain(
       'record-removed',
     );
   });
 
-  it('reports a removed record', () => {
-    const { records } = chainOf(4);
+  it('reports a removed record', async () => {
+    const { records } = await chainOf(4);
     const comparison = diffAuditSnapshots(records, records.slice(0, 3));
     expect(comparison.differences.map((difference) => difference.kind)).toEqual([
       'record-removed',
     ]);
   });
 
-  it('reports reordering and mutation separately', () => {
-    const { records } = chainOf(3);
+  it('reports reordering and mutation separately', async () => {
+    const { records } = await chainOf(3);
     const reordered = [records[1], records[0], records[2]];
     expect(
       diffAuditSnapshots(records, reordered).differences.map((difference) => difference.kind),
@@ -249,8 +249,8 @@ describe('Engine 08 snapshot comparison — catches a rewritten chain', () => {
     ).toContain('record-mutated');
   });
 
-  it('reports an insertion into the middle as an insertion, not an append', () => {
-    const { records } = chainOf(3);
+  it('reports an insertion into the middle as an insertion, not an append', async () => {
+    const { records } = await chainOf(3);
     const injected = [records[0], { ...records[0], id: 'injected' }, records[1], records[2]];
 
     const comparison = diffAuditSnapshots(records, injected);
@@ -264,9 +264,9 @@ describe('Engine 08 snapshot comparison — catches a rewritten chain', () => {
 describe('Engine 08 evidence ledger', () => {
   const CONTENT = hashOf('the evidence');
 
-  function record(store = new InMemoryTrustStore()) {
+  async function record(store = new InMemoryTrustStore()) {
     const engine = new AuditLedgerEngine(store);
-    const entry = engine.recordEvidence(context(), {
+    const entry = await engine.recordEvidence(context(), {
       subjectType: 'CompletionCertificate',
       subjectId: 'cert-1',
       evidenceType: 'INSPECTION_REPORT',
@@ -277,19 +277,19 @@ describe('Engine 08 evidence ledger', () => {
     return { store, engine, entry };
   }
 
-  it('records the hash and the location, never the content', () => {
-    const { entry } = record();
+  it('records the hash and the location, never the content', async () => {
+    const { entry } = await record();
     expect(entry.contentHash).toBe(CONTENT);
     expect(entry.contentLocation).toBe('s3://evidence/cert-1');
     expect(Object.keys(entry)).not.toContain('content');
   });
 
-  it('links the entry to an audit record that exists', () => {
+  it('links the entry to an audit record that exists', async () => {
     // An entry naming an audit record that is absent would be the one link an
     // auditor cannot follow.
-    const { store, entry } = record();
-    const audit = store
-      .list<AuditRecord>('auditRecords')
+    const { store, entry } = await record();
+    const audit = (await store
+      .list<AuditRecord>('auditRecords'))
       .find((candidate) => candidate.id === entry.auditRecordId);
 
     expect(audit).toBeDefined();
@@ -297,91 +297,83 @@ describe('Engine 08 evidence ledger', () => {
     expect(audit?.aggregateId).toBe('cert-1');
   });
 
-  it('leaves the chain verifiable after writing', () => {
-    const { store, engine } = record();
-    engine.recordEvidence(context(), {
+  it('leaves the chain verifiable after writing', async () => {
+    const { store, engine } = await record();
+    await engine.recordEvidence(context(), {
       subjectType: 'CompletionCertificate',
       subjectId: 'cert-1',
       evidenceType: 'PHOTO',
       contentHash: hashOf('second'),
       contentLocation: 's3://evidence/cert-1/photo',
     });
-    expect(new AuditLedgerEngine(store).verify().valid).toBe(true);
+    expect((await new AuditLedgerEngine(store).verify()).valid).toBe(true);
   });
 
-  it('confirms that a given hash is the evidence that was recorded', () => {
-    const { engine } = record();
+  it('confirms that a given hash is the evidence that was recorded', async () => {
+    const { engine } = await record();
     expect(
-      engine.evidenceMatches(context(), 'CompletionCertificate', 'cert-1', CONTENT),
+      await engine.evidenceMatches(context(), 'CompletionCertificate', 'cert-1', CONTENT),
     ).toBe(true);
     expect(
-      engine.evidenceMatches(context(), 'CompletionCertificate', 'cert-1', hashOf('other')),
+      await engine.evidenceMatches(context(), 'CompletionCertificate', 'cert-1', hashOf('other')),
     ).toBe(false);
   });
 
-  it('rejects a content hash that is not a lowercase hex sha256', () => {
+  it('rejects a content hash that is not a lowercase hex sha256', async () => {
     const engine = new AuditLedgerEngine(new InMemoryTrustStore());
     for (const bad of ['', 'not-a-hash', CONTENT.toUpperCase(), CONTENT.slice(0, 63)]) {
-      expect(() =>
-        engine.recordEvidence(context(), {
+      await expect(await engine.recordEvidence(context(), {
           subjectType: 'Thing',
           subjectId: 'thing-1',
           evidenceType: 'X',
           contentHash: bad,
           contentLocation: 'somewhere',
-        }),
-      ).toThrow('EVIDENCE_CONTENT_HASH_INVALID');
+        })).rejects.toThrow('EVIDENCE_CONTENT_HASH_INVALID');
     }
   });
 
-  it('rejects a missing subject or location, and writes nothing', () => {
+  it('rejects a missing subject or location, and writes nothing', async () => {
     const store = new InMemoryTrustStore();
     const engine = new AuditLedgerEngine(store);
 
-    expect(() =>
-      engine.recordEvidence(context(), {
+    await expect(await engine.recordEvidence(context(), {
         subjectType: '',
         subjectId: 'thing-1',
         evidenceType: 'X',
         contentHash: CONTENT,
         contentLocation: 'somewhere',
-      }),
-    ).toThrow(EvidenceLedgerError);
-    expect(() =>
-      engine.recordEvidence(context(), {
+      })).rejects.toThrow(EvidenceLedgerError);
+    await expect(await engine.recordEvidence(context(), {
         subjectType: 'Thing',
         subjectId: 'thing-1',
         evidenceType: 'X',
         contentHash: CONTENT,
         contentLocation: '  ',
-      }),
-    ).toThrow('EVIDENCE_LOCATION_REQUIRED');
+      })).rejects.toThrow('EVIDENCE_LOCATION_REQUIRED');
 
-    expect(store.list('evidenceLedgerEntries')).toEqual([]);
-    expect(store.list('auditRecords')).toEqual([]);
+    expect(await store.list('evidenceLedgerEntries')).toEqual([]);
+    expect(await store.list('auditRecords')).toEqual([]);
   });
 
-  it('requires an active workspace', () => {
+  it('requires an active workspace', async () => {
     const engine = new AuditLedgerEngine(new InMemoryTrustStore());
-    expect(() =>
-      engine.recordEvidence(context({ memberships: [] }), {
+    await expect(await engine.recordEvidence(context({ memberships: [] }), {
         subjectType: 'Thing',
         subjectId: 'thing-1',
         evidenceType: 'X',
         contentHash: CONTENT,
         contentLocation: 'somewhere',
-      }),
-    ).toThrow('ACTIVE_WORKSPACE_REQUIRED');
+      })).rejects.toThrow('ACTIVE_WORKSPACE_REQUIRED');
   });
 });
 
 describe('Engine 08 reads are workspace-scoped', () => {
-  it('does not return another workspace’s evidence or trail', () => {
+  it('does not return another workspace’s evidence or trail', async () => {
     // An audit trail is as sensitive as the events it records; knowing an id must
     // not be enough to read another workspace's history.
     const store = new InMemoryTrustStore();
     const engine = new AuditLedgerEngine(store);
-    engine.recordEvidence(context(), {
+    await engine.recordEvidence(context(), {
       subjectType: 'Thing',
       subjectId: 'thing-1',
       evidenceType: 'X',
@@ -390,15 +382,15 @@ describe('Engine 08 reads are workspace-scoped', () => {
     });
 
     const other = context({ activeWorkspaceId: 'workspace-9', memberships: ['workspace-9'] });
-    expect(engine.evidenceFor(other, 'Thing', 'thing-1')).toEqual([]);
-    expect(engine.trailFor(other, 'Thing', 'thing-1')).toEqual([]);
+    expect(await engine.evidenceFor(other, 'Thing', 'thing-1')).toEqual([]);
+    expect(await engine.trailFor(other, 'Thing', 'thing-1')).toEqual([]);
   });
 
-  it('returns the trail for an aggregate in order', () => {
+  it('returns the trail for an aggregate in order', async () => {
     const store = new InMemoryTrustStore();
     const engine = new AuditLedgerEngine(store);
     for (const evidenceType of ['FIRST', 'SECOND']) {
-      engine.recordEvidence(context(), {
+      await engine.recordEvidence(context(), {
         subjectType: 'Thing',
         subjectId: 'thing-1',
         evidenceType,
@@ -407,7 +399,7 @@ describe('Engine 08 reads are workspace-scoped', () => {
       });
     }
 
-    const trail = engine.trailFor(context(), 'Thing', 'thing-1');
+    const trail = await engine.trailFor(context(), 'Thing', 'thing-1');
     expect(trail).toHaveLength(2);
     expect(trail[0].metadata.evidenceType).toBe('FIRST');
   });
@@ -427,10 +419,10 @@ describe('Engine 08 offers no way to rewrite history', () => {
     }
   });
 
-  it('reports the head without offering a way to set it', () => {
-    const { store } = chainOf(2);
+  it('reports the head without offering a way to set it', async () => {
+    const { store } = await chainOf(2);
     const engine = new AuditLedgerEngine(store);
-    expect(engine.head()).toBe(store.list<AuditRecord>('auditRecords').at(-1)?.integrityHash);
+    expect(await engine.head()).toBe((await store.list<AuditRecord>('auditRecords')).at(-1)?.integrityHash);
     expect(Object.getOwnPropertyNames(AuditLedgerEngine.prototype)).not.toContain('setHead');
   });
 });

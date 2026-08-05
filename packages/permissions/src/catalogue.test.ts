@@ -23,8 +23,8 @@ const WORKSPACE = 'workspace-1';
 const FOUNDER = 'user-founder';
 const config = loadCatalogueConfig({});
 
-function ownerMembership(store: InMemoryTrustStore, userId = FOUNDER, status = 'ACTIVE') {
-  store.append('memberships', {
+async function ownerMembership(store: InMemoryTrustStore, userId = FOUNDER, status = 'ACTIVE') {
+  await store.append('memberships', {
     id: `m-${userId}`,
     workspaceId: WORKSPACE,
     userId,
@@ -38,10 +38,10 @@ function ownerMembership(store: InMemoryTrustStore, userId = FOUNDER, status = '
   });
 }
 
-function founded() {
+async function founded() {
   const store = new InMemoryTrustStore();
-  ownerMembership(store);
-  const bootstrap = bootstrapWorkspaceGrants(
+  await ownerMembership(store);
+  const bootstrap = await bootstrapWorkspaceGrants(
     store,
     {
       tenantId: TENANT,
@@ -222,8 +222,8 @@ describe('Engine 03 catalogue configuration', () => {
 });
 
 describe('Engine 03 workspace founding', () => {
-  it('grants the founding role and installs every segregation rule', () => {
-    const { store, bootstrap } = founded();
+  it('grants the founding role and installs every segregation rule', async () => {
+    const { store, bootstrap } = await founded();
 
     expect(bootstrap.role).toBe('WORKSPACE_ADMINISTRATOR');
     expect(bootstrap.grantIds).toHaveLength(
@@ -231,35 +231,35 @@ describe('Engine 03 workspace founding', () => {
     );
     expect(bootstrap.segregationRuleIds).toHaveLength(SEGREGATION_CATALOGUE.length);
     expect(
-      store
-        .list<SegregationRule>('segregationRules')
+      (await store
+        .list<SegregationRule>('segregationRules'))
         .map((rule) => rule.ruleKey)
         .sort(),
     ).toEqual(SEGREGATION_CATALOGUE.map((rule) => rule.ruleKey).sort());
   });
 
-  it('installs the rules as active and blocking, not advisory', () => {
-    const { store } = founded();
-    for (const rule of store.list<SegregationRule>('segregationRules')) {
+  it('installs the rules as active and blocking, not advisory', async () => {
+    const { store } = await founded();
+    for (const rule of await store.list<SegregationRule>('segregationRules')) {
       expect(rule.status, rule.ruleKey).toBe('ACTIVE');
       expect(rule.enforcementMode, rule.ruleKey).toBe('BLOCK');
     }
   });
 
-  it('produces grants the evaluator immediately honours', () => {
+  it('produces grants the evaluator immediately honours', async () => {
     // The point of founding is that the administrator can act at once; a grant the
     // evaluator rejects would leave the workspace exactly as stuck as before.
-    const { store } = founded();
+    const { store } = await founded();
     const service = new PermissionService(store);
     const context = adminContext();
 
-    expect(service.evaluate(context, 'workspaces:create').allowed).toBe(true);
-    expect(service.evaluate(context, 'payment-instructions:submit').allowed).toBe(false);
+    expect((await service.evaluate(context, 'workspaces:create')).allowed).toBe(true);
+    expect((await service.evaluate(context, 'payment-instructions:submit')).allowed).toBe(false);
   });
 
-  it('attributes every grant to the role rather than to an anonymous source', () => {
-    const { store } = founded();
-    for (const grant of store.list<PermissionGrant>('permissionGrants')) {
+  it('attributes every grant to the role rather than to an anonymous source', async () => {
+    const { store } = await founded();
+    for (const grant of await store.list<PermissionGrant>('permissionGrants')) {
       expect(grant.sourceType).toBe('ROLE');
       expect(grant.sourceId).toBe('WORKSPACE_ADMINISTRATOR');
       expect(grant.effect).toBe('ALLOW');
@@ -267,11 +267,11 @@ describe('Engine 03 workspace founding', () => {
     }
   });
 
-  it('records the founding act in the audit trail and the outbox', () => {
-    const { store } = founded();
+  it('records the founding act in the audit trail and the outbox', async () => {
+    const { store } = await founded();
 
-    const audit = store
-      .list<{ eventType: string; metadata: Record<string, unknown> }>('auditRecords')
+    const audit = (await store
+      .list<{ eventType: string; metadata: Record<string, unknown> }>('auditRecords'))
       .filter((record) => record.eventType === 'WorkspaceGrantsBootstrapped');
     expect(audit).toHaveLength(1);
     expect(audit[0].metadata).toMatchObject({
@@ -280,16 +280,16 @@ describe('Engine 03 workspace founding', () => {
     });
 
     expect(
-      store
-        .list<{ eventType: string }>('outboxEvents')
+      (await store
+        .list<{ eventType: string }>('outboxEvents'))
         .filter((event) => event.eventType === 'WorkspaceGrantsBootstrapped'),
     ).toHaveLength(1);
   });
 
-  it('uses the injected clock rather than wall time', () => {
+  it('uses the injected clock rather than wall time', async () => {
     const store = new InMemoryTrustStore();
-    ownerMembership(store);
-    bootstrapWorkspaceGrants(
+    await ownerMembership(store);
+    await bootstrapWorkspaceGrants(
       store,
       {
         tenantId: TENANT,
@@ -301,7 +301,7 @@ describe('Engine 03 workspace founding', () => {
       config,
     );
 
-    for (const grant of store.list<PermissionGrant>('permissionGrants')) {
+    for (const grant of await store.list<PermissionGrant>('permissionGrants')) {
       expect(grant.createdAt).toBe('2026-03-01T00:00:00.000Z');
       expect(grant.effectiveFrom).toBe('2026-03-01T00:00:00.000Z');
     }
@@ -309,12 +309,11 @@ describe('Engine 03 workspace founding', () => {
 });
 
 describe('Engine 03 workspace founding — refusals', () => {
-  it('requires an active owner membership rather than creating one', () => {
+  it('requires an active owner membership rather than creating one', async () => {
     // Founding must not be able to invent a principal: the workspace owner is
     // established when the workspace is created, and this only grants to them.
     const store = new InMemoryTrustStore();
-    expect(() =>
-      bootstrapWorkspaceGrants(
+    await expect(await bootstrapWorkspaceGrants(
         store,
         {
           tenantId: TENANT,
@@ -323,19 +322,18 @@ describe('Engine 03 workspace founding — refusals', () => {
           correlationId: 'corr-1',
         },
         config,
-      ),
-    ).toThrow('CATALOGUE_MEMBERSHIP_REQUIRED');
-    expect(store.list('permissionGrants')).toEqual([]);
-    expect(store.list('memberships')).toEqual([]);
+      )).rejects.toThrow('CATALOGUE_MEMBERSHIP_REQUIRED');
+    expect(await store.list('permissionGrants')).toEqual([]);
+    expect(await store.list('memberships')).toEqual([]);
   });
 
-  it('refuses a suspended owner and a non-owner member', () => {
+  it('refuses a suspended owner and a non-owner member', async () => {
     for (const [userId, status, membershipType] of [
       [FOUNDER, 'SUSPENDED', 'OWNER'],
       [FOUNDER, 'ACTIVE', 'MEMBER'],
     ] as const) {
       const store = new InMemoryTrustStore();
-      store.append('memberships', {
+      await store.append('memberships', {
         id: 'm-1',
         workspaceId: WORKSPACE,
         userId,
@@ -348,8 +346,7 @@ describe('Engine 03 workspace founding — refusals', () => {
         version: 1,
       });
 
-      expect(() =>
-        bootstrapWorkspaceGrants(
+      await expect(await bootstrapWorkspaceGrants(
           store,
           {
             tenantId: TENANT,
@@ -358,17 +355,15 @@ describe('Engine 03 workspace founding — refusals', () => {
             correlationId: 'corr-1',
           },
           config,
-        ),
-      ).toThrow('CATALOGUE_MEMBERSHIP_REQUIRED');
+        )).rejects.toThrow('CATALOGUE_MEMBERSHIP_REQUIRED');
     }
   });
 
-  it('refuses a second founding, so it is not a standing escalation route', () => {
-    const { store } = founded();
-    ownerMembership(store, 'user-second');
+  it('refuses a second founding, so it is not a standing escalation route', async () => {
+    const { store } = await founded();
+    await ownerMembership(store, 'user-second');
 
-    expect(() =>
-      bootstrapWorkspaceGrants(
+    await expect(await bootstrapWorkspaceGrants(
         store,
         {
           tenantId: TENANT,
@@ -377,16 +372,14 @@ describe('Engine 03 workspace founding — refusals', () => {
           correlationId: 'corr-3',
         },
         config,
-      ),
-    ).toThrow('CATALOGUE_ALREADY_BOOTSTRAPPED');
+      )).rejects.toThrow('CATALOGUE_ALREADY_BOOTSTRAPPED');
   });
 
-  it('refuses any role that is not marked bootstrappable', () => {
+  it('refuses any role that is not marked bootstrappable', async () => {
     const store = new InMemoryTrustStore();
-    ownerMembership(store);
+    await ownerMembership(store);
 
-    expect(() =>
-      bootstrapWorkspaceGrants(
+    await expect(await bootstrapWorkspaceGrants(
         store,
         {
           tenantId: TENANT,
@@ -396,17 +389,15 @@ describe('Engine 03 workspace founding — refusals', () => {
           role: 'PAYMENT_OPERATOR',
         },
         config,
-      ),
-    ).toThrow('CATALOGUE_ROLE_NOT_BOOTSTRAPPABLE');
-    expect(store.list('permissionGrants')).toEqual([]);
+      )).rejects.toThrow('CATALOGUE_ROLE_NOT_BOOTSTRAPPABLE');
+    expect(await store.list('permissionGrants')).toEqual([]);
   });
 
-  it('is unreachable when configuration disables it', () => {
+  it('is unreachable when configuration disables it', async () => {
     const store = new InMemoryTrustStore();
-    ownerMembership(store);
+    await ownerMembership(store);
 
-    expect(() =>
-      bootstrapWorkspaceGrants(
+    await expect(await bootstrapWorkspaceGrants(
         store,
         {
           tenantId: TENANT,
@@ -415,15 +406,14 @@ describe('Engine 03 workspace founding — refusals', () => {
           correlationId: 'corr-1',
         },
         { bootstrapEnabled: false, bootstrapRole: 'WORKSPACE_ADMINISTRATOR' },
-      ),
-    ).toThrow('CATALOGUE_BOOTSTRAP_DISABLED');
-    expect(store.list('permissionGrants')).toEqual([]);
+      )).rejects.toThrow('CATALOGUE_BOOTSTRAP_DISABLED');
+    expect(await store.list('permissionGrants')).toEqual([]);
   });
 
-  it('leaves a tightened existing rule alone rather than rewriting it', () => {
+  it('leaves a tightened existing rule alone rather than rewriting it', async () => {
     const store = new InMemoryTrustStore();
-    ownerMembership(store);
-    store.append('segregationRules', {
+    await ownerMembership(store);
+    await store.append('segregationRules', {
       id: 'pre-existing',
       workspaceId: WORKSPACE,
       ruleKey: SEGREGATION_CATALOGUE[0].ruleKey,
@@ -436,7 +426,7 @@ describe('Engine 03 workspace founding — refusals', () => {
       version: 7,
     });
 
-    const bootstrap = bootstrapWorkspaceGrants(
+    const bootstrap = await bootstrapWorkspaceGrants(
       store,
       {
         tenantId: TENANT,
@@ -448,18 +438,18 @@ describe('Engine 03 workspace founding — refusals', () => {
     );
 
     expect(bootstrap.segregationRuleIds).toHaveLength(SEGREGATION_CATALOGUE.length - 1);
-    const preserved = store
-      .list<SegregationRule>('segregationRules')
+    const preserved = (await store
+      .list<SegregationRule>('segregationRules'))
       .find((rule) => rule.id === 'pre-existing');
     expect(preserved?.version).toBe(7);
   });
 });
 
 describe('Engine 03 role granting', () => {
-  it('grants every key in the role and attributes it to the role', () => {
-    const { store } = founded();
+  it('grants every key in the role and attributes it to the role', async () => {
+    const { store } = await founded();
     const service = new PermissionService(store);
-    const granted = grantRole(service, store, adminContext(), {
+    const granted = await grantRole(service, store, adminContext(), {
       userId: 'user-approver',
       role: 'SETTLEMENT_APPROVER',
     });
@@ -473,47 +463,43 @@ describe('Engine 03 role granting', () => {
     }
   });
 
-  it('refuses a role that would complete a duty pair, and writes nothing', () => {
-    const { store } = founded();
+  it('refuses a role that would complete a duty pair, and writes nothing', async () => {
+    const { store } = await founded();
     const service = new PermissionService(store);
     const context = adminContext();
-    grantRole(service, store, context, {
+    await grantRole(service, store, context, {
       userId: 'user-approver',
       role: 'SETTLEMENT_APPROVER',
     });
-    const before = store.list('permissionGrants').length;
+    const before = (await store.list('permissionGrants')).length;
 
-    expect(() =>
-      grantRole(service, store, context, {
+    await expect(await grantRole(service, store, context, {
         userId: 'user-approver',
         role: 'PAYMENT_OPERATOR',
-      }),
-    ).toThrow('CATALOGUE_SEGREGATION_CONFLICT');
-    expect(store.list('permissionGrants')).toHaveLength(before);
+      })).rejects.toThrow('CATALOGUE_SEGREGATION_CONFLICT');
+    expect(await store.list('permissionGrants')).toHaveLength(before);
   });
 
-  it('refuses in both orders, so neither role is a back door to the other', () => {
-    const { store } = founded();
+  it('refuses in both orders, so neither role is a back door to the other', async () => {
+    const { store } = await founded();
     const service = new PermissionService(store);
     const context = adminContext();
-    grantRole(service, store, context, { userId: 'user-ops', role: 'PAYMENT_OPERATOR' });
+    await grantRole(service, store, context, { userId: 'user-ops', role: 'PAYMENT_OPERATOR' });
 
-    expect(() =>
-      grantRole(service, store, context, {
+    await expect(await grantRole(service, store, context, {
         userId: 'user-ops',
         role: 'SETTLEMENT_APPROVER',
-      }),
-    ).toThrow('CATALOGUE_SEGREGATION_CONFLICT');
+      })).rejects.toThrow('CATALOGUE_SEGREGATION_CONFLICT');
   });
 
-  it('audits the refusal, naming the rule that blocked it', () => {
-    const { store } = founded();
+  it('audits the refusal, naming the rule that blocked it', async () => {
+    const { store } = await founded();
     const service = new PermissionService(store);
     const context = adminContext();
-    grantRole(service, store, context, { userId: 'user-ops', role: 'PAYMENT_OPERATOR' });
+    await grantRole(service, store, context, { userId: 'user-ops', role: 'PAYMENT_OPERATOR' });
 
     try {
-      grantRole(service, store, context, {
+      await grantRole(service, store, context, {
         userId: 'user-ops',
         role: 'SETTLEMENT_APPROVER',
       });
@@ -522,34 +508,32 @@ describe('Engine 03 role granting', () => {
       expect(error).toBeInstanceOf(CatalogueError);
     }
 
-    const violation = store
-      .list<{ eventType: string; metadata: Record<string, unknown> }>('auditRecords')
+    const violation = (await store
+      .list<{ eventType: string; metadata: Record<string, unknown> }>('auditRecords'))
       .filter((record) => record.eventType === 'SegregationOfDutiesViolationDetected');
     expect(violation).toHaveLength(1);
     expect(violation[0].metadata.blockedAt).toBe('GRANT');
     expect(violation[0].metadata.ruleKeys).toContain('release-approval-vs-payment-execution');
   });
 
-  it('grants two non-conflicting roles to the same user', () => {
-    const { store } = founded();
+  it('grants two non-conflicting roles to the same user', async () => {
+    const { store } = await founded();
     const service = new PermissionService(store);
     const context = adminContext();
 
-    grantRole(service, store, context, { userId: 'user-a', role: 'CONTRACT_AUTHOR' });
-    expect(() =>
-      grantRole(service, store, context, { userId: 'user-a', role: 'ASSURANCE_ANALYST' }),
-    ).not.toThrow();
+    await grantRole(service, store, context, { userId: 'user-a', role: 'CONTRACT_AUTHOR' });
+    await expect(await grantRole(service, store, context, { userId: 'user-a', role: 'ASSURANCE_ANALYST' })).resolves.not.toThrow();
   });
 
-  it('does not re-grant a key the user already holds', () => {
+  it('does not re-grant a key the user already holds', async () => {
     // Overlapping roles share `contracts:read`; a second grant of it would be a
     // duplicate row that changes no decision.
-    const { store } = founded();
+    const { store } = await founded();
     const service = new PermissionService(store);
     const context = adminContext();
 
-    grantRole(service, store, context, { userId: 'user-a', role: 'CONTRACT_AUTHOR' });
-    const second = grantRole(service, store, context, {
+    await grantRole(service, store, context, { userId: 'user-a', role: 'CONTRACT_AUTHOR' });
+    const second = await grantRole(service, store, context, {
       userId: 'user-a',
       role: 'ASSURANCE_ANALYST',
     });
@@ -558,45 +542,41 @@ describe('Engine 03 role granting', () => {
     expect(second.map((grant) => grant.permissionKey)).toContain('dashboard-snapshots:create');
   });
 
-  it('is a no-op when the same role is granted twice', () => {
-    const { store } = founded();
+  it('is a no-op when the same role is granted twice', async () => {
+    const { store } = await founded();
     const service = new PermissionService(store);
     const context = adminContext();
 
-    grantRole(service, store, context, { userId: 'user-a', role: 'DISPUTE_MANAGER' });
+    await grantRole(service, store, context, { userId: 'user-a', role: 'DISPUTE_MANAGER' });
     expect(
-      grantRole(service, store, context, { userId: 'user-a', role: 'DISPUTE_MANAGER' }),
+      await grantRole(service, store, context, { userId: 'user-a', role: 'DISPUTE_MANAGER' }),
     ).toEqual([]);
   });
 
-  it('refuses an unknown role', () => {
-    const { store } = founded();
+  it('refuses an unknown role', async () => {
+    const { store } = await founded();
     const service = new PermissionService(store);
-    expect(() =>
-      grantRole(service, store, adminContext(), { userId: 'user-a', role: 'ROOT' }),
-    ).toThrow('CATALOGUE_UNKNOWN_ROLE');
+    await expect(await grantRole(service, store, adminContext(), { userId: 'user-a', role: 'ROOT' })).rejects.toThrow('CATALOGUE_UNKNOWN_ROLE');
   });
 
-  it('requires a workspace context', () => {
-    const { store } = founded();
+  it('requires a workspace context', async () => {
+    const { store } = await founded();
     const service = new PermissionService(store);
-    expect(() =>
-      grantRole(
+    await expect(await grantRole(
         service,
         store,
         { ...adminContext(), memberships: [] },
         { userId: 'user-a', role: 'DISPUTE_MANAGER' },
-      ),
-    ).toThrow('ACTIVE_WORKSPACE_REQUIRED');
+      )).rejects.toThrow('ACTIVE_WORKSPACE_REQUIRED');
   });
 });
 
 describe('Engine 03 held permissions', () => {
-  it('counts a delegated grant towards a conflict, not only a role grant', () => {
+  it('counts a delegated grant towards a conflict, not only a role grant', async () => {
     // Delegation writes grants with sourceType DELEGATION; ignoring those would let
     // a delegated payment key sit alongside release approval undetected.
-    const { store } = founded();
-    store.append<PermissionGrant>('permissionGrants', {
+    const { store } = await founded();
+    await store.append<PermissionGrant>('permissionGrants', {
       id: 'delegated-1',
       workspaceId: WORKSPACE,
       userId: 'user-approver',
@@ -610,15 +590,13 @@ describe('Engine 03 held permissions', () => {
     });
 
     const service = new PermissionService(store);
-    expect(() =>
-      grantRole(service, store, adminContext(), {
+    await expect(await grantRole(service, store, adminContext(), {
         userId: 'user-approver',
         role: 'SETTLEMENT_APPROVER',
-      }),
-    ).toThrow('CATALOGUE_SEGREGATION_CONFLICT');
+      })).rejects.toThrow('CATALOGUE_SEGREGATION_CONFLICT');
   });
 
-  it('ignores an expired grant and a grant that is not yet effective', () => {
+  it('ignores an expired grant and a grant that is not yet effective', async () => {
     const store = new InMemoryTrustStore();
     const base = {
       workspaceId: WORKSPACE,
@@ -629,20 +607,20 @@ describe('Engine 03 held permissions', () => {
       sourceId: 'r',
       createdAt: '2026-01-01T00:00:00.000Z',
     };
-    store.append<PermissionGrant>('permissionGrants', {
+    await store.append<PermissionGrant>('permissionGrants', {
       ...base,
       id: 'expired',
       permissionKey: 'a:read',
       effectiveFrom: '2026-01-01T00:00:00.000Z',
       effectiveTo: '2026-02-01T00:00:00.000Z',
     });
-    store.append<PermissionGrant>('permissionGrants', {
+    await store.append<PermissionGrant>('permissionGrants', {
       ...base,
       id: 'future',
       permissionKey: 'b:read',
       effectiveFrom: '2027-01-01T00:00:00.000Z',
     });
-    store.append<PermissionGrant>('permissionGrants', {
+    await store.append<PermissionGrant>('permissionGrants', {
       ...base,
       id: 'current',
       permissionKey: 'c:read',
@@ -650,13 +628,13 @@ describe('Engine 03 held permissions', () => {
     });
 
     expect([
-      ...heldPermissionKeys(store, WORKSPACE, 'user-a', new Date('2026-06-01T00:00:00.000Z')),
+      ...await heldPermissionKeys(store, WORKSPACE, 'user-a', new Date('2026-06-01T00:00:00.000Z')),
     ]).toEqual(['c:read']);
   });
 
-  it('ignores a DENY grant, which removes rather than confers a permission', () => {
+  it('ignores a DENY grant, which removes rather than confers a permission', async () => {
     const store = new InMemoryTrustStore();
-    store.append<PermissionGrant>('permissionGrants', {
+    await store.append<PermissionGrant>('permissionGrants', {
       id: 'denied',
       workspaceId: WORKSPACE,
       userId: 'user-a',
@@ -669,13 +647,13 @@ describe('Engine 03 held permissions', () => {
       createdAt: '2026-01-01T00:00:00.000Z',
     });
 
-    expect(heldPermissionKeys(store, WORKSPACE, 'user-a').size).toBe(0);
+    expect((await heldPermissionKeys(store, WORKSPACE, 'user-a')).size).toBe(0);
   });
 
-  it('scopes held permissions to one workspace and one user', () => {
-    const { store } = founded();
-    expect(heldPermissionKeys(store, 'other-workspace', FOUNDER).size).toBe(0);
-    expect(heldPermissionKeys(store, WORKSPACE, 'someone-else').size).toBe(0);
-    expect(heldPermissionKeys(store, WORKSPACE, FOUNDER).size).toBeGreaterThan(0);
+  it('scopes held permissions to one workspace and one user', async () => {
+    const { store } = await founded();
+    expect((await heldPermissionKeys(store, 'other-workspace', FOUNDER)).size).toBe(0);
+    expect((await heldPermissionKeys(store, WORKSPACE, 'someone-else')).size).toBe(0);
+    expect((await heldPermissionKeys(store, WORKSPACE, FOUNDER)).size).toBeGreaterThan(0);
   });
 });
