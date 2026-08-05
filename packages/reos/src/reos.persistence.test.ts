@@ -312,6 +312,60 @@ describe('persistence rules: the adapter boundary holds', () => {
     expect(rulesFired(findings)).toEqual(['persistence/test-helper-in-production']);
   });
 
+  it('reports a store constructed outside the runtime', () => {
+    // The rule that would have caught the shape this replaced:
+    // `globalThis.assurapayTrustStore ??= new InMemoryTrustStore()` in a production
+    // composition root — one line that reads as caching and is actually a decision to run
+    // on volatile storage.
+    const root = fakeRepo(
+      withInterface({
+        'apps/web/lib/trust-app.ts':
+          'export const trustStore = (global.x ??= new InMemoryTrustStore());\n',
+      }),
+    );
+
+    const findings = collectAsyncPersistenceFindings(root);
+    expect(rulesFired(findings)).toEqual(['persistence/store-constructed-outside-runtime']);
+  });
+
+  it('reports a durable store constructed outside the runtime too', () => {
+    // Not only the memory one: a handler building its own PostgresTrustStore has chosen an
+    // adapter, and would bypass the configuration that refuses volatile storage elsewhere.
+    const root = fakeRepo(
+      withInterface({
+        'apps/web/lib/handler.ts': 'const store = new PostgresTrustStore(sql);\n',
+      }),
+    );
+
+    expect(rulesFired(collectAsyncPersistenceFindings(root))).toEqual([
+      'persistence/store-constructed-outside-runtime',
+    ]);
+  });
+
+  it('permits the runtime to construct one, which is its job', () => {
+    const root = fakeRepo(
+      withInterface({
+        'packages/runtime/src/persistence-runtime.ts':
+          'const store = new PostgresTrustStore(pool.sql);\nconst pool = createPostgresPool(config);\n',
+      }),
+    );
+    expect(collectAsyncPersistenceFindings(root)).toEqual([]);
+  });
+
+  it('reports a client-visible database variable', () => {
+    // Compiled into the browser bundle: it publishes deployment topology and offers a
+    // client a say in where data goes.
+    const root = fakeRepo(
+      withInterface({
+        'apps/web/lib/config.ts': 'export const url = process.env.NEXT_PUBLIC_DATABASE_URL;\n',
+      }),
+    );
+
+    expect(rulesFired(collectAsyncPersistenceFindings(root))).toEqual([
+      'persistence/client-database-variable',
+    ]);
+  });
+
   it('permits a test importing them, which is what they are for', () => {
     const root = fakeRepo(
       withInterface({
@@ -343,6 +397,8 @@ describe('persistence rules: the vocabulary itself', () => {
       'persistence/unsafe-sql',
       'persistence/pool-outside-runtime',
       'persistence/test-helper-in-production',
+      'persistence/store-constructed-outside-runtime',
+      'persistence/client-database-variable',
     ]);
     expect(ASYNC_PERSISTENCE_RULES.map((rule) => rule.rule).filter((rule) => !fired.has(rule))).toEqual(
       [],

@@ -67,18 +67,39 @@ describe('route permission policy — coverage', () => {
 });
 
 describe('route permission policy — public and identity classes', () => {
-  it('treats only sign-in, registration and assertion issuance as public', () => {
+  it('treats only credential acquisition and health probes as public', () => {
     const publicRoutes = Object.entries(ROUTE_PERMISSION_REQUIREMENTS)
       .filter(([, entry]) => entry.access === 'public')
       .map(([key]) => key);
 
     expect(publicRoutes.sort()).toEqual([
-      // Assertion issuance is public for the same reason: it authenticates the
+      // Health probes. An orchestrator has no session and cannot obtain one, and a
+      // readiness endpoint requiring authorization would report unready for the wrong
+      // reason during exactly the outage it exists to detect. Neither reads or writes
+      // tenant state, and neither publishes a connection string, credential or internal
+      // hostname.
+      '/api/health/live|GET',
+      '/api/health/ready|GET',
+      // Assertion issuance is public for the same reason as sign-in: it authenticates the
       // session cookie, and requiring an assertion to mint one is circular.
       '/api/v1/auth/assertion|POST',
       '/api/v1/auth/login|POST',
       '/api/v1/auth/register|POST',
     ]);
+  });
+
+  it('exposes no tenant state through a public route', () => {
+    // The standard by which a new public route is judged: it may report that the process
+    // is running or that the store is reachable, and nothing about who is in it.
+    const publicRoutes = Object.entries(ROUTE_PERMISSION_REQUIREMENTS)
+      .filter(([, entry]) => entry.access === 'public')
+      .map(([key]) => key.split('|')[0]);
+
+    for (const route of publicRoutes)
+      expect(
+        route.startsWith('/api/health/') || route.startsWith('/api/v1/auth/'),
+        `${route} is public but is neither a health probe nor credential acquisition`,
+      ).toBe(true);
   });
 
   it('requires no permission for routes that read the caller’s own identity', () => {

@@ -78,6 +78,13 @@ export const ROUTE_PERMISSION_REQUIREMENTS: Readonly<Record<string, RouteAccess>
   '/api/v1/approval-requests/[id]/decisions|POST': { access: 'permission', permissionKey: 'approval-requests:decide' },
   '/api/v1/approval-requests|POST': { access: 'permission', permissionKey: 'approval-requests:create' },
   '/api/v1/approval-thresholds|POST': { access: 'permission', permissionKey: 'approval-thresholds:create' },
+  // Health probes. Public because an orchestrator polling readiness has no session and
+  // cannot obtain one — and because a readiness endpoint that required authorization
+  // would report unready for the wrong reason during exactly the outage it exists to
+  // detect. Neither publishes a connection string, credential or internal hostname; see
+  // apps/web/app/api/health/*/route.ts.
+  '/api/health/live|GET': { access: 'public' },
+  '/api/health/ready|GET': { access: 'public' },
   '/api/v1/auth/login|POST': { access: 'public' },
   // Public because the credential it authenticates is the session cookie, not an
   // assertion. Requiring an assertion to obtain an assertion is circular.

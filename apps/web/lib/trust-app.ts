@@ -1,4 +1,3 @@
-import { InMemoryTrustStore } from '@assurapay/database';
 import {
   IdentityAssertionService,
   IdentityGateway,
@@ -131,13 +130,21 @@ import {
 } from '@assurapay/workflow-intelligence';
 import { AuditLedgerEngine } from '@assurapay/audit-ledger';
 import { RouteAccessError, requirementForRoute } from './route-permissions';
+import { requireReadyPersistence, trustStore } from './persistence';
 
 const globalTrust = globalThis as typeof globalThis & {
-  assurapayTrustStore?: InMemoryTrustStore;
   assurapayAssertionReplayStore?: InMemoryAssertionReplayStore;
 };
-export const trustStore = (globalTrust.assurapayTrustStore ??=
-  new InMemoryTrustStore());
+
+/**
+ * The repository, from the canonical runtime.
+ *
+ * This module used to construct an `InMemoryTrustStore` here and cache it on
+ * `globalThis` — a production composition root choosing volatile storage
+ * unconditionally. `persistence.ts` now owns that decision, reading it from validated
+ * server-only configuration that refuses an in-memory adapter in any durable deployment.
+ */
+export { trustStore } from './persistence';
 
 /**
  * Replay guard state must survive a dev-server reload, or a reload would forget
@@ -366,6 +373,11 @@ export async function authorizedContextForRoute(request: Request): Promise<Reque
       'a public route must not request an authorized context',
     );
   }
+
+  // Before authentication, because an unready store cannot record the authentication
+  // attempt either. Both gates are required: an authorized caller whose write cannot be
+  // audited must be refused, not served.
+  await requireReadyPersistence();
 
   const identity = await getIdentityGateway().authenticate(request, correlationId);
 

@@ -34,6 +34,10 @@ export default defineConfig({
         __dirname,
         'packages/database-testing/src/index.ts',
       ),
+      '@assurapay/runtime': path.resolve(
+        __dirname,
+        'packages/runtime/src/index.ts',
+      ),
       '@assurapay/identity': path.resolve(
         __dirname,
         'packages/identity/src/index.ts',

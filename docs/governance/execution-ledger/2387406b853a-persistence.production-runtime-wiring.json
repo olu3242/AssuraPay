@@ -1,9 +1,17 @@
 {
-  "awaitingInfrastructure": [
-    "persistence.rls-certification"
-  ],
-  "blocked": [],
-  "completed": [
+  "branch": "feat/persistence-production-runtime-wiring",
+  "capabilityId": "persistence.production-runtime-wiring",
+  "certification": {
+    "available": true,
+    "failedSteps": [],
+    "passed": true
+  },
+  "commit": "2387406b853ac2b1e7040eddd663d8f813294498",
+  "entryId": "2387406b853a-persistence.production-runtime-wiring",
+  "lifecycle": "certified",
+  "manifestDigest": "4f5d524eb6e0",
+  "recordedAt": "2026-08-05T22:39:52.655Z",
+  "supersedes": [
     "engine:01",
     "engine:02",
     "engine:03",
@@ -62,7 +70,6 @@
     "engine:60",
     "persistence.async-repository-interface",
     "persistence.postgres-repository",
-    "persistence.production-runtime-wiring",
     "persistence.repository-conformance",
     "reos.execution-os",
     "runtime.agent-registration",
@@ -76,49 +83,30 @@
     "trust.route-permission-rollout",
     "trust.session-assertion-issuance"
   ],
-  "executable": [
+  "validation": [
     {
-      "blockedBy": [],
-      "blocks": [],
-      "dependsOn": [
-        "persistence.postgres-repository"
-      ],
-      "executable": true,
-      "id": "persistence.rls-certification",
-      "lifecycle": "planned",
-      "priority": 41,
-      "requiresLiveInfrastructure": true,
-      "scope": {
-        "estimated": false,
-        "files": 1,
-        "tests": 1
-      },
-      "status": "missing",
-      "title": "Row Level Security certification"
-    }
-  ],
-  "head": "2387406b853ac2b1e7040eddd663d8f813294498",
-  "rejected": [],
-  "reosVersion": "1.0.0",
-  "selected": {
-    "blockedBy": [],
-    "blocks": [],
-    "dependsOn": [
-      "persistence.postgres-repository"
-    ],
-    "executable": true,
-    "id": "persistence.rls-certification",
-    "lifecycle": "planned",
-    "priority": 41,
-    "requiresLiveInfrastructure": true,
-    "scope": {
-      "estimated": false,
-      "files": 1,
-      "tests": 1
+      "errors": 0,
+      "passed": true,
+      "validator": "architecture",
+      "warnings": 0
     },
-    "status": "missing",
-    "title": "Row Level Security certification"
-  },
-  "selectionReason": "Highest-priority executable capability (priority 41, lifecycle planned) — selected despite needing live infrastructure, nothing else is executable",
-  "stage": "dependencies"
+    {
+      "errors": 0,
+      "passed": true,
+      "validator": "dependencies",
+      "warnings": 0
+    },
+    {
+      "errors": 0,
+      "passed": true,
+      "validator": "security",
+      "warnings": 0
+    },
+    {
+      "errors": 0,
+      "passed": true,
+      "validator": "execution-contract",
+      "warnings": 1
+    }
+  ]
 }

@@ -6,20 +6,31 @@
 
 | Field | Value |
 | --- | --- |
-| Branch | feat/persistence-postgres-trust-store |
-| HEAD | 6571dfcb30c7d5d552c0b186872bd6162cfb57ce |
+| Branch | feat/persistence-production-runtime-wiring |
+| HEAD | 2387406b853ac2b1e7040eddd663d8f813294498 |
 | Worktree clean | no |
-| Uncommitted files | 10 |
-| Generated at | 2026-08-05T22:14:21.809Z |
+| Uncommitted files | 36 |
+| Generated at | 2026-08-05T22:39:52.658Z |
 
 ## Capability implemented
 
-`persistence.postgres-repository` — lifecycle **certified**
+`persistence.production-runtime-wiring` — lifecycle **certified**
 
-## Files modified (37)
+## Files modified (38)
 
 - `.github/workflows/ci.yml`
-- `docs/governance/execution-ledger/6571dfcb30c7-persistence.postgres-repository.json`
+- `apps/web/app/api/health/live/route.ts`
+- `apps/web/app/api/health/ready/route.ts`
+- `apps/web/instrumentation.ts`
+- `apps/web/lib/persistence.test.ts`
+- `apps/web/lib/persistence.ts`
+- `apps/web/lib/route-coverage.test.ts`
+- `apps/web/lib/route-permissions.test.ts`
+- `apps/web/lib/route-permissions.ts`
+- `apps/web/lib/shutdown.ts`
+- `apps/web/lib/trust-app.ts`
+- `apps/web/package.json`
+- `docs/governance/execution-ledger/2387406b853a-persistence.production-runtime-wiring.json`
 - `docs/governance/execution-ledger/INDEX.md`
 - `docs/governance/reos/capability-registry.json`
 - `docs/governance/reos/generated/CERTIFICATION_REPORT.md`
@@ -31,27 +42,17 @@
 - `docs/governance/reos/generated/execution-manifest.json`
 - `docs/governance/reos/generated/forensics.json`
 - `package.json`
-- `packages/audit-ledger/package.json`
-- `packages/audit-ledger/src/audit-ledger.postgres.test.ts`
-- `packages/audit-ledger/src/index.ts`
-- `packages/database-testing/package.json`
-- `packages/database-testing/src/index.ts`
 - `packages/database-testing/src/migrations.postgres.test.ts`
-- `packages/database-testing/src/postgres-store.postgres.test.ts`
-- `packages/database/package.json`
-- `packages/database/src/conformance.ts`
-- `packages/database/src/index.ts`
 - `packages/database/src/migrations.ts`
-- `packages/database/src/postgres-client.ts`
-- `packages/database/src/postgres-store.ts`
-- `packages/database/src/trust-store.test.ts`
-- `packages/database/src/trust-store.ts`
 - `packages/reos/src/reos.persistence.test.ts`
-- `packages/reos/src/validators/dependency.ts`
 - `packages/reos/src/validators/persistence.ts`
-- `packages/shared/src/trust.ts`
+- `packages/runtime/package.json`
+- `packages/runtime/src/config.test.ts`
+- `packages/runtime/src/config.ts`
+- `packages/runtime/src/index.ts`
+- `packages/runtime/src/persistence-runtime.postgres.test.ts`
+- `packages/runtime/src/persistence-runtime.ts`
 - `pnpm-lock.yaml`
-- `supabase/migrations/202608060001_trust_repository_store.sql`
 - `tsconfig.json`
 - `vitest.config.ts`
 - `vitest.postgres.config.ts`
@@ -60,14 +61,14 @@
 
 | Validator | Result | Checked | Errors | Warnings |
 | --- | --- | --- | --- | --- |
-| architecture | pass | 175 | 0 | 0 |
-| dependencies | pass | 25 | 0 | 0 |
-| security | pass | 260 | 0 | 0 |
-| execution-contract | pass | 27 | 0 | 1 |
+| architecture | pass | 183 | 0 | 0 |
+| dependencies | pass | 26 | 0 | 0 |
+| security | pass | 268 | 0 | 0 |
+| execution-contract | pass | 28 | 0 | 1 |
 
 ### Findings
 
-- **warning** `contract/tests-not-updated` (packages/shared/src) — packages/shared has modified source but no modified tests in this change.
+- **warning** `contract/tests-not-updated` (packages/database/src) — packages/database has modified source but no modified tests in this change.
 
 ## Governance
 
@@ -91,8 +92,8 @@ No newly introduced violations.
 
 ## Ledger
 
-Recorded as `6571dfcb30c7-persistence.postgres-repository` in `docs/governance/execution-ledger/`.
+Recorded as `2387406b853a-persistence.production-runtime-wiring` in `docs/governance/execution-ledger/`.
 
 ## Commit
 
-`6571dfcb30c7d5d552c0b186872bd6162cfb57ce`
+`2387406b853ac2b1e7040eddd663d8f813294498`

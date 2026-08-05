@@ -32,6 +32,10 @@ export const ROUTE_COVERAGE_PUBLIC_ALLOWLIST: Readonly<Record<string, string>> =
     'Public. Registration precedes having any identity to authorize.',
   'v1/auth/assertion/route.ts':
     'Public. It authenticates the session cookie in order to mint an assertion, so requiring an assertion would be circular. The session is the authority: no request field can name a subject, session or assurance level.',
+  'health/live/route.ts':
+    'Public. Liveness does no I/O and publishes only that the process is running. Requiring a credential would make an orchestrator unable to tell a dead process from an unauthenticated probe.',
+  'health/ready/route.ts':
+    'Public. An orchestrator polling readiness has no session and cannot obtain one, and a readiness endpoint that required authorization would report unready for the wrong reason during exactly the outage it exists to detect. It publishes a status code and a sanitized detail — never a connection string, credential or internal hostname.',
   'v1/auth/session/route.ts':
     'Identity-class, but authenticates by session cookie rather than by identity assertion. Requiring an assertion here would lock out precisely the cookie holder the route exists to serve, and no cookie-to-assertion exchange is governed yet.',
 });
@@ -121,7 +125,11 @@ describe('route authorization coverage — every handler authorizes', () => {
       ).toBe(true);
       expect(reason.length, key).toBeGreaterThan(40);
     }
-    expect(Object.keys(ROUTE_COVERAGE_PUBLIC_ALLOWLIST)).toHaveLength(4);
+    // Pinned so a new entry is a deliberate edit to this number with a reason beside it,
+    // rather than something that grows unremarked. Four auth routes that cannot require a
+    // credential to obtain one, and two health probes an orchestrator polls without a
+    // session.
+    expect(Object.keys(ROUTE_COVERAGE_PUBLIC_ALLOWLIST)).toHaveLength(6);
   });
 
   it('allowlists only routes the policy table classes as public or identity', () => {

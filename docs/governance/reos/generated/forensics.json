@@ -73,7 +73,7 @@
       },
       "id": "persistence.postgres-repository",
       "kind": "platform",
-      "onDefaultBranch": false,
+      "onDefaultBranch": true,
       "probes": [
         {
           "kind": "path",
@@ -113,7 +113,12 @@
             "packages/audit-ledger/src/audit-ledger.postgres.test.ts",
             "packages/database-testing/src/postgres-store.postgres.test.ts",
             "packages/database/src/conformance.ts",
-            "packages/database/src/postgres-store.ts"
+            "packages/database/src/postgres-store.ts",
+            "packages/reos/src/reos.persistence.test.ts",
+            "packages/runtime/src/config.test.ts",
+            "packages/runtime/src/config.ts",
+            "packages/runtime/src/persistence-runtime.postgres.test.ts",
+            "packages/runtime/src/persistence-runtime.ts"
           ],
           "query": "PostgresTrustStore",
           "satisfied": true
@@ -132,7 +137,8 @@
           "kind": "symbol",
           "matches": [
             "packages/database-testing/src/migrations.postgres.test.ts",
-            "packages/database/src/migrations.ts"
+            "packages/database/src/migrations.ts",
+            "packages/runtime/src/persistence-runtime.ts"
           ],
           "query": "verifySchemaCompatibility",
           "satisfied": true
@@ -166,6 +172,111 @@
       "satisfiedProbes": 10,
       "status": "implemented",
       "title": "PostgreSQL repository implementation",
+      "totalProbes": 10
+    },
+    {
+      "git": {
+        "historicalCommits": [],
+        "reachableFromHead": true,
+        "refsContaining": [],
+        "removedFromHead": false
+      },
+      "id": "persistence.production-runtime-wiring",
+      "kind": "platform",
+      "onDefaultBranch": false,
+      "probes": [
+        {
+          "kind": "path",
+          "matches": [
+            "packages/runtime/src/persistence-runtime.ts"
+          ],
+          "query": "packages/runtime/src/persistence-runtime.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "path",
+          "matches": [
+            "packages/runtime/src/config.ts"
+          ],
+          "query": "packages/runtime/src/config.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "path",
+          "matches": [
+            "apps/web/lib/persistence.ts"
+          ],
+          "query": "apps/web/lib/persistence.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "path",
+          "matches": [
+            "apps/web/instrumentation.ts"
+          ],
+          "query": "apps/web/instrumentation.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "apps/web/lib/persistence.ts",
+            "packages/runtime/src/persistence-runtime.postgres.test.ts",
+            "packages/runtime/src/persistence-runtime.ts"
+          ],
+          "query": "createPersistenceRuntime",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "packages/runtime/src/config.test.ts",
+            "packages/runtime/src/config.ts",
+            "packages/runtime/src/persistence-runtime.postgres.test.ts",
+            "packages/runtime/src/persistence-runtime.ts"
+          ],
+          "query": "loadPersistenceConfig",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "apps/web/lib/persistence.ts",
+            "packages/runtime/src/persistence-runtime.postgres.test.ts",
+            "packages/runtime/src/persistence-runtime.ts"
+          ],
+          "query": "requirePersistenceReady",
+          "satisfied": true
+        },
+        {
+          "kind": "test",
+          "matches": [
+            "packages/runtime/src/config.test.ts"
+          ],
+          "query": "packages/runtime/src/config.test.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "test",
+          "matches": [
+            "packages/runtime/src/persistence-runtime.postgres.test.ts"
+          ],
+          "query": "packages/runtime/src/persistence-runtime.postgres.test.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "test",
+          "matches": [
+            "apps/web/lib/persistence.test.ts"
+          ],
+          "query": "apps/web/lib/persistence.test.ts",
+          "satisfied": true
+        }
+      ],
+      "rationale": "All 10 evidence probes satisfied at HEAD.",
+      "satisfiedProbes": 10,
+      "status": "implemented",
+      "title": "Production persistence runtime wiring",
       "totalProbes": 10
     },
     {
@@ -652,7 +763,8 @@
           "matches": [
             "apps/web/lib/trust-app.ts",
             "packages/permissions/src/enforcement.test.ts",
-            "packages/permissions/src/enforcement.ts"
+            "packages/permissions/src/enforcement.ts",
+            "packages/runtime/src/persistence-runtime.postgres.test.ts"
           ],
           "query": "enforcePermission",
           "satisfied": true
@@ -984,6 +1096,7 @@
             "apps/web/app/api/v1/workspaces/[id]/activate-context/route.ts",
             "apps/web/app/api/v1/workspaces/[id]/found/route.ts",
             "apps/web/app/api/v1/workspaces/route.ts",
+            "apps/web/lib/persistence.test.ts",
             "apps/web/lib/route-coverage.test.ts",
             "apps/web/lib/trust-app.ts"
           ],
@@ -1121,12 +1234,12 @@
       "totalProbes": 5
     }
   ],
-  "head": "6571dfcb30c7d5d552c0b186872bd6162cfb57ce",
+  "head": "2387406b853ac2b1e7040eddd663d8f813294498",
   "reosVersion": "1.0.0",
   "stage": "forensics",
   "summary": {
     "deferred": 0,
-    "implemented": 14,
+    "implemented": 15,
     "lost": 0,
     "missing": 1,
     "partial": 0,

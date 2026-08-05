@@ -77,6 +77,14 @@ jobs:
       # Proves the gate cannot pass without a database. If this step succeeds, the
       # suites are skipping rather than running, and the durability evidence above
       # is worthless.
+      # The production composition path, against the same service: a runtime built from
+      # production-like configuration, state written through it, and the same state
+      # recovered by a second runtime on a new pool.
+      - name: Certify the production runtime
+        run: pnpm certify:runtime
+        env:
+          ASSURAPAY_TEST_DATABASE_URL: postgres://assurapay:assurapay@127.0.0.1:5432/assurapay_test
+
       - name: Prove the gate fails with no database configured
         run: |
           if pnpm certify:postgres; then

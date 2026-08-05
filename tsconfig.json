@@ -32,6 +32,9 @@
       "@assurapay/database-testing": [
         "packages/database-testing/src/index.ts"
       ],
+      "@assurapay/runtime": [
+        "packages/runtime/src/index.ts"
+      ],
       "@assurapay/identity": [
         "packages/identity/src/index.ts"
       ],
