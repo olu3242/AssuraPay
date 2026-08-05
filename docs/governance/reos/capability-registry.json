@@ -345,10 +345,12 @@
       ],
       "evidence": {
         "paths": [
-          "packages/identity/src/issuance.ts"
+          "packages/identity/src/issuance.ts",
+          "apps/web/app/api/v1/auth/assertion/route.ts"
         ],
         "symbols": [
-          "issueAssertionForSession"
+          "issueAssertionForSession",
+          "issueSessionAssertion"
         ],
         "tests": [
           "packages/identity/src/issuance.test.ts"
@@ -356,10 +358,10 @@
       },
       "certify": "certify:identity",
       "scope": {
-        "files": 2,
+        "files": 3,
         "tests": 1
       },
-      "notes": "Discovered while migrating the routes, and it blocks the API being usable end to end. Sign-in issues a session cookie; the identity gateway authenticates only a signed assertion header; IdentityGateway.exchange() is deliberately unsupported because attenuation semantics are ungoverned. No route issues an assertion, so no client holding a cookie can reach any authorized route. This predates the migration - requestContext already required an assertion - but the migration makes it total. Closing it means defining what an assertion minted from a session may carry: audience, purpose, lifetime and whether it attenuates. That is the governance question, not the signing, which already exists. Evidence shape may be revised when the capability is selected."
+      "notes": "Joins sign-in to the authorized API. Deliberately not IdentityGateway.exchange, which stays unsupported: exchange transfers privilege between assertions under ungoverned attenuation rules, whereas issuance starts from a session the identity engine owns and can revoke, and mints something strictly weaker. Four rules make that true - every claim is copied from the stored session so no request field can name a subject or raise assurance; the assertion expires at the lesser of the configured TTL and the session remaining, so revocation cannot be outlasted; a workspace may be selected only from ACTIVE memberships; and the session-to-assertion binding is audited as its own event, keyed on the session, distinct from the gateway record keyed on the nonce."
     },
     {
       "id": "trust.grant-administration-api",

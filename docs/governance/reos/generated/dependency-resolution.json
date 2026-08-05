@@ -6,27 +6,6 @@
   "blocked": [
     {
       "blockedBy": [
-        "trust.session-assertion-issuance"
-      ],
-      "blocks": [],
-      "dependsOn": [
-        "trust.session-assertion-issuance"
-      ],
-      "executable": false,
-      "id": "trust.grant-administration-api",
-      "lifecycle": "implementing",
-      "priority": 34,
-      "requiresLiveInfrastructure": false,
-      "scope": {
-        "estimated": true,
-        "files": 3,
-        "tests": 1
-      },
-      "status": "partial",
-      "title": "HTTP surface for workspace founding and role assignment"
-    },
-    {
-      "blockedBy": [
         "persistence.postgres-repository"
       ],
       "blocks": [],
@@ -111,29 +90,28 @@
     "trust.permission-enforcement",
     "trust.permission-grant-catalogue",
     "trust.route-permission-integration",
-    "trust.route-permission-rollout"
+    "trust.route-permission-rollout",
+    "trust.session-assertion-issuance"
   ],
   "executable": [
     {
       "blockedBy": [],
-      "blocks": [
-        "trust.grant-administration-api"
-      ],
+      "blocks": [],
       "dependsOn": [
-        "trust.route-permission-rollout"
+        "trust.session-assertion-issuance"
       ],
       "executable": true,
-      "id": "trust.session-assertion-issuance",
+      "id": "trust.grant-administration-api",
       "lifecycle": "planned",
-      "priority": 33,
+      "priority": 34,
       "requiresLiveInfrastructure": false,
       "scope": {
         "estimated": true,
-        "files": 2,
+        "files": 3,
         "tests": 1
       },
       "status": "missing",
-      "title": "Identity assertion issuance from an authenticated session"
+      "title": "HTTP surface for workspace founding and role assignment"
     },
     {
       "blockedBy": [],
@@ -229,7 +207,7 @@
       "title": "Engine 08 — Audit & Evidence Ledger"
     }
   ],
-  "head": "0f517fc4f78b0a641ff2c087a11dfb3b983dcdfe",
+  "head": "0517bb2ef6914c16a1afd820a61fea6deff273ac",
   "rejected": [
     {
       "id": "engine:08",
@@ -242,34 +220,28 @@
     {
       "id": "persistence.rls-certification",
       "reason": "Blocked by unmet dependencies: persistence.postgres-repository."
-    },
-    {
-      "id": "trust.grant-administration-api",
-      "reason": "Blocked by unmet dependencies: trust.session-assertion-issuance."
     }
   ],
   "reosVersion": "1.0.0",
   "selected": {
     "blockedBy": [],
-    "blocks": [
-      "trust.grant-administration-api"
-    ],
+    "blocks": [],
     "dependsOn": [
-      "trust.route-permission-rollout"
+      "trust.session-assertion-issuance"
     ],
     "executable": true,
-    "id": "trust.session-assertion-issuance",
+    "id": "trust.grant-administration-api",
     "lifecycle": "planned",
-    "priority": 33,
+    "priority": 34,
     "requiresLiveInfrastructure": false,
     "scope": {
       "estimated": true,
-      "files": 2,
+      "files": 3,
       "tests": 1
     },
     "status": "missing",
-    "title": "Identity assertion issuance from an authenticated session"
+    "title": "HTTP surface for workspace founding and role assignment"
   },
-  "selectionReason": "Highest-priority executable capability (priority 33, lifecycle planned) — unblocks 1 downstream capability/-ies",
+  "selectionReason": "Highest-priority executable capability (priority 34, lifecycle planned)",
   "stage": "dependencies"
 }

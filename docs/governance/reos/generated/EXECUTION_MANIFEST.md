@@ -10,9 +10,9 @@
 | Repository | assurapay |
 | Version | 0.1.0 |
 | Branch | claude/git-pull-cqc04u |
-| HEAD | 0f517fc4f78b0a641ff2c087a11dfb3b983dcdfe |
+| HEAD | 0517bb2ef6914c16a1afd820a61fea6deff273ac |
 | Worktree clean | no |
-| Manifest digest | 1a23d6647ca5 |
+| Manifest digest | 6eaa8dae20ce |
 | REOS version | 1.0.0 |
 
 ## Architecture
@@ -26,9 +26,9 @@
 
 | Lifecycle | Count |
 | --- | --- |
-| missing | 2 |
+| missing | 1 |
 | planned | 3 |
-| certified | 4 |
+| certified | 5 |
 | released | 60 |
 | deferred | 4 |
 
@@ -109,14 +109,14 @@ from repository evidence: package presence, test files, and certification wiring
 | reos.execution-os | Repository Execution Operating System | implemented | released | 7/7 | All 7 evidence probes satisfied at HEAD. |
 | runtime.agent-registration | Agent Runtime registration | implemented | certified | 3/3 | All 3 evidence probes satisfied at HEAD. |
 | settlement.non-custody-guard | Non-custody architectural guard | implemented | released | 4/4 | All 4 evidence probes satisfied at HEAD. |
-| trust.grant-administration-api | HTTP surface for workspace founding and role assignment | missing | missing | 0/3 | No evidence at HEAD, on any ref, or in history. |
+| trust.grant-administration-api | HTTP surface for workspace founding and role assignment | missing | planned | 0/3 | No evidence at HEAD, on any ref, or in history. |
 | trust.identity-assertions | HMAC identity assertions | implemented | released | 4/4 | All 4 evidence probes satisfied at HEAD. |
 | trust.identity-gateway | Production identity gateway | implemented | released | 4/4 | All 4 evidence probes satisfied at HEAD. |
 | trust.permission-enforcement | Permission enforcement middleware | implemented | released | 4/4 | All 4 evidence probes satisfied at HEAD. |
 | trust.permission-grant-catalogue | Permission grant catalogue and workspace bootstrap | implemented | certified | 8/8 | All 8 evidence probes satisfied at HEAD. |
 | trust.route-permission-integration | Route-level permission mapping | implemented | certified | 6/6 | All 6 evidence probes satisfied at HEAD. |
 | trust.route-permission-rollout | Route migration to authorized context | implemented | certified | 4/4 | All 4 evidence probes satisfied at HEAD. |
-| trust.session-assertion-issuance | Identity assertion issuance from an authenticated session | missing | planned | 0/3 | No evidence at HEAD, on any ref, or in history. |
+| trust.session-assertion-issuance | Identity assertion issuance from an authenticated session | implemented | certified | 5/5 | All 5 evidence probes satisfied at HEAD. |
 
 ## Reconciliation findings
 
@@ -140,12 +140,11 @@ from repository evidence: package presence, test files, and certification wiring
 
 ## Execution backlog
 
-5 open item(s). Highest-priority first.
+4 open item(s). Highest-priority first.
 
 | Capability | Title | Lifecycle | Priority | Executable | Blocked by | Blocks |
 | --- | --- | --- | --- | --- | --- | --- |
-| trust.session-assertion-issuance | Identity assertion issuance from an authenticated session | planned | 33 | yes | — | 1 |
-| trust.grant-administration-api | HTTP surface for workspace founding and role assignment | missing | 34 | no | trust.session-assertion-issuance | — |
+| trust.grant-administration-api | HTTP surface for workspace founding and role assignment | planned | 34 | yes | — | — |
 | persistence.postgres-repository | PostgreSQL repository implementation | planned | 40 | yes | — | 1 |
 | persistence.rls-certification | Row Level Security certification | missing | 41 | no | persistence.postgres-repository | — |
 | engine:08 | Engine 08 — Audit & Evidence Ledger | planned | 108 | yes | — | 52 |

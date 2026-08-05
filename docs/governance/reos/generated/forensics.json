@@ -332,7 +332,8 @@
           "matches": [
             "packages/identity/src/assertions.test.ts",
             "packages/identity/src/assertions.ts",
-            "packages/identity/src/gateway.ts"
+            "packages/identity/src/gateway.ts",
+            "packages/identity/src/issuance.test.ts"
           ],
           "query": "verifyIdentityAssertion",
           "satisfied": true
@@ -377,7 +378,9 @@
             "apps/web/lib/trust-app.ts",
             "packages/identity/src/assertions.ts",
             "packages/identity/src/gateway.test.ts",
-            "packages/identity/src/gateway.ts"
+            "packages/identity/src/gateway.ts",
+            "packages/identity/src/issuance.test.ts",
+            "packages/identity/src/issuance.ts"
           ],
           "query": "IdentityGateway",
           "satisfied": true
@@ -830,7 +833,7 @@
     {
       "git": {
         "historicalCommits": [],
-        "reachableFromHead": false,
+        "reachableFromHead": true,
         "refsContaining": [],
         "removedFromHead": false
       },
@@ -840,38 +843,64 @@
       "probes": [
         {
           "kind": "path",
-          "matches": [],
+          "matches": [
+            "packages/identity/src/issuance.ts"
+          ],
           "query": "packages/identity/src/issuance.ts",
-          "satisfied": false
+          "satisfied": true
+        },
+        {
+          "kind": "path",
+          "matches": [
+            "apps/web/app/api/v1/auth/assertion/route.ts"
+          ],
+          "query": "apps/web/app/api/v1/auth/assertion/route.ts",
+          "satisfied": true
         },
         {
           "kind": "symbol",
-          "matches": [],
+          "matches": [
+            "apps/web/lib/route-coverage.test.ts",
+            "apps/web/lib/trust-app.ts",
+            "packages/identity/src/issuance.test.ts",
+            "packages/identity/src/issuance.ts"
+          ],
           "query": "issueAssertionForSession",
-          "satisfied": false
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "apps/web/app/api/v1/auth/assertion/route.ts",
+            "apps/web/lib/trust-app.ts"
+          ],
+          "query": "issueSessionAssertion",
+          "satisfied": true
         },
         {
           "kind": "test",
-          "matches": [],
+          "matches": [
+            "packages/identity/src/issuance.test.ts"
+          ],
           "query": "packages/identity/src/issuance.test.ts",
-          "satisfied": false
+          "satisfied": true
         }
       ],
-      "rationale": "No evidence at HEAD, on any ref, or in history.",
-      "satisfiedProbes": 0,
-      "status": "missing",
+      "rationale": "All 5 evidence probes satisfied at HEAD.",
+      "satisfiedProbes": 5,
+      "status": "implemented",
       "title": "Identity assertion issuance from an authenticated session",
-      "totalProbes": 3
+      "totalProbes": 5
     }
   ],
-  "head": "0f517fc4f78b0a641ff2c087a11dfb3b983dcdfe",
+  "head": "0517bb2ef6914c16a1afd820a61fea6deff273ac",
   "reosVersion": "1.0.0",
   "stage": "forensics",
   "summary": {
     "deferred": 0,
-    "implemented": 9,
+    "implemented": 10,
     "lost": 0,
-    "missing": 4,
+    "missing": 3,
     "partial": 0,
     "unreachable": 0
   }

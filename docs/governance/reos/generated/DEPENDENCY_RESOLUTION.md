@@ -6,23 +6,23 @@
 
 | Field | Value |
 | --- | --- |
-| Capability | trust.session-assertion-issuance |
-| Title | Identity assertion issuance from an authenticated session |
+| Capability | trust.grant-administration-api |
+| Title | HTTP surface for workspace founding and role assignment |
 | Current status | missing |
 | Lifecycle | planned |
-| Priority | 33 |
-| Reason | Highest-priority executable capability (priority 33, lifecycle planned) — unblocks 1 downstream capability/-ies |
-| Depends on | trust.route-permission-rollout |
+| Priority | 34 |
+| Reason | Highest-priority executable capability (priority 34, lifecycle planned) |
+| Depends on | trust.session-assertion-issuance |
 | Unmet dependencies | none |
-| Blocks (transitive) | trust.grant-administration-api |
-| Declared scope | 2 file(s), 1 test suite(s) (registry estimate) |
+| Blocks (transitive) | — |
+| Declared scope | 3 file(s), 1 test suite(s) (registry estimate) |
 | Requires live infrastructure | no |
 
 ## Executable queue
 
 | Capability | Title | Lifecycle | Priority | Blocks | Live infra |
 | --- | --- | --- | --- | --- | --- |
-| trust.session-assertion-issuance | Identity assertion issuance from an authenticated session | planned | 33 | 1 | no |
+| trust.grant-administration-api | HTTP surface for workspace founding and role assignment | planned | 34 | — | no |
 | persistence.postgres-repository | PostgreSQL repository implementation | planned | 40 | 1 | yes |
 | engine:08 | Engine 08 — Audit & Evidence Ledger | planned | 108 | 52 | no |
 
@@ -30,7 +30,6 @@
 
 | Capability | Status | Blocked by |
 | --- | --- | --- |
-| trust.grant-administration-api | partial | trust.session-assertion-issuance |
 | persistence.rls-certification | missing | persistence.postgres-repository |
 
 ## Awaiting live infrastructure
@@ -38,7 +37,7 @@
 - persistence.postgres-repository
 - persistence.rls-certification
 
-## Completed (64)
+## Completed (65)
 
 - engine:01
 - engine:02
@@ -104,3 +103,4 @@
 - trust.permission-grant-catalogue
 - trust.route-permission-integration
 - trust.route-permission-rollout
+- trust.session-assertion-issuance

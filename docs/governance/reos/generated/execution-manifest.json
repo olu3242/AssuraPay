@@ -2457,7 +2457,7 @@
         "trust.session-assertion-issuance"
       ],
       "id": "trust.grant-administration-api",
-      "lifecycle": "missing",
+      "lifecycle": "planned",
       "status": "missing"
     },
     {
@@ -2564,8 +2564,8 @@
         "trust.route-permission-rollout"
       ],
       "id": "trust.session-assertion-issuance",
-      "lifecycle": "planned",
-      "status": "missing"
+      "lifecycle": "certified",
+      "status": "implemented"
     }
   ],
   "engines": [
@@ -3233,36 +3233,13 @@
   "executionBacklog": [
     {
       "blockedBy": [],
-      "blocks": [
-        "trust.grant-administration-api"
-      ],
-      "dependsOn": [
-        "trust.route-permission-rollout"
-      ],
-      "executable": true,
-      "id": "trust.session-assertion-issuance",
-      "lifecycle": "planned",
-      "priority": 33,
-      "requiresLiveInfrastructure": false,
-      "scope": {
-        "estimated": true,
-        "files": 2,
-        "tests": 1
-      },
-      "status": "missing",
-      "title": "Identity assertion issuance from an authenticated session"
-    },
-    {
-      "blockedBy": [
-        "trust.session-assertion-issuance"
-      ],
       "blocks": [],
       "dependsOn": [
         "trust.session-assertion-issuance"
       ],
-      "executable": false,
+      "executable": true,
       "id": "trust.grant-administration-api",
-      "lifecycle": "missing",
+      "lifecycle": "planned",
       "priority": 34,
       "requiresLiveInfrastructure": false,
       "scope": {
@@ -3391,7 +3368,7 @@
   "identity": {
     "branch": "claude/git-pull-cqc04u",
     "clean": false,
-    "head": "0f517fc4f78b0a641ff2c087a11dfb3b983dcdfe",
+    "head": "0517bb2ef6914c16a1afd820a61fea6deff273ac",
     "repository": "assurapay",
     "version": "0.1.0"
   },
@@ -3459,25 +3436,25 @@
     "trust.permission-enforcement",
     "trust.permission-grant-catalogue",
     "trust.route-permission-integration",
-    "trust.route-permission-rollout"
+    "trust.route-permission-rollout",
+    "trust.session-assertion-issuance"
   ],
   "lifecycleSummary": {
-    "certified": 4,
+    "certified": 5,
     "deferred": 4,
     "implemented": 0,
     "implementing": 0,
-    "missing": 2,
+    "missing": 1,
     "planned": 3,
     "released": 60,
     "validated": 0
   },
-  "manifestDigest": "1a23d6647ca5",
+  "manifestDigest": "6eaa8dae20ce",
   "missingCapabilities": [
     "engine:08",
     "persistence.postgres-repository",
     "persistence.rls-certification",
-    "trust.grant-administration-api",
-    "trust.session-assertion-issuance"
+    "trust.grant-administration-api"
   ],
   "packages": [
     {
@@ -3811,6 +3788,7 @@
     {
       "directory": "packages/identity",
       "exportedClasses": [
+        "AssertionIssuanceError",
         "IdentityAssertionError",
         "IdentityAssertionService",
         "IdentityGateway",
@@ -3822,19 +3800,20 @@
       "main": "src/index.ts",
       "moduleType": null,
       "name": "@assurapay/identity",
-      "sourceFiles": 3,
-      "sourceLines": 932,
+      "sourceFiles": 4,
+      "sourceLines": 1178,
       "testFiles": [
         "packages/identity/src/assertions.test.ts",
         "packages/identity/src/gateway.test.ts",
-        "packages/identity/src/identity.test.ts"
+        "packages/identity/src/identity.test.ts",
+        "packages/identity/src/issuance.test.ts"
       ],
       "tests": {
         "e2e": 0,
         "integration": 0,
         "performance": 0,
         "security": 0,
-        "unit": 3
+        "unit": 4
       },
       "workspaceDependencies": [
         "@assurapay/database",
@@ -4499,7 +4478,8 @@
           "matches": [
             "packages/identity/src/assertions.test.ts",
             "packages/identity/src/assertions.ts",
-            "packages/identity/src/gateway.ts"
+            "packages/identity/src/gateway.ts",
+            "packages/identity/src/issuance.test.ts"
           ],
           "query": "verifyIdentityAssertion",
           "satisfied": true
@@ -4544,7 +4524,9 @@
             "apps/web/lib/trust-app.ts",
             "packages/identity/src/assertions.ts",
             "packages/identity/src/gateway.test.ts",
-            "packages/identity/src/gateway.ts"
+            "packages/identity/src/gateway.ts",
+            "packages/identity/src/issuance.test.ts",
+            "packages/identity/src/issuance.ts"
           ],
           "query": "IdentityGateway",
           "satisfied": true
@@ -4997,7 +4979,7 @@
     {
       "git": {
         "historicalCommits": [],
-        "reachableFromHead": false,
+        "reachableFromHead": true,
         "refsContaining": [],
         "removedFromHead": false
       },
@@ -5007,28 +4989,54 @@
       "probes": [
         {
           "kind": "path",
-          "matches": [],
+          "matches": [
+            "packages/identity/src/issuance.ts"
+          ],
           "query": "packages/identity/src/issuance.ts",
-          "satisfied": false
+          "satisfied": true
+        },
+        {
+          "kind": "path",
+          "matches": [
+            "apps/web/app/api/v1/auth/assertion/route.ts"
+          ],
+          "query": "apps/web/app/api/v1/auth/assertion/route.ts",
+          "satisfied": true
         },
         {
           "kind": "symbol",
-          "matches": [],
+          "matches": [
+            "apps/web/lib/route-coverage.test.ts",
+            "apps/web/lib/trust-app.ts",
+            "packages/identity/src/issuance.test.ts",
+            "packages/identity/src/issuance.ts"
+          ],
           "query": "issueAssertionForSession",
-          "satisfied": false
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "apps/web/app/api/v1/auth/assertion/route.ts",
+            "apps/web/lib/trust-app.ts"
+          ],
+          "query": "issueSessionAssertion",
+          "satisfied": true
         },
         {
           "kind": "test",
-          "matches": [],
+          "matches": [
+            "packages/identity/src/issuance.test.ts"
+          ],
           "query": "packages/identity/src/issuance.test.ts",
-          "satisfied": false
+          "satisfied": true
         }
       ],
-      "rationale": "No evidence at HEAD, on any ref, or in history.",
-      "satisfiedProbes": 0,
-      "status": "missing",
+      "rationale": "All 5 evidence probes satisfied at HEAD.",
+      "satisfiedProbes": 5,
+      "status": "implemented",
       "title": "Identity assertion issuance from an authenticated session",
-      "totalProbes": 3
+      "totalProbes": 5
     }
   ],
   "reconciliationFindings": [
