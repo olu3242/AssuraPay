@@ -339,3 +339,4 @@ export class FileAssuraStore implements AssuraRepository {
   async upsertReportRuns(items: any[]) { this.snapshot.reportRuns = items; await this.save(); }
 }
 export * from './trust-store';
+export * from './conformance';
