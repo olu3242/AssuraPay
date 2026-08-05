@@ -258,11 +258,13 @@
       ],
       "evidence": {
         "paths": [
-          "apps/web/lib/route-permissions.ts"
+          "apps/web/lib/route-permissions.ts",
+          "apps/web/lib/trust-app.ts"
         ],
         "symbols": [
           "ROUTE_PERMISSION_REQUIREMENTS",
-          "requirementForRoute"
+          "requirementForRoute",
+          "authorizedContextForRoute"
         ],
         "tests": [
           "apps/web/lib/route-permissions.test.ts"
@@ -270,10 +272,63 @@
       },
       "certify": "certify:authorization",
       "scope": {
+        "files": 2,
+        "tests": 1
+      },
+      "notes": "Declares the authorization policy for the whole HTTP surface as a route table keyed on template|METHOD, resolves a requirement from a live request path and method, and applies it at the composition root through authorizedContextForRoute. Fails closed: an unmapped route or method throws rather than defaulting to allow. This capability is the policy and the enforcement entry point, not the per-route migration \u2014 see trust.permission-grant-catalogue and trust.route-permission-rollout, which cannot precede it."
+    },
+    {
+      "id": "trust.permission-grant-catalogue",
+      "title": "Permission grant catalogue and workspace bootstrap",
+      "kind": "platform",
+      "priority": 31,
+      "dependsOn": [
+        "trust.route-permission-integration"
+      ],
+      "evidence": {
+        "paths": [
+          "packages/permissions/src/catalogue.ts"
+        ],
+        "symbols": [
+          "PERMISSION_CATALOGUE",
+          "bootstrapWorkspaceGrants"
+        ],
+        "tests": [
+          "packages/permissions/src/catalogue.test.ts"
+        ]
+      },
+      "certify": "certify:authorization",
+      "scope": {
         "files": 1,
         "tests": 1
       },
-      "notes": "Maps each existing API route to an explicit action/resource permission requirement so it calls authorizedContext instead of requestContext. Registered separately so the 146-route migration is never folded into unrelated runtime or agent work. Evidence shape may be revised when the capability is selected."
+      "notes": "Blocks the route migration. routePermissionKeys() names every permission the surface requires, but nothing in the repository can create the first grant: PermissionService.grant needs an already-authorized workspace context, and no route or seed produces one. Migrating routes to deny-by-default before this exists would lock every caller out of every route permanently. This capability defines the catalogue of valid keys, the role bundles that group them, the segregation-of-duties rules the route table declares, and a workspace-creation path that grants a founding administrator without an authorizing caller. Evidence shape may be revised when the capability is selected."
+    },
+    {
+      "id": "trust.route-permission-rollout",
+      "title": "Route migration to authorized context",
+      "kind": "platform",
+      "priority": 32,
+      "dependsOn": [
+        "trust.permission-grant-catalogue"
+      ],
+      "evidence": {
+        "paths": [
+          "apps/web/lib/route-coverage.test.ts"
+        ],
+        "symbols": [
+          "ROUTE_COVERAGE_PUBLIC_ALLOWLIST"
+        ],
+        "tests": [
+          "apps/web/lib/route-coverage.test.ts"
+        ]
+      },
+      "certify": "certify:authorization",
+      "scope": {
+        "files": 158,
+        "tests": 1
+      },
+      "notes": "The mechanical change: every route handler that still calls requestContext switches to authorizedContextForRoute, and a coverage test asserts that no route file outside the public set calls requestContext directly, so a new unauthorized route fails certification instead of shipping. Large but not discretionary \u2014 it is the last step that makes the policy table binding rather than advisory. Deliberately separate so the 156-file diff is never folded into unrelated work. Evidence shape may be revised when the capability is selected."
     }
   ]
 }
