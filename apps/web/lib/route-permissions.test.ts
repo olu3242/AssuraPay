@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { SEGREGATION_CATALOGUE, catalogueKeys } from '@assurapay/permissions';
 import {
   ROUTE_PERMISSION_REQUIREMENTS,
   RouteAccessError,
@@ -256,5 +257,36 @@ describe('route permission policy — key inventory', () => {
     ]) {
       expect(keys).toContain(required);
     }
+  });
+});
+
+describe('route permission policy — agrees with the grant catalogue', () => {
+  it('requires no permission that no role can grant', () => {
+    // A route demanding a key outside the catalogue is unreachable: deny-by-default
+    // plus no grantable key means nobody can ever satisfy it.
+    const grantable = new Set(catalogueKeys());
+    const ungrantable = routePermissionKeys().filter((key) => !grantable.has(key));
+    expect(ungrantable).toEqual([]);
+  });
+
+  it('declares the same duty pairs the catalogue enforces', () => {
+    // The table's `segregatedFrom` is what a request carries; the catalogue is what
+    // is written into a workspace. Drift between them would leave a conflict either
+    // declared and unenforced, or enforced and undeclared.
+    const declared = new Set<string>();
+    for (const entry of Object.values(ROUTE_PERMISSION_REQUIREMENTS)) {
+      if (entry.access !== 'permission') continue;
+      for (const conflicting of entry.segregatedFrom ?? []) {
+        declared.add([entry.permissionKey, conflicting].sort().join('|'));
+      }
+    }
+
+    const catalogued = new Set(
+      SEGREGATION_CATALOGUE.map((rule) =>
+        [rule.firstPermission, rule.conflictingPermission].sort().join('|'),
+      ),
+    );
+
+    expect([...declared].sort()).toEqual([...catalogued].sort());
   });
 });

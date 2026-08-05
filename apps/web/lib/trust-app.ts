@@ -11,9 +11,17 @@ import { OrganizationService } from '@assurapay/organizations';
 import {
   PermissionService,
   TrustStoreMembershipReader,
+  bootstrapWorkspaceGrants,
   enforcePermission,
+  grantRole,
+  loadCatalogueConfig,
   resolveMemberships,
+  type BootstrapInput,
+  type CatalogueConfig,
+  type GrantRoleInput,
+  type PermissionGrant,
   type PermissionRequirement,
+  type WorkspaceBootstrap,
 } from '@assurapay/permissions';
 import {
   DeterministicVerificationProvider,
@@ -387,6 +395,62 @@ export function authorizedContext(
   });
 }
 
+let catalogueConfig: CatalogueConfig | undefined;
+
+/**
+ * Catalogue configuration for this deployment.
+ *
+ * Read once and cached, so an invalid value fails the first path that needs it
+ * rather than differing between requests.
+ */
+export function getCatalogueConfig(): CatalogueConfig {
+  catalogueConfig ??= loadCatalogueConfig(process.env);
+  return catalogueConfig;
+}
+
+/**
+ * Grants the founding administrator for a newly created workspace.
+ *
+ * This is the one path in the application that produces a grant without an
+ * authorized caller, and it is why the rest of the authorization surface can exist
+ * at all: deny-by-default over an empty grant table denies everyone, including the
+ * person who would issue the first grant.
+ *
+ * It is not an escape hatch. The workspace owner membership must already exist, the
+ * workspace must hold no grant yet, the role must be the bootstrappable one, and
+ * configuration must permit it. Every refusal carries a `CATALOGUE_*` code.
+ */
+export function bootstrapFoundingAdministrator(
+  input: BootstrapInput,
+): WorkspaceBootstrap {
+  return bootstrapWorkspaceGrants(trustStore, input, getCatalogueConfig());
+}
+
+/**
+ * Assigns a catalogue role on the authorized path.
+ *
+ * The caller's own authority is established by `authorizedContextForRoute` before
+ * this is reached; what this adds is the segregation-of-duties check on the
+ * resulting permission set, which a single request cannot see.
+ */
+export function assignRole(
+  context: RequestContext,
+  input: GrantRoleInput,
+): PermissionGrant[] {
+  return grantRole(trust.permissions, trustStore, context, input);
+}
+
+/**
+ * Catalogue refusals that describe the state of the workspace rather than the
+ * caller's authority, so they answer 409 instead of 403. Repeating a founding call
+ * or granting a conflicting role is a conflict with what already exists; retrying
+ * with better credentials would not help.
+ */
+const CONFLICT_CODES = new Set([
+  'CATALOGUE_ALREADY_BOOTSTRAPPED',
+  'CATALOGUE_SEGREGATION_CONFLICT',
+]);
+
 export function errorResponse(error: unknown) {
   const message = error instanceof Error ? error.message : 'UNKNOWN_ERROR';
   // Assertion and gateway failures are authentication failures, not bad requests.
@@ -395,10 +459,15 @@ export function errorResponse(error: unknown) {
     message.startsWith('ASSERTION_') ||
     message.startsWith('GATEWAY_')
       ? 401
-      : message.startsWith('ENFORCEMENT_') || message.startsWith('PERMISSION_DENIED')
-        ? 403
-        : message.includes('DENIED') || message.includes('REQUIRED')
+      : CONFLICT_CODES.has(message)
+        ? 409
+        : message.startsWith('ENFORCEMENT_') || message.startsWith('PERMISSION_DENIED')
           ? 403
-          : 400;
+          : message.startsWith('CATALOGUE_BOOTSTRAP_DISABLED') ||
+              message.startsWith('CATALOGUE_ROLE_NOT_BOOTSTRAPPABLE')
+            ? 403
+            : message.includes('DENIED') || message.includes('REQUIRED')
+              ? 403
+              : 400;
   return Response.json({ error: message }, { status });
 }
