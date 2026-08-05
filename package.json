@@ -115,7 +115,8 @@
     "certify:agent-load": "vitest run packages/agent-runtime/src/agent-runtime.performance.test.ts",
     "certify:batch13": "npm run certify && npm run test:integration && npm run test:e2e && npm run build",
     "certify:workflow-intelligence": "vitest run packages/workflow-intelligence",
-    "certify:batch14": "npm run certify && npm run test:integration && npm run test:e2e && npm run build"
+    "certify:batch14": "npm run certify && npm run test:integration && npm run test:e2e && npm run build",
+    "certify:audit-ledger": "vitest run packages/audit-ledger"
   },
   "dependencies": {
     "framer-motion": "^11.11.9",

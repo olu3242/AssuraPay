@@ -63,6 +63,9 @@ importers:
       '@assurapay/agreement-intelligence':
         specifier: workspace:*
         version: link:../../packages/agreement-intelligence
+      '@assurapay/audit-ledger':
+        specifier: workspace:*
+        version: link:../../packages/audit-ledger
       '@assurapay/completion-assurance':
         specifier: workspace:*
         version: link:../../packages/completion-assurance
@@ -146,6 +149,15 @@ importers:
         version: link:../shared
 
   packages/agreement-intelligence:
+    dependencies:
+      '@assurapay/database':
+        specifier: workspace:*
+        version: link:../database
+      '@assurapay/shared':
+        specifier: workspace:*
+        version: link:../shared
+
+  packages/audit-ledger:
     dependencies:
       '@assurapay/database':
         specifier: workspace:*
