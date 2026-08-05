@@ -1,12 +1,12 @@
 {
-  "capability": "engine:08",
+  "capability": "persistence.repository-conformance",
   "capabilityLifecycle": "certified",
   "certification": {
     "available": true,
     "failedSteps": [],
     "passed": true
   },
-  "commit": "c8455eba011088436b15f9a12f1121d430f8f69e",
+  "commit": "7131966b0fc5c1c2b2e4c3a38590b560580e1e75",
   "filesModified": [
     ".env.example",
     "apps/web/app/api/v1/acceptance-criteria/[id]/confirm/route.ts",
@@ -181,6 +181,7 @@
     "docs/governance/execution-ledger/0f517fc4f78b-trust.route-permission-rollout.json",
     "docs/governance/execution-ledger/13f3246bdbdc-trust.route-permission-integration.json",
     "docs/governance/execution-ledger/5e28a08ff19b-runtime.agent-registration.json",
+    "docs/governance/execution-ledger/7131966b0fc5-persistence.repository-conformance.json",
     "docs/governance/execution-ledger/99a6077fe5da-trust.permission-grant-catalogue.json",
     "docs/governance/execution-ledger/INDEX.md",
     "docs/governance/execution-ledger/c8455eba0110-engine_08.json",
@@ -203,6 +204,10 @@
     "packages/audit-ledger/package.json",
     "packages/audit-ledger/src/audit-ledger.test.ts",
     "packages/audit-ledger/src/index.ts",
+    "packages/database/src/conformance.ts",
+    "packages/database/src/index.ts",
+    "packages/database/src/trust-store.test.ts",
+    "packages/database/src/trust-store.ts",
     "packages/identity/src/index.ts",
     "packages/identity/src/issuance.test.ts",
     "packages/identity/src/issuance.ts",
@@ -217,7 +222,7 @@
     "tsconfig.json",
     "vitest.config.ts"
   ],
-  "generatedAt": "2026-08-05T11:25:37.391Z",
+  "generatedAt": "2026-08-05T11:31:47.132Z",
   "governance": {
     "baselined": 15,
     "findings": [
@@ -377,40 +382,65 @@
     "phase": 2,
     "resolved": []
   },
-  "ledgerEntryId": "c8455eba0110-engine_08",
+  "ledgerEntryId": "7131966b0fc5-persistence.repository-conformance",
   "recommendedNextCapability": {
     "blockedBy": [],
     "blocks": [
+      "persistence.postgres-repository",
       "persistence.rls-certification"
     ],
     "dependsOn": [
-      "trust.permission-enforcement"
+      "persistence.repository-conformance"
     ],
     "executable": true,
-    "id": "persistence.postgres-repository",
+    "id": "persistence.async-repository-interface",
     "lifecycle": "planned",
-    "priority": 40,
-    "requiresLiveInfrastructure": true,
+    "priority": 39,
+    "requiresLiveInfrastructure": false,
     "scope": {
-      "estimated": false,
-      "files": 1,
-      "tests": 1
+      "estimated": true,
+      "files": 40,
+      "tests": 2
     },
     "status": "missing",
-    "title": "PostgreSQL repository implementation"
+    "title": "Asynchronous repository interface"
   },
   "remainingBacklog": [
     {
       "blockedBy": [],
       "blocks": [
+        "persistence.postgres-repository",
         "persistence.rls-certification"
       ],
       "dependsOn": [
-        "trust.permission-enforcement"
+        "persistence.repository-conformance"
       ],
       "executable": true,
-      "id": "persistence.postgres-repository",
+      "id": "persistence.async-repository-interface",
       "lifecycle": "planned",
+      "priority": 39,
+      "requiresLiveInfrastructure": false,
+      "scope": {
+        "estimated": true,
+        "files": 40,
+        "tests": 2
+      },
+      "status": "missing",
+      "title": "Asynchronous repository interface"
+    },
+    {
+      "blockedBy": [
+        "persistence.async-repository-interface"
+      ],
+      "blocks": [
+        "persistence.rls-certification"
+      ],
+      "dependsOn": [
+        "persistence.async-repository-interface"
+      ],
+      "executable": false,
+      "id": "persistence.postgres-repository",
+      "lifecycle": "missing",
       "priority": 40,
       "requiresLiveInfrastructure": true,
       "scope": {
@@ -448,33 +478,25 @@
     "branch": "claude/git-pull-cqc04u",
     "clean": false,
     "dirtyFiles": [
-      "apps/web/lib/trust-app.ts",
-      "apps/web/package.json",
-      "docs/ENGINE_CATALOG.md",
       "docs/governance/reos/capability-registry.json",
       "docs/governance/reos/generated/CERTIFICATION_REPORT.md",
-      "docs/governance/reos/generated/DEPENDENCY_RESOLUTION.md",
       "docs/governance/reos/generated/EXECUTION_MANIFEST.md",
       "docs/governance/reos/generated/certification.json",
       "docs/governance/reos/generated/dependency-resolution.json",
       "docs/governance/reos/generated/discovery.json",
       "docs/governance/reos/generated/execution-manifest.json",
       "docs/governance/reos/generated/forensics.json",
-      "package.json",
-      "packages/audit-ledger/package.json",
-      "packages/audit-ledger/src/audit-ledger.test.ts",
-      "packages/audit-ledger/src/index.ts",
-      "packages/reos/src/reos.integration.test.ts",
-      "pnpm-lock.yaml",
-      "tsconfig.json",
-      "vitest.config.ts"
+      "packages/database/src/conformance.ts",
+      "packages/database/src/index.ts",
+      "packages/database/src/trust-store.test.ts",
+      "packages/database/src/trust-store.ts"
     ],
-    "head": "c8455eba011088436b15f9a12f1121d430f8f69e"
+    "head": "7131966b0fc5c1c2b2e4c3a38590b560580e1e75"
   },
   "stage": "report",
   "validation": [
     {
-      "checked": 152,
+      "checked": 154,
       "findings": [],
       "passed": true,
       "validator": "architecture"
@@ -486,13 +508,13 @@
       "validator": "dependencies"
     },
     {
-      "checked": 254,
+      "checked": 255,
       "findings": [],
       "passed": true,
       "validator": "security"
     },
     {
-      "checked": 196,
+      "checked": 201,
       "findings": [],
       "passed": true,
       "validator": "execution-contract"

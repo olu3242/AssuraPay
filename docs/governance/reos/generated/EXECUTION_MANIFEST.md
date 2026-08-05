@@ -10,9 +10,9 @@
 | Repository | assurapay |
 | Version | 0.1.0 |
 | Branch | claude/git-pull-cqc04u |
-| HEAD | c8455eba011088436b15f9a12f1121d430f8f69e |
+| HEAD | 7131966b0fc5c1c2b2e4c3a38590b560580e1e75 |
 | Worktree clean | no |
-| Manifest digest | cd854700205a |
+| Manifest digest | 1bd7b2676e48 |
 | REOS version | 1.0.0 |
 
 ## Architecture
@@ -26,9 +26,9 @@
 
 | Lifecycle | Count |
 | --- | --- |
-| missing | 1 |
+| missing | 2 |
 | planned | 1 |
-| certified | 7 |
+| certified | 8 |
 | released | 60 |
 | deferred | 4 |
 
@@ -104,7 +104,9 @@ from repository evidence: package presence, test files, and certification wiring
 
 | Capability | Title | Status | Lifecycle | Probes | Rationale |
 | --- | --- | --- | --- | --- | --- |
-| persistence.postgres-repository | PostgreSQL repository implementation | missing | planned | 0/3 | No evidence at HEAD, on any ref, or in history. |
+| persistence.async-repository-interface | Asynchronous repository interface | missing | planned | 0/3 | No evidence at HEAD, on any ref, or in history. |
+| persistence.postgres-repository | PostgreSQL repository implementation | missing | missing | 0/3 | No evidence at HEAD, on any ref, or in history. |
+| persistence.repository-conformance | TrustPersistence conformance specification | implemented | certified | 4/4 | All 4 evidence probes satisfied at HEAD. |
 | persistence.rls-certification | Row Level Security certification | missing | missing | 0/4 | No evidence at HEAD, on any ref, or in history. |
 | reos.execution-os | Repository Execution Operating System | implemented | released | 7/7 | All 7 evidence probes satisfied at HEAD. |
 | runtime.agent-registration | Agent Runtime registration | implemented | certified | 3/3 | All 3 evidence probes satisfied at HEAD. |
@@ -140,11 +142,12 @@ from repository evidence: package presence, test files, and certification wiring
 
 ## Execution backlog
 
-2 open item(s). Highest-priority first.
+3 open item(s). Highest-priority first.
 
 | Capability | Title | Lifecycle | Priority | Executable | Blocked by | Blocks |
 | --- | --- | --- | --- | --- | --- | --- |
-| persistence.postgres-repository | PostgreSQL repository implementation | planned | 40 | yes | — | 1 |
+| persistence.async-repository-interface | Asynchronous repository interface | planned | 39 | yes | — | 2 |
+| persistence.postgres-repository | PostgreSQL repository implementation | missing | 40 | no | persistence.async-repository-interface | 1 |
 | persistence.rls-certification | Row Level Security certification | missing | 41 | no | persistence.postgres-repository | — |
 
 ## Certification coverage

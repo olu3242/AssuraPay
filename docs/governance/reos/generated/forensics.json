@@ -7,6 +7,42 @@
         "refsContaining": [],
         "removedFromHead": false
       },
+      "id": "persistence.async-repository-interface",
+      "kind": "platform",
+      "onDefaultBranch": false,
+      "probes": [
+        {
+          "kind": "path",
+          "matches": [],
+          "query": "packages/shared/src/async-trust.ts",
+          "satisfied": false
+        },
+        {
+          "kind": "symbol",
+          "matches": [],
+          "query": "AsyncTrustPersistence",
+          "satisfied": false
+        },
+        {
+          "kind": "test",
+          "matches": [],
+          "query": "packages/database/src/async-conformance.test.ts",
+          "satisfied": false
+        }
+      ],
+      "rationale": "No evidence at HEAD, on any ref, or in history.",
+      "satisfiedProbes": 0,
+      "status": "missing",
+      "title": "Asynchronous repository interface",
+      "totalProbes": 3
+    },
+    {
+      "git": {
+        "historicalCommits": [],
+        "reachableFromHead": false,
+        "refsContaining": [],
+        "removedFromHead": false
+      },
       "id": "persistence.postgres-repository",
       "kind": "platform",
       "onDefaultBranch": false,
@@ -35,6 +71,58 @@
       "status": "missing",
       "title": "PostgreSQL repository implementation",
       "totalProbes": 3
+    },
+    {
+      "git": {
+        "historicalCommits": [],
+        "reachableFromHead": true,
+        "refsContaining": [],
+        "removedFromHead": false
+      },
+      "id": "persistence.repository-conformance",
+      "kind": "platform",
+      "onDefaultBranch": false,
+      "probes": [
+        {
+          "kind": "path",
+          "matches": [
+            "packages/database/src/conformance.ts"
+          ],
+          "query": "packages/database/src/conformance.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "packages/database/src/conformance.ts",
+            "packages/database/src/trust-store.test.ts"
+          ],
+          "query": "TRUST_PERSISTENCE_CONFORMANCE",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "packages/database/src/conformance.ts",
+            "packages/database/src/trust-store.test.ts"
+          ],
+          "query": "runTrustPersistenceConformance",
+          "satisfied": true
+        },
+        {
+          "kind": "test",
+          "matches": [
+            "packages/database/src/trust-store.test.ts"
+          ],
+          "query": "packages/database/src/trust-store.test.ts",
+          "satisfied": true
+        }
+      ],
+      "rationale": "All 4 evidence probes satisfied at HEAD.",
+      "satisfiedProbes": 4,
+      "status": "implemented",
+      "title": "TrustPersistence conformance specification",
+      "totalProbes": 4
     },
     {
       "git": {
@@ -935,14 +1023,14 @@
       "totalProbes": 5
     }
   ],
-  "head": "c8455eba011088436b15f9a12f1121d430f8f69e",
+  "head": "7131966b0fc5c1c2b2e4c3a38590b560580e1e75",
   "reosVersion": "1.0.0",
   "stage": "forensics",
   "summary": {
     "deferred": 0,
-    "implemented": 11,
+    "implemented": 12,
     "lost": 0,
-    "missing": 2,
+    "missing": 3,
     "partial": 0,
     "unreachable": 0
   }
