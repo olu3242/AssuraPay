@@ -658,7 +658,7 @@ async function installSegregationRules(
       .map((rule) => rule.ruleKey),
   );
 
-  return Promise.all(
+  return await Promise.all(
     SEGREGATION_CATALOGUE.filter((definition) => !present.has(definition.ruleKey)).map(
       async (definition) => {
       const rule: SegregationRule = {

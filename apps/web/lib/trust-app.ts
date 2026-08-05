@@ -333,7 +333,7 @@ export async function requestContext(request: Request): Promise<RequestContext> 
   // The gateway proves identity and refuses to resolve membership. Enforcement
   // resolves it from the authoritative record, so workspace-scoped engines see
   // proven membership rather than a claim.
-  return resolveMemberships(identity, membershipReader);
+  return await resolveMemberships(identity, membershipReader);
 }
 
 /**
@@ -343,7 +343,7 @@ export async function requestContext(request: Request): Promise<RequestContext> 
 export async function actingRequestContext(request: Request): Promise<RequestContext> {
   const correlationId = correlationOf(request);
   const identity = await getIdentityGateway().consumeRequestContext(request, correlationId);
-  return resolveMemberships(identity, membershipReader);
+  return await resolveMemberships(identity, membershipReader);
 }
 
 /**
@@ -372,7 +372,7 @@ export async function authorizedContextForRoute(request: Request): Promise<Reque
   // An identity-class route is authenticated and membership-scoped, but carries no
   // permission requirement; see route-permissions.ts for why that is not a gap.
   if (access.access === 'identity') {
-    return resolveMemberships(identity, membershipReader);
+    return await resolveMemberships(identity, membershipReader);
   }
 
   return await enforcePermission(identity, access, {

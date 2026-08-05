@@ -77,7 +77,7 @@ describe('Engines 61-70 agent runtime registration', () => {
     build();
     // A deterministic capability's contract is that the caller computed the value,
     // so the gateway must return it unchanged rather than invent output.
-    await expect(passthroughDeterministicGateway.invoke('contract', { a: 1 })).resolves.toEqual({
+    await expect(await passthroughDeterministicGateway.invoke('contract', { a: 1 })).resolves.toEqual({
       a: 1,
     });
   });
@@ -194,7 +194,7 @@ describe('Engines 61-70 sandbox provider honesty', () => {
 });
 
 describe('Engines 61-70 registration touches no protected state', () => {
-  it('writes nothing to the store merely by registering', () => {
+  it('writes nothing to the store merely by registering', async () => {
     const { store } = build();
     for (const collection of [
       'agentExecutions',
@@ -204,7 +204,7 @@ describe('Engines 61-70 registration touches no protected state', () => {
       'completionCertificates',
       'paymentEligibility',
     ]) {
-      expect(store.list(collection), `${collection} was written during registration`).toEqual(
+      expect(await store.list(collection), `${collection} was written during registration`).toEqual(
         [],
       );
     }

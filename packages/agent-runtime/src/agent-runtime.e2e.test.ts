@@ -32,7 +32,7 @@ describe('e2e: deterministic execution-intelligence proposal', () => {
     const telemetry = new AgentTelemetryEngine(store);
     const governance = new AgentGovernanceEngine(store);
     let calls = 0;
-    const cap = capabilities.register(c, {
+    const cap = await capabilities.register(c, {
       name: 'blueprint-gap-proposal',
       owner: 'Performance Blueprint',
       permission: 'blueprint:read',
@@ -42,28 +42,28 @@ describe('e2e: deterministic execution-intelligence proposal', () => {
       humanApprovalRequired: false,
       protectedState: false,
     });
-    const p = prompts.createVersion(c, {
+    const p = await prompts.createVersion(c, {
       promptId: 'blueprint',
       template: 'Review {{blueprint}}',
       requiredVariables: ['blueprint'],
       outputContract: 'BlueprintGapProposal',
     });
-    prompts.publish(c, p.id);
-    const a = agents.register(c, {
+    await prompts.publish(c, p.id);
+    const a = await agents.register(c, {
       name: 'Blueprint',
       owner: 'Performance Blueprint',
       promptIds: ['blueprint'],
       allowedCapabilityIds: [cap.id],
     });
-    agents.activate(c, a.id);
-    governance.publish(c, {
+    await agents.activate(c, a.id);
+    await governance.publish(c, {
       allowedRoles: ['analyst'],
       allowedPromptIds: ['blueprint'],
       allowedCapabilityIds: [cap.id],
       allowedModels: ['deterministic'],
       requireApprovalFor: ['APPROVAL', 'WAIVER', 'OVERRIDE', 'CERTIFICATION'],
     });
-    const snapshot = contexts.create(c, {
+    const snapshot = await contexts.create(c, {
       blueprintId: 'bp',
       milestoneIds: ['m'],
       definitionOfDoneIds: ['d'],

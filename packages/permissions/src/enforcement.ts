@@ -213,8 +213,8 @@ export async function enforcePermission(
     // and an unawaited promise is always truthy, so every declared conflict would
     // read as held and the rule would fire for a caller holding none of them.
     const decisions = await Promise.all(
-      requirement.segregatedFrom.map((permissionKey) =>
-        authorities.permissions.evaluate(authorized, permissionKey, requirement.scopeId),
+      requirement.segregatedFrom.map(async (permissionKey) =>
+        await authorities.permissions.evaluate(authorized, permissionKey, requirement.scopeId),
       ),
     );
     const heldConflicts = requirement.segregatedFrom.filter(

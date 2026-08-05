@@ -11,9 +11,9 @@ const c = {
   correlationId: 'integration',
 };
 describe('integration: canonical outputs to governed Agent Runtime capability', () => {
-  it('turns canonical execution snapshots into advisory workflow and health artifacts', () => {
+  it('turns canonical execution snapshots into advisory workflow and health artifacts', async () => {
     const store = new InMemoryTrustStore();
-    const workflow = new WorkflowIntelligenceEngine(store).assess(c, {
+    const workflow = await new WorkflowIntelligenceEngine(store).assess(c, {
       agreementId: 'a',
       stalledAfterHours: 24,
       observedAt: '2026-08-03T00:00:00Z',
@@ -35,7 +35,7 @@ describe('integration: canonical outputs to governed Agent Runtime capability', 
         },
       ],
     });
-    const health = new ExecutionHealthEngine(store).compute(c, {
+    const health = await new ExecutionHealthEngine(store).compute(c, {
       agreementId: 'a',
       signals: {
         milestoneCompletion: workflow.progressScore,
@@ -49,7 +49,7 @@ describe('integration: canonical outputs to governed Agent Runtime capability', 
     });
     expect(workflow.status).toBe('ACTIVE');
     expect(health.score).toBeGreaterThan(60);
-    expect(store.list('auditRecords')).toHaveLength(2);
-    expect(store.list('outboxEvents')).toHaveLength(2);
+    expect(await store.list('auditRecords')).toHaveLength(2);
+    expect(await store.list('outboxEvents')).toHaveLength(2);
   });
 });

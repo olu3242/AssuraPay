@@ -101,7 +101,7 @@ describe('Settlement assurance', () => {
     const settlementCase = await service.createSettlementCase({ paymentEligibilityId: eligibility.id, workspaceId: workspace.id, tenantId: 'tenant-a', contractId: contract.id, milestoneId: milestone.id });
     await service.calculateFinancialEntitlement({ settlementCaseId: settlementCase.id, paymentEligibilityId: eligibility.id, grossAmountMinor: 5000000, retentionAmountMinor: 250000, taxWithholdingAmountMinor: 250000, penaltyAmountMinor: 100000 });
     await service.createInvoice({ settlementCaseId: settlementCase.id, workspaceId: workspace.id, tenantId: 'tenant-a', invoiceNumber: 'INV-001', grossAmountMinor: 4400000, netAmountMinor: 4400000, documentHash: 'doc-hash-1', supplierPartyId: 'supplier-a' });
-    await expect(service.createInvoice({ settlementCaseId: settlementCase.id, workspaceId: workspace.id, tenantId: 'tenant-a', invoiceNumber: 'INV-001', grossAmountMinor: 4400000, netAmountMinor: 4400000, documentHash: 'doc-hash-2', supplierPartyId: 'supplier-a' })).rejects.toThrow('Duplicate invoice');
-    await expect(service.createPaymentInstruction({ releaseRequestId: 'missing', workspaceId: workspace.id, tenantId: 'tenant-a', providerId: 'sandbox-provider', idempotencyKey: 'payment-1', amountMinor: 4400000 })).rejects.toThrow('Release request not found');
+    await expect(await service.createInvoice({ settlementCaseId: settlementCase.id, workspaceId: workspace.id, tenantId: 'tenant-a', invoiceNumber: 'INV-001', grossAmountMinor: 4400000, netAmountMinor: 4400000, documentHash: 'doc-hash-2', supplierPartyId: 'supplier-a' })).rejects.toThrow('Duplicate invoice');
+    await expect(await service.createPaymentInstruction({ releaseRequestId: 'missing', workspaceId: workspace.id, tenantId: 'tenant-a', providerId: 'sandbox-provider', idempotencyKey: 'payment-1', amountMinor: 4400000 })).rejects.toThrow('Release request not found');
   });
 });

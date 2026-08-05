@@ -11,18 +11,18 @@ const c = {
   correlationId: 'load',
 };
 describe('load: append-only runtime records', () => {
-  it('records and reads 1,000 ordered memory and telemetry entries', () => {
+  it('records and reads 1,000 ordered memory and telemetry entries', async () => {
     const store = new InMemoryTrustStore();
     const memory = new ExecutionMemoryEngine(store);
     const telemetry = new AgentTelemetryEngine(store);
     for (let i = 0; i < 1_000; i++) {
-      memory.append(c, {
+      await memory.append(c, {
         executionId: 'run',
         agentId: 'agent',
         kind: 'TOOL',
         content: { i },
       });
-      telemetry.record(c, {
+      await telemetry.record(c, {
         executionId: `run-${i}`,
         agentId: 'agent',
         latencyMs: i,
@@ -34,7 +34,7 @@ describe('load: append-only runtime records', () => {
         approvalRequested: false,
       });
     }
-    expect(memory.history(c, 'run')[999].sequence).toBe(1_000);
-    expect(telemetry.summarize(c).count).toBe(1_000);
+    expect((await memory.history(c, 'run'))[999].sequence).toBe(1_000);
+    expect((await telemetry.summarize(c)).count).toBe(1_000);
   });
 });
