@@ -143,7 +143,7 @@
       "title": "Asynchronous repository interface"
     }
   ],
-  "head": "c34504d83807e278fcd50dd25e6664364b5fb964",
+  "head": "a39cbb0f2c0a40aaf4a5a25418397e128c2560df",
   "rejected": [
     {
       "id": "persistence.postgres-repository",

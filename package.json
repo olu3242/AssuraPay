@@ -36,7 +36,7 @@
     "certify:reos": "vitest run packages/reos",
     "certify": "npm run lint && npm run typecheck && npm run test",
     "certify:identity": "vitest run packages/identity",
-    "certify:tenancy": "vitest run packages/organizations packages/database/src/trust-migrations.integration.test.ts",
+    "certify:tenancy": "vitest run packages/organizations packages/database",
     "certify:authorization": "vitest run packages/permissions apps/web/lib/route-permissions.test.ts",
     "certify:party-verification": "vitest run packages/parties",
     "certify:legal": "vitest run packages/legal",
