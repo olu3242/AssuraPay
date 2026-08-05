@@ -207,7 +207,7 @@
       "kind": "platform",
       "priority": 40,
       "dependsOn": [
-        "trust.permission-enforcement"
+        "persistence.async-repository-interface"
       ],
       "evidence": {
         "paths": [
@@ -222,7 +222,7 @@
       },
       "certify": "certify:tenancy",
       "requiresLiveInfrastructure": true,
-      "notes": "Requires DATABASE_URL. Repository interface already exists; only the Postgres adapter is missing."
+      "notes": "Requires DATABASE_URL and a Postgres driver, which the repository has none of - it currently ships zero runtime dependencies. Blocked before that on persistence.async-repository-interface: TrustPersistence is synchronous, so no network-backed store can implement it. Definition of done is passing TRUST_PERSISTENCE_CONFORMANCE plus persistence.rls-certification against a live instance; an adapter that compiles is not the capability."
     },
     {
       "id": "persistence.rls-certification",
@@ -391,6 +391,59 @@
         "tests": 1
       },
       "notes": "Three routes make the authorization model operable: found a workspace, read the role catalogue, assign a role. Founding is identity-class because it creates the first grant and requiring a permission would restore the deadlock; it is safe because bootstrapWorkspaceGrants refuses unless the caller is already an ACTIVE OWNER and the workspace holds no grant. The founder is the authenticated caller and the assignment workspace is the caller active one, so neither can be named from the request. No route grants a permission key directly - grants are made by assigning a catalogue role, which is what applies the segregation-of-duties check."
+    },
+    {
+      "id": "persistence.repository-conformance",
+      "title": "TrustPersistence conformance specification",
+      "kind": "platform",
+      "priority": 39,
+      "dependsOn": [
+        "trust.permission-enforcement"
+      ],
+      "evidence": {
+        "paths": [
+          "packages/database/src/conformance.ts"
+        ],
+        "symbols": [
+          "TRUST_PERSISTENCE_CONFORMANCE",
+          "runTrustPersistenceConformance"
+        ],
+        "tests": [
+          "packages/database/src/trust-store.test.ts"
+        ]
+      },
+      "certify": "certify:tenancy",
+      "scope": {
+        "files": 3,
+        "tests": 1
+      },
+      "notes": "Every engine reads and writes through TrustPersistence and the audit hash chain is computed inside it, yet nothing tested it directly - the behaviour the platform depends on was whatever the single implementation happened to do. The suite states that behaviour as framework-free checks a Postgres adapter runs by importing the same module, so both stores are held to one standard rather than two descriptions of the same intent. Writing it immediately found a defect: list() shallow-copied, handing out live references to stored records, so any caller could edit auditRecords in place with no write call."
+    },
+    {
+      "id": "persistence.async-repository-interface",
+      "title": "Asynchronous repository interface",
+      "kind": "platform",
+      "priority": 39,
+      "dependsOn": [
+        "persistence.repository-conformance"
+      ],
+      "evidence": {
+        "paths": [
+          "packages/shared/src/async-trust.ts"
+        ],
+        "symbols": [
+          "AsyncTrustPersistence"
+        ],
+        "tests": [
+          "packages/database/src/async-conformance.test.ts"
+        ]
+      },
+      "certify": "certify:tenancy",
+      "scope": {
+        "files": 40,
+        "tests": 2
+      },
+      "notes": "The real blocker on the Postgres adapter, and it needs no infrastructure to fix. TrustPersistence is synchronous in every method - list returns T[], append returns void - and no call site anywhere awaits the store. A network-backed store cannot implement it. CLAUDE.md states Postgres can be swapped without touching engine logic; that is not true as built, because making the interface async changes every engine call site. A test in trust-store.test.ts pins the constraint so whoever attempts the adapter discovers it immediately rather than halfway through. Scope is large and mechanical: the decision to make is whether engines become async or a synchronous read-through cache sits in front of the store."
     }
   ]
 }
