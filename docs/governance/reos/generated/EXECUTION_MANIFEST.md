@@ -10,9 +10,9 @@
 | Repository | assurapay |
 | Version | 0.1.0 |
 | Branch | claude/git-pull-cqc04u |
-| HEAD | 0517bb2ef6914c16a1afd820a61fea6deff273ac |
+| HEAD | 08c0f3b719fedea235d857644b3f1a7395ba066c |
 | Worktree clean | no |
-| Manifest digest | 6eaa8dae20ce |
+| Manifest digest | 41c7dd8329ba |
 | REOS version | 1.0.0 |
 
 ## Architecture
@@ -27,8 +27,8 @@
 | Lifecycle | Count |
 | --- | --- |
 | missing | 1 |
-| planned | 3 |
-| certified | 5 |
+| planned | 2 |
+| certified | 6 |
 | released | 60 |
 | deferred | 4 |
 
@@ -109,7 +109,7 @@ from repository evidence: package presence, test files, and certification wiring
 | reos.execution-os | Repository Execution Operating System | implemented | released | 7/7 | All 7 evidence probes satisfied at HEAD. |
 | runtime.agent-registration | Agent Runtime registration | implemented | certified | 3/3 | All 3 evidence probes satisfied at HEAD. |
 | settlement.non-custody-guard | Non-custody architectural guard | implemented | released | 4/4 | All 4 evidence probes satisfied at HEAD. |
-| trust.grant-administration-api | HTTP surface for workspace founding and role assignment | missing | planned | 0/3 | No evidence at HEAD, on any ref, or in history. |
+| trust.grant-administration-api | HTTP surface for workspace founding and role assignment | implemented | certified | 6/6 | All 6 evidence probes satisfied at HEAD. |
 | trust.identity-assertions | HMAC identity assertions | implemented | released | 4/4 | All 4 evidence probes satisfied at HEAD. |
 | trust.identity-gateway | Production identity gateway | implemented | released | 4/4 | All 4 evidence probes satisfied at HEAD. |
 | trust.permission-enforcement | Permission enforcement middleware | implemented | released | 4/4 | All 4 evidence probes satisfied at HEAD. |
@@ -140,11 +140,10 @@ from repository evidence: package presence, test files, and certification wiring
 
 ## Execution backlog
 
-4 open item(s). Highest-priority first.
+3 open item(s). Highest-priority first.
 
 | Capability | Title | Lifecycle | Priority | Executable | Blocked by | Blocks |
 | --- | --- | --- | --- | --- | --- | --- |
-| trust.grant-administration-api | HTTP surface for workspace founding and role assignment | planned | 34 | yes | — | — |
 | persistence.postgres-repository | PostgreSQL repository implementation | planned | 40 | yes | — | 1 |
 | persistence.rls-certification | Row Level Security certification | missing | 41 | no | persistence.postgres-repository | — |
 | engine:08 | Engine 08 — Audit & Evidence Ledger | planned | 108 | yes | — | 52 |

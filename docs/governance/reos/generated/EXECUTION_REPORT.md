@@ -7,16 +7,16 @@
 | Field | Value |
 | --- | --- |
 | Branch | claude/git-pull-cqc04u |
-| HEAD | 0517bb2ef6914c16a1afd820a61fea6deff273ac |
+| HEAD | 08c0f3b719fedea235d857644b3f1a7395ba066c |
 | Worktree clean | no |
-| Uncommitted files | 17 |
-| Generated at | 2026-08-05T11:13:24.243Z |
+| Uncommitted files | 16 |
+| Generated at | 2026-08-05T11:17:26.094Z |
 
 ## Capability implemented
 
-`trust.session-assertion-issuance` — lifecycle **certified**
+`trust.grant-administration-api` — lifecycle **certified**
 
-## Files modified (196)
+## Files modified (202)
 
 - `.env.example`
 - `apps/web/app/api/v1/acceptance-criteria/[id]/confirm/route.ts`
@@ -162,6 +162,8 @@
 - `apps/web/app/api/v1/release-requests/[id]/evaluate/route.ts`
 - `apps/web/app/api/v1/release-requests/route.ts`
 - `apps/web/app/api/v1/renewal-assessments/route.ts`
+- `apps/web/app/api/v1/roles/assignments/route.ts`
+- `apps/web/app/api/v1/roles/route.ts`
 - `apps/web/app/api/v1/scope-items/[id]/confirm/route.ts`
 - `apps/web/app/api/v1/scope-items/route.ts`
 - `apps/web/app/api/v1/settlement-assurance-indices/route.ts`
@@ -173,8 +175,11 @@
 - `apps/web/app/api/v1/work-items/route.ts`
 - `apps/web/app/api/v1/workflow-intelligence/route.ts`
 - `apps/web/app/api/v1/workspaces/[id]/activate-context/route.ts`
+- `apps/web/app/api/v1/workspaces/[id]/found/route.ts`
 - `apps/web/app/api/v1/workspaces/route.ts`
 - `apps/web/lib/agent-runtime-app.ts`
+- `apps/web/lib/grant-administration.test.ts`
+- `apps/web/lib/grant-administration.ts`
 - `apps/web/lib/route-coverage.test.ts`
 - `apps/web/lib/route-permissions.test.ts`
 - `apps/web/lib/route-permissions.ts`
@@ -182,6 +187,7 @@
 - `apps/web/package.json`
 - `docs/ENGINE_CATALOG.md`
 - `docs/governance/execution-ledger/0517bb2ef691-trust.session-assertion-issuance.json`
+- `docs/governance/execution-ledger/08c0f3b719fe-trust.grant-administration-api.json`
 - `docs/governance/execution-ledger/0f517fc4f78b-trust.route-permission-rollout.json`
 - `docs/governance/execution-ledger/13f3246bdbdc-trust.route-permission-integration.json`
 - `docs/governance/execution-ledger/5e28a08ff19b-runtime.agent-registration.json`
@@ -221,8 +227,8 @@
 | --- | --- | --- | --- | --- |
 | architecture | pass | 149 | 0 | 0 |
 | dependencies | pass | 23 | 0 | 0 |
-| security | pass | 249 | 0 | 0 |
-| execution-contract | pass | 184 | 0 | 0 |
+| security | pass | 253 | 0 | 0 |
+| execution-contract | pass | 190 | 0 | 0 |
 
 ## Governance
 
@@ -234,23 +240,22 @@ No newly introduced violations.
 
 **PASSED** — every certification gate is green.
 
-## Remaining backlog (4)
+## Remaining backlog (3)
 
 | Capability | Status | Executable | Blocked by |
 | --- | --- | --- | --- |
-| trust.grant-administration-api | missing | yes |  |
 | persistence.postgres-repository | missing | yes |  |
 | persistence.rls-certification | missing | no | persistence.postgres-repository |
 | engine:08 | missing | yes |  |
 
 ## Recommended next capability
 
-`trust.grant-administration-api` — HTTP surface for workspace founding and role assignment
+`engine:08` — Engine 08 — Audit & Evidence Ledger
 
 ## Ledger
 
-Recorded as `0517bb2ef691-trust.session-assertion-issuance` in `docs/governance/execution-ledger/`.
+Recorded as `08c0f3b719fe-trust.grant-administration-api` in `docs/governance/execution-ledger/`.
 
 ## Commit
 
-`0517bb2ef6914c16a1afd820a61fea6deff273ac`
+`08c0f3b719fedea235d857644b3f1a7395ba066c`

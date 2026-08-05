@@ -1,12 +1,12 @@
 {
-  "capability": "trust.session-assertion-issuance",
+  "capability": "trust.grant-administration-api",
   "capabilityLifecycle": "certified",
   "certification": {
     "available": true,
     "failedSteps": [],
     "passed": true
   },
-  "commit": "0517bb2ef6914c16a1afd820a61fea6deff273ac",
+  "commit": "08c0f3b719fedea235d857644b3f1a7395ba066c",
   "filesModified": [
     ".env.example",
     "apps/web/app/api/v1/acceptance-criteria/[id]/confirm/route.ts",
@@ -152,6 +152,8 @@
     "apps/web/app/api/v1/release-requests/[id]/evaluate/route.ts",
     "apps/web/app/api/v1/release-requests/route.ts",
     "apps/web/app/api/v1/renewal-assessments/route.ts",
+    "apps/web/app/api/v1/roles/assignments/route.ts",
+    "apps/web/app/api/v1/roles/route.ts",
     "apps/web/app/api/v1/scope-items/[id]/confirm/route.ts",
     "apps/web/app/api/v1/scope-items/route.ts",
     "apps/web/app/api/v1/settlement-assurance-indices/route.ts",
@@ -163,8 +165,11 @@
     "apps/web/app/api/v1/work-items/route.ts",
     "apps/web/app/api/v1/workflow-intelligence/route.ts",
     "apps/web/app/api/v1/workspaces/[id]/activate-context/route.ts",
+    "apps/web/app/api/v1/workspaces/[id]/found/route.ts",
     "apps/web/app/api/v1/workspaces/route.ts",
     "apps/web/lib/agent-runtime-app.ts",
+    "apps/web/lib/grant-administration.test.ts",
+    "apps/web/lib/grant-administration.ts",
     "apps/web/lib/route-coverage.test.ts",
     "apps/web/lib/route-permissions.test.ts",
     "apps/web/lib/route-permissions.ts",
@@ -172,6 +177,7 @@
     "apps/web/package.json",
     "docs/ENGINE_CATALOG.md",
     "docs/governance/execution-ledger/0517bb2ef691-trust.session-assertion-issuance.json",
+    "docs/governance/execution-ledger/08c0f3b719fe-trust.grant-administration-api.json",
     "docs/governance/execution-ledger/0f517fc4f78b-trust.route-permission-rollout.json",
     "docs/governance/execution-ledger/13f3246bdbdc-trust.route-permission-integration.json",
     "docs/governance/execution-ledger/5e28a08ff19b-runtime.agent-registration.json",
@@ -205,7 +211,7 @@
     "packages/reos/src/stages/discover.ts",
     "pnpm-lock.yaml"
   ],
-  "generatedAt": "2026-08-05T11:13:24.243Z",
+  "generatedAt": "2026-08-05T11:17:26.094Z",
   "governance": {
     "baselined": 15,
     "findings": [
@@ -365,46 +371,80 @@
     "phase": 2,
     "resolved": []
   },
-  "ledgerEntryId": "0517bb2ef691-trust.session-assertion-issuance",
+  "ledgerEntryId": "08c0f3b719fe-trust.grant-administration-api",
   "recommendedNextCapability": {
     "blockedBy": [],
-    "blocks": [],
+    "blocks": [
+      "engine:09",
+      "engine:10",
+      "engine:11",
+      "engine:12",
+      "engine:13",
+      "engine:14",
+      "engine:15",
+      "engine:16",
+      "engine:17",
+      "engine:18",
+      "engine:19",
+      "engine:20",
+      "engine:21",
+      "engine:22",
+      "engine:23",
+      "engine:24",
+      "engine:25",
+      "engine:26",
+      "engine:27",
+      "engine:28",
+      "engine:29",
+      "engine:30",
+      "engine:31",
+      "engine:32",
+      "engine:33",
+      "engine:34",
+      "engine:35",
+      "engine:36",
+      "engine:37",
+      "engine:38",
+      "engine:39",
+      "engine:40",
+      "engine:41",
+      "engine:42",
+      "engine:43",
+      "engine:44",
+      "engine:45",
+      "engine:46",
+      "engine:47",
+      "engine:48",
+      "engine:49",
+      "engine:50",
+      "engine:51",
+      "engine:52",
+      "engine:53",
+      "engine:54",
+      "engine:55",
+      "engine:56",
+      "engine:57",
+      "engine:58",
+      "engine:59",
+      "engine:60"
+    ],
     "dependsOn": [
-      "trust.session-assertion-issuance"
+      "engine:05"
     ],
     "executable": true,
-    "id": "trust.grant-administration-api",
+    "id": "engine:08",
     "lifecycle": "planned",
-    "priority": 34,
+    "priority": 108,
     "requiresLiveInfrastructure": false,
     "scope": {
-      "estimated": true,
-      "files": 3,
-      "tests": 1
+      "estimated": false,
+      "files": 0,
+      "tests": 0
     },
     "status": "missing",
-    "title": "HTTP surface for workspace founding and role assignment"
+    "title": "Engine 08 — Audit & Evidence Ledger"
   },
   "remainingBacklog": [
-    {
-      "blockedBy": [],
-      "blocks": [],
-      "dependsOn": [
-        "trust.session-assertion-issuance"
-      ],
-      "executable": true,
-      "id": "trust.grant-administration-api",
-      "lifecycle": "planned",
-      "priority": 34,
-      "requiresLiveInfrastructure": false,
-      "scope": {
-        "estimated": true,
-        "files": 3,
-        "tests": 1
-      },
-      "status": "missing",
-      "title": "HTTP surface for workspace founding and role assignment"
-    },
     {
       "blockedBy": [],
       "blocks": [
@@ -525,11 +565,12 @@
     "branch": "claude/git-pull-cqc04u",
     "clean": false,
     "dirtyFiles": [
-      "apps/web/app/api/v1/auth/assertion/route.ts",
-      "apps/web/lib/route-coverage.test.ts",
-      "apps/web/lib/route-permissions.test.ts",
+      "apps/web/app/api/v1/roles/assignments/route.ts",
+      "apps/web/app/api/v1/roles/route.ts",
+      "apps/web/app/api/v1/workspaces/[id]/found/route.ts",
+      "apps/web/lib/grant-administration.test.ts",
+      "apps/web/lib/grant-administration.ts",
       "apps/web/lib/route-permissions.ts",
-      "apps/web/lib/trust-app.ts",
       "docs/governance/reos/capability-registry.json",
       "docs/governance/reos/generated/CERTIFICATION_REPORT.md",
       "docs/governance/reos/generated/DEPENDENCY_RESOLUTION.md",
@@ -539,11 +580,9 @@
       "docs/governance/reos/generated/discovery.json",
       "docs/governance/reos/generated/execution-manifest.json",
       "docs/governance/reos/generated/forensics.json",
-      "packages/identity/src/index.ts",
-      "packages/identity/src/issuance.test.ts",
-      "packages/identity/src/issuance.ts"
+      "packages/permissions/src/catalogue.ts"
     ],
-    "head": "0517bb2ef6914c16a1afd820a61fea6deff273ac"
+    "head": "08c0f3b719fedea235d857644b3f1a7395ba066c"
   },
   "stage": "report",
   "validation": [
@@ -560,13 +599,13 @@
       "validator": "dependencies"
     },
     {
-      "checked": 249,
+      "checked": 253,
       "findings": [],
       "passed": true,
       "validator": "security"
     },
     {
-      "checked": 184,
+      "checked": 190,
       "findings": [],
       "passed": true,
       "validator": "execution-contract"

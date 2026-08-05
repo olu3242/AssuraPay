@@ -6,23 +6,22 @@
 
 | Field | Value |
 | --- | --- |
-| Capability | trust.grant-administration-api |
-| Title | HTTP surface for workspace founding and role assignment |
+| Capability | engine:08 |
+| Title | Engine 08 — Audit & Evidence Ledger |
 | Current status | missing |
 | Lifecycle | planned |
-| Priority | 34 |
-| Reason | Highest-priority executable capability (priority 34, lifecycle planned) |
-| Depends on | trust.session-assertion-issuance |
+| Priority | 108 |
+| Reason | Highest-priority executable capability (priority 108, lifecycle planned) — unblocks 52 downstream capability/-ies |
+| Depends on | engine:05 |
 | Unmet dependencies | none |
-| Blocks (transitive) | — |
-| Declared scope | 3 file(s), 1 test suite(s) (registry estimate) |
+| Blocks (transitive) | engine:09, engine:10, engine:11, engine:12, engine:13, engine:14, engine:15, engine:16, engine:17, engine:18, engine:19, engine:20, engine:21, engine:22, engine:23, engine:24, engine:25, engine:26, engine:27, engine:28, engine:29, engine:30, engine:31, engine:32, engine:33, engine:34, engine:35, engine:36, engine:37, engine:38, engine:39, engine:40, engine:41, engine:42, engine:43, engine:44, engine:45, engine:46, engine:47, engine:48, engine:49, engine:50, engine:51, engine:52, engine:53, engine:54, engine:55, engine:56, engine:57, engine:58, engine:59, engine:60 |
+| Declared scope | 0 file(s), 0 test suite(s) |
 | Requires live infrastructure | no |
 
 ## Executable queue
 
 | Capability | Title | Lifecycle | Priority | Blocks | Live infra |
 | --- | --- | --- | --- | --- | --- |
-| trust.grant-administration-api | HTTP surface for workspace founding and role assignment | planned | 34 | — | no |
 | persistence.postgres-repository | PostgreSQL repository implementation | planned | 40 | 1 | yes |
 | engine:08 | Engine 08 — Audit & Evidence Ledger | planned | 108 | 52 | no |
 
@@ -37,7 +36,7 @@
 - persistence.postgres-repository
 - persistence.rls-certification
 
-## Completed (65)
+## Completed (66)
 
 - engine:01
 - engine:02
@@ -97,6 +96,7 @@
 - reos.execution-os
 - runtime.agent-registration
 - settlement.non-custody-guard
+- trust.grant-administration-api
 - trust.identity-assertions
 - trust.identity-gateway
 - trust.permission-enforcement

@@ -2457,8 +2457,8 @@
         "trust.session-assertion-issuance"
       ],
       "id": "trust.grant-administration-api",
-      "lifecycle": "planned",
-      "status": "missing"
+      "lifecycle": "certified",
+      "status": "implemented"
     },
     {
       "blocks": [
@@ -3233,25 +3233,6 @@
   "executionBacklog": [
     {
       "blockedBy": [],
-      "blocks": [],
-      "dependsOn": [
-        "trust.session-assertion-issuance"
-      ],
-      "executable": true,
-      "id": "trust.grant-administration-api",
-      "lifecycle": "planned",
-      "priority": 34,
-      "requiresLiveInfrastructure": false,
-      "scope": {
-        "estimated": true,
-        "files": 3,
-        "tests": 1
-      },
-      "status": "missing",
-      "title": "HTTP surface for workspace founding and role assignment"
-    },
-    {
-      "blockedBy": [],
       "blocks": [
         "persistence.rls-certification"
       ],
@@ -3368,7 +3349,7 @@
   "identity": {
     "branch": "claude/git-pull-cqc04u",
     "clean": false,
-    "head": "0517bb2ef6914c16a1afd820a61fea6deff273ac",
+    "head": "08c0f3b719fedea235d857644b3f1a7395ba066c",
     "repository": "assurapay",
     "version": "0.1.0"
   },
@@ -3431,6 +3412,7 @@
     "reos.execution-os",
     "runtime.agent-registration",
     "settlement.non-custody-guard",
+    "trust.grant-administration-api",
     "trust.identity-assertions",
     "trust.identity-gateway",
     "trust.permission-enforcement",
@@ -3440,21 +3422,20 @@
     "trust.session-assertion-issuance"
   ],
   "lifecycleSummary": {
-    "certified": 5,
+    "certified": 6,
     "deferred": 4,
     "implemented": 0,
     "implementing": 0,
     "missing": 1,
-    "planned": 3,
+    "planned": 2,
     "released": 60,
     "validated": 0
   },
-  "manifestDigest": "6eaa8dae20ce",
+  "manifestDigest": "41c7dd8329ba",
   "missingCapabilities": [
     "engine:08",
     "persistence.postgres-repository",
-    "persistence.rls-certification",
-    "trust.grant-administration-api"
+    "persistence.rls-certification"
   ],
   "packages": [
     {
@@ -3976,7 +3957,7 @@
       "moduleType": null,
       "name": "@assurapay/permissions",
       "sourceFiles": 3,
-      "sourceLines": 1000,
+      "sourceLines": 1002,
       "testFiles": [
         "packages/permissions/src/catalogue.test.ts",
         "packages/permissions/src/enforcement.test.ts",
@@ -4410,7 +4391,7 @@
     {
       "git": {
         "historicalCommits": [],
-        "reachableFromHead": false,
+        "reachableFromHead": true,
         "refsContaining": [],
         "removedFromHead": false
       },
@@ -4420,28 +4401,61 @@
       "probes": [
         {
           "kind": "path",
-          "matches": [],
+          "matches": [
+            "apps/web/lib/grant-administration.ts"
+          ],
+          "query": "apps/web/lib/grant-administration.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "path",
+          "matches": [
+            "apps/web/app/api/v1/roles/assignments/route.ts"
+          ],
           "query": "apps/web/app/api/v1/roles/assignments/route.ts",
-          "satisfied": false
+          "satisfied": true
         },
         {
           "kind": "symbol",
-          "matches": [],
+          "matches": [
+            "apps/web/lib/grant-administration.test.ts",
+            "apps/web/lib/grant-administration.ts"
+          ],
           "query": "GRANT_ADMINISTRATION_ROUTES",
-          "satisfied": false
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "apps/web/app/api/v1/workspaces/[id]/found/route.ts",
+            "apps/web/lib/grant-administration.ts"
+          ],
+          "query": "foundWorkspace",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "apps/web/app/api/v1/roles/assignments/route.ts",
+            "apps/web/lib/grant-administration.ts"
+          ],
+          "query": "assignWorkspaceRole",
+          "satisfied": true
         },
         {
           "kind": "test",
-          "matches": [],
+          "matches": [
+            "apps/web/lib/grant-administration.test.ts"
+          ],
           "query": "apps/web/lib/grant-administration.test.ts",
-          "satisfied": false
+          "satisfied": true
         }
       ],
-      "rationale": "No evidence at HEAD, on any ref, or in history.",
-      "satisfiedProbes": 0,
-      "status": "missing",
+      "rationale": "All 6 evidence probes satisfied at HEAD.",
+      "satisfiedProbes": 6,
+      "status": "implemented",
       "title": "HTTP surface for workspace founding and role assignment",
-      "totalProbes": 3
+      "totalProbes": 6
     },
     {
       "git": {
@@ -4638,6 +4652,7 @@
         {
           "kind": "symbol",
           "matches": [
+            "apps/web/lib/grant-administration.ts",
             "packages/permissions/src/catalogue.test.ts",
             "packages/permissions/src/catalogue.ts"
           ],
@@ -4657,6 +4672,8 @@
         {
           "kind": "symbol",
           "matches": [
+            "apps/web/app/api/v1/workspaces/[id]/found/route.ts",
+            "apps/web/lib/grant-administration.ts",
             "apps/web/lib/trust-app.ts",
             "packages/permissions/src/catalogue.test.ts",
             "packages/permissions/src/catalogue.ts"
@@ -4677,6 +4694,7 @@
         {
           "kind": "symbol",
           "matches": [
+            "apps/web/lib/grant-administration.ts",
             "apps/web/lib/trust-app.ts"
           ],
           "query": "bootstrapFoundingAdministrator",
@@ -4727,6 +4745,7 @@
         {
           "kind": "symbol",
           "matches": [
+            "apps/web/lib/grant-administration.test.ts",
             "apps/web/lib/route-coverage.test.ts",
             "apps/web/lib/route-permissions.test.ts",
             "apps/web/lib/route-permissions.ts"
@@ -4737,6 +4756,7 @@
         {
           "kind": "symbol",
           "matches": [
+            "apps/web/lib/grant-administration.test.ts",
             "apps/web/lib/route-coverage.test.ts",
             "apps/web/lib/route-permissions.test.ts",
             "apps/web/lib/route-permissions.ts",
@@ -4890,6 +4910,8 @@
             "apps/web/app/api/v1/release-requests/[id]/evaluate/route.ts",
             "apps/web/app/api/v1/release-requests/route.ts",
             "apps/web/app/api/v1/renewal-assessments/route.ts",
+            "apps/web/app/api/v1/roles/assignments/route.ts",
+            "apps/web/app/api/v1/roles/route.ts",
             "apps/web/app/api/v1/scope-items/[id]/confirm/route.ts",
             "apps/web/app/api/v1/scope-items/route.ts",
             "apps/web/app/api/v1/settlement-assurance-indices/route.ts",
@@ -4901,6 +4923,7 @@
             "apps/web/app/api/v1/work-items/route.ts",
             "apps/web/app/api/v1/workflow-intelligence/route.ts",
             "apps/web/app/api/v1/workspaces/[id]/activate-context/route.ts",
+            "apps/web/app/api/v1/workspaces/[id]/found/route.ts",
             "apps/web/app/api/v1/workspaces/route.ts",
             "apps/web/lib/route-coverage.test.ts",
             "apps/web/lib/trust-app.ts"

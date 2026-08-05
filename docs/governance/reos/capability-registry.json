@@ -373,10 +373,13 @@
       ],
       "evidence": {
         "paths": [
+          "apps/web/lib/grant-administration.ts",
           "apps/web/app/api/v1/roles/assignments/route.ts"
         ],
         "symbols": [
-          "GRANT_ADMINISTRATION_ROUTES"
+          "GRANT_ADMINISTRATION_ROUTES",
+          "foundWorkspace",
+          "assignWorkspaceRole"
         ],
         "tests": [
           "apps/web/lib/grant-administration.test.ts"
@@ -384,10 +387,10 @@
       },
       "certify": "certify:authorization",
       "scope": {
-        "files": 3,
+        "files": 6,
         "tests": 1
       },
-      "notes": "bootstrapFoundingAdministrator and assignRole exist in the composition root but no route reaches them, so grants can only be created in-process. Without this an operator cannot grant a role over the API, which leaves every permission-class route unsatisfiable in a running deployment even once assertions can be issued. Adding routes means adding policy-table entries and catalogue keys for them, which the existing drift tests will require. Evidence shape may be revised when the capability is selected."
+      "notes": "Three routes make the authorization model operable: found a workspace, read the role catalogue, assign a role. Founding is identity-class because it creates the first grant and requiring a permission would restore the deadlock; it is safe because bootstrapWorkspaceGrants refuses unless the caller is already an ACTIVE OWNER and the workspace holds no grant. The founder is the authenticated caller and the assignment workspace is the caller active one, so neither can be named from the request. No route grants a permission key directly - grants are made by assigning a catalogue role, which is what applies the segregation-of-duties check."
     }
   ]
 }

@@ -2371,7 +2371,7 @@
       "moduleType": null,
       "name": "@assurapay/permissions",
       "sourceFiles": 3,
-      "sourceLines": 1000,
+      "sourceLines": 1002,
       "testFiles": [
         "packages/permissions/src/catalogue.test.ts",
         "packages/permissions/src/enforcement.test.ts",
@@ -2555,11 +2555,12 @@
       ],
       "clean": false,
       "dirtyFiles": [
-        "apps/web/app/api/v1/auth/assertion/route.ts",
-        "apps/web/lib/route-coverage.test.ts",
-        "apps/web/lib/route-permissions.test.ts",
+        "apps/web/app/api/v1/roles/assignments/route.ts",
+        "apps/web/app/api/v1/roles/route.ts",
+        "apps/web/app/api/v1/workspaces/[id]/found/route.ts",
+        "apps/web/lib/grant-administration.test.ts",
+        "apps/web/lib/grant-administration.ts",
         "apps/web/lib/route-permissions.ts",
-        "apps/web/lib/trust-app.ts",
         "docs/governance/reos/capability-registry.json",
         "docs/governance/reos/generated/CERTIFICATION_REPORT.md",
         "docs/governance/reos/generated/DEPENDENCY_RESOLUTION.md",
@@ -2569,12 +2570,10 @@
         "docs/governance/reos/generated/discovery.json",
         "docs/governance/reos/generated/execution-manifest.json",
         "docs/governance/reos/generated/forensics.json",
-        "packages/identity/src/index.ts",
-        "packages/identity/src/issuance.test.ts",
-        "packages/identity/src/issuance.ts"
+        "packages/permissions/src/catalogue.ts"
       ],
-      "head": "0517bb2ef6914c16a1afd820a61fea6deff273ac",
-      "headShort": "0517bb2",
+      "head": "08c0f3b719fedea235d857644b3f1a7395ba066c",
+      "headShort": "08c0f3b",
       "reflogAvailable": true,
       "remotes": [
         "origin"

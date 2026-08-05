@@ -85,6 +85,7 @@
     "reos.execution-os",
     "runtime.agent-registration",
     "settlement.non-custody-guard",
+    "trust.grant-administration-api",
     "trust.identity-assertions",
     "trust.identity-gateway",
     "trust.permission-enforcement",
@@ -94,25 +95,6 @@
     "trust.session-assertion-issuance"
   ],
   "executable": [
-    {
-      "blockedBy": [],
-      "blocks": [],
-      "dependsOn": [
-        "trust.session-assertion-issuance"
-      ],
-      "executable": true,
-      "id": "trust.grant-administration-api",
-      "lifecycle": "planned",
-      "priority": 34,
-      "requiresLiveInfrastructure": false,
-      "scope": {
-        "estimated": true,
-        "files": 3,
-        "tests": 1
-      },
-      "status": "missing",
-      "title": "HTTP surface for workspace founding and role assignment"
-    },
     {
       "blockedBy": [],
       "blocks": [
@@ -207,12 +189,8 @@
       "title": "Engine 08 — Audit & Evidence Ledger"
     }
   ],
-  "head": "0517bb2ef6914c16a1afd820a61fea6deff273ac",
+  "head": "08c0f3b719fedea235d857644b3f1a7395ba066c",
   "rejected": [
-    {
-      "id": "engine:08",
-      "reason": "Executable but lower priority than the selected capability (108)."
-    },
     {
       "id": "persistence.postgres-repository",
       "reason": "Executable but deprioritised: requires live infrastructure."
@@ -225,23 +203,76 @@
   "reosVersion": "1.0.0",
   "selected": {
     "blockedBy": [],
-    "blocks": [],
+    "blocks": [
+      "engine:09",
+      "engine:10",
+      "engine:11",
+      "engine:12",
+      "engine:13",
+      "engine:14",
+      "engine:15",
+      "engine:16",
+      "engine:17",
+      "engine:18",
+      "engine:19",
+      "engine:20",
+      "engine:21",
+      "engine:22",
+      "engine:23",
+      "engine:24",
+      "engine:25",
+      "engine:26",
+      "engine:27",
+      "engine:28",
+      "engine:29",
+      "engine:30",
+      "engine:31",
+      "engine:32",
+      "engine:33",
+      "engine:34",
+      "engine:35",
+      "engine:36",
+      "engine:37",
+      "engine:38",
+      "engine:39",
+      "engine:40",
+      "engine:41",
+      "engine:42",
+      "engine:43",
+      "engine:44",
+      "engine:45",
+      "engine:46",
+      "engine:47",
+      "engine:48",
+      "engine:49",
+      "engine:50",
+      "engine:51",
+      "engine:52",
+      "engine:53",
+      "engine:54",
+      "engine:55",
+      "engine:56",
+      "engine:57",
+      "engine:58",
+      "engine:59",
+      "engine:60"
+    ],
     "dependsOn": [
-      "trust.session-assertion-issuance"
+      "engine:05"
     ],
     "executable": true,
-    "id": "trust.grant-administration-api",
+    "id": "engine:08",
     "lifecycle": "planned",
-    "priority": 34,
+    "priority": 108,
     "requiresLiveInfrastructure": false,
     "scope": {
-      "estimated": true,
-      "files": 3,
-      "tests": 1
+      "estimated": false,
+      "files": 0,
+      "tests": 0
     },
     "status": "missing",
-    "title": "HTTP surface for workspace founding and role assignment"
+    "title": "Engine 08 — Audit & Evidence Ledger"
   },
-  "selectionReason": "Highest-priority executable capability (priority 34, lifecycle planned)",
+  "selectionReason": "Highest-priority executable capability (priority 108, lifecycle planned) — unblocks 52 downstream capability/-ies",
   "stage": "dependencies"
 }
