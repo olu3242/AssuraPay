@@ -4,7 +4,7 @@ import { authorizedContextForRoute, errorResponse, workspaceScoped } from '../..
 
 export async function POST(request: Request) {
   try {
-    const context = workspaceScoped(authorizedContextForRoute(request));
+    const context = workspaceScoped(await authorizedContextForRoute(request));
     const body = await request.json();
     const { service } = await getAssuraService();
     const organization = await service.createOrganization({

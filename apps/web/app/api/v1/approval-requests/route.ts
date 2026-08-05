@@ -6,7 +6,7 @@ import {
 export async function POST(r: Request) {
   try {
     return Response.json(
-      agreements.approvals.route(authorizedContextForRoute(r), await r.json()),
+      await agreements.approvals.route(await authorizedContextForRoute(r), await r.json()),
       { status: 201 },
     );
   } catch (e) {

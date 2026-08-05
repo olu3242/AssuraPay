@@ -8,10 +8,10 @@ export async function POST(
   { params }: { params: { id: string } },
 ) {
   try {
-    const context = authorizedContextForRoute(request);
+    const context = await authorizedContextForRoute(request);
     const body = await request.json();
     return Response.json(
-      governance.executions.transition(
+      await governance.executions.transition(
         context,
         params.id,
         body.toState,

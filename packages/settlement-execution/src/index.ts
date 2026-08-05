@@ -9,19 +9,19 @@ function ws(context: RequestContext) {
   requireActiveWorkspace(context);
   return context.activeWorkspaceId;
 }
-function get<T extends { id: string; workspaceId: string }>(
+async function get<T extends { id: string; workspaceId: string }>(
   store: TrustPersistence,
   collection: string,
   context: RequestContext,
   id: string,
 ) {
-  const found = store
-    .list<T>(collection)
+  const found = (await store
+    .list<T>(collection))
     .find((x) => x.id === id && x.workspaceId === ws(context));
   if (!found) throw new Error('NOT_FOUND');
   return found;
 }
-function emit(
+async function emit(
   store: TrustPersistence,
   context: RequestContext,
   eventType: string,
@@ -29,7 +29,7 @@ function emit(
   aggregateId: string,
   payload: Record<string, unknown> = {},
 ) {
-  store.audit({
+  await store.audit({
     tenantId: context.tenantId,
     workspaceId: ws(context),
     actorId: context.actorUserId,
@@ -39,7 +39,7 @@ function emit(
     correlationId: context.correlationId,
     metadata: payload,
   });
-  store.emit({
+  await store.emit({
     tenantId: context.tenantId,
     workspaceId: ws(context),
     aggregateType,
@@ -92,7 +92,7 @@ export type AuthorizationDecision = {
 export class FinancialApprovalAuthorityEngine {
   constructor(private readonly store: TrustPersistence) {}
 
-  defineThreshold(
+  async defineThreshold(
     context: RequestContext,
     input: { minAmountMinor: number; maxAmountMinor: number; currency: string; requiredApprovals: number },
   ) {
@@ -102,22 +102,22 @@ export class FinancialApprovalAuthorityEngine {
     if (!Number.isInteger(input.requiredApprovals) || input.requiredApprovals < 1)
       throw new Error('INVALID_REQUIRED_APPROVALS');
     const threshold: ApprovalThreshold = { id: randomUUID(), workspaceId: ws(context), ...input, createdAt: now() };
-    this.store.append('approvalThresholds', threshold);
-    emit(this.store, context, 'ApprovalThresholdDefined', 'ApprovalThreshold', threshold.id, {
+    await this.store.append('approvalThresholds', threshold);
+    await emit(this.store, context, 'ApprovalThresholdDefined', 'ApprovalThreshold', threshold.id, {
       currency: threshold.currency,
       requiredApprovals: threshold.requiredApprovals,
     });
     return threshold;
   }
 
-  requestAuthorization(
+  async requestAuthorization(
     context: RequestContext,
     input: { releaseRequestId: string; amountMinor: number; currency: string },
   ) {
     requireIntegerMinorUnits(input.amountMinor, 'AMOUNT');
     const workspaceId = ws(context);
-    const threshold = this.store
-      .list<ApprovalThreshold>('approvalThresholds')
+    const threshold = (await this.store
+      .list<ApprovalThreshold>('approvalThresholds'))
       .find(
         (x) =>
           x.workspaceId === workspaceId &&
@@ -137,8 +137,8 @@ export class FinancialApprovalAuthorityEngine {
       status: 'PENDING',
       createdAt: now(),
     };
-    this.store.append('authorizationDecisions', authorization);
-    emit(this.store, context, 'AuthorizationRequested', 'AuthorizationDecision', authorization.id, {
+    await this.store.append('authorizationDecisions', authorization);
+    await emit(this.store, context, 'AuthorizationRequested', 'AuthorizationDecision', authorization.id, {
       releaseRequestId: authorization.releaseRequestId,
       amountMinor: authorization.amountMinor,
       requiredApprovals: authorization.requiredApprovals,
@@ -146,14 +146,14 @@ export class FinancialApprovalAuthorityEngine {
     return authorization;
   }
 
-  approve(context: RequestContext, input: { id: string; rationale: string }) {
-    const authorization = get<AuthorizationDecision>(this.store, 'authorizationDecisions', context, input.id);
+  async approve(context: RequestContext, input: { id: string; rationale: string }) {
+    const authorization = await get<AuthorizationDecision>(this.store, 'authorizationDecisions', context, input.id);
     if (authorization.status !== 'PENDING') throw new Error('AUTHORIZATION_NOT_PENDING');
     if (context.actorUserId === authorization.requestedBy) throw new Error('SEGREGATION_OF_DUTIES_VIOLATION');
     if (!input.rationale.trim()) throw new Error('RATIONALE_REQUIRED');
     const workspaceId = ws(context);
-    const existingApprovers = this.store
-      .list<FinancialApprovalDecision>('financialApprovalDecisions')
+    const existingApprovers = (await this.store
+      .list<FinancialApprovalDecision>('financialApprovalDecisions'))
       .filter((x) => x.workspaceId === workspaceId && x.authorizationId === authorization.id);
     if (existingApprovers.some((x) => x.approverId === context.actorUserId)) throw new Error('DUPLICATE_APPROVER');
     const decision: FinancialApprovalDecision = {
@@ -165,15 +165,15 @@ export class FinancialApprovalAuthorityEngine {
       rationale: input.rationale,
       decidedAt: now(),
     };
-    this.store.append('financialApprovalDecisions', decision);
-    emit(this.store, context, 'ApprovalVoteCast', 'AuthorizationDecision', authorization.id, {
+    await this.store.append('financialApprovalDecisions', decision);
+    await emit(this.store, context, 'ApprovalVoteCast', 'AuthorizationDecision', authorization.id, {
       approverId: decision.approverId,
     });
     const approverCount = existingApprovers.length + 1;
     if (approverCount >= authorization.requiredApprovals) {
       const authorized: AuthorizationDecision = { ...authorization, status: 'AUTHORIZED', authorizedAt: now() };
-      this.store.replace('authorizationDecisions', authorized);
-      emit(this.store, context, 'AuthorizationGranted', 'AuthorizationDecision', authorization.id, {
+      await this.store.replace('authorizationDecisions', authorized);
+      await emit(this.store, context, 'AuthorizationGranted', 'AuthorizationDecision', authorization.id, {
         releaseRequestId: authorization.releaseRequestId,
         approverCount,
       });
@@ -182,13 +182,13 @@ export class FinancialApprovalAuthorityEngine {
     return authorization;
   }
 
-  reject(context: RequestContext, input: { id: string; rationale: string }) {
-    const authorization = get<AuthorizationDecision>(this.store, 'authorizationDecisions', context, input.id);
+  async reject(context: RequestContext, input: { id: string; rationale: string }) {
+    const authorization = await get<AuthorizationDecision>(this.store, 'authorizationDecisions', context, input.id);
     if (authorization.status !== 'PENDING') throw new Error('AUTHORIZATION_NOT_PENDING');
     if (!input.rationale.trim()) throw new Error('RATIONALE_REQUIRED');
     const rejected: AuthorizationDecision = { ...authorization, status: 'REJECTED' };
-    this.store.replace('authorizationDecisions', rejected);
-    emit(this.store, context, 'AuthorizationRejected', 'AuthorizationDecision', authorization.id, {
+    await this.store.replace('authorizationDecisions', rejected);
+    await emit(this.store, context, 'AuthorizationRejected', 'AuthorizationDecision', authorization.id, {
       releaseRequestId: authorization.releaseRequestId,
       rationale: input.rationale,
     });
@@ -241,7 +241,7 @@ export class PaymentExecutionEngine {
     private readonly gateway?: PaymentProviderGateway,
   ) {}
 
-  issue(
+  async issue(
     context: RequestContext,
     input: {
       releaseRequestId: string;
@@ -256,8 +256,8 @@ export class PaymentExecutionEngine {
     if (!input.authorized) throw new Error('AUTHORIZATION_REQUIRED');
     requireIntegerMinorUnits(input.amountMinor, 'AMOUNT');
     const workspaceId = ws(context);
-    const existing = this.store
-      .list<PaymentInstruction>('paymentInstructions')
+    const existing = (await this.store
+      .list<PaymentInstruction>('paymentInstructions'))
       .find((x) => x.workspaceId === workspaceId && x.idempotencyKey === input.idempotencyKey);
     if (existing) return existing;
     const { authorized: _authorized, ...record } = input;
@@ -269,8 +269,8 @@ export class PaymentExecutionEngine {
       attempts: 0,
       createdAt: now(),
     };
-    this.store.append('paymentInstructions', instruction);
-    emit(this.store, context, 'PaymentInstructionIssued', 'PaymentInstruction', instruction.id, {
+    await this.store.append('paymentInstructions', instruction);
+    await emit(this.store, context, 'PaymentInstructionIssued', 'PaymentInstruction', instruction.id, {
       releaseRequestId: instruction.releaseRequestId,
       idempotencyKey: instruction.idempotencyKey,
     });
@@ -278,7 +278,7 @@ export class PaymentExecutionEngine {
   }
 
   async submit(context: RequestContext, id: string) {
-    const instruction = get<PaymentInstruction>(this.store, 'paymentInstructions', context, id);
+    const instruction = await get<PaymentInstruction>(this.store, 'paymentInstructions', context, id);
     if (instruction.status !== 'DRAFT' && instruction.status !== 'FAILED')
       throw new Error('PAYMENT_INSTRUCTION_NOT_SUBMITTABLE');
     if (!this.gateway) throw new Error('PAYMENT_PROVIDER_GATEWAY_REQUIRED');
@@ -291,8 +291,8 @@ export class PaymentExecutionEngine {
     });
     if (result.status === 'REJECTED') {
       const failed: PaymentInstruction = { ...instruction, status: 'FAILED', attempts: instruction.attempts + 1 };
-      this.store.replace('paymentInstructions', failed);
-      emit(this.store, context, 'PaymentInstructionFailed', 'PaymentInstruction', id, { attempts: failed.attempts });
+      await this.store.replace('paymentInstructions', failed);
+      await emit(this.store, context, 'PaymentInstructionFailed', 'PaymentInstruction', id, { attempts: failed.attempts });
       throw new Error('PROVIDER_REJECTED_PAYMENT');
     }
     const submitted: PaymentInstruction = {
@@ -302,15 +302,15 @@ export class PaymentExecutionEngine {
       attempts: instruction.attempts + 1,
       submittedAt: now(),
     };
-    this.store.replace('paymentInstructions', submitted);
-    emit(this.store, context, 'PaymentInstructionSubmitted', 'PaymentInstruction', id, {
+    await this.store.replace('paymentInstructions', submitted);
+    await emit(this.store, context, 'PaymentInstructionSubmitted', 'PaymentInstruction', id, {
       providerReference: result.providerReference,
     });
     return submitted;
   }
 
   async refreshStatus(context: RequestContext, id: string) {
-    const instruction = get<PaymentInstruction>(this.store, 'paymentInstructions', context, id);
+    const instruction = await get<PaymentInstruction>(this.store, 'paymentInstructions', context, id);
     if (instruction.status !== 'SUBMITTED') throw new Error('PAYMENT_INSTRUCTION_NOT_SUBMITTED');
     if (!this.gateway) throw new Error('PAYMENT_PROVIDER_GATEWAY_REQUIRED');
     const result = await this.gateway.getStatus({
@@ -323,18 +323,18 @@ export class PaymentExecutionEngine {
       status: result.status,
       settledAt: result.status === 'SETTLED' ? now() : instruction.settledAt,
     };
-    this.store.replace('paymentInstructions', updated);
-    emit(this.store, context, 'PaymentInstructionStatusChanged', 'PaymentInstruction', id, { status: result.status });
+    await this.store.replace('paymentInstructions', updated);
+    await emit(this.store, context, 'PaymentInstructionStatusChanged', 'PaymentInstruction', id, { status: result.status });
     return updated;
   }
 
-  reverse(context: RequestContext, input: { id: string; reason: string }) {
-    const instruction = get<PaymentInstruction>(this.store, 'paymentInstructions', context, input.id);
+  async reverse(context: RequestContext, input: { id: string; reason: string }) {
+    const instruction = await get<PaymentInstruction>(this.store, 'paymentInstructions', context, input.id);
     if (instruction.status !== 'SETTLED') throw new Error('PAYMENT_INSTRUCTION_NOT_SETTLED');
     if (!input.reason.trim()) throw new Error('REVERSAL_REASON_REQUIRED');
     const reversed: PaymentInstruction = { ...instruction, status: 'REVERSED' };
-    this.store.replace('paymentInstructions', reversed);
-    emit(this.store, context, 'PaymentInstructionReversed', 'PaymentInstruction', input.id, { reason: input.reason });
+    await this.store.replace('paymentInstructions', reversed);
+    await emit(this.store, context, 'PaymentInstructionReversed', 'PaymentInstruction', input.id, { reason: input.reason });
     return reversed;
   }
 }
@@ -367,7 +367,7 @@ export type ReconciliationRecord = {
 export class ReconciliationLedgerEngine {
   constructor(private readonly store: TrustPersistence) {}
 
-  record(
+  async record(
     context: RequestContext,
     input: {
       paymentInstructionId: string;
@@ -379,15 +379,15 @@ export class ReconciliationLedgerEngine {
   ) {
     requireIntegerMinorUnits(input.amountMinor, 'AMOUNT');
     const entry: LedgerEntry = { id: randomUUID(), workspaceId: ws(context), ...input, recordedAt: now() };
-    this.store.append('ledgerEntries', entry);
-    emit(this.store, context, 'LedgerEntryRecorded', 'LedgerEntry', entry.id, {
+    await this.store.append('ledgerEntries', entry);
+    await emit(this.store, context, 'LedgerEntryRecorded', 'LedgerEntry', entry.id, {
       paymentInstructionId: entry.paymentInstructionId,
       entryType: entry.entryType,
     });
     return entry;
   }
 
-  reconcile(
+  async reconcile(
     context: RequestContext,
     input: {
       paymentInstructionId: string;
@@ -409,18 +409,18 @@ export class ReconciliationLedgerEngine {
       exceptionReason: matched ? undefined : 'AMOUNT_MISMATCH',
       reconciledAt: now(),
     };
-    this.store.append('reconciliationRecords', record);
-    emit(this.store, context, 'ReconciliationRecorded', 'ReconciliationRecord', record.id, {
+    await this.store.append('reconciliationRecords', record);
+    await emit(this.store, context, 'ReconciliationRecorded', 'ReconciliationRecord', record.id, {
       paymentInstructionId: record.paymentInstructionId,
       matched,
     });
     return record;
   }
 
-  exceptions(context: RequestContext) {
+  async exceptions(context: RequestContext) {
     const workspaceId = ws(context);
-    return this.store
-      .list<ReconciliationRecord>('reconciliationRecords')
+    return (await this.store
+      .list<ReconciliationRecord>('reconciliationRecords'))
       .filter((x) => x.workspaceId === workspaceId && !x.matched);
   }
 }
@@ -480,7 +480,7 @@ export type DisputeHold = {
 export class DisputeResolutionEngine {
   constructor(private readonly store: TrustPersistence) {}
 
-  raise(context: RequestContext, input: { releaseRequestId: string; kind: Dispute['kind']; description: string }) {
+  async raise(context: RequestContext, input: { releaseRequestId: string; kind: Dispute['kind']; description: string }) {
     if (!input.description.trim()) throw new Error('DESCRIPTION_REQUIRED');
     const workspaceId = ws(context);
     const dispute: Dispute = {
@@ -491,7 +491,7 @@ export class DisputeResolutionEngine {
       raisedBy: context.actorUserId,
       createdAt: now(),
     };
-    this.store.append('disputes', dispute);
+    await this.store.append('disputes', dispute);
     const hold: DisputeHold = {
       id: randomUUID(),
       workspaceId,
@@ -500,20 +500,20 @@ export class DisputeResolutionEngine {
       active: true,
       placedAt: now(),
     };
-    this.store.append('disputeHolds', hold);
-    emit(this.store, context, 'DisputeRaised', 'Dispute', dispute.id, {
+    await this.store.append('disputeHolds', hold);
+    await emit(this.store, context, 'DisputeRaised', 'Dispute', dispute.id, {
       releaseRequestId: dispute.releaseRequestId,
       kind: dispute.kind,
     });
-    emit(this.store, context, 'DisputeHoldPlaced', 'DisputeHold', hold.id, {
+    await emit(this.store, context, 'DisputeHoldPlaced', 'DisputeHold', hold.id, {
       disputeId: hold.disputeId,
       releaseRequestId: hold.releaseRequestId,
     });
     return dispute;
   }
 
-  submitEvidence(context: RequestContext, input: { disputeId: string; reference: string; description: string }) {
-    const dispute = get<Dispute>(this.store, 'disputes', context, input.disputeId);
+  async submitEvidence(context: RequestContext, input: { disputeId: string; reference: string; description: string }) {
+    const dispute = await get<Dispute>(this.store, 'disputes', context, input.disputeId);
     if (dispute.status === 'CLOSED') throw new Error('DISPUTE_CLOSED');
     const evidence: DisputeEvidence = {
       id: randomUUID(),
@@ -522,22 +522,22 @@ export class DisputeResolutionEngine {
       submittedBy: context.actorUserId,
       submittedAt: now(),
     };
-    this.store.append('disputeEvidence', evidence);
-    emit(this.store, context, 'DisputeEvidenceSubmitted', 'Dispute', dispute.id, { evidenceId: evidence.id });
+    await this.store.append('disputeEvidence', evidence);
+    await emit(this.store, context, 'DisputeEvidenceSubmitted', 'Dispute', dispute.id, { evidenceId: evidence.id });
     return evidence;
   }
 
-  submitPosition(context: RequestContext, input: { disputeId: string; partyId: string; position: string }) {
-    const dispute = get<Dispute>(this.store, 'disputes', context, input.disputeId);
+  async submitPosition(context: RequestContext, input: { disputeId: string; partyId: string; position: string }) {
+    const dispute = await get<Dispute>(this.store, 'disputes', context, input.disputeId);
     if (dispute.status === 'CLOSED') throw new Error('DISPUTE_CLOSED');
     const position: DisputePosition = { id: randomUUID(), workspaceId: ws(context), ...input, submittedAt: now() };
-    this.store.append('disputePositions', position);
-    emit(this.store, context, 'DisputePositionSubmitted', 'Dispute', dispute.id, { partyId: input.partyId });
+    await this.store.append('disputePositions', position);
+    await emit(this.store, context, 'DisputePositionSubmitted', 'Dispute', dispute.id, { partyId: input.partyId });
     return position;
   }
 
-  decide(context: RequestContext, input: { disputeId: string; decision: DisputeDecision['decision']; rationale: string }) {
-    const dispute = get<Dispute>(this.store, 'disputes', context, input.disputeId);
+  async decide(context: RequestContext, input: { disputeId: string; decision: DisputeDecision['decision']; rationale: string }) {
+    const dispute = await get<Dispute>(this.store, 'disputes', context, input.disputeId);
     if (dispute.status !== 'OPEN' && dispute.status !== 'MEDIATION') throw new Error('DISPUTE_NOT_DECIDABLE');
     if (!input.rationale.trim()) throw new Error('RATIONALE_REQUIRED');
     const decision: DisputeDecision = {
@@ -549,45 +549,45 @@ export class DisputeResolutionEngine {
       decidedBy: context.actorUserId,
       decidedAt: now(),
     };
-    this.store.append('disputeDecisions', decision);
-    this.store.replace('disputes', { ...dispute, status: 'DECIDED' });
-    emit(this.store, context, 'DisputeDecided', 'Dispute', dispute.id, { decision: input.decision });
+    await this.store.append('disputeDecisions', decision);
+    await this.store.replace('disputes', { ...dispute, status: 'DECIDED' });
+    await emit(this.store, context, 'DisputeDecided', 'Dispute', dispute.id, { decision: input.decision });
     return decision;
   }
 
-  appeal(context: RequestContext, input: { disputeId: string; reason: string }) {
-    const dispute = get<Dispute>(this.store, 'disputes', context, input.disputeId);
+  async appeal(context: RequestContext, input: { disputeId: string; reason: string }) {
+    const dispute = await get<Dispute>(this.store, 'disputes', context, input.disputeId);
     if (dispute.status !== 'DECIDED') throw new Error('DISPUTE_NOT_DECIDED');
     if (!input.reason.trim()) throw new Error('APPEAL_REASON_REQUIRED');
     const appealed: Dispute = { ...dispute, status: 'APPEALED' };
-    this.store.replace('disputes', appealed);
-    emit(this.store, context, 'DisputeAppealed', 'Dispute', dispute.id, { reason: input.reason });
+    await this.store.replace('disputes', appealed);
+    await emit(this.store, context, 'DisputeAppealed', 'Dispute', dispute.id, { reason: input.reason });
     return appealed;
   }
 
-  close(context: RequestContext, disputeId: string) {
-    const dispute = get<Dispute>(this.store, 'disputes', context, disputeId);
+  async close(context: RequestContext, disputeId: string) {
+    const dispute = await get<Dispute>(this.store, 'disputes', context, disputeId);
     if (dispute.status !== 'DECIDED' && dispute.status !== 'APPEALED') throw new Error('DISPUTE_NOT_RESOLVED');
     const workspaceId = ws(context);
     const closed: Dispute = { ...dispute, status: 'CLOSED' };
-    this.store.replace('disputes', closed);
-    for (const hold of this.store
-      .list<DisputeHold>('disputeHolds')
+    await this.store.replace('disputes', closed);
+    for (const hold of (await this.store
+      .list<DisputeHold>('disputeHolds'))
       .filter((x) => x.workspaceId === workspaceId && x.disputeId === disputeId && x.active)) {
-      this.store.replace('disputeHolds', { ...hold, active: false, releasedAt: now() });
-      emit(this.store, context, 'DisputeHoldReleased', 'DisputeHold', hold.id, {
+      await this.store.replace('disputeHolds', { ...hold, active: false, releasedAt: now() });
+      await emit(this.store, context, 'DisputeHoldReleased', 'DisputeHold', hold.id, {
         disputeId: hold.disputeId,
         releaseRequestId: hold.releaseRequestId,
       });
     }
-    emit(this.store, context, 'DisputeClosed', 'Dispute', dispute.id, {});
+    await emit(this.store, context, 'DisputeClosed', 'Dispute', dispute.id, {});
     return closed;
   }
 
-  isHeld(context: RequestContext, releaseRequestId: string) {
+  async isHeld(context: RequestContext, releaseRequestId: string) {
     const workspaceId = ws(context);
-    return this.store
-      .list<DisputeHold>('disputeHolds')
+    return (await this.store
+      .list<DisputeHold>('disputeHolds'))
       .some((x) => x.workspaceId === workspaceId && x.releaseRequestId === releaseRequestId && x.active);
   }
 }
@@ -621,7 +621,7 @@ export type FinancialClosureCertificate = {
 export class FinalSettlementEngine {
   constructor(private readonly store: TrustPersistence) {}
 
-  account(
+  async account(
     context: RequestContext,
     input: {
       milestoneId: string;
@@ -644,34 +644,34 @@ export class FinalSettlementEngine {
       status: 'DRAFT',
       createdAt: now(),
     };
-    this.store.append('finalSettlementAccounts', account);
-    emit(this.store, context, 'FinalSettlementAccountOpened', 'FinalSettlementAccount', account.id, {
+    await this.store.append('finalSettlementAccounts', account);
+    await emit(this.store, context, 'FinalSettlementAccountOpened', 'FinalSettlementAccount', account.id, {
       milestoneId: account.milestoneId,
       outstandingAmountMinor: account.outstandingAmountMinor,
     });
     return account;
   }
 
-  close(context: RequestContext, input: { id: string; noOpenDisputes: boolean }) {
-    const account = get<FinalSettlementAccount>(this.store, 'finalSettlementAccounts', context, input.id);
+  async close(context: RequestContext, input: { id: string; noOpenDisputes: boolean }) {
+    const account = await get<FinalSettlementAccount>(this.store, 'finalSettlementAccounts', context, input.id);
     if (account.status !== 'DRAFT') throw new Error('ACCOUNT_NOT_DRAFT');
     if (account.outstandingAmountMinor > 0) throw new Error('OUTSTANDING_BALANCE_UNRESOLVED');
     if (!input.noOpenDisputes) throw new Error('OPEN_DISPUTES_UNRESOLVED');
     const closed: FinalSettlementAccount = { ...account, status: 'CLOSED', closedAt: now() };
-    this.store.replace('finalSettlementAccounts', closed);
-    emit(this.store, context, 'FinalSettlementAccountClosed', 'FinalSettlementAccount', account.id, {
+    await this.store.replace('finalSettlementAccounts', closed);
+    await emit(this.store, context, 'FinalSettlementAccountClosed', 'FinalSettlementAccount', account.id, {
       milestoneId: account.milestoneId,
     });
     return closed;
   }
 
-  issueCertificate(context: RequestContext, finalSettlementAccountId: string) {
-    const account = get<FinalSettlementAccount>(this.store, 'finalSettlementAccounts', context, finalSettlementAccountId);
+  async issueCertificate(context: RequestContext, finalSettlementAccountId: string) {
+    const account = await get<FinalSettlementAccount>(this.store, 'finalSettlementAccounts', context, finalSettlementAccountId);
     if (account.status !== 'CLOSED') throw new Error('ACCOUNT_NOT_CLOSED');
     const workspaceId = ws(context);
     if (
-      this.store
-        .list<FinancialClosureCertificate>('financialClosureCertificates')
+      (await this.store
+        .list<FinancialClosureCertificate>('financialClosureCertificates'))
         .some((x) => x.workspaceId === workspaceId && x.finalSettlementAccountId === account.id && x.status === 'ISSUED')
     )
       throw new Error('CLOSURE_CERTIFICATE_ALREADY_ISSUED');
@@ -689,8 +689,8 @@ export class FinalSettlementEngine {
       issuedBy: context.actorUserId,
       issuedAt: now(),
     };
-    this.store.append('financialClosureCertificates', certificate);
-    emit(this.store, context, 'FinancialClosureCertificateIssued', 'FinancialClosureCertificate', certificate.id, {
+    await this.store.append('financialClosureCertificates', certificate);
+    await emit(this.store, context, 'FinancialClosureCertificateIssued', 'FinancialClosureCertificate', certificate.id, {
       milestoneId: certificate.milestoneId,
     });
     return certificate;

@@ -1,1 +1,1 @@
-import {errorResponse,orchestration,authorizedContextForRoute} from '../../../../lib/trust-app';export async function POST(r:Request){try{return Response.json(orchestration.workspaces.open(authorizedContextForRoute(r),await r.json()),{status:201})}catch(e){return errorResponse(e)}}
+import {errorResponse,orchestration,authorizedContextForRoute} from '../../../../lib/trust-app';export async function POST(r:Request){try{return Response.json(await orchestration.workspaces.open(await authorizedContextForRoute(r),await r.json()),{status:201})}catch(e){return errorResponse(e)}}

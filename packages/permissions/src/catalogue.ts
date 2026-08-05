@@ -533,11 +533,11 @@ export type BootstrapInput = {
  * Segregation rules are installed before the grants they constrain, so no window
  * exists in which the founding grants are in place and the rules are not.
  */
-export function bootstrapWorkspaceGrants(
+export async function bootstrapWorkspaceGrants(
   store: TrustPersistence,
   input: BootstrapInput,
   config: CatalogueConfig = loadCatalogueConfig(),
-): WorkspaceBootstrap {
+): Promise<WorkspaceBootstrap> {
   if (!config.bootstrapEnabled) {
     throw new CatalogueError(
       'CATALOGUE_BOOTSTRAP_DISABLED',
@@ -550,8 +550,8 @@ export function bootstrapWorkspaceGrants(
     throw new CatalogueError('CATALOGUE_ROLE_NOT_BOOTSTRAPPABLE', definition.role);
   }
 
-  const membership = store
-    .list<MembershipRecord>('memberships')
+  const membership = (await store
+    .list<MembershipRecord>('memberships'))
     .find(
       (record) =>
         record.workspaceId === input.workspaceId &&
@@ -566,8 +566,8 @@ export function bootstrapWorkspaceGrants(
     );
   }
 
-  const existing = store
-    .list<PermissionGrant>('permissionGrants')
+  const existing = (await store
+    .list<PermissionGrant>('permissionGrants'))
     .some((grant) => grant.workspaceId === input.workspaceId);
   if (existing) {
     throw new CatalogueError('CATALOGUE_ALREADY_BOOTSTRAPPED', input.workspaceId);
@@ -577,9 +577,10 @@ export function bootstrapWorkspaceGrants(
   const createdAt = clock().toISOString();
   const effectiveFrom = input.effectiveFrom ?? createdAt;
 
-  const segregationRuleIds = installSegregationRules(store, input.workspaceId, createdAt);
+  const segregationRuleIds = await installSegregationRules(store, input.workspaceId, createdAt);
 
-  const grantIds = definition.permissionKeys.map((permissionKey) => {
+  const grantIds = await Promise.all(
+    definition.permissionKeys.map(async (permissionKey) => {
     const grant: PermissionGrant = {
       id: randomUUID(),
       workspaceId: input.workspaceId,
@@ -592,14 +593,15 @@ export function bootstrapWorkspaceGrants(
       effectiveFrom,
       createdAt,
     };
-    store.append('permissionGrants', grant);
+    await store.append('permissionGrants', grant);
     return grant.id;
-  });
+    }),
+  );
 
   // One audit record for the founding act, plus the per-grant trail the service
   // writes on the ordinary path. The founding record is what an auditor looks for
   // to answer "where did this workspace's first authority come from".
-  store.audit({
+  await store.audit({
     tenantId: input.tenantId,
     workspaceId: input.workspaceId,
     actorId: input.founderUserId,
@@ -616,7 +618,7 @@ export function bootstrapWorkspaceGrants(
     },
   });
 
-  store.emit({
+  await store.emit({
     tenantId: input.tenantId,
     workspaceId: input.workspaceId,
     aggregateType: 'PermissionGrant',
@@ -644,20 +646,21 @@ export function bootstrapWorkspaceGrants(
  * a workspace may have tightened `enforcementMode` and rewriting it here would
  * quietly loosen a control.
  */
-function installSegregationRules(
+async function installSegregationRules(
   store: TrustPersistence,
   workspaceId: string,
   createdAt: string,
-): string[] {
+): Promise<string[]> {
   const present = new Set(
-    store
-      .list<SegregationRule>('segregationRules')
+    (await store
+      .list<SegregationRule>('segregationRules'))
       .filter((rule) => rule.workspaceId === workspaceId)
       .map((rule) => rule.ruleKey),
   );
 
-  return SEGREGATION_CATALOGUE.filter((definition) => !present.has(definition.ruleKey)).map(
-    (definition) => {
+  return Promise.all(
+    SEGREGATION_CATALOGUE.filter((definition) => !present.has(definition.ruleKey)).map(
+      async (definition) => {
       const rule: SegregationRule = {
         id: randomUUID(),
         workspaceId,
@@ -670,9 +673,10 @@ function installSegregationRules(
         createdAt,
         version: 1,
       };
-      store.append('segregationRules', rule);
+      await store.append('segregationRules', rule);
       return rule.id;
-    },
+      },
+    ),
   );
 }
 
@@ -687,12 +691,12 @@ export interface RoleGrantAuthority {
   grant(
     context: RequestContext,
     input: Omit<PermissionGrant, 'id' | 'workspaceId' | 'createdAt'>,
-  ): PermissionGrant;
+  ): Promise<PermissionGrant>;
   evaluate(
     context: RequestContext,
     permissionKey: string,
     scopeId?: string,
-  ): PermissionDecision;
+  ): Promise<PermissionDecision>;
 }
 
 export type GrantRoleInput = {
@@ -717,19 +721,19 @@ export type GrantRoleInput = {
  * than a growing pile of duplicate grants, and the returned list says what actually
  * changed.
  */
-export function grantRole(
+export async function grantRole(
   authority: RoleGrantAuthority,
   store: TrustPersistence,
   context: RequestContext,
   input: GrantRoleInput,
-): PermissionGrant[] {
+): Promise<PermissionGrant[]> {
   requireActiveWorkspace(context);
   const definition = requireRole(input.role);
 
-  const held = heldPermissionKeys(store, context.activeWorkspaceId, input.userId);
+  const held = await heldPermissionKeys(store, context.activeWorkspaceId, input.userId);
   const conflicts = segregationConflicts([...held, ...definition.permissionKeys]);
   if (conflicts.length > 0) {
-    store.audit({
+    await store.audit({
       tenantId: context.tenantId,
       workspaceId: context.activeWorkspaceId,
       actorId: context.actorUserId,
@@ -751,10 +755,15 @@ export function grantRole(
 
   const effectiveFrom = input.effectiveFrom ?? new Date().toISOString();
 
-  return definition.permissionKeys
-    .filter((permissionKey) => !held.has(permissionKey))
-    .map((permissionKey) =>
-      authority.grant(context, {
+  // Sequential rather than Promise.all: each grant appends to the same collection
+  // and writes an audit record, and the audit chain links each record to the one
+  // before it. Issuing them concurrently would interleave those links.
+  const granted: PermissionGrant[] = [];
+  for (const permissionKey of definition.permissionKeys.filter(
+    (candidate) => !held.has(candidate),
+  )) {
+    granted.push(
+      await authority.grant(context, {
         userId: input.userId,
         permissionKey,
         effect: 'ALLOW',
@@ -766,6 +775,8 @@ export function grantRole(
         effectiveTo: input.effectiveTo,
       }),
     );
+  }
+  return granted;
 }
 
 /**
@@ -775,16 +786,16 @@ export function grantRole(
  * grants without a role: a delegated payment key must count towards a segregation
  * conflict just as a role-granted one does.
  */
-export function heldPermissionKeys(
+export async function heldPermissionKeys(
   store: TrustPersistence,
   workspaceId: string,
   userId: string,
   at: Date = new Date(),
-): Set<string> {
+): Promise<Set<string>> {
   const now = at.getTime();
   return new Set(
-    store
-      .list<PermissionGrant>('permissionGrants')
+    (await store
+      .list<PermissionGrant>('permissionGrants'))
       .filter(
         (grant) =>
           grant.workspaceId === workspaceId &&

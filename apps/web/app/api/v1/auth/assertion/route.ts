@@ -18,8 +18,8 @@ export async function POST(request: Request) {
       ?.match(/assurapay_session=([^;]+)/)?.[1];
     if (!token) throw new Error('UNAUTHENTICATED');
 
-    const body = await request.json().catch(() => ({}));
-    const issued = issueSessionAssertion({
+    const body = await (await request.json()).catch(() => ({}));
+    const issued = await issueSessionAssertion({
       rawSessionToken: token,
       workspaceId: body.workspaceId,
       purpose: body.purpose,

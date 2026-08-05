@@ -89,7 +89,7 @@ type MembershipRecord = {
  * tested without constructing one.
  */
 export interface SessionResolver {
-  resolveSession(rawToken: string): SessionRecord;
+  resolveSession(rawToken: string): Promise<SessionRecord>;
 }
 
 export type IssueAssertionInput = {
@@ -140,12 +140,12 @@ function meetsAssurance(actual: AssuranceLevel, minimum: AssuranceLevel): boolea
  * can show the user what was minted; they contain no secret, and the signature is
  * only inside the token.
  */
-export function issueAssertionForSession(
+export async function issueAssertionForSession(
   gateway: IdentityGateway,
   sessions: SessionResolver,
   store: TrustPersistence,
   input: IssueAssertionInput,
-): IssuedAssertion {
+): Promise<IssuedAssertion> {
   const now = input.now ?? new Date();
 
   // resolveSession already rejects an unknown, revoked or expired session and an
@@ -154,7 +154,7 @@ export function issueAssertionForSession(
   // token is unknown or merely revoked is a distinction they have not earned.
   let session: SessionRecord;
   try {
-    session = sessions.resolveSession(input.rawSessionToken);
+    session = await sessions.resolveSession(input.rawSessionToken);
   } catch {
     throw new AssertionIssuanceError('ISSUANCE_SESSION_INVALID');
   }
@@ -174,7 +174,7 @@ export function issueAssertionForSession(
     );
   }
 
-  const workspace = resolveWorkspace(store, session, input.workspaceId);
+  const workspace = await resolveWorkspace(store, session, input.workspaceId);
 
   const principal: AuthenticatedPrincipal = {
     // Every field is read from the session record. Nothing here is caller-supplied,
@@ -186,7 +186,7 @@ export function issueAssertionForSession(
     tenantId: workspace?.tenantId,
   };
 
-  const issued = gateway.issue(principal, input.correlationId, {
+  const issued = await gateway.issue(principal, input.correlationId, {
     purpose: input.purpose,
     now,
   });
@@ -198,7 +198,7 @@ export function issueAssertionForSession(
   const boundedBySession = sessionExpiry < assertionExpiry;
   const expiresAt = new Date(Math.min(assertionExpiry, sessionExpiry)).toISOString();
 
-  store.audit({
+  await store.audit({
     tenantId: workspace?.tenantId,
     workspaceId: workspace?.id,
     actorId: session.userId,
@@ -240,23 +240,23 @@ export function issueAssertionForSession(
  * workspace the caller has no membership in would put a claim into circulation that
  * nothing should ever have produced.
  */
-function resolveWorkspace(
+async function resolveWorkspace(
   store: TrustPersistence,
   session: SessionRecord,
   requested?: string,
-): WorkspaceRecord | undefined {
+): Promise<WorkspaceRecord | undefined> {
   const target = requested?.trim() || session.workspaceId?.trim();
   if (!target) return undefined;
 
-  const workspace = store
-    .list<WorkspaceRecord>('trustWorkspaces')
+  const workspace = (await store
+    .list<WorkspaceRecord>('trustWorkspaces'))
     .find((entry) => entry.id === target && entry.status === 'ACTIVE');
   if (!workspace) {
     throw new AssertionIssuanceError('ISSUANCE_WORKSPACE_UNKNOWN', target);
   }
 
-  const member = store
-    .list<MembershipRecord>('memberships')
+  const member = (await store
+    .list<MembershipRecord>('memberships'))
     .some(
       (entry) =>
         entry.workspaceId === target &&

@@ -92,18 +92,18 @@ export class GrantAdministrationError extends Error {
  * identity-class caller need not have selected a workspace yet — that is the state
  * a founder is normally in.
  */
-export function foundWorkspace(
+export async function foundWorkspace(
   context: RequestContext,
   workspaceId: string,
-): WorkspaceBootstrap {
-  const workspace = trustStore
-    .list<WorkspaceRecord>('trustWorkspaces')
+): Promise<WorkspaceBootstrap> {
+  const workspace = (await trustStore
+    .list<WorkspaceRecord>('trustWorkspaces'))
     .find((entry) => entry.id === workspaceId && entry.status === 'ACTIVE');
   if (!workspace) {
     throw new GrantAdministrationError('GRANT_ADMIN_WORKSPACE_UNKNOWN', workspaceId);
   }
 
-  return bootstrapFoundingAdministrator({
+  return await bootstrapFoundingAdministrator({
     tenantId: workspace.tenantId,
     workspaceId: workspace.id,
     founderUserId: context.actorUserId,
@@ -126,10 +126,10 @@ export type RoleAssignmentInput = {
  * enforcement proved membership and permission there, and accepting a workspace id
  * from the body would let an administrator of one workspace grant roles in another.
  */
-export function assignWorkspaceRole(
+export async function assignWorkspaceRole(
   context: RequestContext,
   input: RoleAssignmentInput,
-): PermissionGrant[] {
+): Promise<PermissionGrant[]> {
   if (!input?.userId?.trim()) {
     throw new GrantAdministrationError('GRANT_ADMIN_USER_REQUIRED');
   }
@@ -137,7 +137,7 @@ export function assignWorkspaceRole(
   // catalogue's own error code rather than a partial assignment.
   requireRole(input.role);
 
-  return assignRole(context, {
+  return await assignRole(context, {
     userId: input.userId,
     role: input.role,
     effectiveFrom: input.effectiveFrom,

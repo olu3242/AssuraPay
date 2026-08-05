@@ -1,2 +1,2 @@
 import {errorResponse,governance,authorizedContextForRoute} from '../../../../../../lib/trust-app';
-export async function POST(request:Request,{params}:{params:{id:string}}){try{const body=await request.json();return Response.json(governance.certifications.decide(authorizedContextForRoute(request),params.id,body.decision,body.rationale,body.evidenceReferences??[]),{status:201});}catch(error){return errorResponse(error)}}
+export async function POST(request:Request,{params}:{params:{id:string}}){try{const body=await request.json();return Response.json(await governance.certifications.decide(await authorizedContextForRoute(request),params.id,body.decision,body.rationale,body.evidenceReferences??[]),{status:201});}catch(error){return errorResponse(error)}}

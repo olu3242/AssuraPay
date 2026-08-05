@@ -169,11 +169,11 @@ export class IdentityGateway {
    * Approved identity fields are copied mechanically. A caller cannot supply a
    * claims object, so it cannot smuggle in a field the gateway does not know about.
    */
-  issue(
+  async issue(
     principal: AuthenticatedPrincipal,
     correlationId: string,
     options: { purpose?: string; now?: Date } = {},
-  ): { token: string; claims: IdentityAssertionClaims } {
+  ): Promise<{ token: string; claims: IdentityAssertionClaims }> {
     if (!principal?.subject?.trim() || !principal?.sessionId?.trim()) {
       throw new IdentityGatewayError(
         'GATEWAY_PRINCIPAL_INVALID',
@@ -212,7 +212,7 @@ export class IdentityGateway {
       this.keyring,
     );
 
-    this.audit('IdentityAssertionIssued', issued.claims, correlationId, {
+    await this.audit('IdentityAssertionIssued', issued.claims, correlationId, {
       purpose: options.purpose ?? 'unscoped',
     });
 
@@ -224,12 +224,12 @@ export class IdentityGateway {
    * per-request identity of read paths. The nonce survives, so a later acting path
    * can still consume the same assertion exactly once.
    */
-  verify(
+  async verify(
     token: string,
     expectations: IdentityVerificationExpectations = {},
-  ): IdentityAssertionClaims {
+  ): Promise<IdentityAssertionClaims> {
     return verifyIdentityAssertion(
-      this.requireToken(token),
+      await this.requireToken(token),
       this.keyring,
       this.verifyOptions(expectations),
     );
@@ -240,12 +240,12 @@ export class IdentityGateway {
    * acting path: the nonce is burned, so the same assertion cannot authorise a
    * second action.
    */
-  consume(
+  async consume(
     token: string,
     correlationId: string,
     expectations: IdentityVerificationExpectations = {},
-  ): IdentityAssertionClaims {
-    const present = this.requireToken(token, correlationId);
+  ): Promise<IdentityAssertionClaims> {
+    const present = await this.requireToken(token, correlationId);
     try {
       const claims = consumeIdentityAssertion(
         present,
@@ -253,12 +253,12 @@ export class IdentityGateway {
         this.replayStore,
         this.verifyOptions(expectations),
       );
-      this.audit('IdentityAssertionConsumed', claims, correlationId, {
+      await this.audit('IdentityAssertionConsumed', claims, correlationId, {
         replayProtection: this.replayStore.guarantee,
       });
       return claims;
     } catch (error) {
-      this.reject(error, present, correlationId);
+      await this.reject(error, present, correlationId);
       throw error;
     }
   }
@@ -267,13 +267,13 @@ export class IdentityGateway {
    * Verified identity context for a request, without consuming the assertion.
    * Read paths call this; acting paths call `consumeRequestContext`.
    */
-  authenticate(
+  async authenticate(
     request: { headers: { get(name: string): string | null } },
     correlationId: string,
     expectations: IdentityVerificationExpectations = {},
-  ): RequestContext {
+  ): Promise<RequestContext> {
     const token = request.headers.get(ASSERTION_HEADER);
-    const present = this.requireToken(token, correlationId);
+    const present = await this.requireToken(token, correlationId);
     try {
       const claims = verifyIdentityAssertion(
         present,
@@ -282,18 +282,18 @@ export class IdentityGateway {
       );
       return resolveRequestContext(claims, correlationId);
     } catch (error) {
-      this.reject(error, present, correlationId);
+      await this.reject(error, present, correlationId);
       throw error;
     }
   }
 
   /** Verified identity context for an acting path, consuming the assertion. */
-  consumeRequestContext(
+  async consumeRequestContext(
     request: { headers: { get(name: string): string | null } },
     correlationId: string,
     expectations: IdentityVerificationExpectations = {},
-  ): RequestContext {
-    const claims = this.consume(
+  ): Promise<RequestContext> {
+    const claims = await this.consume(
       request.headers.get(ASSERTION_HEADER) ?? '',
       correlationId,
       expectations,
@@ -313,12 +313,12 @@ export class IdentityGateway {
     );
   }
 
-  private requireToken(token: string | null | undefined, correlationId?: string): string {
+  private async requireToken(token: string | null | undefined, correlationId?: string): Promise<string> {
     const present = token?.trim();
     if (present) return present;
 
     if (correlationId) {
-      this.store.audit({
+      await this.store.audit({
         actorId: 'anonymous',
         eventType: 'IdentityAssertionRejected',
         aggregateType: 'IdentityAssertion',
@@ -347,13 +347,13 @@ export class IdentityGateway {
     };
   }
 
-  private audit(
+  private async audit(
     eventType: string,
     claims: IdentityAssertionClaims,
     correlationId: string,
     extra: Record<string, unknown>,
-  ): void {
-    this.store.audit({
+  ): Promise<void> {
+    await this.store.audit({
       actorId: claims.subject,
       eventType,
       aggregateType: 'IdentityAssertion',
@@ -378,13 +378,13 @@ export class IdentityGateway {
    * computed here, before the event reaches the store, so the raw assertion never
    * crosses that boundary and the record does not rely on downstream masking.
    */
-  private reject(error: unknown, token: string, correlationId: string): void {
+  private async reject(error: unknown, token: string, correlationId: string): Promise<void> {
     const reason =
       error instanceof IdentityAssertionError || error instanceof IdentityGatewayError
         ? error.code
         : 'ASSERTION_MALFORMED';
 
-    this.store.audit({
+    await this.store.audit({
       actorId: 'anonymous',
       eventType: 'IdentityAssertionRejected',
       aggregateType: 'IdentityAssertion',

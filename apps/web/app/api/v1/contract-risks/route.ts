@@ -1,1 +1,1 @@
-import {errorResponse,intelligence,authorizedContextForRoute} from '../../../../lib/trust-app';export async function POST(r:Request){try{return Response.json(intelligence.risk.assess(authorizedContextForRoute(r),await r.json()),{status:201})}catch(e){return errorResponse(e)}}
+import {errorResponse,intelligence,authorizedContextForRoute} from '../../../../lib/trust-app';export async function POST(r:Request){try{return Response.json(await intelligence.risk.assess(await authorizedContextForRoute(r),await r.json()),{status:201})}catch(e){return errorResponse(e)}}

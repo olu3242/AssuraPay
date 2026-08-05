@@ -1,1 +1,1 @@
-import {enterprise,errorResponse,authorizedContextForRoute} from '../../../../lib/trust-app';export async function POST(r:Request){try{return Response.json(enterprise.settlementIndex.compute(authorizedContextForRoute(r),await r.json()),{status:201})}catch(e){return errorResponse(e)}}
+import {enterprise,errorResponse,authorizedContextForRoute} from '../../../../lib/trust-app';export async function POST(r:Request){try{return Response.json(await enterprise.settlementIndex.compute(await authorizedContextForRoute(r),await r.json()),{status:201})}catch(e){return errorResponse(e)}}

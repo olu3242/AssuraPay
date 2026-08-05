@@ -9,19 +9,19 @@ function ws(context: RequestContext) {
   requireActiveWorkspace(context);
   return context.activeWorkspaceId;
 }
-function get<T extends { id: string; workspaceId: string }>(
+async function get<T extends { id: string; workspaceId: string }>(
   store: TrustPersistence,
   collection: string,
   context: RequestContext,
   id: string,
 ) {
-  const found = store
-    .list<T>(collection)
+  const found = (await store
+    .list<T>(collection))
     .find((x) => x.id === id && x.workspaceId === ws(context));
   if (!found) throw new Error('NOT_FOUND');
   return found;
 }
-function emit(
+async function emit(
   store: TrustPersistence,
   context: RequestContext,
   eventType: string,
@@ -29,7 +29,7 @@ function emit(
   aggregateId: string,
   payload: Record<string, unknown> = {},
 ) {
-  store.audit({
+  await store.audit({
     tenantId: context.tenantId,
     workspaceId: ws(context),
     actorId: context.actorUserId,
@@ -39,7 +39,7 @@ function emit(
     correlationId: context.correlationId,
     metadata: payload,
   });
-  store.emit({
+  await store.emit({
     tenantId: context.tenantId,
     workspaceId: ws(context),
     aggregateType,
@@ -77,13 +77,13 @@ export type Inspection = {
 export class InspectionEngine {
   constructor(private readonly store: TrustPersistence) {}
 
-  schedule(
+  async schedule(
     context: RequestContext,
     input: { workItemId: string; scheduledFor: string; checklist: ChecklistItem[]; reinspectionOfId?: string },
   ) {
     if (!input.checklist.length) throw new Error('CHECKLIST_REQUIRED');
     if (input.reinspectionOfId) {
-      const prior = get<Inspection>(this.store, 'inspections', context, input.reinspectionOfId);
+      const prior = await get<Inspection>(this.store, 'inspections', context, input.reinspectionOfId);
       if (prior.status !== 'COMPLETED' || prior.passed) throw new Error('REINSPECTION_REQUIRES_PRIOR_FAILURE');
     }
     const inspection: Inspection = {
@@ -95,16 +95,16 @@ export class InspectionEngine {
       passed: false,
       createdAt: now(),
     };
-    this.store.append('inspections', inspection);
-    emit(this.store, context, 'InspectionScheduled', 'Inspection', inspection.id, {
+    await this.store.append('inspections', inspection);
+    await emit(this.store, context, 'InspectionScheduled', 'Inspection', inspection.id, {
       workItemId: inspection.workItemId,
       reinspectionOfId: inspection.reinspectionOfId,
     });
     return inspection;
   }
 
-  complete(context: RequestContext, input: { id: string; findings: InspectionFinding[] }) {
-    const inspection = get<Inspection>(this.store, 'inspections', context, input.id);
+  async complete(context: RequestContext, input: { id: string; findings: InspectionFinding[] }) {
+    const inspection = await get<Inspection>(this.store, 'inspections', context, input.id);
     if (inspection.status !== 'SCHEDULED') throw new Error('INSPECTION_NOT_SCHEDULED');
     if (
       input.findings.length !== inspection.checklist.length ||
@@ -115,8 +115,8 @@ export class InspectionEngine {
       .filter((item) => item.required)
       .every((item) => input.findings.find((f) => f.checklistItem === item.item)?.result === 'PASS');
     const completed: Inspection = { ...inspection, findings: input.findings, status: 'COMPLETED', passed };
-    this.store.replace('inspections', completed);
-    emit(this.store, context, 'InspectionCompleted', 'Inspection', inspection.id, {
+    await this.store.replace('inspections', completed);
+    await emit(this.store, context, 'InspectionCompleted', 'Inspection', inspection.id, {
       workItemId: inspection.workItemId,
       passed,
     });
@@ -156,7 +156,7 @@ export type CorrectiveActionPlan = {
 export class IssueRiskCorrectiveActionEngine {
   constructor(private readonly store: TrustPersistence) {}
 
-  raise(
+  async raise(
     context: RequestContext,
     input: { workItemId: string; kind: IssueRecord['kind']; severity: IssueRecord['severity']; description: string },
   ) {
@@ -169,29 +169,29 @@ export class IssueRiskCorrectiveActionEngine {
       raisedBy: context.actorUserId,
       createdAt: now(),
     };
-    this.store.append('issueRecords', issue);
-    emit(this.store, context, 'IssueRaised', 'IssueRecord', issue.id, {
+    await this.store.append('issueRecords', issue);
+    await emit(this.store, context, 'IssueRaised', 'IssueRecord', issue.id, {
       workItemId: issue.workItemId,
       severity: issue.severity,
     });
     return issue;
   }
 
-  escalate(context: RequestContext, input: { id: string; reason: string }) {
-    const issue = get<IssueRecord>(this.store, 'issueRecords', context, input.id);
+  async escalate(context: RequestContext, input: { id: string; reason: string }) {
+    const issue = await get<IssueRecord>(this.store, 'issueRecords', context, input.id);
     if (issue.status !== 'OPEN') throw new Error('ISSUE_NOT_OPEN');
     if (!input.reason.trim()) throw new Error('ESCALATION_REASON_REQUIRED');
     const escalated: IssueRecord = { ...issue, status: 'ESCALATED', escalatedAt: now() };
-    this.store.replace('issueRecords', escalated);
-    emit(this.store, context, 'IssueEscalated', 'IssueRecord', issue.id, { reason: input.reason });
+    await this.store.replace('issueRecords', escalated);
+    await emit(this.store, context, 'IssueEscalated', 'IssueRecord', issue.id, { reason: input.reason });
     return escalated;
   }
 
-  openCapa(
+  async openCapa(
     context: RequestContext,
     input: { issueId: string; actionPlan: string; ownerId: string; dueDate: string },
   ) {
-    const issue = get<IssueRecord>(this.store, 'issueRecords', context, input.issueId);
+    const issue = await get<IssueRecord>(this.store, 'issueRecords', context, input.issueId);
     if (issue.status !== 'OPEN' && issue.status !== 'ESCALATED') throw new Error('ISSUE_NOT_OPEN');
     if (!input.actionPlan.trim()) throw new Error('ACTION_PLAN_REQUIRED');
     const capa: CorrectiveActionPlan = {
@@ -201,49 +201,49 @@ export class IssueRiskCorrectiveActionEngine {
       status: 'OPEN',
       createdAt: now(),
     };
-    this.store.append('correctiveActionPlans', capa);
-    this.store.replace('issueRecords', { ...issue, status: 'CAPA_IN_PROGRESS' });
-    emit(this.store, context, 'CorrectiveActionPlanOpened', 'CorrectiveActionPlan', capa.id, {
+    await this.store.append('correctiveActionPlans', capa);
+    await this.store.replace('issueRecords', { ...issue, status: 'CAPA_IN_PROGRESS' });
+    await emit(this.store, context, 'CorrectiveActionPlanOpened', 'CorrectiveActionPlan', capa.id, {
       issueId: capa.issueId,
     });
     return capa;
   }
 
-  completeCapa(context: RequestContext, id: string) {
-    const capa = get<CorrectiveActionPlan>(this.store, 'correctiveActionPlans', context, id);
+  async completeCapa(context: RequestContext, id: string) {
+    const capa = await get<CorrectiveActionPlan>(this.store, 'correctiveActionPlans', context, id);
     if (capa.status !== 'OPEN') throw new Error('CAPA_NOT_OPEN');
     const completed: CorrectiveActionPlan = { ...capa, status: 'COMPLETED', completedAt: now() };
-    this.store.replace('correctiveActionPlans', completed);
-    emit(this.store, context, 'CorrectiveActionPlanCompleted', 'CorrectiveActionPlan', capa.id, {
+    await this.store.replace('correctiveActionPlans', completed);
+    await emit(this.store, context, 'CorrectiveActionPlanCompleted', 'CorrectiveActionPlan', capa.id, {
       issueId: capa.issueId,
     });
     return completed;
   }
 
-  verifyResolution(context: RequestContext, capaId: string) {
-    const capa = get<CorrectiveActionPlan>(this.store, 'correctiveActionPlans', context, capaId);
+  async verifyResolution(context: RequestContext, capaId: string) {
+    const capa = await get<CorrectiveActionPlan>(this.store, 'correctiveActionPlans', context, capaId);
     if (capa.status !== 'COMPLETED') throw new Error('CAPA_NOT_COMPLETED');
     const verified: CorrectiveActionPlan = { ...capa, status: 'VERIFIED', verifiedAt: now() };
-    this.store.replace('correctiveActionPlans', verified);
-    const issue = get<IssueRecord>(this.store, 'issueRecords', context, capa.issueId);
-    this.store.replace('issueRecords', { ...issue, status: 'RESOLVED', resolvedAt: now() });
-    emit(this.store, context, 'IssueResolved', 'IssueRecord', issue.id, { capaId });
+    await this.store.replace('correctiveActionPlans', verified);
+    const issue = await get<IssueRecord>(this.store, 'issueRecords', context, capa.issueId);
+    await this.store.replace('issueRecords', { ...issue, status: 'RESOLVED', resolvedAt: now() });
+    await emit(this.store, context, 'IssueResolved', 'IssueRecord', issue.id, { capaId });
     return verified;
   }
 
-  close(context: RequestContext, issueId: string) {
-    const issue = get<IssueRecord>(this.store, 'issueRecords', context, issueId);
+  async close(context: RequestContext, issueId: string) {
+    const issue = await get<IssueRecord>(this.store, 'issueRecords', context, issueId);
     if (issue.status !== 'RESOLVED') throw new Error('ISSUE_NOT_RESOLVED');
     const closed: IssueRecord = { ...issue, status: 'CLOSED' };
-    this.store.replace('issueRecords', closed);
-    emit(this.store, context, 'IssueClosed', 'IssueRecord', closed.id, {});
+    await this.store.replace('issueRecords', closed);
+    await emit(this.store, context, 'IssueClosed', 'IssueRecord', closed.id, {});
     return closed;
   }
 
-  blockers(context: RequestContext, workItemId: string) {
+  async blockers(context: RequestContext, workItemId: string) {
     const workspaceId = ws(context);
-    return this.store
-      .list<IssueRecord>('issueRecords')
+    return (await this.store
+      .list<IssueRecord>('issueRecords'))
       .filter(
         (x) =>
           x.workspaceId === workspaceId &&
@@ -283,7 +283,7 @@ export type ChangeApproval = {
 export class ChangeControlEngine {
   constructor(private readonly store: TrustPersistence) {}
 
-  draft(
+  async draft(
     context: RequestContext,
     input: {
       blueprintId: string;
@@ -304,28 +304,28 @@ export class ChangeControlEngine {
       status: 'DRAFT',
       createdAt: now(),
     };
-    this.store.append('changeRequests', request);
-    emit(this.store, context, 'ChangeRequestDrafted', 'ChangeRequest', request.id, {
+    await this.store.append('changeRequests', request);
+    await emit(this.store, context, 'ChangeRequestDrafted', 'ChangeRequest', request.id, {
       milestoneId: request.milestoneId,
       changeType: request.changeType,
     });
     return request;
   }
 
-  submit(context: RequestContext, id: string) {
-    const request = get<ChangeRequest>(this.store, 'changeRequests', context, id);
+  async submit(context: RequestContext, id: string) {
+    const request = await get<ChangeRequest>(this.store, 'changeRequests', context, id);
     if (request.status !== 'DRAFT') throw new Error('CHANGE_REQUEST_NOT_DRAFT');
     const submitted: ChangeRequest = { ...request, status: 'SUBMITTED' };
-    this.store.replace('changeRequests', submitted);
-    emit(this.store, context, 'ChangeRequestSubmitted', 'ChangeRequest', id, { changeType: request.changeType });
+    await this.store.replace('changeRequests', submitted);
+    await emit(this.store, context, 'ChangeRequestSubmitted', 'ChangeRequest', id, { changeType: request.changeType });
     return submitted;
   }
 
-  decide(
+  async decide(
     context: RequestContext,
     input: { changeRequestId: string; decision: ChangeApproval['decision']; rationale: string },
   ) {
-    const request = get<ChangeRequest>(this.store, 'changeRequests', context, input.changeRequestId);
+    const request = await get<ChangeRequest>(this.store, 'changeRequests', context, input.changeRequestId);
     if (request.status !== 'SUBMITTED') throw new Error('CHANGE_REQUEST_NOT_SUBMITTED');
     if (!input.rationale.trim()) throw new Error('RATIONALE_REQUIRED');
     const approval: ChangeApproval = {
@@ -335,19 +335,19 @@ export class ChangeControlEngine {
       approverId: context.actorUserId,
       decidedAt: now(),
     };
-    this.store.append('changeApprovals', approval);
+    await this.store.append('changeApprovals', approval);
     const decided: ChangeRequest = { ...request, status: input.decision === 'APPROVE' ? 'APPROVED' : 'REJECTED' };
-    this.store.replace('changeRequests', decided);
-    emit(this.store, context, 'ChangeRequestDecided', 'ChangeRequest', request.id, { decision: input.decision });
+    await this.store.replace('changeRequests', decided);
+    await emit(this.store, context, 'ChangeRequestDecided', 'ChangeRequest', request.id, { decision: input.decision });
     return decided;
   }
 
-  implement(context: RequestContext, id: string) {
-    const request = get<ChangeRequest>(this.store, 'changeRequests', context, id);
+  async implement(context: RequestContext, id: string) {
+    const request = await get<ChangeRequest>(this.store, 'changeRequests', context, id);
     if (request.status !== 'APPROVED') throw new Error('CHANGE_REQUEST_NOT_APPROVED');
     const implemented: ChangeRequest = { ...request, status: 'IMPLEMENTED' };
-    this.store.replace('changeRequests', implemented);
-    emit(this.store, context, 'ChangeRequestImplemented', 'ChangeRequest', id, {});
+    await this.store.replace('changeRequests', implemented);
+    await emit(this.store, context, 'ChangeRequestImplemented', 'ChangeRequest', id, {});
     return implemented;
   }
 }
@@ -373,7 +373,7 @@ export type AcceptanceDecision = {
 export class AcceptanceDecisionEngine {
   constructor(private readonly store: TrustPersistence) {}
 
-  decide(
+  async decide(
     context: RequestContext,
     input: { workItemId: string; decision: AcceptanceDecisionKind; rationale: string; conditions?: string[] },
   ) {
@@ -381,8 +381,8 @@ export class AcceptanceDecisionEngine {
     if (input.decision === 'CONDITIONAL' && !(input.conditions && input.conditions.length))
       throw new Error('CONDITIONS_REQUIRED');
     const workspaceId = ws(context);
-    const prior = this.latest(context, input.workItemId);
-    if (prior) this.store.replace('acceptanceDecisions', { ...prior, status: 'SUPERSEDED' as const });
+    const prior = await this.latest(context, input.workItemId);
+    if (prior) await this.store.replace('acceptanceDecisions', { ...prior, status: 'SUPERSEDED' as const });
     const decision: AcceptanceDecision = {
       id: randomUUID(),
       workspaceId,
@@ -395,24 +395,24 @@ export class AcceptanceDecisionEngine {
       decidedAt: now(),
       supersedesId: prior?.id,
     };
-    this.store.append('acceptanceDecisions', decision);
-    emit(this.store, context, 'AcceptanceDecided', 'AcceptanceDecision', decision.id, {
+    await this.store.append('acceptanceDecisions', decision);
+    await emit(this.store, context, 'AcceptanceDecided', 'AcceptanceDecision', decision.id, {
       workItemId: decision.workItemId,
       decision: decision.decision,
     });
     return decision;
   }
 
-  latest(context: RequestContext, workItemId: string) {
+  async latest(context: RequestContext, workItemId: string) {
     const workspaceId = ws(context);
-    return this.store
-      .list<AcceptanceDecision>('acceptanceDecisions')
+    return (await this.store
+      .list<AcceptanceDecision>('acceptanceDecisions'))
       .filter((x) => x.workspaceId === workspaceId && x.workItemId === workItemId && x.status === 'ACTIVE')
       .pop();
   }
 
-  isAccepted(context: RequestContext, workItemId: string) {
-    const decision = this.latest(context, workItemId);
+  async isAccepted(context: RequestContext, workItemId: string) {
+    const decision = await this.latest(context, workItemId);
     return !!decision && ACCEPTED_DECISIONS.includes(decision.decision);
   }
 }
@@ -436,7 +436,7 @@ export type CompletionCertificate = {
 export class CompletionCertificationEngine {
   constructor(private readonly store: TrustPersistence) {}
 
-  issue(
+  async issue(
     context: RequestContext,
     input: {
       workItemId: string;
@@ -449,19 +449,19 @@ export class CompletionCertificationEngine {
   ) {
     const workspaceId = ws(context);
     if (
-      this.store
-        .list<CompletionCertificate>('completionCertificates')
+      (await this.store
+        .list<CompletionCertificate>('completionCertificates'))
         .some((x) => x.workspaceId === workspaceId && x.workItemId === input.workItemId && x.status === 'CERTIFIED')
     )
       throw new Error('CERTIFICATE_ALREADY_ISSUED');
     if (!input.qualityGatePassed) throw new Error('QUALITY_GATE_NOT_PASSED');
     if (!input.inspectionPassed) throw new Error('INSPECTION_NOT_PASSED');
     if (input.openBlockingIssueCount > 0) throw new Error('BLOCKING_ISSUES_OPEN');
-    const acceptance = get<AcceptanceDecision>(this.store, 'acceptanceDecisions', context, input.acceptanceDecisionId);
+    const acceptance = await get<AcceptanceDecision>(this.store, 'acceptanceDecisions', context, input.acceptanceDecisionId);
     if (acceptance.status !== 'ACTIVE' || !ACCEPTED_DECISIONS.includes(acceptance.decision))
       throw new Error('ACTIVE_ACCEPTANCE_REQUIRED');
     const sequence =
-      this.store.list<CompletionCertificate>('completionCertificates').filter((x) => x.workspaceId === workspaceId)
+      (await this.store.list<CompletionCertificate>('completionCertificates')).filter((x) => x.workspaceId === workspaceId)
         .length + 1;
     const stamp = now();
     const certificate: CompletionCertificate = {
@@ -481,28 +481,28 @@ export class CompletionCertificationEngine {
       issuedBy: context.actorUserId,
       issuedAt: stamp,
     };
-    this.store.append('completionCertificates', certificate);
-    emit(this.store, context, 'CompletionCertificateIssued', 'CompletionCertificate', certificate.id, {
+    await this.store.append('completionCertificates', certificate);
+    await emit(this.store, context, 'CompletionCertificateIssued', 'CompletionCertificate', certificate.id, {
       workItemId: certificate.workItemId,
       certificateNumber: certificate.certificateNumber,
     });
     return certificate;
   }
 
-  revoke(context: RequestContext, input: { id: string; reason: string }) {
-    const certificate = get<CompletionCertificate>(this.store, 'completionCertificates', context, input.id);
+  async revoke(context: RequestContext, input: { id: string; reason: string }) {
+    const certificate = await get<CompletionCertificate>(this.store, 'completionCertificates', context, input.id);
     if (certificate.status !== 'CERTIFIED') throw new Error('CERTIFICATE_NOT_CERTIFIED');
     if (!input.reason.trim()) throw new Error('REVOCATION_REASON_REQUIRED');
     const revoked: CompletionCertificate = { ...certificate, status: 'REVOKED', revokedAt: now() };
-    this.store.replace('completionCertificates', revoked);
-    emit(this.store, context, 'CompletionCertificateRevoked', 'CompletionCertificate', certificate.id, {
+    await this.store.replace('completionCertificates', revoked);
+    await emit(this.store, context, 'CompletionCertificateRevoked', 'CompletionCertificate', certificate.id, {
       reason: input.reason,
     });
     return revoked;
   }
 
-  verify(context: RequestContext, id: string) {
-    const certificate = get<CompletionCertificate>(this.store, 'completionCertificates', context, id);
+  async verify(context: RequestContext, id: string) {
+    const certificate = await get<CompletionCertificate>(this.store, 'completionCertificates', context, id);
     return { certificateId: id, status: certificate.status, canonicalHash: certificate.canonicalHash };
   }
 }

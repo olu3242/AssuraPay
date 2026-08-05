@@ -3,9 +3,9 @@ import { assignWorkspaceRole } from '../../../../../lib/grant-administration';
 
 export async function POST(request: Request) {
   try {
-    const context = authorizedContextForRoute(request);
+    const context = await authorizedContextForRoute(request);
     const body = await request.json();
-    const granted = assignWorkspaceRole(context, {
+    const granted = await assignWorkspaceRole(context, {
       userId: body.userId,
       role: body.role,
       effectiveFrom: body.effectiveFrom,

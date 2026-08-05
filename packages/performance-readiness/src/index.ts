@@ -9,19 +9,19 @@ function ws(context: RequestContext) {
   requireActiveWorkspace(context);
   return context.activeWorkspaceId;
 }
-function get<T extends { id: string; workspaceId: string }>(
+async function get<T extends { id: string; workspaceId: string }>(
   store: TrustPersistence,
   collection: string,
   context: RequestContext,
   id: string,
 ) {
-  const found = store
-    .list<T>(collection)
+  const found = (await store
+    .list<T>(collection))
     .find((x) => x.id === id && x.workspaceId === ws(context));
   if (!found) throw new Error('NOT_FOUND');
   return found;
 }
-function emit(
+async function emit(
   store: TrustPersistence,
   context: RequestContext,
   eventType: string,
@@ -29,7 +29,7 @@ function emit(
   aggregateId: string,
   payload: Record<string, unknown> = {},
 ) {
-  store.audit({
+  await store.audit({
     tenantId: context.tenantId,
     workspaceId: ws(context),
     actorId: context.actorUserId,
@@ -39,7 +39,7 @@ function emit(
     correlationId: context.correlationId,
     metadata: payload,
   });
-  store.emit({
+  await store.emit({
     tenantId: context.tenantId,
     workspaceId: ws(context),
     aggregateType,
@@ -79,7 +79,7 @@ export type AcceptanceCriterion = {
 export class AcceptanceCriteriaEngine {
   constructor(private readonly store: TrustPersistence) {}
 
-  define(
+  async define(
     context: RequestContext,
     input: {
       deliverableId: string;
@@ -107,19 +107,19 @@ export class AcceptanceCriteriaEngine {
       status: 'DRAFT',
       createdAt: now(),
     };
-    this.store.append('acceptanceCriteria', criterion);
-    emit(this.store, context, 'AcceptanceCriterionDefined', 'AcceptanceCriterion', criterion.id, {
+    await this.store.append('acceptanceCriteria', criterion);
+    await emit(this.store, context, 'AcceptanceCriterionDefined', 'AcceptanceCriterion', criterion.id, {
       deliverableId: criterion.deliverableId,
     });
     return criterion;
   }
 
-  confirm(context: RequestContext, id: string) {
-    const criterion = get<AcceptanceCriterion>(this.store, 'acceptanceCriteria', context, id);
+  async confirm(context: RequestContext, id: string) {
+    const criterion = await get<AcceptanceCriterion>(this.store, 'acceptanceCriteria', context, id);
     if (criterion.status !== 'DRAFT') throw new Error('ACCEPTANCE_CRITERION_IMMUTABLE');
     const confirmed: AcceptanceCriterion = { ...criterion, status: 'CONFIRMED' };
-    this.store.replace('acceptanceCriteria', confirmed);
-    emit(this.store, context, 'AcceptanceCriterionConfirmed', 'AcceptanceCriterion', id, {
+    await this.store.replace('acceptanceCriteria', confirmed);
+    await emit(this.store, context, 'AcceptanceCriterionConfirmed', 'AcceptanceCriterion', id, {
       deliverableId: criterion.deliverableId,
     });
     return confirmed;
@@ -145,7 +145,7 @@ export type SuccessMetric = {
 export class SuccessMetricsEngine {
   constructor(private readonly store: TrustPersistence) {}
 
-  define(
+  async define(
     context: RequestContext,
     input: {
       milestoneId: string;
@@ -165,26 +165,26 @@ export class SuccessMetricsEngine {
       status: 'DRAFT',
       createdAt: now(),
     };
-    this.store.append('successMetrics', metric);
-    emit(this.store, context, 'SuccessMetricDefined', 'SuccessMetric', metric.id, {
+    await this.store.append('successMetrics', metric);
+    await emit(this.store, context, 'SuccessMetricDefined', 'SuccessMetric', metric.id, {
       milestoneId: metric.milestoneId,
       weightPercent: metric.weightPercent,
     });
     return metric;
   }
 
-  confirm(context: RequestContext, id: string) {
-    const metric = get<SuccessMetric>(this.store, 'successMetrics', context, id);
+  async confirm(context: RequestContext, id: string) {
+    const metric = await get<SuccessMetric>(this.store, 'successMetrics', context, id);
     if (metric.status !== 'DRAFT') throw new Error('SUCCESS_METRIC_IMMUTABLE');
     const workspaceId = ws(context);
-    const confirmedWeight = this.store
-      .list<SuccessMetric>('successMetrics')
+    const confirmedWeight = (await this.store
+      .list<SuccessMetric>('successMetrics'))
       .filter((x) => x.workspaceId === workspaceId && x.milestoneId === metric.milestoneId && x.status === 'CONFIRMED')
       .reduce((sum, x) => sum + x.weightPercent, 0);
     if (confirmedWeight + metric.weightPercent > 100) throw new Error('WEIGHT_ALLOCATION_EXCEEDS_TOTAL');
     const confirmed: SuccessMetric = { ...metric, status: 'CONFIRMED' };
-    this.store.replace('successMetrics', confirmed);
-    emit(this.store, context, 'SuccessMetricConfirmed', 'SuccessMetric', id, { milestoneId: metric.milestoneId });
+    await this.store.replace('successMetrics', confirmed);
+    await emit(this.store, context, 'SuccessMetricConfirmed', 'SuccessMetric', id, { milestoneId: metric.milestoneId });
     return confirmed;
   }
 }
@@ -208,7 +208,7 @@ export type Dependency = {
 export class DependencyIntelligenceEngine {
   constructor(private readonly store: TrustPersistence) {}
 
-  register(
+  async register(
     context: RequestContext,
     input: {
       milestoneId: string;
@@ -227,27 +227,27 @@ export class DependencyIntelligenceEngine {
       status: 'OPEN',
       createdAt: now(),
     };
-    this.store.append('dependencies', dependency);
-    emit(this.store, context, 'DependencyRegistered', 'Dependency', dependency.id, {
+    await this.store.append('dependencies', dependency);
+    await emit(this.store, context, 'DependencyRegistered', 'Dependency', dependency.id, {
       milestoneId: dependency.milestoneId,
       criticality: dependency.criticality,
     });
     return dependency;
   }
 
-  resolve(context: RequestContext, id: string) {
-    const dependency = get<Dependency>(this.store, 'dependencies', context, id);
+  async resolve(context: RequestContext, id: string) {
+    const dependency = await get<Dependency>(this.store, 'dependencies', context, id);
     if (dependency.status !== 'OPEN') throw new Error('DEPENDENCY_NOT_OPEN');
     const resolved: Dependency = { ...dependency, status: 'RESOLVED', resolvedAt: now() };
-    this.store.replace('dependencies', resolved);
-    emit(this.store, context, 'DependencyResolved', 'Dependency', id, { milestoneId: dependency.milestoneId });
+    await this.store.replace('dependencies', resolved);
+    await emit(this.store, context, 'DependencyResolved', 'Dependency', id, { milestoneId: dependency.milestoneId });
     return resolved;
   }
 
-  blockers(context: RequestContext, milestoneId: string) {
+  async blockers(context: RequestContext, milestoneId: string) {
     const workspaceId = ws(context);
-    return this.store
-      .list<Dependency>('dependencies')
+    return (await this.store
+      .list<Dependency>('dependencies'))
       .filter(
         (x) =>
           x.workspaceId === workspaceId &&
@@ -277,7 +277,7 @@ export type PaymentTriggerRule = {
 export class PaymentTriggerRuleEngine {
   constructor(private readonly store: TrustPersistence) {}
 
-  define(
+  async define(
     context: RequestContext,
     input: {
       milestoneId: string;
@@ -304,32 +304,32 @@ export class PaymentTriggerRuleEngine {
       status: 'DRAFT',
       createdAt: now(),
     };
-    this.store.append('paymentTriggerRules', rule);
-    emit(this.store, context, 'PaymentTriggerRuleDefined', 'PaymentTriggerRule', rule.id, {
+    await this.store.append('paymentTriggerRules', rule);
+    await emit(this.store, context, 'PaymentTriggerRuleDefined', 'PaymentTriggerRule', rule.id, {
       milestoneId: rule.milestoneId,
       ruleType: rule.ruleType,
     });
     return rule;
   }
 
-  activate(context: RequestContext, id: string) {
-    const rule = get<PaymentTriggerRule>(this.store, 'paymentTriggerRules', context, id);
+  async activate(context: RequestContext, id: string) {
+    const rule = await get<PaymentTriggerRule>(this.store, 'paymentTriggerRules', context, id);
     if (rule.status !== 'DRAFT') throw new Error('PAYMENT_TRIGGER_RULE_NOT_DRAFT');
     const activated: PaymentTriggerRule = { ...rule, status: 'ACTIVE' };
-    this.store.replace('paymentTriggerRules', activated);
-    emit(this.store, context, 'PaymentTriggerRuleActivated', 'PaymentTriggerRule', id, {
+    await this.store.replace('paymentTriggerRules', activated);
+    await emit(this.store, context, 'PaymentTriggerRuleActivated', 'PaymentTriggerRule', id, {
       milestoneId: rule.milestoneId,
       amountMinor: rule.amountMinor,
     });
     return activated;
   }
 
-  evaluate(
+  async evaluate(
     context: RequestContext,
     id: string,
     evidence: { dodPublished: boolean; acceptedCriterionIds: string[]; blockingDependencyCount: number },
   ) {
-    const rule = get<PaymentTriggerRule>(this.store, 'paymentTriggerRules', context, id);
+    const rule = await get<PaymentTriggerRule>(this.store, 'paymentTriggerRules', context, id);
     if (rule.status !== 'ACTIVE') throw new Error('PAYMENT_TRIGGER_RULE_NOT_ACTIVE');
     const blockers: string[] = [];
     if (evidence.blockingDependencyCount > 0) blockers.push('UNRESOLVED_BLOCKING_DEPENDENCIES');
@@ -381,7 +381,7 @@ export type BaselineVariance = {
 export class PerformanceBaselineEngine {
   constructor(private readonly store: TrustPersistence) {}
 
-  baseline(
+  async baseline(
     context: RequestContext,
     input: {
       blueprintId: string;
@@ -398,8 +398,8 @@ export class PerformanceBaselineEngine {
       throw new Error('INVALID_BUDGET');
     const workspaceId = ws(context);
     if (
-      this.store
-        .list<PerformanceBaseline>('performanceBaselines')
+      (await this.store
+        .list<PerformanceBaseline>('performanceBaselines'))
         .some((x) => x.workspaceId === workspaceId && x.milestoneId === input.milestoneId)
     )
       throw new Error('BASELINE_ALREADY_SET');
@@ -410,15 +410,15 @@ export class PerformanceBaselineEngine {
       status: 'BASELINED',
       createdAt: now(),
     };
-    this.store.append('performanceBaselines', baseline);
-    emit(this.store, context, 'PerformanceBaselineSet', 'PerformanceBaseline', baseline.id, {
+    await this.store.append('performanceBaselines', baseline);
+    await emit(this.store, context, 'PerformanceBaselineSet', 'PerformanceBaseline', baseline.id, {
       milestoneId: baseline.milestoneId,
       plannedBudgetAmountMinor: baseline.plannedBudgetAmountMinor,
     });
     return baseline;
   }
 
-  recordVariance(
+  async recordVariance(
     context: RequestContext,
     input: {
       baselineId: string;
@@ -432,7 +432,7 @@ export class PerformanceBaselineEngine {
   ) {
     if (input.actualCostAmountMinor !== undefined && !Number.isInteger(input.actualCostAmountMinor))
       throw new Error('ACTUAL_COST_AMOUNT_MUST_BE_INTEGER_MINOR_UNITS');
-    const baseline = get<PerformanceBaseline>(this.store, 'performanceBaselines', context, input.baselineId);
+    const baseline = await get<PerformanceBaseline>(this.store, 'performanceBaselines', context, input.baselineId);
     const variance: BaselineVariance = {
       id: randomUUID(),
       workspaceId: ws(context),
@@ -450,8 +450,8 @@ export class PerformanceBaselineEngine {
       recordedBy: context.actorUserId,
       recordedAt: now(),
     };
-    this.store.append('baselineVariances', variance);
-    emit(this.store, context, 'BaselineVarianceRecorded', 'PerformanceBaseline', baseline.id, {
+    await this.store.append('baselineVariances', variance);
+    await emit(this.store, context, 'BaselineVarianceRecorded', 'PerformanceBaseline', baseline.id, {
       scheduleVarianceDays: variance.scheduleVarianceDays,
       costVarianceMinor: variance.costVarianceMinor,
       contentHash: digest(variance),

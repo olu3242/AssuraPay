@@ -1,1 +1,1 @@
-import {errorResponse,authorizedContextForRoute,treasury} from '../../../../lib/trust-app';export async function POST(r:Request){try{return Response.json(treasury.ledger.reconcile(authorizedContextForRoute(r),await r.json()),{status:201})}catch(e){return errorResponse(e)}}
+import {errorResponse,authorizedContextForRoute,treasury} from '../../../../lib/trust-app';export async function POST(r:Request){try{return Response.json(await treasury.ledger.reconcile(await authorizedContextForRoute(r),await r.json()),{status:201})}catch(e){return errorResponse(e)}}

@@ -6,7 +6,7 @@ export async function POST(request: Request) {
   try {
     // Workspace and tenant come from the authorized context. Reading them from the
     // body let any caller create a contract inside any workspace of any tenant.
-    const context = workspaceScoped(authorizedContextForRoute(request));
+    const context = workspaceScoped(await authorizedContextForRoute(request));
     const body = await request.json();
     const { service } = await getAssuraService();
     const contract = await service.createContract({
@@ -23,7 +23,7 @@ export async function POST(request: Request) {
 
 export async function GET(request: Request) {
   try {
-    const context = workspaceScoped(authorizedContextForRoute(request));
+    const context = workspaceScoped(await authorizedContextForRoute(request));
     const { store } = await getAssuraService();
     const snapshot = store.getSnapshot();
     return NextResponse.json(
