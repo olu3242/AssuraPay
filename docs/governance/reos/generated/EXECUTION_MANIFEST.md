@@ -10,9 +10,9 @@
 | Repository | assurapay |
 | Version | 0.1.0 |
 | Branch | claude/git-pull-cqc04u |
-| HEAD | c11e4ee3b8f1316a0769c89e797fe255db9a25b4 |
-| Worktree clean | yes |
-| Manifest digest | 175c30ad7e02 |
+| HEAD | 13f3246bdbdcafb10fd5a75aca0dc451a292a9b5 |
+| Worktree clean | no |
+| Manifest digest | 6ad6a48f1e8f |
 | REOS version | 1.0.0 |
 
 ## Architecture
@@ -26,9 +26,9 @@
 
 | Lifecycle | Count |
 | --- | --- |
-| missing | 1 |
+| missing | 2 |
 | planned | 3 |
-| certified | 1 |
+| certified | 2 |
 | released | 60 |
 | deferred | 4 |
 
@@ -112,7 +112,9 @@ from repository evidence: package presence, test files, and certification wiring
 | trust.identity-assertions | HMAC identity assertions | implemented | released | 4/4 | All 4 evidence probes satisfied at HEAD. |
 | trust.identity-gateway | Production identity gateway | implemented | released | 4/4 | All 4 evidence probes satisfied at HEAD. |
 | trust.permission-enforcement | Permission enforcement middleware | implemented | released | 4/4 | All 4 evidence probes satisfied at HEAD. |
-| trust.route-permission-integration | Route-level permission mapping | missing | planned | 0/4 | No evidence at HEAD, on any ref, or in history. |
+| trust.permission-grant-catalogue | Permission grant catalogue and workspace bootstrap | missing | planned | 0/4 | No evidence at HEAD, on any ref, or in history. |
+| trust.route-permission-integration | Route-level permission mapping | implemented | certified | 6/6 | All 6 evidence probes satisfied at HEAD. |
+| trust.route-permission-rollout | Route migration to authorized context | missing | missing | 0/3 | No evidence at HEAD, on any ref, or in history. |
 
 ## Reconciliation findings
 
@@ -136,11 +138,12 @@ from repository evidence: package presence, test files, and certification wiring
 
 ## Execution backlog
 
-4 open item(s). Highest-priority first.
+5 open item(s). Highest-priority first.
 
 | Capability | Title | Lifecycle | Priority | Executable | Blocked by | Blocks |
 | --- | --- | --- | --- | --- | --- | --- |
-| trust.route-permission-integration | Route-level permission mapping | planned | 30 | yes | — | — |
+| trust.permission-grant-catalogue | Permission grant catalogue and workspace bootstrap | planned | 31 | yes | — | 1 |
+| trust.route-permission-rollout | Route migration to authorized context | missing | 32 | no | trust.permission-grant-catalogue | — |
 | persistence.postgres-repository | PostgreSQL repository implementation | planned | 40 | yes | — | 1 |
 | persistence.rls-certification | Row Level Security certification | missing | 41 | no | persistence.postgres-repository | — |
 | engine:08 | Engine 08 — Audit & Evidence Ledger | planned | 108 | yes | — | 52 |

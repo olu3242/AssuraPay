@@ -7,31 +7,39 @@
 | Field | Value |
 | --- | --- |
 | Branch | claude/git-pull-cqc04u |
-| HEAD | 5e28a08ff19b0bbc230d6b8024f2e39fc751a6e1 |
+| HEAD | 13f3246bdbdcafb10fd5a75aca0dc451a292a9b5 |
 | Worktree clean | no |
-| Uncommitted files | 8 |
-| Generated at | 2026-08-05T03:11:38.576Z |
+| Uncommitted files | 13 |
+| Generated at | 2026-08-05T03:27:50.496Z |
 
 ## Capability implemented
 
-`runtime.agent-registration` — lifecycle **certified**
+`trust.route-permission-integration` — lifecycle **certified**
 
-## Files modified (20)
+## Files modified (28)
 
 - `.env.example`
 - `apps/web/lib/agent-runtime-app.ts`
+- `apps/web/lib/route-permissions.test.ts`
+- `apps/web/lib/route-permissions.ts`
+- `apps/web/lib/trust-app.ts`
 - `apps/web/package.json`
+- `docs/governance/execution-ledger/13f3246bdbdc-trust.route-permission-integration.json`
 - `docs/governance/execution-ledger/5e28a08ff19b-runtime.agent-registration.json`
 - `docs/governance/execution-ledger/INDEX.md`
+- `docs/governance/reos/capability-registry.json`
 - `docs/governance/reos/generated/CERTIFICATION_REPORT.md`
 - `docs/governance/reos/generated/DEPENDENCY_RESOLUTION.md`
 - `docs/governance/reos/generated/EXECUTION_MANIFEST.md`
+- `docs/governance/reos/generated/EXECUTION_REPORT.md`
 - `docs/governance/reos/generated/certification.json`
 - `docs/governance/reos/generated/dependency-resolution.json`
 - `docs/governance/reos/generated/discovery.json`
 - `docs/governance/reos/generated/execution-manifest.json`
+- `docs/governance/reos/generated/execution-report.json`
 - `docs/governance/reos/generated/forensics.json`
 - `docs/governance/reos/governance-policy.json`
+- `package.json`
 - `packages/agent-runtime/src/agent-runtime.registration.test.ts`
 - `packages/agent-runtime/src/index.ts`
 - `packages/agent-runtime/src/registration.ts`
@@ -45,8 +53,8 @@
 | --- | --- | --- | --- | --- |
 | architecture | pass | 145 | 0 | 0 |
 | dependencies | pass | 23 | 0 | 0 |
-| security | pass | 245 | 0 | 0 |
-| execution-contract | pass | 9 | 0 | 0 |
+| security | pass | 246 | 0 | 0 |
+| execution-contract | pass | 16 | 0 | 0 |
 
 ## Governance
 
@@ -58,23 +66,24 @@ No newly introduced violations.
 
 **PASSED** — every certification gate is green.
 
-## Remaining backlog (4)
+## Remaining backlog (5)
 
 | Capability | Status | Executable | Blocked by |
 | --- | --- | --- | --- |
-| trust.route-permission-integration | missing | yes |  |
+| trust.permission-grant-catalogue | missing | yes |  |
+| trust.route-permission-rollout | missing | no | trust.permission-grant-catalogue |
 | persistence.postgres-repository | missing | yes |  |
 | persistence.rls-certification | missing | no | persistence.postgres-repository |
 | engine:08 | missing | yes |  |
 
 ## Recommended next capability
 
-`trust.route-permission-integration` — Route-level permission mapping
+`trust.permission-grant-catalogue` — Permission grant catalogue and workspace bootstrap
 
 ## Ledger
 
-Recorded as `5e28a08ff19b-runtime.agent-registration` in `docs/governance/execution-ledger/`.
+Recorded as `13f3246bdbdc-trust.route-permission-integration` in `docs/governance/execution-ledger/`.
 
 ## Commit
 
-`5e28a08ff19b0bbc230d6b8024f2e39fc751a6e1`
+`13f3246bdbdcafb10fd5a75aca0dc451a292a9b5`

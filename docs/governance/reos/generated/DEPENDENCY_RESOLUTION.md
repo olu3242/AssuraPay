@@ -6,15 +6,15 @@
 
 | Field | Value |
 | --- | --- |
-| Capability | trust.route-permission-integration |
-| Title | Route-level permission mapping |
+| Capability | trust.permission-grant-catalogue |
+| Title | Permission grant catalogue and workspace bootstrap |
 | Current status | missing |
 | Lifecycle | planned |
-| Priority | 30 |
-| Reason | Highest-priority executable capability (priority 30, lifecycle planned) |
-| Depends on | trust.permission-enforcement |
+| Priority | 31 |
+| Reason | Highest-priority executable capability (priority 31, lifecycle planned) — unblocks 1 downstream capability/-ies |
+| Depends on | trust.route-permission-integration |
 | Unmet dependencies | none |
-| Blocks (transitive) | — |
+| Blocks (transitive) | trust.route-permission-rollout |
 | Declared scope | 1 file(s), 1 test suite(s) (registry estimate) |
 | Requires live infrastructure | no |
 
@@ -22,7 +22,7 @@
 
 | Capability | Title | Lifecycle | Priority | Blocks | Live infra |
 | --- | --- | --- | --- | --- | --- |
-| trust.route-permission-integration | Route-level permission mapping | planned | 30 | — | no |
+| trust.permission-grant-catalogue | Permission grant catalogue and workspace bootstrap | planned | 31 | 1 | no |
 | persistence.postgres-repository | PostgreSQL repository implementation | planned | 40 | 1 | yes |
 | engine:08 | Engine 08 — Audit & Evidence Ledger | planned | 108 | 52 | no |
 
@@ -30,6 +30,7 @@
 
 | Capability | Status | Blocked by |
 | --- | --- | --- |
+| trust.route-permission-rollout | missing | trust.permission-grant-catalogue |
 | persistence.rls-certification | missing | persistence.postgres-repository |
 
 ## Awaiting live infrastructure
@@ -37,7 +38,7 @@
 - persistence.postgres-repository
 - persistence.rls-certification
 
-## Completed (61)
+## Completed (62)
 
 - engine:01
 - engine:02
@@ -100,3 +101,4 @@
 - trust.identity-assertions
 - trust.identity-gateway
 - trust.permission-enforcement
+- trust.route-permission-integration

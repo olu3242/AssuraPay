@@ -430,50 +430,155 @@
         "refsContaining": [],
         "removedFromHead": false
       },
-      "id": "trust.route-permission-integration",
+      "id": "trust.permission-grant-catalogue",
       "kind": "platform",
       "onDefaultBranch": false,
       "probes": [
         {
           "kind": "path",
           "matches": [],
-          "query": "apps/web/lib/route-permissions.ts",
+          "query": "packages/permissions/src/catalogue.ts",
           "satisfied": false
         },
         {
           "kind": "symbol",
           "matches": [],
-          "query": "ROUTE_PERMISSION_REQUIREMENTS",
+          "query": "PERMISSION_CATALOGUE",
           "satisfied": false
         },
         {
           "kind": "symbol",
           "matches": [],
-          "query": "requirementForRoute",
+          "query": "bootstrapWorkspaceGrants",
           "satisfied": false
         },
         {
           "kind": "test",
           "matches": [],
-          "query": "apps/web/lib/route-permissions.test.ts",
+          "query": "packages/permissions/src/catalogue.test.ts",
           "satisfied": false
         }
       ],
       "rationale": "No evidence at HEAD, on any ref, or in history.",
       "satisfiedProbes": 0,
       "status": "missing",
-      "title": "Route-level permission mapping",
+      "title": "Permission grant catalogue and workspace bootstrap",
       "totalProbes": 4
+    },
+    {
+      "git": {
+        "historicalCommits": [],
+        "reachableFromHead": true,
+        "refsContaining": [],
+        "removedFromHead": false
+      },
+      "id": "trust.route-permission-integration",
+      "kind": "platform",
+      "onDefaultBranch": false,
+      "probes": [
+        {
+          "kind": "path",
+          "matches": [
+            "apps/web/lib/route-permissions.ts"
+          ],
+          "query": "apps/web/lib/route-permissions.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "path",
+          "matches": [
+            "apps/web/lib/trust-app.ts"
+          ],
+          "query": "apps/web/lib/trust-app.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "apps/web/lib/route-permissions.test.ts",
+            "apps/web/lib/route-permissions.ts"
+          ],
+          "query": "ROUTE_PERMISSION_REQUIREMENTS",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "apps/web/lib/route-permissions.test.ts",
+            "apps/web/lib/route-permissions.ts",
+            "apps/web/lib/trust-app.ts"
+          ],
+          "query": "requirementForRoute",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "apps/web/lib/trust-app.ts"
+          ],
+          "query": "authorizedContextForRoute",
+          "satisfied": true
+        },
+        {
+          "kind": "test",
+          "matches": [
+            "apps/web/lib/route-permissions.test.ts"
+          ],
+          "query": "apps/web/lib/route-permissions.test.ts",
+          "satisfied": true
+        }
+      ],
+      "rationale": "All 6 evidence probes satisfied at HEAD.",
+      "satisfiedProbes": 6,
+      "status": "implemented",
+      "title": "Route-level permission mapping",
+      "totalProbes": 6
+    },
+    {
+      "git": {
+        "historicalCommits": [],
+        "reachableFromHead": false,
+        "refsContaining": [],
+        "removedFromHead": false
+      },
+      "id": "trust.route-permission-rollout",
+      "kind": "platform",
+      "onDefaultBranch": false,
+      "probes": [
+        {
+          "kind": "path",
+          "matches": [],
+          "query": "apps/web/lib/route-coverage.test.ts",
+          "satisfied": false
+        },
+        {
+          "kind": "symbol",
+          "matches": [],
+          "query": "ROUTE_COVERAGE_PUBLIC_ALLOWLIST",
+          "satisfied": false
+        },
+        {
+          "kind": "test",
+          "matches": [],
+          "query": "apps/web/lib/route-coverage.test.ts",
+          "satisfied": false
+        }
+      ],
+      "rationale": "No evidence at HEAD, on any ref, or in history.",
+      "satisfiedProbes": 0,
+      "status": "missing",
+      "title": "Route migration to authorized context",
+      "totalProbes": 3
     }
   ],
-  "head": "c11e4ee3b8f1316a0769c89e797fe255db9a25b4",
+  "head": "13f3246bdbdcafb10fd5a75aca0dc451a292a9b5",
   "reosVersion": "1.0.0",
   "stage": "forensics",
   "summary": {
     "deferred": 0,
-    "implemented": 6,
+    "implemented": 7,
     "lost": 0,
-    "missing": 3,
+    "missing": 4,
     "partial": 0,
     "unreachable": 0
   }
