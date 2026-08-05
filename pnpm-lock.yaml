@@ -54,6 +54,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@assurapay/agent-runtime':
+        specifier: workspace:*
+        version: link:../../packages/agent-runtime
       '@assurapay/agreement-creation':
         specifier: workspace:*
         version: link:../../packages/agreement-creation
