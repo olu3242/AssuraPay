@@ -4,9 +4,9 @@
 
 | Field | Value |
 | --- | --- |
-| Branch | feat/persistence-schema-ownership-reconciliation |
-| HEAD | ea6cbb6560b676efccf3a59e3d92aabebdb77dc8 |
-| Generated at | 2026-08-06T08:36:37.904Z |
+| Branch | feat/persistence-async-domain-repository |
+| HEAD | 544011abfd074e15296d8ba2c1a9b399ee880f04 |
+| Generated at | 2026-08-06T09:10:14.777Z |
 | Result | **PASSED** |
 | Steps | 11 passed, 0 failed, 0 skipped |
 
@@ -14,14 +14,14 @@
 
 | Step | Description | Result | Duration | Findings |
 | --- | --- | --- | --- | --- |
-| lint | ESLint across the workspace | pass | 6012 ms | — |
-| typecheck | TypeScript project typecheck | pass | 2394 ms | — |
-| test:unit | Unit tests | pass | 21042 ms | — |
-| test:integration | Integration tests | pass | 11851 ms | — |
-| test:e2e | End-to-end tests | pass | 24879 ms | — |
-| architecture | Architecture validation | pass | 533 ms | — |
-| dependencies | Dependency validation | pass | 18 ms | — |
-| security | Security validation | pass | 39 ms | — |
-| contract | Execution contract validation | pass | 24 ms | 1 |
-| governance | Reconciliation governance policy | pass | 0 ms | 15 |
-| build | Production build | pass | 28084 ms | — |
+| lint | ESLint across the workspace | pass | 5890 ms | — |
+| typecheck | TypeScript project typecheck | pass | 2520 ms | — |
+| test:unit | Unit tests | pass | 22490 ms | — |
+| test:integration | Integration tests | pass | 12802 ms | — |
+| test:e2e | End-to-end tests | pass | 22024 ms | — |
+| architecture | Architecture validation | pass | 363 ms | — |
+| dependencies | Dependency validation | pass | 16 ms | — |
+| security | Security validation | pass | 32 ms | — |
+| contract | Execution contract validation | pass | 19 ms | 1 |
+| governance | Reconciliation governance policy | pass | 1 ms | 15 |
+| build | Production build | pass | 31711 ms | — |

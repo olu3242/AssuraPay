@@ -9,7 +9,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
     // enumerate certificate ids and read their status.
     await authorizedContextForRoute(request);
     const { store } = await getAssuraService();
-    const snapshot = store.getSnapshot();
+    const snapshot = await store.getSnapshot();
     const certificate = snapshot?.certificates?.find(
       (entry: { id: string }) => entry.id === params.id,
     );

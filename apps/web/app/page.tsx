@@ -4,7 +4,7 @@ import { HeroCarousel } from './components/hero-carousel';
 
 export default async function HomePage() {
   const { store, service } = await getAssuraService();
-  const snapshot = store.getSnapshot();
+  const snapshot = await store.getSnapshot();
   const milestone = snapshot?.milestones?.[0];
   const contract = snapshot?.contracts?.[0];
   const certificate = snapshot?.certificates?.[0];

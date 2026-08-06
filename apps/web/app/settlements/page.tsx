@@ -2,7 +2,7 @@ import { getAssuraService } from '../../lib/assurapay-app';
 
 export default async function SettlementsPage() {
   const { store } = await getAssuraService();
-  const snapshot = store.getSnapshot();
+  const snapshot = await store.getSnapshot();
   const settlementCases = snapshot.settlementCases ?? [];
 
   return (

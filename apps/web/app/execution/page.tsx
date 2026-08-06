@@ -3,7 +3,7 @@ import { getAssuraService } from '../../lib/assurapay-app';
 
 export default async function ExecutionPage() {
   const { store } = await getAssuraService();
-  const snapshot = store.getSnapshot();
+  const snapshot = await store.getSnapshot();
   const milestone = snapshot?.milestones?.[0];
 
   return (

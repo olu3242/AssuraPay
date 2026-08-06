@@ -12,7 +12,7 @@ export async function GET(request: Request) {
     // route — "my workspaces", not "all workspaces".
     const context = await authorizedContextForRoute(request);
     const { store } = await getAssuraService();
-    const snapshot = store.getSnapshot();
+    const snapshot = await store.getSnapshot();
     const mine = new Set(context.memberships);
     return NextResponse.json(
       (snapshot.workspaces ?? []).filter((workspace: { id: string }) => mine.has(workspace.id)),

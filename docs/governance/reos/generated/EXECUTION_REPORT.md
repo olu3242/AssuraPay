@@ -6,22 +6,29 @@
 
 | Field | Value |
 | --- | --- |
-| Branch | feat/persistence-schema-ownership-reconciliation |
-| HEAD | ea6cbb6560b676efccf3a59e3d92aabebdb77dc8 |
+| Branch | feat/persistence-async-domain-repository |
+| HEAD | 544011abfd074e15296d8ba2c1a9b399ee880f04 |
 | Worktree clean | no |
-| Uncommitted files | 21 |
-| Generated at | 2026-08-06T08:36:42.129Z |
+| Uncommitted files | 27 |
+| Generated at | 2026-08-06T09:10:59.523Z |
 
 ## Capability implemented
 
-`persistence.schema-ownership-reconciliation` — lifecycle **certified**
+`persistence.async-domain-repository-interface` — lifecycle **released**
 
-## Files modified (23)
+## Files modified (29)
 
-- `.github/workflows/ci.yml`
-- `docs/architecture/SCHEMA_OWNERSHIP.md`
+- `apps/web/app/api/v1/completion-certificates/[id]/verify/route.ts`
+- `apps/web/app/api/v1/contracts/route.ts`
+- `apps/web/app/api/v1/me/workspaces/route.ts`
+- `apps/web/app/api/v1/payment-eligibility/[id]/blockers/route.ts`
+- `apps/web/app/execution/milestones/[id]/page.tsx`
+- `apps/web/app/execution/page.tsx`
+- `apps/web/app/page.tsx`
+- `apps/web/app/settlements/page.tsx`
+- `apps/web/lib/assurapay-app.ts`
+- `docs/governance/execution-ledger/544011abfd07-persistence.async-domain-repository-interface.json`
 - `docs/governance/execution-ledger/INDEX.md`
-- `docs/governance/execution-ledger/ea6cbb6560b6-persistence.schema-ownership-reconciliation.json`
 - `docs/governance/reos/capability-registry.json`
 - `docs/governance/reos/generated/CERTIFICATION_REPORT.md`
 - `docs/governance/reos/generated/DEPENDENCY_RESOLUTION.md`
@@ -31,29 +38,28 @@
 - `docs/governance/reos/generated/discovery.json`
 - `docs/governance/reos/generated/execution-manifest.json`
 - `docs/governance/reos/generated/forensics.json`
-- `packages/database-testing/src/index.ts`
-- `packages/database-testing/src/schema-ownership.postgres.test.ts`
+- `packages/database/src/domain-repository.test.ts`
 - `packages/database/src/index.ts`
-- `packages/database/src/migrations.ts`
-- `packages/database/src/schema-ownership.test.ts`
-- `packages/database/src/schema-ownership.ts`
-- `packages/reos/src/reos.persistence.test.ts`
+- `packages/domain/src/services/assurapay-service.test.ts`
+- `packages/domain/src/services/assurapay-service.ts`
+- `packages/domain/src/services/batch2-remediation.test.ts`
+- `packages/domain/src/services/batch4-extensions.test.ts`
+- `packages/domain/src/services/intelligence-foundation.test.ts`
+- `packages/domain/src/services/settlement-assurance.test.ts`
 - `packages/reos/src/validators/persistence.ts`
-- `packages/runtime/src/persistence-runtime.ts`
-- `supabase/migrations/202608080001_trust_schema_ownership_reconciliation.sql`
 
 ## Validation
 
 | Validator | Result | Checked | Errors | Warnings |
 | --- | --- | --- | --- | --- |
-| architecture | pass | 192 | 0 | 0 |
+| architecture | pass | 193 | 0 | 0 |
 | dependencies | pass | 26 | 0 | 0 |
 | security | pass | 271 | 0 | 0 |
-| execution-contract | pass | 13 | 0 | 1 |
+| execution-contract | pass | 19 | 0 | 1 |
 
 ### Findings
 
-- **warning** `contract/tests-not-updated` (packages/runtime/src) — packages/runtime has modified source but no modified tests in this change.
+- **warning** `contract/tests-not-updated` (packages/reos/src) — packages/reos has modified source but no modified tests in this change.
 
 ## Governance
 
@@ -77,8 +83,8 @@ No newly introduced violations.
 
 ## Ledger
 
-Recorded as `ea6cbb6560b6-persistence.schema-ownership-reconciliation` in `docs/governance/execution-ledger/`.
+Recorded as `544011abfd07-persistence.async-domain-repository-interface` in `docs/governance/execution-ledger/`.
 
 ## Commit
 
-`ea6cbb6560b676efccf3a59e3d92aabebdb77dc8`
+`544011abfd074e15296d8ba2c1a9b399ee880f04`

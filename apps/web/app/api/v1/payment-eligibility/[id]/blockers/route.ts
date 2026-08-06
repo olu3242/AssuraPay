@@ -6,7 +6,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
   try {
     await authorizedContextForRoute(request);
     const { store } = await getAssuraService();
-    const snapshot = store.getSnapshot();
+    const snapshot = await store.getSnapshot();
     const eligibility = snapshot?.paymentEligibility?.find(
       (entry: { id: string }) => entry.id === params.id,
     );
