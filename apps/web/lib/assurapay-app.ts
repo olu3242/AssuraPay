@@ -3,7 +3,7 @@ import { AssuraPayService, createSeedScenario } from '@assurapay/domain';
 
 export async function getAssuraService() {
   const store = await FileAssuraStore.load();
-  const snapshot = store.getSnapshot();
+  const snapshot = await store.getSnapshot();
 
   if (snapshot.contracts.length === 0) {
     const scenario = createSeedScenario();
@@ -33,7 +33,7 @@ export async function getAssuraService() {
     snapshot.acceptanceDecisions = [scenario.acceptance];
     snapshot.certificates = [scenario.certificate];
     snapshot.paymentEligibility = [scenario.paymentEligibility];
-    store.setSnapshot(snapshot);
+    await store.setSnapshot(snapshot);
     await store.upsertWorkspaces(snapshot.workspaces);
     await store.upsertOrganizations(snapshot.organizations);
     await store.upsertContracts(snapshot.contracts);

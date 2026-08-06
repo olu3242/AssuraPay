@@ -4,7 +4,7 @@ import { AssuraPayService } from './assurapay-service';
 
 async function createService() {
   const store = await FileAssuraStore.load();
-  store.setSnapshot({
+  await store.setSnapshot({
     workspaces: [],
     organizations: [],
     contracts: [],

@@ -530,12 +530,38 @@
       "notes": "Every trust aggregate had two relational models and no declared owner. The certified PostgresTrustStore writes ten trust_* tables; an earlier thirty-one-table model described the same aggregates, was created by every migration run, and typed audit_records.aggregate_id as UUID while the live store audits permission keys. Two facts established against a live instance decided the scope. There were never any dual writes: the only production module issuing SQL against data is postgres-store.ts and it names trust_* tables only, FileAssuraStore contains no SQL at all, and every historical table name outside supabase/migrations appears in a test - so the historical model held no rows and this is a retirement, not a data migration. Reporting migrated-row counts would have been fabrication. And the model is not uniformly removable: PostgreSQL was the oracle rather than inference, refusing the drop and naming governed_executions_workspace_id_fkey, which fixes the surviving closure at workspaces (foreign-key parent of 93 Engine 06-60 tables), workspace_memberships (read by has_active_workspace_membership(), called by those tables' policies) and user_identities (parent of workspace_memberships). Those three are retained as compatibility objects with persistence.domain-store-durability as a named retirement condition, not an indefinite reprieve; the other twenty-eight are dropped by forward migration that re-checks emptiness at apply time and refuses rather than discarding, because 'these tables are empty' is a claim about every database that will ever apply it. Readiness distinguishes certified from safe-to-serve: two models for one aggregate or a runtime that can write what it does not own blocks startup, while a retained object that has since been dropped is registry staleness and must not. Scope is the trust domain only - Engine 06-60 domain state remains FileAssuraStore-backed and its durability is not claimed."
     },
     {
-      "id": "persistence.domain-store-durability",
-      "title": "Domain store durability for Engines 06-60",
+      "id": "persistence.async-domain-repository-interface",
+      "title": "Asynchronous domain repository interface",
       "kind": "platform",
       "priority": 43,
       "dependsOn": [
         "persistence.schema-ownership-reconciliation"
+      ],
+      "evidence": {
+        "paths": [
+          "packages/database/src/index.ts",
+          "packages/reos/src/validators/persistence.ts"
+        ],
+        "symbols": [
+          "AssuraRepository",
+          "ASYNCHRONOUS_PERSISTENCE_CONTRACTS",
+          "detachSnapshot"
+        ],
+        "tests": [
+          "packages/database/src/domain-repository.test.ts",
+          "packages/reos/src/reos.persistence.test.ts"
+        ]
+      },
+      "certify": "certify:persistence",
+      "notes": "The real blocker on the Engine 06-60 Postgres adapter, and the exact defect persistence.async-repository-interface fixed for the trust domain one year of capabilities earlier. AssuraRepository declared getSnapshot(): Snapshot and setSnapshot(...): void - synchronous, across 115 production and test call sites, none awaited. No network-backed store can implement either, because JavaScript cannot block on I/O: the only way to satisfy the old signature was to hold the whole database in memory and return the cache, which is arrays behind a PostgreSQL adapter rather than durability and is explicitly forbidden. So persistence.domain-store-durability was unimplementable rather than merely unstarted, and this is its prerequisite. The interface itself was made asynchronous rather than adding a parallel async variant, for the same reasons recorded against the trust capability: two interfaces let call sites keep the synchronous one, and a MaybePromise union lets a caller forget to await and still compile. A second defect surfaced while fixing the first - getSnapshot returned this.snapshot, so every caller held a live handle to the store's interior and could mutate persisted state with no write method, no validation and nothing in the audit trail to attribute it to. normalizeSnapshot was not sufficient as a defence because it builds a new outer object while reusing the same arrays; the store now detaches on both read and write. Enforcement was generalised: the sync-interface-method rule checked TrustPersistence only, which is how the second contract stayed synchronous while the first was certified. Not claimed: no PostgreSQL domain store, no domain schema, no JSON migration, no domain RLS, no cutover. getSnapshot remains snapshot-shaped, so a relational implementation would read every collection per call - implementable and durable, but an efficiency problem persistence.domain-store-durability must address by moving to per-collection reads."
+    },
+    {
+      "id": "persistence.domain-store-durability",
+      "title": "Domain store durability for Engines 06-60",
+      "kind": "platform",
+      "priority": 44,
+      "dependsOn": [
+        "persistence.async-domain-repository-interface"
       ],
       "evidence": {
         "paths": [

@@ -217,10 +217,10 @@ describe('Batch 4 extensions', () => {
 
   it('normalizes missing Batch 4 arrays in legacy snapshots', async () => {
     const legacyStore = await FileAssuraStore.load();
-    legacyStore.setSnapshot({ workspaces: [{ id: 'kept' }] } as any);
-    expect(legacyStore.getSnapshot().workspaces).toEqual([{ id: 'kept' }]);
-    expect(legacyStore.getSnapshot().projectionCheckpoints).toEqual([]);
-    expect(legacyStore.getSnapshot().executionForecasts).toEqual([]);
-    expect(legacyStore.getSnapshot().reportRuns).toEqual([]);
+    await legacyStore.setSnapshot({ workspaces: [{ id: 'kept' }] } as any);
+    expect((await legacyStore.getSnapshot()).workspaces).toEqual([{ id: 'kept' }]);
+    expect((await legacyStore.getSnapshot()).projectionCheckpoints).toEqual([]);
+    expect((await legacyStore.getSnapshot()).executionForecasts).toEqual([]);
+    expect((await legacyStore.getSnapshot()).reportRuns).toEqual([]);
   });
 });

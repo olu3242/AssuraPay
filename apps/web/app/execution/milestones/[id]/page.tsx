@@ -4,7 +4,7 @@ import { getAssuraService } from '../../../../lib/assurapay-app';
 export default async function MilestonePage({ params }: { params: { id: string } }) {
   const { store, service } = await getAssuraService();
   const assurance = await service.getAssuranceReadModel(params.id);
-  const snapshot = store.getSnapshot();
+  const snapshot = await store.getSnapshot();
   const milestone = snapshot?.milestones?.find((entry: any) => entry.id === params.id);
 
   return (

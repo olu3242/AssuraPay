@@ -25,7 +25,7 @@ export async function GET(request: Request) {
   try {
     const context = workspaceScoped(await authorizedContextForRoute(request));
     const { store } = await getAssuraService();
-    const snapshot = store.getSnapshot();
+    const snapshot = await store.getSnapshot();
     return NextResponse.json(
       (snapshot?.contracts ?? []).filter(
         (contract: { workspaceId?: string }) =>

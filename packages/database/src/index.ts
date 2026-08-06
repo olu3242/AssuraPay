@@ -74,6 +74,19 @@ const emptySnapshot: Snapshot = {
   reportDefinitions: [], reportRuns: [],
 };
 
+/**
+ * A snapshot sharing no mutable object with its input.
+ *
+ * `normalizeSnapshot` fills in missing collections but copies nothing — the arrays in its result
+ * are the arrays it was given. So handing its output to a caller still handed over the store's
+ * interior, one level down. `structuredClone` is safe on this data because every value
+ * originates from `JSON.parse` or a plain domain object; it also preserves `Date` rather than
+ * stringifying it, which a JSON round-trip would not.
+ */
+function detachSnapshot(snapshot: Snapshot): Snapshot {
+  return structuredClone(snapshot);
+}
+
 function normalizeSnapshot(snapshot: Partial<Snapshot> = {}): Snapshot {
   return {
     workspaces: snapshot.workspaces ?? [],
@@ -114,9 +127,25 @@ function normalizeSnapshot(snapshot: Partial<Snapshot> = {}): Snapshot {
   };
 }
 
+/**
+ * The domain persistence contract for Engines 06-60.
+ *
+ * Asynchronous in every method, for the same reason `TrustPersistence` is. A synchronous
+ * `getSnapshot(): Snapshot` cannot be implemented over a network: there is no way to block on
+ * I/O in JavaScript, so a relational adapter would have to cache the whole database in memory
+ * and return the cache — arrays behind a PostgreSQL adapter, which is not durability. The
+ * interface itself was made asynchronous rather than adding a parallel async variant, because
+ * two interfaces let call sites keep the synchronous one and a `MaybePromise` union lets a
+ * caller forget to await and still compile.
+ *
+ * `getSnapshot` returns a copy, not the store's own state. It previously returned
+ * `this.snapshot` directly, so every caller held a live handle to the store's interior and
+ * could mutate persisted state without going through a write method — a change no reader could
+ * attribute and no store could refuse.
+ */
 export interface AssuraRepository {
-  getSnapshot(): Snapshot;
-  setSnapshot(snapshot: Partial<Snapshot>): void;
+  getSnapshot(): Promise<Snapshot>;
+  setSnapshot(snapshot: Partial<Snapshot>): Promise<void>;
   upsertWorkspaces(items: any[]): Promise<void>;
   upsertOrganizations(items: any[]): Promise<void>;
   upsertContracts(items: any[]): Promise<void>;
@@ -181,12 +210,23 @@ export class FileAssuraStore implements AssuraRepository {
     await fs.writeFile(DATA_FILE, JSON.stringify(this.snapshot, null, 2));
   }
 
-  getSnapshot(): Snapshot {
-    return this.snapshot;
+  async getSnapshot(): Promise<Snapshot> {
+    // A detached copy. Returning `this.snapshot` handed every caller a live reference to the
+    // store's interior, so a caller could push onto a collection and have it persist on the
+    // next unrelated save — a mutation with no write method, no validation and no audit.
+    //
+    // `normalizeSnapshot` alone is not enough: it builds a new outer object but reuses the same
+    // arrays, so `(await store.getSnapshot()).contracts` was still the store's own array.
+    return detachSnapshot(this.snapshot);
   }
 
-  setSnapshot(snapshot: Partial<Snapshot>): void {
-    this.snapshot = normalizeSnapshot(snapshot);
+  async setSnapshot(snapshot: Partial<Snapshot>): Promise<void> {
+    // Detached on the way in as well. A caller that kept its argument could otherwise keep
+    // editing the store's state after handing it over.
+    this.snapshot = detachSnapshot(normalizeSnapshot(snapshot));
+    // Persisted, not merely accepted. A write method that returns without durably recording
+    // what it was given reports a success the next process restart contradicts.
+    await this.save();
   }
 
   async upsertWorkspaces(items: any[]): Promise<void> {

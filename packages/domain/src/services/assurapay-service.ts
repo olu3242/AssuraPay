@@ -45,9 +45,9 @@ export class AssuraPayService {
       tenantId: input.tenantId,
       createdAt: new Date().toISOString(),
     };
-    const snapshot = this.store.getSnapshot();
+    const snapshot = await this.store.getSnapshot();
     snapshot.workspaces = [...snapshot.workspaces, workspace];
-    this.store.setSnapshot(snapshot);
+    await this.store.setSnapshot(snapshot);
     await this.store.upsertWorkspaces(snapshot.workspaces);
     return workspace;
   }
@@ -59,9 +59,9 @@ export class AssuraPayService {
       tenantId: input.tenantId,
       createdAt: new Date().toISOString(),
     };
-    const snapshot = this.store.getSnapshot();
+    const snapshot = await this.store.getSnapshot();
     snapshot.organizations = [...snapshot.organizations, organization];
-    this.store.setSnapshot(snapshot);
+    await this.store.setSnapshot(snapshot);
     await this.store.upsertOrganizations(snapshot.organizations);
     return organization;
   }
@@ -77,31 +77,31 @@ export class AssuraPayService {
       version: 1,
       createdAt: new Date().toISOString(),
     };
-    const snapshot = this.store.getSnapshot();
+    const snapshot = await this.store.getSnapshot();
     snapshot.contracts = [...snapshot.contracts, contract];
-    this.store.setSnapshot(snapshot);
+    await this.store.setSnapshot(snapshot);
     await this.store.upsertContracts(snapshot.contracts);
     return contract;
   }
 
   async submitContract(contractId: string) {
-    const snapshot = this.store.getSnapshot();
+    const snapshot = await this.store.getSnapshot();
     const contract = snapshot.contracts.find((entry) => entry.id === contractId);
     if (!contract) throw new Error('Contract not found');
     contract.status = 'UNDER_REVIEW';
-    this.store.setSnapshot(snapshot);
+    await this.store.setSnapshot(snapshot);
     await this.store.upsertContracts(snapshot.contracts);
     return contract;
   }
 
   async approveContract(contractId: string, actorId: string) {
-    const snapshot = this.store.getSnapshot();
+    const snapshot = await this.store.getSnapshot();
     const contract = snapshot.contracts.find((entry) => entry.id === contractId);
     if (!contract) throw new Error('Contract not found');
     contract.status = 'APPROVED';
     contract.approvedAt = new Date().toISOString();
     contract.approvedBy = actorId;
-    this.store.setSnapshot(snapshot);
+    await this.store.setSnapshot(snapshot);
     await this.store.upsertContracts(snapshot.contracts);
     return contract;
   }
@@ -117,9 +117,9 @@ export class AssuraPayService {
       status: 'DRAFT' as const,
       createdAt: new Date().toISOString(),
     };
-    const snapshot = this.store.getSnapshot();
+    const snapshot = await this.store.getSnapshot();
     snapshot.blueprints = [...snapshot.blueprints, blueprint];
-    this.store.setSnapshot(snapshot);
+    await this.store.setSnapshot(snapshot);
     await this.store.upsertBlueprints(snapshot.blueprints);
     return blueprint;
   }
@@ -136,9 +136,9 @@ export class AssuraPayService {
       dependenciesSatisfied: false,
       createdAt: new Date().toISOString(),
     };
-    const snapshot = this.store.getSnapshot();
+    const snapshot = await this.store.getSnapshot();
     snapshot.milestones = [...snapshot.milestones, milestone];
-    this.store.setSnapshot(snapshot);
+    await this.store.setSnapshot(snapshot);
     await this.store.upsertMilestones(snapshot.milestones);
     return milestone;
   }
@@ -154,28 +154,28 @@ export class AssuraPayService {
       criteria: input.criteria,
       createdAt: new Date().toISOString(),
     };
-    const snapshot = this.store.getSnapshot();
+    const snapshot = await this.store.getSnapshot();
     snapshot.dodPackages = [...snapshot.dodPackages, dod];
-    this.store.setSnapshot(snapshot);
+    await this.store.setSnapshot(snapshot);
     await this.store.upsertDodPackages(snapshot.dodPackages);
     return dod;
   }
 
   async approveDefinitionOfDone(milestoneId: string) {
-    const snapshot = this.store.getSnapshot();
+    const snapshot = await this.store.getSnapshot();
     const milestone = snapshot.milestones.find((entry) => entry.id === milestoneId);
     const dod = snapshot.dodPackages.find((entry) => entry.milestoneId === milestoneId);
     if (!milestone || !dod) throw new Error('Milestone or definition of done not found');
     milestone.dodApproved = true;
     dod.approved = true;
-    this.store.setSnapshot(snapshot);
+    await this.store.setSnapshot(snapshot);
     await this.store.upsertMilestones(snapshot.milestones);
     await this.store.upsertDodPackages(snapshot.dodPackages);
     return { milestone, dod };
   }
 
   async activateMilestone(milestoneId: string) {
-    const snapshot = this.store.getSnapshot();
+    const snapshot = await this.store.getSnapshot();
     const milestone = snapshot.milestones.find((entry) => entry.id === milestoneId);
     const contract = snapshot.contracts.find((entry) => entry.workspaceId === milestone?.workspaceId && entry.status === 'APPROVED');
     const dod = snapshot.dodPackages.find((entry) => entry.milestoneId === milestoneId && entry.approved);
@@ -186,7 +186,7 @@ export class AssuraPayService {
       milestone.dependenciesSatisfied = true;
     }
     milestone.status = 'ACTIVE';
-    this.store.setSnapshot(snapshot);
+    await this.store.setSnapshot(snapshot);
     await this.store.upsertMilestones(snapshot.milestones);
     return milestone;
   }
@@ -202,15 +202,15 @@ export class AssuraPayService {
       contentHash: input.contentHash ?? `hash-${randomUUID()}`,
       createdAt: new Date().toISOString(),
     };
-    const snapshot = this.store.getSnapshot();
+    const snapshot = await this.store.getSnapshot();
     snapshot.evidenceItems = [...snapshot.evidenceItems, evidence];
-    this.store.setSnapshot(snapshot);
+    await this.store.setSnapshot(snapshot);
     await this.store.upsertEvidence(snapshot.evidenceItems);
     return evidence;
   }
 
   async calculateEvidenceCompleteness(milestoneId: string) {
-    const snapshot = this.store.getSnapshot();
+    const snapshot = await this.store.getSnapshot();
     const milestone = snapshot.milestones.find((entry) => entry.id === milestoneId);
     if (!milestone) throw new Error('Milestone not found');
 
@@ -239,9 +239,9 @@ export class AssuraPayService {
       status: input.status,
       createdAt: new Date().toISOString(),
     };
-    const snapshot = this.store.getSnapshot();
+    const snapshot = await this.store.getSnapshot();
     snapshot.validationResults = [...snapshot.validationResults, validation];
-    this.store.setSnapshot(snapshot);
+    await this.store.setSnapshot(snapshot);
     await this.store.upsertValidation(snapshot.validationResults);
     return validation;
   }
@@ -256,9 +256,9 @@ export class AssuraPayService {
       decisionMakerId: input.decisionMakerId,
       createdAt: new Date().toISOString(),
     };
-    const snapshot = this.store.getSnapshot();
+    const snapshot = await this.store.getSnapshot();
     snapshot.acceptanceDecisions = [...snapshot.acceptanceDecisions, decision];
-    this.store.setSnapshot(snapshot);
+    await this.store.setSnapshot(snapshot);
     await this.store.upsertAcceptance(snapshot.acceptanceDecisions);
     return decision;
   }
@@ -278,7 +278,7 @@ export class AssuraPayService {
   }
 
   async certifyMilestone(milestoneId: string) {
-    const snapshot = this.store.getSnapshot();
+    const snapshot = await this.store.getSnapshot();
     const milestone = snapshot.milestones.find((entry) => entry.id === milestoneId);
     const evidence = snapshot.evidenceItems.filter((entry) => entry.milestoneId === milestoneId);
     const validationResults = snapshot.validationResults.filter((entry) => entry.milestoneId === milestoneId);
@@ -300,14 +300,14 @@ export class AssuraPayService {
     };
     snapshot.certificates = [...snapshot.certificates, certificate];
     milestone.status = 'CERTIFIED_COMPLETE';
-    this.store.setSnapshot(snapshot);
+    await this.store.setSnapshot(snapshot);
     await this.store.upsertCertificates(snapshot.certificates);
     await this.store.upsertMilestones(snapshot.milestones);
     return certificate;
   }
 
   async assessPaymentEligibility(milestoneId: string) {
-    const snapshot = this.store.getSnapshot();
+    const snapshot = await this.store.getSnapshot();
     const milestone = snapshot.milestones.find((entry) => entry.id === milestoneId);
     const certificate = snapshot.certificates.find((entry) => entry.milestoneId === milestoneId && entry.status === 'CERTIFIED');
     const acceptance = snapshot.acceptanceDecisions.find((entry) => entry.milestoneId === milestoneId);
@@ -324,13 +324,13 @@ export class AssuraPayService {
       createdAt: new Date().toISOString(),
     };
     snapshot.paymentEligibility = [...snapshot.paymentEligibility, eligibility];
-    this.store.setSnapshot(snapshot);
+    await this.store.setSnapshot(snapshot);
     await this.store.upsertPaymentEligibility(snapshot.paymentEligibility);
     return eligibility;
   }
 
   async revokeCertificate(certificateId: string, actorId: string, reason: string) {
-    const snapshot = this.store.getSnapshot();
+    const snapshot = await this.store.getSnapshot();
     const certificate = snapshot.certificates.find((entry) => entry.id === certificateId);
     if (!certificate) throw new Error('Certificate not found');
 
@@ -347,7 +347,7 @@ export class AssuraPayService {
       eligibility.status = 'REVOKED';
     }
 
-    this.store.setSnapshot(snapshot);
+    await this.store.setSnapshot(snapshot);
     await this.store.upsertCertificates(snapshot.certificates);
     await this.store.upsertMilestones(snapshot.milestones);
     await this.store.upsertPaymentEligibility(snapshot.paymentEligibility);
@@ -355,14 +355,14 @@ export class AssuraPayService {
   }
 
   async getPaymentEligibilityByMilestone(milestoneId: string) {
-    const snapshot = this.store.getSnapshot();
+    const snapshot = await this.store.getSnapshot();
     return snapshot.paymentEligibility
       .filter((entry) => entry.milestoneId === milestoneId)
       .sort((left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime())[0];
   }
 
   async createSettlementCase(input: { paymentEligibilityId: string; workspaceId: string; tenantId: string; contractId: string; milestoneId: string; organizationId?: string }) {
-    const snapshot = this.store.getSnapshot();
+    const snapshot = await this.store.getSnapshot();
     const eligibility = snapshot.paymentEligibility.find((entry) => entry.id === input.paymentEligibilityId);
     if (!eligibility) throw new Error('Payment eligibility not found');
     const existing = snapshot.settlementCases.find((entry) => entry.paymentEligibilityId === input.paymentEligibilityId && ['ELIGIBILITY_CONFIRMED', 'ENTITLEMENT_CALCULATED', 'FUNDED', 'APPROVED_FOR_RELEASE', 'SETTLED'].includes(entry.status));
@@ -390,13 +390,13 @@ export class AssuraPayService {
     };
 
     snapshot.settlementCases = [...snapshot.settlementCases, settlementCase];
-    this.store.setSnapshot(snapshot);
+    await this.store.setSnapshot(snapshot);
     await this.store.upsertSettlementCases(snapshot.settlementCases);
     return settlementCase;
   }
 
   async calculateFinancialEntitlement(input: { settlementCaseId: string; paymentEligibilityId: string; grossAmountMinor: number; variationAmountMinor?: number; incentiveAmountMinor?: number; reimbursementAmountMinor?: number; retentionAmountMinor?: number; penaltyAmountMinor?: number; serviceCreditAmountMinor?: number; advanceRecoveryAmountMinor?: number; taxWithholdingAmountMinor?: number; otherDeductionAmountMinor?: number }) {
-    const snapshot = this.store.getSnapshot();
+    const snapshot = await this.store.getSnapshot();
     const settlementCase = snapshot.settlementCases.find((entry) => entry.id === input.settlementCaseId);
     const eligibility = snapshot.paymentEligibility.find((entry) => entry.id === input.paymentEligibilityId);
     const certificate = snapshot.certificates.find((entry) => entry.id === eligibility?.certificateId && entry.status === 'CERTIFIED');
@@ -444,14 +444,14 @@ export class AssuraPayService {
     settlementCase.netPayableAmountMinor = netPayableAmountMinor;
     settlementCase.outstandingAmountMinor = netPayableAmountMinor;
     snapshot.financialEntitlements = [...snapshot.financialEntitlements, entitlement];
-    this.store.setSnapshot(snapshot);
+    await this.store.setSnapshot(snapshot);
     await this.store.upsertFinancialEntitlements(snapshot.financialEntitlements);
     await this.store.upsertSettlementCases(snapshot.settlementCases);
     return entitlement;
   }
 
   async createInvoice(input: { settlementCaseId: string; workspaceId: string; tenantId: string; invoiceNumber: string; grossAmountMinor: number; taxAmountMinor?: number; deductionAmountMinor?: number; netAmountMinor: number; documentHash: string; supplierPartyId: string }) {
-    const snapshot = this.store.getSnapshot();
+    const snapshot = await this.store.getSnapshot();
     const settlementCase = snapshot.settlementCases.find((entry) => entry.id === input.settlementCaseId);
     const entitlement = snapshot.financialEntitlements.find((entry) => entry.settlementCaseId === input.settlementCaseId);
     if (!settlementCase || !entitlement) throw new Error('Settlement case and entitlement are required');
@@ -480,14 +480,14 @@ export class AssuraPayService {
 
     settlementCase.status = 'FUNDED';
     snapshot.invoices = [...snapshot.invoices, invoice];
-    this.store.setSnapshot(snapshot);
+    await this.store.setSnapshot(snapshot);
     await this.store.upsertInvoices(snapshot.invoices);
     await this.store.upsertSettlementCases(snapshot.settlementCases);
     return invoice;
   }
 
   async createFundingCommitment(input: { settlementCaseId: string; workspaceId: string; tenantId: string; committedAmountMinor: number; providerId: string }) {
-    const snapshot = this.store.getSnapshot();
+    const snapshot = await this.store.getSnapshot();
     const settlementCase = snapshot.settlementCases.find((entry) => entry.id === input.settlementCaseId);
     if (!settlementCase) throw new Error('Settlement case not found');
     const entitlement = snapshot.financialEntitlements.find((entry) => entry.settlementCaseId === input.settlementCaseId);
@@ -514,14 +514,14 @@ export class AssuraPayService {
 
     settlementCase.status = 'FUNDED';
     snapshot.fundingCommitments = [...snapshot.fundingCommitments, funding];
-    this.store.setSnapshot(snapshot);
+    await this.store.setSnapshot(snapshot);
     await this.store.upsertFundingCommitments(snapshot.fundingCommitments);
     await this.store.upsertSettlementCases(snapshot.settlementCases);
     return funding;
   }
 
   async createReleaseRequest(input: { settlementCaseId: string; workspaceId: string; tenantId: string; requestedAmountMinor: number; beneficiaryAccountReferenceId: string }) {
-    const snapshot = this.store.getSnapshot();
+    const snapshot = await this.store.getSnapshot();
     const settlementCase = snapshot.settlementCases.find((entry) => entry.id === input.settlementCaseId);
     const funding = snapshot.fundingCommitments.find((entry) => entry.settlementCaseId === input.settlementCaseId && entry.status === 'FUNDED');
     const invoice = snapshot.invoices.find((entry) => entry.settlementCaseId === input.settlementCaseId);
@@ -542,14 +542,14 @@ export class AssuraPayService {
 
     settlementCase.status = 'APPROVED_FOR_RELEASE';
     snapshot.releaseRequests = [...snapshot.releaseRequests, release];
-    this.store.setSnapshot(snapshot);
+    await this.store.setSnapshot(snapshot);
     await this.store.upsertReleaseRequests(snapshot.releaseRequests);
     await this.store.upsertSettlementCases(snapshot.settlementCases);
     return release;
   }
 
   async createPaymentInstruction(input: { releaseRequestId: string; workspaceId: string; tenantId: string; providerId: string; idempotencyKey: string; amountMinor: number }) {
-    const snapshot = this.store.getSnapshot();
+    const snapshot = await this.store.getSnapshot();
     const release = snapshot.releaseRequests.find((entry) => entry.id === input.releaseRequestId);
     if (!release) throw new Error('Release request not found');
     if (snapshot.paymentInstructions.some((entry) => entry.idempotencyKey === input.idempotencyKey)) {
@@ -591,7 +591,7 @@ export class AssuraPayService {
     settlementCase.outstandingAmountMinor = Math.max(0, settlementCase.outstandingAmountMinor - input.amountMinor);
     snapshot.paymentInstructions = [...snapshot.paymentInstructions, payment];
     snapshot.ledgerEntries = [...snapshot.ledgerEntries, ledgerEntry];
-    this.store.setSnapshot(snapshot);
+    await this.store.setSnapshot(snapshot);
     await this.store.upsertPaymentInstructions(snapshot.paymentInstructions);
     await this.store.upsertLedgerEntries(snapshot.ledgerEntries);
     await this.store.upsertSettlementCases(snapshot.settlementCases);
@@ -599,7 +599,7 @@ export class AssuraPayService {
   }
 
   async calculateExecutionAssuranceScore(milestoneId: string): Promise<AssuranceScore> {
-    const snapshot = this.store.getSnapshot();
+    const snapshot = await this.store.getSnapshot();
     const milestone = snapshot.milestones.find((entry) => entry.id === milestoneId);
     if (!milestone) throw new Error('Milestone not found');
 
@@ -645,13 +645,13 @@ export class AssuraPayService {
     };
 
     snapshot.assuranceScores = [...snapshot.assuranceScores, assuranceScore];
-    this.store.setSnapshot(snapshot);
+    await this.store.setSnapshot(snapshot);
     await this.store.upsertAssuranceScores(snapshot.assuranceScores);
     return assuranceScore;
   }
 
   async calculateSettlementAssuranceScore(settlementCaseId: string): Promise<AssuranceScore> {
-    const snapshot = this.store.getSnapshot();
+    const snapshot = await this.store.getSnapshot();
     const settlementCase = snapshot.settlementCases.find((entry) => entry.id === settlementCaseId);
     if (!settlementCase) throw new Error('Settlement case not found');
 
@@ -685,13 +685,13 @@ export class AssuraPayService {
     };
 
     snapshot.assuranceScores = [...snapshot.assuranceScores, assuranceScore];
-    this.store.setSnapshot(snapshot);
+    await this.store.setSnapshot(snapshot);
     await this.store.upsertAssuranceScores(snapshot.assuranceScores);
     return assuranceScore;
   }
 
   async generateKpiSnapshot(input: { tenantId: string; workspaceId: string }): Promise<KpiResult[]> {
-    const snapshot = this.store.getSnapshot();
+    const snapshot = await this.store.getSnapshot();
     const milestones = snapshot.milestones.filter((entry) => entry.tenantId === input.tenantId && entry.workspaceId === input.workspaceId);
     const settlementCases = snapshot.settlementCases.filter((entry) => entry.tenantId === input.tenantId && entry.workspaceId === input.workspaceId);
     const certifiedMilestones = milestones.filter((entry) => entry.status === 'CERTIFIED_COMPLETE').length;
@@ -773,13 +773,13 @@ export class AssuraPayService {
     ];
 
     snapshot.kpiResults = [...snapshot.kpiResults, ...kpis];
-    this.store.setSnapshot(snapshot);
+    await this.store.setSnapshot(snapshot);
     await this.store.upsertKpiResults(snapshot.kpiResults);
     return kpis;
   }
 
   async buildExecutiveDashboard(input: { tenantId: string; workspaceId: string; role: string }): Promise<ExecutiveDashboard> {
-    const snapshot = this.store.getSnapshot();
+    const snapshot = await this.store.getSnapshot();
     const milestones = snapshot.milestones.filter((entry) => entry.tenantId === input.tenantId && entry.workspaceId === input.workspaceId);
     const certifiedMilestones = milestones.filter((entry) => entry.status === 'CERTIFIED_COMPLETE').length;
     const eligiblePayments = snapshot.paymentEligibility.filter((entry) => entry.tenantId === input.tenantId && entry.workspaceId === input.workspaceId && entry.status === 'ELIGIBLE').length;
@@ -823,13 +823,13 @@ export class AssuraPayService {
     };
 
     snapshot.executiveDashboards = [...snapshot.executiveDashboards, dashboard];
-    this.store.setSnapshot(snapshot);
+    await this.store.setSnapshot(snapshot);
     await this.store.upsertExecutiveDashboards(snapshot.executiveDashboards);
     return dashboard;
   }
 
   async createGovernedAiReview(input: { tenantId: string; workspaceId: string; subject: string; requestedBy: string; summary: string; approvedBy: string }): Promise<GovernedAiReview> {
-    const snapshot = this.store.getSnapshot();
+    const snapshot = await this.store.getSnapshot();
     const review: GovernedAiReview = {
       id: randomUUID(),
       tenantId: input.tenantId,
@@ -847,7 +847,7 @@ export class AssuraPayService {
     };
 
     snapshot.governedAiReviews = [...snapshot.governedAiReviews, review];
-    this.store.setSnapshot(snapshot);
+    await this.store.setSnapshot(snapshot);
     await this.store.upsertGovernedAiReviews(snapshot.governedAiReviews);
     return review;
   }
@@ -856,47 +856,47 @@ export class AssuraPayService {
     const projectionName = (input.projectionName ?? input.projectionType ?? '').trim();
     const consumerName = (input.consumerName ?? 'default').trim();
     if (!input.tenantId || !input.workspaceId || !projectionName || !consumerName) throw new Error('Tenant, workspace, projection name, and consumer name are required');
-    const snapshot = this.store.getSnapshot();
+    const snapshot = await this.store.getSnapshot();
     const duplicate = snapshot.projectionCheckpoints.find((entry) => entry.tenantId === input.tenantId && entry.workspaceId === input.workspaceId && entry.projectionName === projectionName && entry.consumerName === consumerName);
     if (duplicate) throw new Error('Projection checkpoint already exists');
     const now = new Date().toISOString();
     const checkpoint: ProjectionCheckpoint = { id: randomUUID(), tenantId: input.tenantId, workspaceId: input.workspaceId, projectionName, projectionType: projectionName, consumerName, lastEventSequence: 0, status: input.status ?? 'RUNNING', createdAt: now, updatedAt: now };
     snapshot.projectionCheckpoints.push(checkpoint);
-    this.store.setSnapshot(snapshot); await this.store.upsertProjectionCheckpoints(snapshot.projectionCheckpoints);
+    await this.store.setSnapshot(snapshot); await this.store.upsertProjectionCheckpoints(snapshot.projectionCheckpoints);
     return checkpoint;
   }
 
   async updateProjectionCheckpoint(id: string, input: { tenantId: string; workspaceId: string; lastEventId?: string; lastEventSequence?: number; status?: ProjectionCheckpoint['status']; failureReason?: string }) {
-    const snapshot = this.store.getSnapshot();
+    const snapshot = await this.store.getSnapshot();
     const checkpoint = snapshot.projectionCheckpoints.find((entry) => entry.id === id && entry.tenantId === input.tenantId && entry.workspaceId === input.workspaceId) as ProjectionCheckpoint | undefined;
     if (!checkpoint) throw new Error('Projection checkpoint not found');
     if (input.lastEventSequence !== undefined && input.lastEventSequence < checkpoint.lastEventSequence) throw new Error('Event sequence may not move backwards');
     if (input.status === 'FAILED' && !input.failureReason) throw new Error('Failure reason is required');
     Object.assign(checkpoint, { ...input, lastProcessedAt: input.lastEventId ? new Date().toISOString() : checkpoint.lastProcessedAt, updatedAt: new Date().toISOString() });
-    this.store.setSnapshot(snapshot); await this.store.upsertProjectionCheckpoints(snapshot.projectionCheckpoints);
+    await this.store.setSnapshot(snapshot); await this.store.upsertProjectionCheckpoints(snapshot.projectionCheckpoints);
     return checkpoint;
   }
 
-  async getProjectionCheckpoint(id: string, tenantId: string, workspaceId: string) { return this.store.getSnapshot().projectionCheckpoints.find((entry) => entry.id === id && entry.tenantId === tenantId && entry.workspaceId === workspaceId) ?? null; }
-  async listProjectionCheckpoints(input: { tenantId: string; workspaceId: string }) { return this.store.getSnapshot().projectionCheckpoints.filter((entry) => entry.tenantId === input.tenantId && entry.workspaceId === input.workspaceId); }
+  async getProjectionCheckpoint(id: string, tenantId: string, workspaceId: string) { return (await this.store.getSnapshot()).projectionCheckpoints.find((entry) => entry.id === id && entry.tenantId === tenantId && entry.workspaceId === workspaceId) ?? null; }
+  async listProjectionCheckpoints(input: { tenantId: string; workspaceId: string }) { return (await this.store.getSnapshot()).projectionCheckpoints.filter((entry) => entry.tenantId === input.tenantId && entry.workspaceId === input.workspaceId); }
 
   async consumeProjectionEvent(event: { id: string; type: string; aggregateId: string; tenantId: string; workspaceId: string; version: number }) {
-    const snapshot = this.store.getSnapshot();
+    const snapshot = await this.store.getSnapshot();
     const existing = snapshot.projections.find((entry) => entry.tenantId === event.tenantId && entry.workspaceId === event.workspaceId && entry.sourceEventId === event.id) as ProjectionRecord | undefined;
     if (existing) return existing;
     const checkpoint = snapshot.projectionCheckpoints.find((entry) => entry.tenantId === event.tenantId && entry.workspaceId === event.workspaceId) as ProjectionCheckpoint | undefined;
     const projection: ProjectionRecord = { id: randomUUID(), tenantId: event.tenantId, workspaceId: event.workspaceId, projectionType: checkpoint?.projectionType ?? 'default', sourceEventId: event.id, sourceEventSequence: event.version, aggregateId: event.aggregateId, eventType: event.type, createdAt: new Date().toISOString() };
     snapshot.projections.push(projection);
-    this.store.setSnapshot(snapshot); await this.store.upsertProjections(snapshot.projections);
+    await this.store.setSnapshot(snapshot); await this.store.upsertProjections(snapshot.projections);
     if (checkpoint) await this.updateProjectionCheckpoint(checkpoint.id, { tenantId: event.tenantId, workspaceId: event.workspaceId, lastEventId: event.id, lastEventSequence: event.version, status: 'DONE' });
     return projection;
   }
 
   async rebuildProjection(input: { tenantId: string; workspaceId: string; projectionType: string }) {
-    const projections = this.store.getSnapshot().projections.filter((entry) => entry.tenantId === input.tenantId && entry.workspaceId === input.workspaceId && entry.projectionType === input.projectionType);
-    const snapshot = this.store.getSnapshot();
+    const projections = (await this.store.getSnapshot()).projections.filter((entry) => entry.tenantId === input.tenantId && entry.workspaceId === input.workspaceId && entry.projectionType === input.projectionType);
+    const snapshot = await this.store.getSnapshot();
     const job = { id: randomUUID(), ...input, target: input.projectionType, status: 'DONE', createdAt: new Date().toISOString(), completedAt: new Date().toISOString() };
-    snapshot.projectionRebuildJobs.push(job); this.store.setSnapshot(snapshot); await this.store.upsertProjectionRebuildJobs(snapshot.projectionRebuildJobs);
+    snapshot.projectionRebuildJobs.push(job); await this.store.setSnapshot(snapshot); await this.store.upsertProjectionRebuildJobs(snapshot.projectionRebuildJobs);
     return { ...job, projections };
   }
 
@@ -906,37 +906,37 @@ export class AssuraPayService {
     if (!modelId || !input.modelVersion) throw new Error('Model ID and model version are required');
     if (confidence === undefined || confidence < 0 || confidence > 1) throw new Error('Confidence must be between 0 and 1');
     const forecast: ExecutionForecast = { id: randomUUID(), ...input, modelId, featureSnapshot: Object.freeze({ ...(input.featureSnapshot ?? {}) }), predictedValue: input.predictedValue ?? input.outcome, confidenceScore: confidence, status: 'CURRENT', generatedAt: input.generatedAt ?? new Date().toISOString(), reviewStatus: input.reviewStatus ?? 'PENDING', createdAt: new Date().toISOString() };
-    const snapshot = this.store.getSnapshot(); snapshot.executionForecasts.push(forecast); this.store.setSnapshot(snapshot); await this.store.upsertExecutionForecasts(snapshot.executionForecasts); return forecast;
+    const snapshot = await this.store.getSnapshot(); snapshot.executionForecasts.push(forecast); await this.store.setSnapshot(snapshot); await this.store.upsertExecutionForecasts(snapshot.executionForecasts); return forecast;
   }
 
   async getExecutionForecast(id: string, tenantId: string, workspaceId: string) {
-    const forecast = this.store.getSnapshot().executionForecasts.find((entry) => entry.id === id && entry.tenantId === tenantId && entry.workspaceId === workspaceId) as ExecutionForecast | undefined;
+    const forecast = (await this.store.getSnapshot()).executionForecasts.find((entry) => entry.id === id && entry.tenantId === tenantId && entry.workspaceId === workspaceId) as ExecutionForecast | undefined;
     if (!forecast) return null;
     if (forecast.status === 'CURRENT' && Date.parse(forecast.expiresAt) <= Date.now()) return { ...forecast, status: 'EXPIRED' as const };
     return forecast;
   }
-  async listExecutionForecasts(input: { tenantId: string; workspaceId: string; currentOnly?: boolean }) { const items = this.store.getSnapshot().executionForecasts.filter((entry) => entry.tenantId === input.tenantId && entry.workspaceId === input.workspaceId) as ExecutionForecast[]; return items.map((entry) => entry.status === 'CURRENT' && Date.parse(entry.expiresAt) <= Date.now() ? { ...entry, status: 'EXPIRED' as const } : entry).filter((entry) => !input.currentOnly || entry.status === 'CURRENT'); }
-  async markExecutionForecastStale(id: string, input: { tenantId: string; workspaceId: string; reason: string }) { const snapshot = this.store.getSnapshot(); const forecast = snapshot.executionForecasts.find((entry) => entry.id === id && entry.tenantId === input.tenantId && entry.workspaceId === input.workspaceId) as ExecutionForecast | undefined; if (!forecast) throw new Error('Execution forecast not found'); forecast.status = 'STALE'; forecast.reviewStatus = 'STALE'; (forecast as any).staleReason = input.reason; this.store.setSnapshot(snapshot); await this.store.upsertExecutionForecasts(snapshot.executionForecasts); return forecast; }
+  async listExecutionForecasts(input: { tenantId: string; workspaceId: string; currentOnly?: boolean }) { const items = (await this.store.getSnapshot()).executionForecasts.filter((entry) => entry.tenantId === input.tenantId && entry.workspaceId === input.workspaceId) as ExecutionForecast[]; return items.map((entry) => entry.status === 'CURRENT' && Date.parse(entry.expiresAt) <= Date.now() ? { ...entry, status: 'EXPIRED' as const } : entry).filter((entry) => !input.currentOnly || entry.status === 'CURRENT'); }
+  async markExecutionForecastStale(id: string, input: { tenantId: string; workspaceId: string; reason: string }) { const snapshot = await this.store.getSnapshot(); const forecast = snapshot.executionForecasts.find((entry) => entry.id === id && entry.tenantId === input.tenantId && entry.workspaceId === input.workspaceId) as ExecutionForecast | undefined; if (!forecast) throw new Error('Execution forecast not found'); forecast.status = 'STALE'; forecast.reviewStatus = 'STALE'; (forecast as any).staleReason = input.reason; await this.store.setSnapshot(snapshot); await this.store.upsertExecutionForecasts(snapshot.executionForecasts); return forecast; }
   async markForecastsStale(input: { tenantId: string; workspaceId: string; reason: string }) { const forecasts = await this.listExecutionForecasts({ tenantId: input.tenantId, workspaceId: input.workspaceId }); return await Promise.all(forecasts.filter((entry) => entry.status === 'CURRENT').map(async (entry) => await this.markExecutionForecastStale(entry.id, input))); }
-  async recordExecutionForecastOutcome(id: string, input: { tenantId: string; workspaceId: string; actualOutcome: unknown; recordedBy: string }) { const forecast = await this.getExecutionForecast(id, input.tenantId, input.workspaceId); if (!forecast) throw new Error('Execution forecast not found'); const outcome: ForecastOutcome = { id: randomUUID(), tenantId: input.tenantId, workspaceId: input.workspaceId, forecastId: id, actualOutcome: input.actualOutcome, recordedBy: input.recordedBy, recordedAt: new Date().toISOString() }; const snapshot = this.store.getSnapshot(); snapshot.forecastOutcomes.push(outcome); this.store.setSnapshot(snapshot); await this.store.upsertForecastOutcomes(snapshot.forecastOutcomes); return outcome; }
+  async recordExecutionForecastOutcome(id: string, input: { tenantId: string; workspaceId: string; actualOutcome: unknown; recordedBy: string }) { const forecast = await this.getExecutionForecast(id, input.tenantId, input.workspaceId); if (!forecast) throw new Error('Execution forecast not found'); const outcome: ForecastOutcome = { id: randomUUID(), tenantId: input.tenantId, workspaceId: input.workspaceId, forecastId: id, actualOutcome: input.actualOutcome, recordedBy: input.recordedBy, recordedAt: new Date().toISOString() }; const snapshot = await this.store.getSnapshot(); snapshot.forecastOutcomes.push(outcome); await this.store.setSnapshot(snapshot); await this.store.upsertForecastOutcomes(snapshot.forecastOutcomes); return outcome; }
 
-  async createAlertInstance(input: { tenantId: string; workspaceId: string; alertKey: string; severity: string; title: string; detail: string; assignment: string; dedupeKey: string }) { const snapshot = this.store.getSnapshot(); const existing = snapshot.alertInstances.find((entry) => entry.tenantId === input.tenantId && entry.workspaceId === input.workspaceId && entry.dedupeKey === input.dedupeKey && entry.status === 'OPEN') as AlertInstance | undefined; if (existing) return existing; const alert: AlertInstance = { id: randomUUID(), ...input, status: 'OPEN', createdAt: new Date().toISOString() }; snapshot.alertInstances.push(alert); this.store.setSnapshot(snapshot); await this.store.upsertAlertInstances(snapshot.alertInstances); return alert; }
+  async createAlertInstance(input: { tenantId: string; workspaceId: string; alertKey: string; severity: string; title: string; detail: string; assignment: string; dedupeKey: string }) { const snapshot = await this.store.getSnapshot(); const existing = snapshot.alertInstances.find((entry) => entry.tenantId === input.tenantId && entry.workspaceId === input.workspaceId && entry.dedupeKey === input.dedupeKey && entry.status === 'OPEN') as AlertInstance | undefined; if (existing) return existing; const alert: AlertInstance = { id: randomUUID(), ...input, status: 'OPEN', createdAt: new Date().toISOString() }; snapshot.alertInstances.push(alert); await this.store.setSnapshot(snapshot); await this.store.upsertAlertInstances(snapshot.alertInstances); return alert; }
 
   async createReportDefinition(input: { tenantId: string; workspaceId: string; reportKey: string; name: string; classification: string; allowedRoles: string[]; fieldMasking: string[]; exportPolicy: string; reportType?: string; scopeType?: string; queryConfiguration?: Record<string, unknown>; fieldConfiguration?: { allowedFields: string[]; maskedFields: string[] }; scheduleConfiguration?: Record<string, unknown>; deliveryConfiguration?: Record<string, unknown> }) {
     const serializedQuery = JSON.stringify(input.queryConfiguration ?? {}); if (/\b(SELECT|INSERT|UPDATE|DELETE|DROP|ALTER|FROM|WHERE)\b/i.test(serializedQuery)) throw new Error('Arbitrary SQL is not permitted');
     const now = new Date().toISOString(); const report: ReportDefinition = { id: randomUUID(), ...input, reportType: input.reportType ?? input.reportKey, scopeType: input.scopeType ?? 'workspace', queryConfiguration: input.queryConfiguration ?? {}, fieldConfiguration: input.fieldConfiguration ?? { allowedFields: [], maskedFields: [...input.fieldMasking] }, scheduleConfiguration: input.scheduleConfiguration ?? {}, deliveryConfiguration: input.deliveryConfiguration ?? {}, status: 'ACTIVE', version: 1, createdAt: now, updatedAt: now };
-    const snapshot = this.store.getSnapshot(); snapshot.reportDefinitions.push(report); this.store.setSnapshot(snapshot); await this.store.upsertReportDefinitions(snapshot.reportDefinitions); return report;
+    const snapshot = await this.store.getSnapshot(); snapshot.reportDefinitions.push(report); await this.store.setSnapshot(snapshot); await this.store.upsertReportDefinitions(snapshot.reportDefinitions); return report;
   }
-  async getReportDefinition(id: string, tenantId: string, workspaceId: string) { return this.store.getSnapshot().reportDefinitions.find((entry) => entry.id === id && entry.tenantId === tenantId && entry.workspaceId === workspaceId) ?? null; }
-  async listReportDefinitions(input: { tenantId: string; workspaceId: string }) { return this.store.getSnapshot().reportDefinitions.filter((entry) => entry.tenantId === input.tenantId && entry.workspaceId === input.workspaceId); }
+  async getReportDefinition(id: string, tenantId: string, workspaceId: string) { return (await this.store.getSnapshot()).reportDefinitions.find((entry) => entry.id === id && entry.tenantId === tenantId && entry.workspaceId === workspaceId) ?? null; }
+  async listReportDefinitions(input: { tenantId: string; workspaceId: string }) { return (await this.store.getSnapshot()).reportDefinitions.filter((entry) => entry.tenantId === input.tenantId && entry.workspaceId === input.workspaceId); }
   async runReport(input: { reportDefinitionId: string; tenantId: string; workspaceId: string; actorId: string; recordPermissions?: string[]; maskedFields?: string[]; periodStart?: string; periodEnd?: string; parameters?: Record<string, unknown>; records?: Array<Record<string, unknown>> }) {
     const report = await this.getReportDefinition(input.reportDefinitionId, input.tenantId, input.workspaceId) as ReportDefinition | null; if (!report) throw new Error('Report definition not found'); if (!input.recordPermissions?.includes(`${report.reportKey}:export`)) throw new Error('Report export permission required');
     const maskedFields = Array.from(new Set([...report.fieldConfiguration.maskedFields, ...(input.maskedFields ?? [])])).sort(); const records = (input.records ?? []).map((record) => Object.fromEntries(Object.entries(record).map(([key, value]) => [key, maskedFields.includes(key) ? '***MASKED***' : value]))); const generatedAt = new Date().toISOString(); const canonical = JSON.stringify({ reportDefinitionId: report.id, periodStart: input.periodStart ?? null, periodEnd: input.periodEnd ?? null, parameters: input.parameters ?? {}, records }); const outputHash = createHash('sha256').update(canonical).digest('hex');
     const run: ReportRun = { id: randomUUID(), tenantId: input.tenantId, workspaceId: input.workspaceId, reportDefinitionId: report.id, requestedBy: input.actorId, periodStart: input.periodStart, periodEnd: input.periodEnd, parameters: input.parameters ?? {}, status: 'COMPLETED', outputStorageReference: `reports/${report.id}/${outputHash}.json`, outputHash, recordCount: records.length, maskedFields, exportPolicy: report.exportPolicy, generatedAt, expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), createdAt: generatedAt };
-    const snapshot = this.store.getSnapshot(); snapshot.reportRuns.push(run); this.store.setSnapshot(snapshot); await this.store.upsertReportRuns(snapshot.reportRuns); return run;
+    const snapshot = await this.store.getSnapshot(); snapshot.reportRuns.push(run); await this.store.setSnapshot(snapshot); await this.store.upsertReportRuns(snapshot.reportRuns); return run;
   }
-  async getReportRun(id: string, tenantId: string, workspaceId: string) { const run = this.store.getSnapshot().reportRuns.find((entry) => entry.id === id && entry.tenantId === tenantId && entry.workspaceId === workspaceId) as ReportRun | undefined; if (!run) return null; return Date.parse(run.expiresAt) <= Date.now() ? { ...run, status: 'EXPIRED' as const, outputStorageReference: '' } : run; }
-  async listReportRuns(input: { tenantId: string; workspaceId: string }) { return this.store.getSnapshot().reportRuns.filter((entry) => entry.tenantId === input.tenantId && entry.workspaceId === input.workspaceId); }
+  async getReportRun(id: string, tenantId: string, workspaceId: string) { const run = (await this.store.getSnapshot()).reportRuns.find((entry) => entry.id === id && entry.tenantId === tenantId && entry.workspaceId === workspaceId) as ReportRun | undefined; if (!run) return null; return Date.parse(run.expiresAt) <= Date.now() ? { ...run, status: 'EXPIRED' as const, outputStorageReference: '' } : run; }
+  async listReportRuns(input: { tenantId: string; workspaceId: string }) { return (await this.store.getSnapshot()).reportRuns.filter((entry) => entry.tenantId === input.tenantId && entry.workspaceId === input.workspaceId); }
 
   validateKpiFormula(expression: string) { return validateKpiFormula(expression); }
   async simulateKpiDefinition(input: { formulaExpression: string; numerator: number | null; denominator: number | null }) { const validation = validateKpiFormula(input.formulaExpression); if (!validation.valid) return { status: 'INVALID' as const, errors: validation.errors, resultValue: null }; if (input.numerator === null || input.denominator === null || input.denominator === 0) return { status: 'NOT_CALCULABLE' as const, errors: [], resultValue: null }; return { status: 'CALCULATED' as const, errors: [], resultValue: (input.numerator / input.denominator) * 100 }; }
@@ -959,15 +959,15 @@ export class AssuraPayService {
       status: input.status ?? 'DRAFT',
       createdAt: new Date().toISOString(),
     };
-    const snapshot = this.store.getSnapshot();
+    const snapshot = await this.store.getSnapshot();
     snapshot.kpiDefinitions = [...snapshot.kpiDefinitions, definition];
-    this.store.setSnapshot(snapshot);
+    await this.store.setSnapshot(snapshot);
     await this.store.upsertKPIDefinitions(snapshot.kpiDefinitions);
     return definition;
   }
 
   async publishKPIDefinition(definitionId: string, actorId: string) {
-    const snapshot = this.store.getSnapshot();
+    const snapshot = await this.store.getSnapshot();
     const definition = snapshot.kpiDefinitions.find((entry) => entry.id === definitionId);
     if (!definition) throw new Error('KPI definition not found');
     if (definition.status === 'PUBLISHED') throw new Error('Published KPI definitions are immutable');
@@ -976,13 +976,13 @@ export class AssuraPayService {
     definition.status = 'PUBLISHED';
     definition.publishedAt = new Date().toISOString();
     definition.publishedBy = actorId;
-    this.store.setSnapshot(snapshot);
+    await this.store.setSnapshot(snapshot);
     await this.store.upsertKPIDefinitions(snapshot.kpiDefinitions);
     return definition;
   }
 
   async calculateKPIResult(input: { kpiDefinitionId: string; tenantId: string; workspaceId: string; scopeType: string; scopeId: string; periodStart: string; periodEnd: string; numerator: number; denominator: number; resultUnit: string }) {
-    const snapshot = this.store.getSnapshot();
+    const snapshot = await this.store.getSnapshot();
     const definition = snapshot.kpiDefinitions.find((entry) => entry.id === input.kpiDefinitionId);
     if (!definition) throw new Error('KPI definition not found');
 
@@ -1004,7 +1004,7 @@ export class AssuraPayService {
     };
 
     snapshot.kpiResults = [...snapshot.kpiResults, result];
-    this.store.setSnapshot(snapshot);
+    await this.store.setSnapshot(snapshot);
     await this.store.upsertKPIResults(snapshot.kpiResults);
     return result;
   }
@@ -1018,9 +1018,9 @@ export class AssuraPayService {
       metricKeys: input.metricKeys,
       createdAt: new Date().toISOString(),
     };
-    const snapshot = this.store.getSnapshot();
+    const snapshot = await this.store.getSnapshot();
     snapshot.kpiProfiles = [...snapshot.kpiProfiles, profile];
-    this.store.setSnapshot(snapshot);
+    await this.store.setSnapshot(snapshot);
     await this.store.upsertKPIProfiles(snapshot.kpiProfiles);
     return profile;
   }
@@ -1036,15 +1036,15 @@ export class AssuraPayService {
       metrics: input.metrics.map((metric) => ({ ...metric, value: metric.masked ? 'masked' : metric.value })),
       createdAt: new Date().toISOString(),
     };
-    const storeSnapshot = this.store.getSnapshot();
+    const storeSnapshot = await this.store.getSnapshot();
     storeSnapshot.dashboardSnapshots = [...storeSnapshot.dashboardSnapshots, snapshot];
-    this.store.setSnapshot(storeSnapshot);
+    await this.store.setSnapshot(storeSnapshot);
     await this.store.upsertDashboardSnapshots(storeSnapshot.dashboardSnapshots);
     return snapshot;
   }
 
   async getAssuranceReadModel(milestoneId: string) {
-    const snapshot = this.store.getSnapshot();
+    const snapshot = await this.store.getSnapshot();
     const milestone = snapshot.milestones.find((entry) => entry.id === milestoneId);
     if (!milestone) throw new Error('Milestone not found');
 

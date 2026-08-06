@@ -2094,9 +2094,10 @@
       "moduleType": null,
       "name": "@assurapay/database",
       "sourceFiles": 9,
-      "sourceLines": 3146,
+      "sourceLines": 3185,
       "testFiles": [
         "packages/database/src/async-conformance.test.ts",
+        "packages/database/src/domain-repository.test.ts",
         "packages/database/src/rls-certification.test.ts",
         "packages/database/src/schema-ownership.test.ts",
         "packages/database/src/trust-migrations.integration.test.ts",
@@ -2107,7 +2108,7 @@
         "integration": 1,
         "performance": 0,
         "security": 0,
-        "unit": 4
+        "unit": 5
       },
       "workspaceDependencies": [
         "@assurapay/shared"
@@ -2524,7 +2525,7 @@
       "moduleType": "module",
       "name": "@assurapay/reos",
       "sourceFiles": 25,
-      "sourceLines": 4704,
+      "sourceLines": 4728,
       "testFiles": [
         "packages/reos/src/reos.e2e.test.ts",
         "packages/reos/src/reos.governance.test.ts",
@@ -2707,9 +2708,10 @@
   "reosVersion": "1.0.0",
   "repository": {
     "git": {
-      "branch": "feat/persistence-schema-ownership-reconciliation",
+      "branch": "feat/persistence-async-domain-repository",
       "branches": [
         "claude/git-pull-cqc04u",
+        "feat/persistence-async-domain-repository",
         "feat/persistence-async-repository-interface",
         "feat/persistence-postgres-trust-store",
         "feat/persistence-production-runtime-wiring",
@@ -2725,6 +2727,7 @@
         "origin/feat/persistence-postgres-trust-store",
         "origin/feat/persistence-production-runtime-wiring",
         "origin/feat/persistence-rls-certification",
+        "origin/feat/persistence-schema-ownership-reconciliation",
         "origin/main",
         "origin/wip/persistence-async-migration",
         "origin/wip/persistence-async-repository-interface",
@@ -2733,8 +2736,15 @@
       ],
       "clean": false,
       "dirtyFiles": [
-        ".github/workflows/ci.yml",
-        "docs/architecture/SCHEMA_OWNERSHIP.md",
+        "apps/web/app/api/v1/completion-certificates/[id]/verify/route.ts",
+        "apps/web/app/api/v1/contracts/route.ts",
+        "apps/web/app/api/v1/me/workspaces/route.ts",
+        "apps/web/app/api/v1/payment-eligibility/[id]/blockers/route.ts",
+        "apps/web/app/execution/milestones/[id]/page.tsx",
+        "apps/web/app/execution/page.tsx",
+        "apps/web/app/page.tsx",
+        "apps/web/app/settlements/page.tsx",
+        "apps/web/lib/assurapay-app.ts",
         "docs/governance/reos/capability-registry.json",
         "docs/governance/reos/generated/CERTIFICATION_REPORT.md",
         "docs/governance/reos/generated/DEPENDENCY_RESOLUTION.md",
@@ -2744,19 +2754,18 @@
         "docs/governance/reos/generated/discovery.json",
         "docs/governance/reos/generated/execution-manifest.json",
         "docs/governance/reos/generated/forensics.json",
-        "packages/database-testing/src/index.ts",
-        "packages/database-testing/src/schema-ownership.postgres.test.ts",
+        "packages/database/src/domain-repository.test.ts",
         "packages/database/src/index.ts",
-        "packages/database/src/migrations.ts",
-        "packages/database/src/schema-ownership.test.ts",
-        "packages/database/src/schema-ownership.ts",
-        "packages/reos/src/reos.persistence.test.ts",
-        "packages/reos/src/validators/persistence.ts",
-        "packages/runtime/src/persistence-runtime.ts",
-        "supabase/migrations/202608080001_trust_schema_ownership_reconciliation.sql"
+        "packages/domain/src/services/assurapay-service.test.ts",
+        "packages/domain/src/services/assurapay-service.ts",
+        "packages/domain/src/services/batch2-remediation.test.ts",
+        "packages/domain/src/services/batch4-extensions.test.ts",
+        "packages/domain/src/services/intelligence-foundation.test.ts",
+        "packages/domain/src/services/settlement-assurance.test.ts",
+        "packages/reos/src/validators/persistence.ts"
       ],
-      "head": "ea6cbb6560b676efccf3a59e3d92aabebdb77dc8",
-      "headShort": "ea6cbb6",
+      "head": "544011abfd074e15296d8ba2c1a9b399ee880f04",
+      "headShort": "544011a",
       "reflogAvailable": true,
       "remotes": [
         "origin"
@@ -2947,9 +2956,9 @@
       "integration": 15,
       "performance": 2,
       "security": 3,
-      "unit": 50
+      "unit": 51
     },
-    "files": 85
+    "files": 86
   },
   "totals": {
     "applications": 1,
@@ -2957,7 +2966,7 @@
     "engines": 60,
     "migrations": 24,
     "packages": 25,
-    "testFiles": 85
+    "testFiles": 86
   },
   "workflows": [
     {

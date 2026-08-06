@@ -2401,6 +2401,18 @@
     },
     {
       "blocks": [
+        "persistence.domain-store-durability"
+      ],
+      "dependsOn": [
+        "persistence.schema-ownership-reconciliation"
+      ],
+      "id": "persistence.async-domain-repository-interface",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "persistence.async-domain-repository-interface",
         "persistence.domain-store-durability",
         "persistence.postgres-repository",
         "persistence.production-runtime-wiring",
@@ -2417,7 +2429,7 @@
     {
       "blocks": [],
       "dependsOn": [
-        "persistence.schema-ownership-reconciliation"
+        "persistence.async-domain-repository-interface"
       ],
       "id": "persistence.domain-store-durability",
       "lifecycle": "planned",
@@ -2425,6 +2437,7 @@
     },
     {
       "blocks": [
+        "persistence.async-domain-repository-interface",
         "persistence.domain-store-durability",
         "persistence.production-runtime-wiring",
         "persistence.rls-certification",
@@ -2439,6 +2452,7 @@
     },
     {
       "blocks": [
+        "persistence.async-domain-repository-interface",
         "persistence.domain-store-durability",
         "persistence.rls-certification",
         "persistence.schema-ownership-reconciliation"
@@ -2452,6 +2466,7 @@
     },
     {
       "blocks": [
+        "persistence.async-domain-repository-interface",
         "persistence.async-repository-interface",
         "persistence.domain-store-durability",
         "persistence.postgres-repository",
@@ -2468,6 +2483,7 @@
     },
     {
       "blocks": [
+        "persistence.async-domain-repository-interface",
         "persistence.domain-store-durability",
         "persistence.schema-ownership-reconciliation"
       ],
@@ -2481,17 +2497,19 @@
     },
     {
       "blocks": [
+        "persistence.async-domain-repository-interface",
         "persistence.domain-store-durability"
       ],
       "dependsOn": [
         "persistence.rls-certification"
       ],
       "id": "persistence.schema-ownership-reconciliation",
-      "lifecycle": "certified",
+      "lifecycle": "released",
       "status": "implemented"
     },
     {
       "blocks": [
+        "persistence.async-domain-repository-interface",
         "persistence.async-repository-interface",
         "persistence.domain-store-durability",
         "persistence.postgres-repository",
@@ -2544,6 +2562,7 @@
     },
     {
       "blocks": [
+        "persistence.async-domain-repository-interface",
         "persistence.async-repository-interface",
         "persistence.domain-store-durability",
         "persistence.postgres-repository",
@@ -2569,6 +2588,7 @@
     },
     {
       "blocks": [
+        "persistence.async-domain-repository-interface",
         "persistence.async-repository-interface",
         "persistence.domain-store-durability",
         "persistence.postgres-repository",
@@ -2593,6 +2613,7 @@
     },
     {
       "blocks": [
+        "persistence.async-domain-repository-interface",
         "persistence.async-repository-interface",
         "persistence.domain-store-durability",
         "persistence.postgres-repository",
@@ -3332,12 +3353,12 @@
       "blockedBy": [],
       "blocks": [],
       "dependsOn": [
-        "persistence.schema-ownership-reconciliation"
+        "persistence.async-domain-repository-interface"
       ],
       "executable": true,
       "id": "persistence.domain-store-durability",
       "lifecycle": "planned",
-      "priority": 43,
+      "priority": 44,
       "requiresLiveInfrastructure": true,
       "scope": {
         "estimated": false,
@@ -3349,9 +3370,9 @@
     }
   ],
   "identity": {
-    "branch": "feat/persistence-schema-ownership-reconciliation",
+    "branch": "feat/persistence-async-domain-repository",
     "clean": false,
-    "head": "ea6cbb6560b676efccf3a59e3d92aabebdb77dc8",
+    "head": "544011abfd074e15296d8ba2c1a9b399ee880f04",
     "repository": "assurapay",
     "version": "0.1.0"
   },
@@ -3412,6 +3433,7 @@
     "engine:58",
     "engine:59",
     "engine:60",
+    "persistence.async-domain-repository-interface",
     "persistence.async-repository-interface",
     "persistence.postgres-repository",
     "persistence.production-runtime-wiring",
@@ -3431,16 +3453,16 @@
     "trust.session-assertion-issuance"
   ],
   "lifecycleSummary": {
-    "certified": 1,
+    "certified": 0,
     "deferred": 4,
     "implemented": 0,
     "implementing": 0,
     "missing": 0,
     "planned": 1,
-    "released": 72,
+    "released": 74,
     "validated": 0
   },
-  "manifestDigest": "31f5a2094ffa",
+  "manifestDigest": "f501be5d3c17",
   "missingCapabilities": [
     "persistence.domain-store-durability"
   ],
@@ -3628,9 +3650,10 @@
       "moduleType": null,
       "name": "@assurapay/database",
       "sourceFiles": 9,
-      "sourceLines": 3146,
+      "sourceLines": 3185,
       "testFiles": [
         "packages/database/src/async-conformance.test.ts",
+        "packages/database/src/domain-repository.test.ts",
         "packages/database/src/rls-certification.test.ts",
         "packages/database/src/schema-ownership.test.ts",
         "packages/database/src/trust-migrations.integration.test.ts",
@@ -3641,7 +3664,7 @@
         "integration": 1,
         "performance": 0,
         "security": 0,
-        "unit": 4
+        "unit": 5
       },
       "workspaceDependencies": [
         "@assurapay/shared"
@@ -4058,7 +4081,7 @@
       "moduleType": "module",
       "name": "@assurapay/reos",
       "sourceFiles": 25,
-      "sourceLines": 4704,
+      "sourceLines": 4728,
       "testFiles": [
         "packages/reos/src/reos.e2e.test.ts",
         "packages/reos/src/reos.governance.test.ts",
@@ -4239,6 +4262,82 @@
     }
   ],
   "platformCapabilities": [
+    {
+      "git": {
+        "historicalCommits": [],
+        "reachableFromHead": true,
+        "refsContaining": [],
+        "removedFromHead": false
+      },
+      "id": "persistence.async-domain-repository-interface",
+      "kind": "platform",
+      "onDefaultBranch": true,
+      "probes": [
+        {
+          "kind": "path",
+          "matches": [
+            "packages/database/src/index.ts"
+          ],
+          "query": "packages/database/src/index.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "path",
+          "matches": [
+            "packages/reos/src/validators/persistence.ts"
+          ],
+          "query": "packages/reos/src/validators/persistence.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "packages/database/src/domain-repository.test.ts",
+            "packages/database/src/index.ts",
+            "packages/reos/src/validators/persistence.ts"
+          ],
+          "query": "AssuraRepository",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "packages/reos/src/validators/persistence.ts"
+          ],
+          "query": "ASYNCHRONOUS_PERSISTENCE_CONTRACTS",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "packages/database/src/index.ts"
+          ],
+          "query": "detachSnapshot",
+          "satisfied": true
+        },
+        {
+          "kind": "test",
+          "matches": [
+            "packages/database/src/domain-repository.test.ts"
+          ],
+          "query": "packages/database/src/domain-repository.test.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "test",
+          "matches": [
+            "packages/reos/src/reos.persistence.test.ts"
+          ],
+          "query": "packages/reos/src/reos.persistence.test.ts",
+          "satisfied": true
+        }
+      ],
+      "rationale": "All 7 evidence probes satisfied at HEAD.",
+      "satisfiedProbes": 7,
+      "status": "implemented",
+      "title": "Asynchronous domain repository interface",
+      "totalProbes": 7
+    },
     {
       "git": {
         "historicalCommits": [],
@@ -4724,7 +4823,7 @@
       },
       "id": "persistence.schema-ownership-reconciliation",
       "kind": "platform",
-      "onDefaultBranch": false,
+      "onDefaultBranch": true,
       "probes": [
         {
           "kind": "path",

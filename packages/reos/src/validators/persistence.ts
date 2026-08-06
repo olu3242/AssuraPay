@@ -256,27 +256,53 @@ function sourceFiles(repoRoot: string, roots: readonly string[]): string[] {
  * may legitimately be `async` while the interface it satisfies is not, and it is
  * the interface that decides whether a Postgres adapter is possible.
  */
+/**
+ * Persistence contracts that must be asynchronous in every method.
+ *
+ * Both of them, not just the trust one. `AssuraRepository` is the Engine 06-60 contract, and it
+ * carried exactly the defect `TrustPersistence` was fixed for: `getSnapshot(): Snapshot` and
+ * `setSnapshot(...): void`, synchronous, across 115 call sites. A relational adapter cannot
+ * implement either — JavaScript cannot block on I/O — so the only way to satisfy the old
+ * signature was to hold the whole database in memory and return the cache, which is arrays
+ * behind a PostgreSQL adapter rather than durability. Checking one contract and not the other
+ * is how the second one stayed synchronous while the first was certified.
+ */
+const ASYNCHRONOUS_PERSISTENCE_CONTRACTS = Object.freeze([
+  { name: 'TrustPersistence', location: 'packages/shared/src/trust.ts' },
+  { name: 'AssuraRepository', location: 'packages/database/src/index.ts' },
+]);
+
 function checkInterfaceIsAsynchronous(repoRoot: string): Finding[] {
-  const location = 'packages/shared/src/trust.ts';
+  return ASYNCHRONOUS_PERSISTENCE_CONTRACTS.flatMap(({ name, location }) =>
+    checkOneContractIsAsynchronous(repoRoot, name, location),
+  );
+}
+
+function checkOneContractIsAsynchronous(
+  repoRoot: string,
+  contract: string,
+  location: string,
+): Finding[] {
   const text = readTextIfPresent(path.join(repoRoot, location));
   if (text === null) return [];
 
-  const declaration = text.match(/export interface TrustPersistence\s*\{([\s\S]*?)\n\}/);
+  const declaration = text.match(
+    new RegExp(String.raw`export interface ${contract}\s*\{([\s\S]*?)\n\}`),
+  );
   if (!declaration) {
     return [
       {
         rule: 'persistence/sync-interface-method',
         severity: 'error',
-        message:
-          'TrustPersistence is not declared as an interface in packages/shared/src/trust.ts; the persistence contract cannot be checked.',
+        message: `${contract} is not declared as an interface in ${location}; the persistence contract cannot be checked.`,
         location,
-        subject: 'TrustPersistence',
+        subject: contract,
       },
     ];
   }
 
   const findings: Finding[] = [];
-  // Members are single-line in this declaration; a signature spanning lines would
+  // Members are single-line in these declarations; a signature spanning lines would
   // still expose its return type on the line carrying the closing parenthesis.
   for (const line of declaration[1].split('\n')) {
     const member = line.match(/^\s{2}(\w+)(<[^>]*>)?\(.*\)\s*:\s*(.+);\s*$/);
@@ -286,9 +312,9 @@ function checkInterfaceIsAsynchronous(repoRoot: string): Finding[] {
     findings.push({
       rule: 'persistence/sync-interface-method',
       severity: 'error',
-      message: `TrustPersistence.${name} returns ${returnType.trim()} rather than a Promise, so no network-backed store can implement it.`,
+      message: `${contract}.${name} returns ${returnType.trim()} rather than a Promise, so no network-backed store can implement it.`,
       location,
-      subject: `TrustPersistence.${name}`,
+      subject: `${contract}.${name}`,
     });
   }
   return findings;

@@ -7,6 +7,82 @@
         "refsContaining": [],
         "removedFromHead": false
       },
+      "id": "persistence.async-domain-repository-interface",
+      "kind": "platform",
+      "onDefaultBranch": true,
+      "probes": [
+        {
+          "kind": "path",
+          "matches": [
+            "packages/database/src/index.ts"
+          ],
+          "query": "packages/database/src/index.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "path",
+          "matches": [
+            "packages/reos/src/validators/persistence.ts"
+          ],
+          "query": "packages/reos/src/validators/persistence.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "packages/database/src/domain-repository.test.ts",
+            "packages/database/src/index.ts",
+            "packages/reos/src/validators/persistence.ts"
+          ],
+          "query": "AssuraRepository",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "packages/reos/src/validators/persistence.ts"
+          ],
+          "query": "ASYNCHRONOUS_PERSISTENCE_CONTRACTS",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "packages/database/src/index.ts"
+          ],
+          "query": "detachSnapshot",
+          "satisfied": true
+        },
+        {
+          "kind": "test",
+          "matches": [
+            "packages/database/src/domain-repository.test.ts"
+          ],
+          "query": "packages/database/src/domain-repository.test.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "test",
+          "matches": [
+            "packages/reos/src/reos.persistence.test.ts"
+          ],
+          "query": "packages/reos/src/reos.persistence.test.ts",
+          "satisfied": true
+        }
+      ],
+      "rationale": "All 7 evidence probes satisfied at HEAD.",
+      "satisfiedProbes": 7,
+      "status": "implemented",
+      "title": "Asynchronous domain repository interface",
+      "totalProbes": 7
+    },
+    {
+      "git": {
+        "historicalCommits": [],
+        "reachableFromHead": true,
+        "refsContaining": [],
+        "removedFromHead": false
+      },
       "id": "persistence.async-repository-interface",
       "kind": "platform",
       "onDefaultBranch": true,
@@ -485,7 +561,7 @@
       },
       "id": "persistence.schema-ownership-reconciliation",
       "kind": "platform",
-      "onDefaultBranch": false,
+      "onDefaultBranch": true,
       "probes": [
         {
           "kind": "path",
@@ -1425,12 +1501,12 @@
       "totalProbes": 5
     }
   ],
-  "head": "ea6cbb6560b676efccf3a59e3d92aabebdb77dc8",
+  "head": "544011abfd074e15296d8ba2c1a9b399ee880f04",
   "reosVersion": "1.0.0",
   "stage": "forensics",
   "summary": {
     "deferred": 0,
-    "implemented": 17,
+    "implemented": 18,
     "lost": 0,
     "missing": 1,
     "partial": 0,
