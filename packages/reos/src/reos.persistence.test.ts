@@ -377,6 +377,55 @@ describe('persistence rules: the adapter boundary holds', () => {
   });
 });
 
+describe('persistence/retired-table-reference', () => {
+  const withInterface = (files: Record<string, string>) => ({
+    'packages/shared/src/trust.ts': ASYNC_INTERFACE,
+    ...files,
+  });
+
+  it('reports SQL against a table the reconciliation retired', () => {
+    // The aggregate has one owner now. SQL naming the old object either queries a model with
+    // no rows or resurrects a second writable one, and both are the condition
+    // persistence.schema-ownership-reconciliation exists to remove.
+    const root = fakeRepo(
+      withInterface({
+        'packages/engine/src/index.ts':
+          "export const q = await sql`SELECT id FROM permission_grants WHERE workspace_id = ${id}`;\n",
+      }),
+    );
+    expect(rulesFired(collectAsyncPersistenceFindings(root))).toEqual([
+      'persistence/retired-table-reference',
+    ]);
+  });
+
+  it('names the canonical owner, so the message says what to use instead', () => {
+    const root = fakeRepo(
+      withInterface({
+        'packages/engine/src/index.ts': 'export const q = `INSERT INTO audit_records (id) VALUES (1)`;\n',
+      }),
+    );
+    const [finding] = collectAsyncPersistenceFindings(root);
+    expect(finding.message).toContain('audit_records');
+    expect(finding.message).toContain('schema-ownership.ts');
+  });
+
+  it('ignores a TypeScript identifier that merely shares the name', () => {
+    // `parties`, `delegations` and `permissionGrants` are ordinary domain words. Matching them
+    // outside statement position would make the rule fire across the engines and be switched
+    // off, which is worse than not having it.
+    const root = fakeRepo(
+      withInterface({
+        'packages/engine/src/index.ts': [
+          'const parties = await load();',
+          'const delegations = parties.map((party) => party.delegation);',
+          'export const organizations = delegations.length;',
+        ].join('\n'),
+      }),
+    );
+    expect(collectAsyncPersistenceFindings(root)).toEqual([]);
+  });
+});
+
 describe('persistence rules: the vocabulary itself', () => {
   it('states a rationale for every rule', () => {
     for (const rule of ASYNC_PERSISTENCE_RULES) {
@@ -399,6 +448,7 @@ describe('persistence rules: the vocabulary itself', () => {
       'persistence/test-helper-in-production',
       'persistence/store-constructed-outside-runtime',
       'persistence/client-database-variable',
+      'persistence/retired-table-reference',
     ]);
     expect(ASYNC_PERSISTENCE_RULES.map((rule) => rule.rule).filter((rule) => !fired.has(rule))).toEqual(
       [],

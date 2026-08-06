@@ -6,22 +6,22 @@
 
 | Field | Value |
 | --- | --- |
-| Branch | feat/persistence-rls-certification |
-| HEAD | 1a2913b6997c0a4e5d7ee741a3f9fddca7643893 |
+| Branch | feat/persistence-schema-ownership-reconciliation |
+| HEAD | ea6cbb6560b676efccf3a59e3d92aabebdb77dc8 |
 | Worktree clean | no |
-| Uncommitted files | 28 |
-| Generated at | 2026-08-06T02:56:28.792Z |
+| Uncommitted files | 21 |
+| Generated at | 2026-08-06T08:36:42.129Z |
 
 ## Capability implemented
 
-`persistence.rls-certification` — lifecycle **certified**
+`persistence.schema-ownership-reconciliation` — lifecycle **certified**
 
-## Files modified (30)
+## Files modified (23)
 
 - `.github/workflows/ci.yml`
-- `apps/web/lib/trust-app.ts`
-- `docs/governance/execution-ledger/1a2913b6997c-persistence.rls-certification.json`
+- `docs/architecture/SCHEMA_OWNERSHIP.md`
 - `docs/governance/execution-ledger/INDEX.md`
+- `docs/governance/execution-ledger/ea6cbb6560b6-persistence.schema-ownership-reconciliation.json`
 - `docs/governance/reos/capability-registry.json`
 - `docs/governance/reos/generated/CERTIFICATION_REPORT.md`
 - `docs/governance/reos/generated/DEPENDENCY_RESOLUTION.md`
@@ -31,32 +31,29 @@
 - `docs/governance/reos/generated/discovery.json`
 - `docs/governance/reos/generated/execution-manifest.json`
 - `docs/governance/reos/generated/forensics.json`
-- `packages/audit-ledger/src/audit-ledger.postgres.test.ts`
 - `packages/database-testing/src/index.ts`
-- `packages/database-testing/src/postgres-store.postgres.test.ts`
-- `packages/database-testing/src/rls-certification.postgres.test.ts`
+- `packages/database-testing/src/schema-ownership.postgres.test.ts`
 - `packages/database/src/index.ts`
 - `packages/database/src/migrations.ts`
-- `packages/database/src/postgres-store.ts`
-- `packages/database/src/rls-certification.test.ts`
-- `packages/database/src/rls-certification.ts`
-- `packages/database/src/trust-scope.ts`
-- `packages/reos/src/reos.e2e.test.ts`
-- `packages/reos/src/reos.integration.test.ts`
+- `packages/database/src/schema-ownership.test.ts`
+- `packages/database/src/schema-ownership.ts`
+- `packages/reos/src/reos.persistence.test.ts`
 - `packages/reos/src/validators/persistence.ts`
-- `packages/runtime/src/persistence-runtime.postgres.test.ts`
-- `packages/runtime/src/rls-runtime.postgres.test.ts`
-- `supabase/migrations/202608070001_trust_row_level_security.sql`
-- `supabase/migrations/202608070002_trust_audit_chain_per_tenant.sql`
+- `packages/runtime/src/persistence-runtime.ts`
+- `supabase/migrations/202608080001_trust_schema_ownership_reconciliation.sql`
 
 ## Validation
 
 | Validator | Result | Checked | Errors | Warnings |
 | --- | --- | --- | --- | --- |
-| architecture | pass | 188 | 0 | 0 |
+| architecture | pass | 192 | 0 | 0 |
 | dependencies | pass | 26 | 0 | 0 |
-| security | pass | 270 | 0 | 0 |
-| execution-contract | pass | 20 | 0 | 0 |
+| security | pass | 271 | 0 | 0 |
+| execution-contract | pass | 13 | 0 | 1 |
+
+### Findings
+
+- **warning** `contract/tests-not-updated` (packages/runtime/src) — packages/runtime has modified source but no modified tests in this change.
 
 ## Governance
 
@@ -68,18 +65,20 @@ No newly introduced violations.
 
 **PASSED** — every certification gate is green.
 
-## Remaining backlog (0)
+## Remaining backlog (1)
 
-Backlog empty.
+| Capability | Status | Executable | Blocked by |
+| --- | --- | --- | --- |
+| persistence.domain-store-durability | missing | yes |  |
 
 ## Recommended next capability
 
-None available.
+`persistence.domain-store-durability` — Domain store durability for Engines 06-60
 
 ## Ledger
 
-Recorded as `1a2913b6997c-persistence.rls-certification` in `docs/governance/execution-ledger/`.
+Recorded as `ea6cbb6560b6-persistence.schema-ownership-reconciliation` in `docs/governance/execution-ledger/`.
 
 ## Commit
 
-`1a2913b6997c0a4e5d7ee741a3f9fddca7643893`
+`ea6cbb6560b676efccf3a59e3d92aabebdb77dc8`

@@ -67,6 +67,48 @@
     {
       "git": {
         "historicalCommits": [],
+        "reachableFromHead": false,
+        "refsContaining": [],
+        "removedFromHead": false
+      },
+      "id": "persistence.domain-store-durability",
+      "kind": "platform",
+      "onDefaultBranch": false,
+      "probes": [
+        {
+          "kind": "path",
+          "matches": [],
+          "query": "packages/database/src/domain-store.ts",
+          "satisfied": false
+        },
+        {
+          "kind": "symbol",
+          "matches": [],
+          "query": "PostgresDomainStore",
+          "satisfied": false
+        },
+        {
+          "kind": "symbol",
+          "matches": [],
+          "query": "DOMAIN_AGGREGATE_OWNERSHIP",
+          "satisfied": false
+        },
+        {
+          "kind": "test",
+          "matches": [],
+          "query": "packages/database-testing/src/domain-store.postgres.test.ts",
+          "satisfied": false
+        }
+      ],
+      "rationale": "No evidence at HEAD, on any ref, or in history.",
+      "satisfiedProbes": 0,
+      "status": "missing",
+      "title": "Domain store durability for Engines 06-60",
+      "totalProbes": 4
+    },
+    {
+      "git": {
+        "historicalCommits": [],
         "reachableFromHead": true,
         "refsContaining": [],
         "removedFromHead": false
@@ -113,13 +155,16 @@
             "packages/audit-ledger/src/audit-ledger.postgres.test.ts",
             "packages/database-testing/src/postgres-store.postgres.test.ts",
             "packages/database-testing/src/rls-certification.postgres.test.ts",
+            "packages/database-testing/src/schema-ownership.postgres.test.ts",
             "packages/database/src/conformance.ts",
             "packages/database/src/postgres-store.ts",
+            "packages/database/src/schema-ownership.ts",
             "packages/reos/src/reos.persistence.test.ts",
             "packages/runtime/src/config.test.ts",
             "packages/runtime/src/config.ts",
             "packages/runtime/src/persistence-runtime.postgres.test.ts",
-            "packages/runtime/src/persistence-runtime.ts"
+            "packages/runtime/src/persistence-runtime.ts",
+            "supabase/migrations/202608080001_trust_schema_ownership_reconciliation.sql"
           ],
           "query": "PostgresTrustStore",
           "satisfied": true
@@ -129,7 +174,9 @@
           "matches": [
             "packages/database-testing/src/index.ts",
             "packages/database-testing/src/migrations.postgres.test.ts",
-            "packages/database/src/migrations.ts"
+            "packages/database-testing/src/schema-ownership.postgres.test.ts",
+            "packages/database/src/migrations.ts",
+            "packages/database/src/schema-ownership.ts"
           ],
           "query": "applyMigrations",
           "satisfied": true
@@ -138,6 +185,7 @@
           "kind": "symbol",
           "matches": [
             "packages/database-testing/src/migrations.postgres.test.ts",
+            "packages/database-testing/src/schema-ownership.postgres.test.ts",
             "packages/database/src/migrations.ts",
             "packages/runtime/src/persistence-runtime.ts"
           ],
@@ -345,7 +393,7 @@
       },
       "id": "persistence.rls-certification",
       "kind": "platform",
-      "onDefaultBranch": false,
+      "onDefaultBranch": true,
       "probes": [
         {
           "kind": "path",
@@ -376,7 +424,9 @@
           "matches": [
             "packages/database-testing/src/index.ts",
             "packages/database-testing/src/rls-certification.postgres.test.ts",
+            "packages/database-testing/src/schema-ownership.postgres.test.ts",
             "packages/database/src/rls-certification.ts",
+            "packages/database/src/schema-ownership.ts",
             "packages/runtime/src/rls-runtime.postgres.test.ts"
           ],
           "query": "certifyRowLevelSecurity",
@@ -395,6 +445,7 @@
           "kind": "symbol",
           "matches": [
             "packages/database-testing/src/rls-certification.postgres.test.ts",
+            "packages/database-testing/src/schema-ownership.postgres.test.ts",
             "packages/database/src/trust-scope.ts",
             "packages/runtime/src/persistence-runtime.postgres.test.ts",
             "packages/runtime/src/rls-runtime.postgres.test.ts"
@@ -423,6 +474,95 @@
       "satisfiedProbes": 8,
       "status": "implemented",
       "title": "Row Level Security certification",
+      "totalProbes": 8
+    },
+    {
+      "git": {
+        "historicalCommits": [],
+        "reachableFromHead": true,
+        "refsContaining": [],
+        "removedFromHead": false
+      },
+      "id": "persistence.schema-ownership-reconciliation",
+      "kind": "platform",
+      "onDefaultBranch": false,
+      "probes": [
+        {
+          "kind": "path",
+          "matches": [
+            "packages/database/src/schema-ownership.ts"
+          ],
+          "query": "packages/database/src/schema-ownership.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "path",
+          "matches": [
+            "supabase/migrations/202608080001_trust_schema_ownership_reconciliation.sql"
+          ],
+          "query": "supabase/migrations/202608080001_trust_schema_ownership_reconciliation.sql",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "packages/database/src/schema-ownership.test.ts",
+            "packages/database/src/schema-ownership.ts"
+          ],
+          "query": "TRUST_AGGREGATE_OWNERSHIP",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "packages/database-testing/src/schema-ownership.postgres.test.ts",
+            "packages/database/src/schema-ownership.ts",
+            "packages/runtime/src/persistence-runtime.ts"
+          ],
+          "query": "certifySchemaOwnership",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "packages/database-testing/src/schema-ownership.postgres.test.ts",
+            "packages/database/src/schema-ownership.test.ts",
+            "packages/database/src/schema-ownership.ts"
+          ],
+          "query": "RETIRED_TRUST_HISTORICAL_TABLES",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "packages/database-testing/src/schema-ownership.postgres.test.ts",
+            "packages/database/src/schema-ownership.test.ts",
+            "packages/database/src/schema-ownership.ts"
+          ],
+          "query": "COMPATIBILITY_OBJECTS",
+          "satisfied": true
+        },
+        {
+          "kind": "test",
+          "matches": [
+            "packages/database-testing/src/schema-ownership.postgres.test.ts"
+          ],
+          "query": "packages/database-testing/src/schema-ownership.postgres.test.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "test",
+          "matches": [
+            "packages/database/src/schema-ownership.test.ts"
+          ],
+          "query": "packages/database/src/schema-ownership.test.ts",
+          "satisfied": true
+        }
+      ],
+      "rationale": "All 8 evidence probes satisfied at HEAD.",
+      "satisfiedProbes": 8,
+      "status": "implemented",
+      "title": "Trust schema ownership reconciliation",
       "totalProbes": 8
     },
     {
@@ -1285,14 +1425,14 @@
       "totalProbes": 5
     }
   ],
-  "head": "d0816647eda267035e2a43c6c853f0ceacf9043a",
+  "head": "ea6cbb6560b676efccf3a59e3d92aabebdb77dc8",
   "reosVersion": "1.0.0",
   "stage": "forensics",
   "summary": {
     "deferred": 0,
-    "implemented": 16,
+    "implemented": 17,
     "lost": 0,
-    "missing": 0,
+    "missing": 1,
     "partial": 0,
     "unreachable": 0
   }

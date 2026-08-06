@@ -232,6 +232,10 @@ export const REQUIRED_TRUST_MIGRATIONS: readonly string[] = Object.freeze([
   '202608060001_trust_repository_store',
   '202608070001_trust_row_level_security',
   '202608070002_trust_audit_chain_per_tenant',
+  // Required, not optional. Until it is applied the database holds two relational models for
+  // the same trust aggregates, and a host that started anyway would be one console session
+  // away from writing the wrong one.
+  '202608080001_trust_schema_ownership_reconciliation',
 ]);
 
 export type SchemaCompatibility = {

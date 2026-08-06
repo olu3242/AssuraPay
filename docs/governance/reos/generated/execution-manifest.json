@@ -2401,9 +2401,11 @@
     },
     {
       "blocks": [
+        "persistence.domain-store-durability",
         "persistence.postgres-repository",
         "persistence.production-runtime-wiring",
-        "persistence.rls-certification"
+        "persistence.rls-certification",
+        "persistence.schema-ownership-reconciliation"
       ],
       "dependsOn": [
         "persistence.repository-conformance"
@@ -2413,9 +2415,20 @@
       "status": "implemented"
     },
     {
+      "blocks": [],
+      "dependsOn": [
+        "persistence.schema-ownership-reconciliation"
+      ],
+      "id": "persistence.domain-store-durability",
+      "lifecycle": "planned",
+      "status": "missing"
+    },
+    {
       "blocks": [
+        "persistence.domain-store-durability",
         "persistence.production-runtime-wiring",
-        "persistence.rls-certification"
+        "persistence.rls-certification",
+        "persistence.schema-ownership-reconciliation"
       ],
       "dependsOn": [
         "persistence.async-repository-interface"
@@ -2426,7 +2439,9 @@
     },
     {
       "blocks": [
-        "persistence.rls-certification"
+        "persistence.domain-store-durability",
+        "persistence.rls-certification",
+        "persistence.schema-ownership-reconciliation"
       ],
       "dependsOn": [
         "persistence.postgres-repository"
@@ -2438,9 +2453,11 @@
     {
       "blocks": [
         "persistence.async-repository-interface",
+        "persistence.domain-store-durability",
         "persistence.postgres-repository",
         "persistence.production-runtime-wiring",
-        "persistence.rls-certification"
+        "persistence.rls-certification",
+        "persistence.schema-ownership-reconciliation"
       ],
       "dependsOn": [
         "trust.permission-enforcement"
@@ -2450,22 +2467,38 @@
       "status": "implemented"
     },
     {
-      "blocks": [],
+      "blocks": [
+        "persistence.domain-store-durability",
+        "persistence.schema-ownership-reconciliation"
+      ],
       "dependsOn": [
         "persistence.postgres-repository",
         "persistence.production-runtime-wiring"
       ],
       "id": "persistence.rls-certification",
+      "lifecycle": "released",
+      "status": "implemented"
+    },
+    {
+      "blocks": [
+        "persistence.domain-store-durability"
+      ],
+      "dependsOn": [
+        "persistence.rls-certification"
+      ],
+      "id": "persistence.schema-ownership-reconciliation",
       "lifecycle": "certified",
       "status": "implemented"
     },
     {
       "blocks": [
         "persistence.async-repository-interface",
+        "persistence.domain-store-durability",
         "persistence.postgres-repository",
         "persistence.production-runtime-wiring",
         "persistence.repository-conformance",
         "persistence.rls-certification",
+        "persistence.schema-ownership-reconciliation",
         "runtime.agent-registration",
         "settlement.non-custody-guard",
         "trust.grant-administration-api",
@@ -2512,10 +2545,12 @@
     {
       "blocks": [
         "persistence.async-repository-interface",
+        "persistence.domain-store-durability",
         "persistence.postgres-repository",
         "persistence.production-runtime-wiring",
         "persistence.repository-conformance",
         "persistence.rls-certification",
+        "persistence.schema-ownership-reconciliation",
         "runtime.agent-registration",
         "trust.grant-administration-api",
         "trust.identity-gateway",
@@ -2535,10 +2570,12 @@
     {
       "blocks": [
         "persistence.async-repository-interface",
+        "persistence.domain-store-durability",
         "persistence.postgres-repository",
         "persistence.production-runtime-wiring",
         "persistence.repository-conformance",
         "persistence.rls-certification",
+        "persistence.schema-ownership-reconciliation",
         "runtime.agent-registration",
         "trust.grant-administration-api",
         "trust.permission-enforcement",
@@ -2557,10 +2594,12 @@
     {
       "blocks": [
         "persistence.async-repository-interface",
+        "persistence.domain-store-durability",
         "persistence.postgres-repository",
         "persistence.production-runtime-wiring",
         "persistence.repository-conformance",
         "persistence.rls-certification",
+        "persistence.schema-ownership-reconciliation",
         "runtime.agent-registration",
         "trust.grant-administration-api",
         "trust.permission-grant-catalogue",
@@ -3288,11 +3327,31 @@
       "wave": 6
     }
   ],
-  "executionBacklog": [],
+  "executionBacklog": [
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "dependsOn": [
+        "persistence.schema-ownership-reconciliation"
+      ],
+      "executable": true,
+      "id": "persistence.domain-store-durability",
+      "lifecycle": "planned",
+      "priority": 43,
+      "requiresLiveInfrastructure": true,
+      "scope": {
+        "estimated": false,
+        "files": 1,
+        "tests": 1
+      },
+      "status": "missing",
+      "title": "Domain store durability for Engines 06-60"
+    }
+  ],
   "identity": {
-    "branch": "feat/persistence-rls-certification",
+    "branch": "feat/persistence-schema-ownership-reconciliation",
     "clean": false,
-    "head": "d0816647eda267035e2a43c6c853f0ceacf9043a",
+    "head": "ea6cbb6560b676efccf3a59e3d92aabebdb77dc8",
     "repository": "assurapay",
     "version": "0.1.0"
   },
@@ -3358,6 +3417,7 @@
     "persistence.production-runtime-wiring",
     "persistence.repository-conformance",
     "persistence.rls-certification",
+    "persistence.schema-ownership-reconciliation",
     "reos.execution-os",
     "runtime.agent-registration",
     "settlement.non-custody-guard",
@@ -3376,12 +3436,14 @@
     "implemented": 0,
     "implementing": 0,
     "missing": 0,
-    "planned": 0,
-    "released": 71,
+    "planned": 1,
+    "released": 72,
     "validated": 0
   },
-  "manifestDigest": "5ee357ea901f",
-  "missingCapabilities": [],
+  "manifestDigest": "31f5a2094ffa",
+  "missingCapabilities": [
+    "persistence.domain-store-durability"
+  ],
   "packages": [
     {
       "directory": "packages/agent-runtime",
@@ -3565,11 +3627,12 @@
       "main": "src/index.ts",
       "moduleType": null,
       "name": "@assurapay/database",
-      "sourceFiles": 8,
-      "sourceLines": 2645,
+      "sourceFiles": 9,
+      "sourceLines": 3146,
       "testFiles": [
         "packages/database/src/async-conformance.test.ts",
         "packages/database/src/rls-certification.test.ts",
+        "packages/database/src/schema-ownership.test.ts",
         "packages/database/src/trust-migrations.integration.test.ts",
         "packages/database/src/trust-store.test.ts"
       ],
@@ -3578,7 +3641,7 @@
         "integration": 1,
         "performance": 0,
         "security": 0,
-        "unit": 3
+        "unit": 4
       },
       "workspaceDependencies": [
         "@assurapay/shared"
@@ -3594,18 +3657,19 @@
       "moduleType": null,
       "name": "@assurapay/database-testing",
       "sourceFiles": 1,
-      "sourceLines": 358,
+      "sourceLines": 364,
       "testFiles": [
         "packages/database-testing/src/migrations.postgres.test.ts",
         "packages/database-testing/src/postgres-store.postgres.test.ts",
-        "packages/database-testing/src/rls-certification.postgres.test.ts"
+        "packages/database-testing/src/rls-certification.postgres.test.ts",
+        "packages/database-testing/src/schema-ownership.postgres.test.ts"
       ],
       "tests": {
         "e2e": 0,
         "integration": 0,
         "performance": 0,
         "security": 0,
-        "unit": 3
+        "unit": 4
       },
       "workspaceDependencies": [
         "@assurapay/database",
@@ -3994,7 +4058,7 @@
       "moduleType": "module",
       "name": "@assurapay/reos",
       "sourceFiles": 25,
-      "sourceLines": 4646,
+      "sourceLines": 4704,
       "testFiles": [
         "packages/reos/src/reos.e2e.test.ts",
         "packages/reos/src/reos.governance.test.ts",
@@ -4025,7 +4089,7 @@
       "moduleType": null,
       "name": "@assurapay/runtime",
       "sourceFiles": 3,
-      "sourceLines": 669,
+      "sourceLines": 701,
       "testFiles": [
         "packages/runtime/src/config.test.ts",
         "packages/runtime/src/persistence-runtime.postgres.test.ts",
@@ -4242,6 +4306,48 @@
     {
       "git": {
         "historicalCommits": [],
+        "reachableFromHead": false,
+        "refsContaining": [],
+        "removedFromHead": false
+      },
+      "id": "persistence.domain-store-durability",
+      "kind": "platform",
+      "onDefaultBranch": false,
+      "probes": [
+        {
+          "kind": "path",
+          "matches": [],
+          "query": "packages/database/src/domain-store.ts",
+          "satisfied": false
+        },
+        {
+          "kind": "symbol",
+          "matches": [],
+          "query": "PostgresDomainStore",
+          "satisfied": false
+        },
+        {
+          "kind": "symbol",
+          "matches": [],
+          "query": "DOMAIN_AGGREGATE_OWNERSHIP",
+          "satisfied": false
+        },
+        {
+          "kind": "test",
+          "matches": [],
+          "query": "packages/database-testing/src/domain-store.postgres.test.ts",
+          "satisfied": false
+        }
+      ],
+      "rationale": "No evidence at HEAD, on any ref, or in history.",
+      "satisfiedProbes": 0,
+      "status": "missing",
+      "title": "Domain store durability for Engines 06-60",
+      "totalProbes": 4
+    },
+    {
+      "git": {
+        "historicalCommits": [],
         "reachableFromHead": true,
         "refsContaining": [],
         "removedFromHead": false
@@ -4288,13 +4394,16 @@
             "packages/audit-ledger/src/audit-ledger.postgres.test.ts",
             "packages/database-testing/src/postgres-store.postgres.test.ts",
             "packages/database-testing/src/rls-certification.postgres.test.ts",
+            "packages/database-testing/src/schema-ownership.postgres.test.ts",
             "packages/database/src/conformance.ts",
             "packages/database/src/postgres-store.ts",
+            "packages/database/src/schema-ownership.ts",
             "packages/reos/src/reos.persistence.test.ts",
             "packages/runtime/src/config.test.ts",
             "packages/runtime/src/config.ts",
             "packages/runtime/src/persistence-runtime.postgres.test.ts",
-            "packages/runtime/src/persistence-runtime.ts"
+            "packages/runtime/src/persistence-runtime.ts",
+            "supabase/migrations/202608080001_trust_schema_ownership_reconciliation.sql"
           ],
           "query": "PostgresTrustStore",
           "satisfied": true
@@ -4304,7 +4413,9 @@
           "matches": [
             "packages/database-testing/src/index.ts",
             "packages/database-testing/src/migrations.postgres.test.ts",
-            "packages/database/src/migrations.ts"
+            "packages/database-testing/src/schema-ownership.postgres.test.ts",
+            "packages/database/src/migrations.ts",
+            "packages/database/src/schema-ownership.ts"
           ],
           "query": "applyMigrations",
           "satisfied": true
@@ -4313,6 +4424,7 @@
           "kind": "symbol",
           "matches": [
             "packages/database-testing/src/migrations.postgres.test.ts",
+            "packages/database-testing/src/schema-ownership.postgres.test.ts",
             "packages/database/src/migrations.ts",
             "packages/runtime/src/persistence-runtime.ts"
           ],
@@ -4520,7 +4632,7 @@
       },
       "id": "persistence.rls-certification",
       "kind": "platform",
-      "onDefaultBranch": false,
+      "onDefaultBranch": true,
       "probes": [
         {
           "kind": "path",
@@ -4551,7 +4663,9 @@
           "matches": [
             "packages/database-testing/src/index.ts",
             "packages/database-testing/src/rls-certification.postgres.test.ts",
+            "packages/database-testing/src/schema-ownership.postgres.test.ts",
             "packages/database/src/rls-certification.ts",
+            "packages/database/src/schema-ownership.ts",
             "packages/runtime/src/rls-runtime.postgres.test.ts"
           ],
           "query": "certifyRowLevelSecurity",
@@ -4570,6 +4684,7 @@
           "kind": "symbol",
           "matches": [
             "packages/database-testing/src/rls-certification.postgres.test.ts",
+            "packages/database-testing/src/schema-ownership.postgres.test.ts",
             "packages/database/src/trust-scope.ts",
             "packages/runtime/src/persistence-runtime.postgres.test.ts",
             "packages/runtime/src/rls-runtime.postgres.test.ts"
@@ -4598,6 +4713,95 @@
       "satisfiedProbes": 8,
       "status": "implemented",
       "title": "Row Level Security certification",
+      "totalProbes": 8
+    },
+    {
+      "git": {
+        "historicalCommits": [],
+        "reachableFromHead": true,
+        "refsContaining": [],
+        "removedFromHead": false
+      },
+      "id": "persistence.schema-ownership-reconciliation",
+      "kind": "platform",
+      "onDefaultBranch": false,
+      "probes": [
+        {
+          "kind": "path",
+          "matches": [
+            "packages/database/src/schema-ownership.ts"
+          ],
+          "query": "packages/database/src/schema-ownership.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "path",
+          "matches": [
+            "supabase/migrations/202608080001_trust_schema_ownership_reconciliation.sql"
+          ],
+          "query": "supabase/migrations/202608080001_trust_schema_ownership_reconciliation.sql",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "packages/database/src/schema-ownership.test.ts",
+            "packages/database/src/schema-ownership.ts"
+          ],
+          "query": "TRUST_AGGREGATE_OWNERSHIP",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "packages/database-testing/src/schema-ownership.postgres.test.ts",
+            "packages/database/src/schema-ownership.ts",
+            "packages/runtime/src/persistence-runtime.ts"
+          ],
+          "query": "certifySchemaOwnership",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "packages/database-testing/src/schema-ownership.postgres.test.ts",
+            "packages/database/src/schema-ownership.test.ts",
+            "packages/database/src/schema-ownership.ts"
+          ],
+          "query": "RETIRED_TRUST_HISTORICAL_TABLES",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "packages/database-testing/src/schema-ownership.postgres.test.ts",
+            "packages/database/src/schema-ownership.test.ts",
+            "packages/database/src/schema-ownership.ts"
+          ],
+          "query": "COMPATIBILITY_OBJECTS",
+          "satisfied": true
+        },
+        {
+          "kind": "test",
+          "matches": [
+            "packages/database-testing/src/schema-ownership.postgres.test.ts"
+          ],
+          "query": "packages/database-testing/src/schema-ownership.postgres.test.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "test",
+          "matches": [
+            "packages/database/src/schema-ownership.test.ts"
+          ],
+          "query": "packages/database/src/schema-ownership.test.ts",
+          "satisfied": true
+        }
+      ],
+      "rationale": "All 8 evidence probes satisfied at HEAD.",
+      "satisfiedProbes": 8,
+      "status": "implemented",
+      "title": "Trust schema ownership reconciliation",
       "totalProbes": 8
     },
     {

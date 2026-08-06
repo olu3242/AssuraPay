@@ -1,9 +1,17 @@
 {
-  "awaitingInfrastructure": [
-    "persistence.domain-store-durability"
-  ],
-  "blocked": [],
-  "completed": [
+  "branch": "feat/persistence-schema-ownership-reconciliation",
+  "capabilityId": "persistence.schema-ownership-reconciliation",
+  "certification": {
+    "available": true,
+    "failedSteps": [],
+    "passed": true
+  },
+  "commit": "ea6cbb6560b676efccf3a59e3d92aabebdb77dc8",
+  "entryId": "ea6cbb6560b6-persistence.schema-ownership-reconciliation",
+  "lifecycle": "certified",
+  "manifestDigest": "31f5a2094ffa",
+  "recordedAt": "2026-08-06T08:36:42.126Z",
+  "supersedes": [
     "engine:01",
     "engine:02",
     "engine:03",
@@ -65,7 +73,6 @@
     "persistence.production-runtime-wiring",
     "persistence.repository-conformance",
     "persistence.rls-certification",
-    "persistence.schema-ownership-reconciliation",
     "reos.execution-os",
     "runtime.agent-registration",
     "settlement.non-custody-guard",
@@ -78,49 +85,30 @@
     "trust.route-permission-rollout",
     "trust.session-assertion-issuance"
   ],
-  "executable": [
+  "validation": [
     {
-      "blockedBy": [],
-      "blocks": [],
-      "dependsOn": [
-        "persistence.schema-ownership-reconciliation"
-      ],
-      "executable": true,
-      "id": "persistence.domain-store-durability",
-      "lifecycle": "planned",
-      "priority": 43,
-      "requiresLiveInfrastructure": true,
-      "scope": {
-        "estimated": false,
-        "files": 1,
-        "tests": 1
-      },
-      "status": "missing",
-      "title": "Domain store durability for Engines 06-60"
-    }
-  ],
-  "head": "ea6cbb6560b676efccf3a59e3d92aabebdb77dc8",
-  "rejected": [],
-  "reosVersion": "1.0.0",
-  "selected": {
-    "blockedBy": [],
-    "blocks": [],
-    "dependsOn": [
-      "persistence.schema-ownership-reconciliation"
-    ],
-    "executable": true,
-    "id": "persistence.domain-store-durability",
-    "lifecycle": "planned",
-    "priority": 43,
-    "requiresLiveInfrastructure": true,
-    "scope": {
-      "estimated": false,
-      "files": 1,
-      "tests": 1
+      "errors": 0,
+      "passed": true,
+      "validator": "architecture",
+      "warnings": 0
     },
-    "status": "missing",
-    "title": "Domain store durability for Engines 06-60"
-  },
-  "selectionReason": "Highest-priority executable capability (priority 43, lifecycle planned) — selected despite needing live infrastructure, nothing else is executable",
-  "stage": "dependencies"
+    {
+      "errors": 0,
+      "passed": true,
+      "validator": "dependencies",
+      "warnings": 0
+    },
+    {
+      "errors": 0,
+      "passed": true,
+      "validator": "security",
+      "warnings": 0
+    },
+    {
+      "errors": 0,
+      "passed": true,
+      "validator": "execution-contract",
+      "warnings": 1
+    }
+  ]
 }

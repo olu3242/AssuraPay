@@ -329,7 +329,7 @@
         "files": 2,
         "tests": 1
       },
-      "notes": "Declares the authorization policy for the whole HTTP surface as a route table keyed on template|METHOD, resolves a requirement from a live request path and method, and applies it at the composition root through authorizedContextForRoute. Fails closed: an unmapped route or method throws rather than defaulting to allow. This capability is the policy and the enforcement entry point, not the per-route migration \u2014 see trust.permission-grant-catalogue and trust.route-permission-rollout, which cannot precede it."
+      "notes": "Declares the authorization policy for the whole HTTP surface as a route table keyed on template|METHOD, resolves a requirement from a live request path and method, and applies it at the composition root through authorizedContextForRoute. Fails closed: an unmapped route or method throws rather than defaulting to allow. This capability is the policy and the enforcement entry point, not the per-route migration — see trust.permission-grant-catalogue and trust.route-permission-rollout, which cannot precede it."
     },
     {
       "id": "trust.permission-grant-catalogue",
@@ -500,6 +500,58 @@
         "tests": 4
       },
       "notes": "The real blocker on the Postgres adapter, fixed with no infrastructure. TrustPersistence was synchronous in every method - list returned T[], append returned void - so no network-backed store could implement it, and CLAUDE.md's claim that Postgres can be swapped without touching engine logic was false as built. The interface itself was made asynchronous rather than adding a parallel AsyncTrustPersistence: two interfaces would let call sites keep the synchronous one, and a MaybePromise union would let a caller forget to await and still compile. Evidence is the static enforcement rather than the type declaration, because TrustPersistence existed before this capability and a symbol probe on it would have reported the work as done before it started. Every forbidden shape typechecks, so the rules in packages/reos/src/validators/persistence.ts are what keeps the migration from eroding: floating governed writes, void-discarded writes, async predicates handed to synchronous array methods, a pre-awaited Promise.race, and a sync method back on the interface. Each rule corresponds to a defect the migration actually produced: ValidationAcceptanceTestingEngine.passed used every(async) and so passed unconditionally, IdentityService.revokeAll returned unresolved promises, and the AI gateway awaited its provider inside the race that was supposed to time it out."
+    },
+    {
+      "id": "persistence.schema-ownership-reconciliation",
+      "title": "Trust schema ownership reconciliation",
+      "kind": "platform",
+      "priority": 42,
+      "dependsOn": [
+        "persistence.rls-certification"
+      ],
+      "evidence": {
+        "paths": [
+          "packages/database/src/schema-ownership.ts",
+          "supabase/migrations/202608080001_trust_schema_ownership_reconciliation.sql"
+        ],
+        "symbols": [
+          "TRUST_AGGREGATE_OWNERSHIP",
+          "certifySchemaOwnership",
+          "RETIRED_TRUST_HISTORICAL_TABLES",
+          "COMPATIBILITY_OBJECTS"
+        ],
+        "tests": [
+          "packages/database-testing/src/schema-ownership.postgres.test.ts",
+          "packages/database/src/schema-ownership.test.ts"
+        ]
+      },
+      "certify": "certify:postgres",
+      "requiresLiveInfrastructure": true,
+      "notes": "Every trust aggregate had two relational models and no declared owner. The certified PostgresTrustStore writes ten trust_* tables; an earlier thirty-one-table model described the same aggregates, was created by every migration run, and typed audit_records.aggregate_id as UUID while the live store audits permission keys. Two facts established against a live instance decided the scope. There were never any dual writes: the only production module issuing SQL against data is postgres-store.ts and it names trust_* tables only, FileAssuraStore contains no SQL at all, and every historical table name outside supabase/migrations appears in a test - so the historical model held no rows and this is a retirement, not a data migration. Reporting migrated-row counts would have been fabrication. And the model is not uniformly removable: PostgreSQL was the oracle rather than inference, refusing the drop and naming governed_executions_workspace_id_fkey, which fixes the surviving closure at workspaces (foreign-key parent of 93 Engine 06-60 tables), workspace_memberships (read by has_active_workspace_membership(), called by those tables' policies) and user_identities (parent of workspace_memberships). Those three are retained as compatibility objects with persistence.domain-store-durability as a named retirement condition, not an indefinite reprieve; the other twenty-eight are dropped by forward migration that re-checks emptiness at apply time and refuses rather than discarding, because 'these tables are empty' is a claim about every database that will ever apply it. Readiness distinguishes certified from safe-to-serve: two models for one aggregate or a runtime that can write what it does not own blocks startup, while a retained object that has since been dropped is registry staleness and must not. Scope is the trust domain only - Engine 06-60 domain state remains FileAssuraStore-backed and its durability is not claimed."
+    },
+    {
+      "id": "persistence.domain-store-durability",
+      "title": "Domain store durability for Engines 06-60",
+      "kind": "platform",
+      "priority": 43,
+      "dependsOn": [
+        "persistence.schema-ownership-reconciliation"
+      ],
+      "evidence": {
+        "paths": [
+          "packages/database/src/domain-store.ts"
+        ],
+        "symbols": [
+          "PostgresDomainStore",
+          "DOMAIN_AGGREGATE_OWNERSHIP"
+        ],
+        "tests": [
+          "packages/database-testing/src/domain-store.postgres.test.ts"
+        ]
+      },
+      "certify": "certify:postgres",
+      "requiresLiveInfrastructure": true,
+      "notes": "Selected, not started. FileAssuraStore remains production-active for Engines 06-60: it is JSON files with demo seeding, implements a different contract from TrustPersistence, is not covered by PostgreSQL row-level security, and is what prevents any platform-wide durability claim. Schema ownership reconciliation deliberately did not touch it - the trust domain now has one canonical relational owner per aggregate, and the ninety-five Engine 06-60 tables are classified OUT_OF_SCOPE_DOMAIN rather than claimed, because claiming ownership of a model nothing reads or writes would assert durability that does not exist. Two concrete inheritances from that capability define the starting point. First, one hundred and two of those tables carry ENABLE ROW LEVEL SECURITY with no FORCE - the same defect persistence.rls-certification corrected for the trust tables - so a boundary that reads as protection enforces nothing on them. Second, three trust-domain tables (workspaces, workspace_memberships, user_identities) could not be retired because that model depends on them, and this capability is their named retirement condition: it must decide whether Engine 06-60 state becomes relational at all, and if so what parents its workspace foreign keys."
     }
   ]
 }
