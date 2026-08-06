@@ -32,6 +32,7 @@ export type RlsFindingCode =
   | 'RLS_CROSS_WORKSPACE_READ'
   | 'RLS_UNSCOPED_READ'
   | 'RLS_CROSS_TENANT_WRITE'
+  | 'RLS_ROLE_BYPASSES'
   | 'RLS_PROBE_ROLE_UNAVAILABLE';
 
 export type RlsFinding = {
@@ -253,6 +254,48 @@ export async function assertUnscopedReadDenied(
 }
 
 /**
+ * Whether a role can bypass Row Level Security entirely.
+ *
+ * The gap this closes was found in CI, one level above the original defect. A superuser is
+ * exempt from every policy — `FORCE` included — and so is any role with `BYPASSRLS`. The CI
+ * database's `POSTGRES_USER` is created as a superuser, so the suite that asserts "the owner
+ * sees nothing" saw everything, while `enabled` and `forced` both read true.
+ *
+ * That is the same failure as before wearing a different hat: policies present, forced, and
+ * enforcing nothing, with a certification that looked clean. A deployment whose application
+ * connects as a superuser has no row-level security at all, however many policies it carries.
+ */
+export async function assertRoleCannotBypass(
+  sql: SqlClient,
+  role: string,
+): Promise<RlsFinding[]> {
+  const rows = await sql<{ rolname: string; rolsuper: boolean; rolbypassrls: boolean }[]>`
+    SELECT rolname, rolsuper, rolbypassrls FROM pg_roles WHERE rolname = ${role}
+  `;
+  const found = rows[0];
+  if (!found)
+    return [
+      {
+        code: 'RLS_PROBE_ROLE_UNAVAILABLE',
+        detail: `the role ${role} does not exist, so no denial can be proven as the application`,
+      },
+    ];
+
+  const findings: RlsFinding[] = [];
+  if (found.rolsuper)
+    findings.push({
+      code: 'RLS_ROLE_BYPASSES',
+      detail: `${role} is a superuser, which is exempt from every policy including forced ones; the application must not connect as one`,
+    });
+  if (found.rolbypassrls)
+    findings.push({
+      code: 'RLS_ROLE_BYPASSES',
+      detail: `${role} holds BYPASSRLS, so no policy applies to it`,
+    });
+  return findings;
+}
+
+/**
  * The full certification: static state plus live denial.
  *
  * Both halves are required. The static half alone is what produced a hundred tables of
@@ -301,6 +344,11 @@ export async function certifyRowLevelSecurity(
   }
 
   if (options.probe) {
+    // Before the denial probes, because a bypassing role makes every one of them meaningless:
+    // they would pass or fail on what the data happens to be rather than on what the policies
+    // enforce.
+    findings.push(...(await assertRoleCannotBypass(sql, options.probe.context.role)));
+    findings.push(...(await assertConnectedRoleCannotBypass(sql)));
     findings.push(...(await assertUnscopedReadDenied(sql, options.probe.context.role)));
     findings.push(...(await assertCrossTenantDenied(sql, options.probe.context, options.probe.foreign)));
     findings.push(
@@ -313,6 +361,18 @@ export async function certifyRowLevelSecurity(
     checkedTables: tables.filter((table) => flags.has(table)),
     findings,
   };
+}
+
+/**
+ * Whether the role this connection is using can bypass RLS.
+ *
+ * Checked separately from the probe role because they are different questions. The probe role
+ * stands in for the application; the connected role is whatever the caller actually holds, and
+ * a certification run by a superuser proves nothing about what the application experiences.
+ */
+export async function assertConnectedRoleCannotBypass(sql: SqlClient): Promise<RlsFinding[]> {
+  const [row] = await sql<{ who: string }[]>`SELECT current_user AS who`;
+  return await assertRoleCannotBypass(sql, row.who);
 }
 
 /** Switches to the probe role and sets the session variables the policies read. */

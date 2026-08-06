@@ -374,6 +374,7 @@
         {
           "kind": "symbol",
           "matches": [
+            "packages/database-testing/src/index.ts",
             "packages/database-testing/src/rls-certification.postgres.test.ts",
             "packages/database/src/rls-certification.ts",
             "packages/runtime/src/rls-runtime.postgres.test.ts"
@@ -1284,7 +1285,7 @@
       "totalProbes": 5
     }
   ],
-  "head": "1a2913b6997c0a4e5d7ee741a3f9fddca7643893",
+  "head": "ffa60b1ad5a4d5fa83114044c053b2b154d84973",
   "reosVersion": "1.0.0",
   "stage": "forensics",
   "summary": {

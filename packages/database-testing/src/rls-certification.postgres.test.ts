@@ -3,8 +3,10 @@ import {
   PostgresTrustStore,
   payloadDigest,
   RLS_GOVERNED_TABLES,
+  assertConnectedRoleCannotBypass,
   assertCrossTenantDenied,
   assertCrossTenantWriteDenied,
+  assertRoleCannotBypass,
   assertUnscopedReadDenied,
   certifyRowLevelSecurity,
   readRlsState,
@@ -216,6 +218,31 @@ describe('integration: a tenant cannot read across the boundary', () => {
 
     expect(certification.certified).toBe(false);
     expect(certification.findings.map((finding) => finding.code)).toContain('RLS_NO_POLICY');
+  });
+
+  it('reports a bypassing role, because a superuser makes every policy decorative', async () => {
+    // Found in CI, one level above the original defect. A superuser is exempt from every policy
+    // including forced ones, so a deployment whose application connects as one has no
+    // row-level security at all — while `enabled` and `forced` both read true and the
+    // certification looked clean. The probes would then pass or fail on what the data happened
+    // to be rather than on what the policies enforce.
+    const database = await seededDatabase();
+
+    const findings = await assertRoleCannotBypass(database.sql, 'postgres');
+    expect(findings.map((finding) => finding.code)).toContain('RLS_ROLE_BYPASSES');
+    expect(findings[0].detail).toContain('superuser');
+  });
+
+  it('reports a role that does not exist rather than certifying without a probe', async () => {
+    const database = await seededDatabase();
+    const findings = await assertRoleCannotBypass(database.sql, 'no_such_role');
+    expect(findings.map((finding) => finding.code)).toEqual(['RLS_PROBE_ROLE_UNAVAILABLE']);
+  });
+
+  it('confirms the connected role cannot bypass, which is what the probes rest on', async () => {
+    // A certification run by a superuser proves nothing about what the application experiences.
+    const database = await seededDatabase();
+    expect(await assertConnectedRoleCannotBypass(database.sql)).toEqual([]);
   });
 
   it('reports a finding when FORCE is lifted, which is the original defect', async () => {

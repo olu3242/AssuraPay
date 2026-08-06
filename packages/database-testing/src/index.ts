@@ -122,7 +122,10 @@ export async function createTestDatabase(
       // start without it. A suite testing store behaviour rather than the tenancy boundary
       // opts out, and says so — an unscoped caller reads nothing once the policies are forced,
       // which is correct and would make those suites test the boundary by accident.
-      if (options.applyRls !== false) await applyRlsMigration(pool.sql);
+      if (options.applyRls !== false) {
+        await assertConnectionCannotBypassRls(pool.sql);
+        await applyRlsMigration(pool.sql);
+      }
     }
   } catch (error) {
     await database.dispose();
@@ -130,6 +133,33 @@ export async function createTestDatabase(
   }
 
   return database;
+}
+
+/**
+ * Refuses to hand back a policy-governed database to a connection that can ignore the policies.
+ *
+ * A superuser is exempt from every Row Level Security policy, `FORCE` included, and so is any
+ * role holding `BYPASSRLS`. Run as one, the tenancy suites pass or fail on what the data
+ * happens to be rather than on what the policies enforce — which is how a CI run reported four
+ * unrelated-looking assertion failures whose single cause was that its `POSTGRES_USER` had been
+ * created as a superuser.
+ *
+ * Failing here turns that into one sentence naming the reason. `certifyRowLevelSecurity` reports
+ * the same condition as an `RLS_ROLE_BYPASSES` finding for a caller that wants a report rather
+ * than an exception.
+ */
+async function assertConnectionCannotBypassRls(sql: SqlClient): Promise<void> {
+  const [role] = await sql<{ who: string; rolsuper: boolean; rolbypassrls: boolean }[]>`
+    SELECT current_user AS who,
+           r.rolsuper, r.rolbypassrls
+    FROM pg_roles r WHERE r.rolname = current_user
+  `;
+  if (role?.rolsuper || role?.rolbypassrls)
+    throw new Error(
+      `${role.who} can bypass row-level security (${role.rolsuper ? 'superuser' : 'BYPASSRLS'}), ` +
+        'so a tenancy suite run as it would prove nothing: every policy is ignored for this role, ' +
+        'forced or not. Connect as a role that owns nothing and holds neither attribute.',
+    );
 }
 
 /**

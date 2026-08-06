@@ -64,18 +64,33 @@ jobs:
       # CREATEDB, because the historical migration set is not schema-relocatable:
       # one of its SECURITY DEFINER functions pins search_path=public, so the
       # full-set test needs its own database rather than its own schema.
-      # CREATEDB for the historical migration set, which is not schema-relocatable, and
-      # CREATEROLE so the RLS suite can provision the non-owning application role the denial
+      # A non-superuser role to run the suites as.
+      #
+      # The service container creates POSTGRES_USER as a SUPERUSER, and a superuser is exempt
+      # from every Row Level Security policy — FORCE included. Running the tenancy suites as
+      # one made them pass or fail on what the data happened to be rather than on what the
+      # policies enforce, which is the original defect of this capability wearing a different
+      # hat. `certifyRowLevelSecurity` now reports RLS_ROLE_BYPASSES for such a role; this
+      # gives it a role that does not.
+      #
+      # CREATEDB because the historical migration set is not schema-relocatable and needs its
+      # own database. CREATEROLE so the suites can provision the application role the denial
       # probes run as.
-      - name: Grant CREATEDB and CREATEROLE to the test role
-        run: psql "$ADMIN_URL" -c 'ALTER ROLE assurapay CREATEDB CREATEROLE'
+      - name: Create a non-superuser role for the suites
+        run: |
+          psql "$ADMIN_URL" -v ON_ERROR_STOP=1 \
+            -c "CREATE ROLE assurapay_ci LOGIN PASSWORD 'assurapay_ci' CREATEDB CREATEROLE" \
+            -c "GRANT ALL ON DATABASE assurapay_test TO assurapay_ci" \
+            -c "GRANT ALL ON SCHEMA public TO assurapay_ci"
+          psql "$ADMIN_URL" -v ON_ERROR_STOP=1 \
+            -c "SELECT rolsuper FROM pg_roles WHERE rolname = 'assurapay_ci'" | grep -q ' f'
         env:
           ADMIN_URL: postgres://assurapay:assurapay@127.0.0.1:5432/assurapay_test
 
       - name: Certify durability against real PostgreSQL
         run: pnpm certify:postgres
         env:
-          ASSURAPAY_TEST_DATABASE_URL: postgres://assurapay:assurapay@127.0.0.1:5432/assurapay_test
+          ASSURAPAY_TEST_DATABASE_URL: postgres://assurapay_ci:assurapay_ci@127.0.0.1:5432/assurapay_test
 
       # Proves the gate cannot pass without a database. If this step succeeds, the
       # suites are skipping rather than running, and the durability evidence above
@@ -86,7 +101,7 @@ jobs:
       - name: Certify the production runtime
         run: pnpm certify:runtime
         env:
-          ASSURAPAY_TEST_DATABASE_URL: postgres://assurapay:assurapay@127.0.0.1:5432/assurapay_test
+          ASSURAPAY_TEST_DATABASE_URL: postgres://assurapay_ci:assurapay_ci@127.0.0.1:5432/assurapay_test
 
       - name: Prove the gate fails with no database configured
         run: |
