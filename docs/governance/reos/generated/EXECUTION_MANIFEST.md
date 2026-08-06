@@ -10,9 +10,9 @@
 | Repository | assurapay |
 | Version | 0.1.0 |
 | Branch | feat/persistence-rls-certification |
-| HEAD | b0ba3ed649e91d436ae0274eb0f7fd44f68933b6 |
+| HEAD | d0816647eda267035e2a43c6c853f0ceacf9043a |
 | Worktree clean | no |
-| Manifest digest | 808475c992c8 |
+| Manifest digest | 5ee357ea901f |
 | REOS version | 1.0.0 |
 
 ## Architecture

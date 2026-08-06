@@ -110,14 +110,21 @@ export async function createTestDatabase(
       if (disposed) return;
       disposed = true;
       await pool.dispose();
-      if (probeRole) await dropProbeRole(databaseUrl, probeRole);
       const teardown = createPostgresPool({
         databaseUrl,
         max: 1,
         applicationName: 'assurapay-test-teardown',
       });
       try {
+        // The schema first, then the role. A role cannot be dropped while anything
+        // depends on it, and the probe role's privileges on this schema and its tables
+        // are exactly such dependencies — dropping the role first failed with
+        // "cannot be dropped because some objects depend on it" on every single test,
+        // silently, and the roles accumulated in the cluster. `DROP SCHEMA CASCADE`
+        // takes the grants with the objects they are grants on, which leaves nothing
+        // for `DROP ROLE` to trip over.
         await teardown.sql.unsafe(`DROP SCHEMA IF EXISTS "${schema}" CASCADE`);
+        if (probeRole) await dropProbeRole(teardown.sql, probeRole);
       } finally {
         await teardown.dispose();
       }
@@ -143,7 +150,11 @@ export async function createTestDatabase(
       }
     }
   } catch (error) {
-    await database.dispose();
+    // Teardown must not displace the reason setup failed. `dispose` now reports its own
+    // failures rather than swallowing them, which is right everywhere except here: a
+    // half-created schema can fail to tear down *because* of the error being reported,
+    // and that error is the one the caller needs to read.
+    await database.dispose().catch(() => undefined);
     throw error;
   }
 
@@ -185,16 +196,50 @@ async function createProbeRole(sql: SqlClient, schema: string): Promise<string> 
   return role;
 }
 
-/** Drops a probe role, after reassigning nothing — it owns no objects by construction. */
-async function dropProbeRole(databaseUrl: string, role: string): Promise<void> {
-  const admin = createPostgresPool({ databaseUrl, max: 1, applicationName: 'assurapay-test-teardown' });
-  try {
-    await admin.sql.unsafe(`DROP ROLE IF EXISTS "${role}"`);
-  } catch {
-    // A role left behind is noise in a test cluster, not a failure of the thing under test.
-  } finally {
-    await admin.dispose();
-  }
+/**
+ * Drops a probe role and everything that depends on it.
+ *
+ * Called after the schema is gone, so the table and schema grants have already been dropped
+ * with the objects they applied to. `DROP OWNED BY` still runs, because it is what removes
+ * any privilege *outside* that schema — a grant added later in this database would otherwise
+ * reintroduce the accumulating-roles defect, and it would do so silently.
+ *
+ * A failure here is not swallowed. A role that cannot be dropped is a leak in the cluster
+ * running the suite, and a teardown that hides its own failure is how ninety-nine of them
+ * accumulated unnoticed.
+ */
+async function dropProbeRole(sql: SqlClient, role: string): Promise<void> {
+  await sql.unsafe(`DROP OWNED BY "${role}"`);
+  await sql.unsafe(`DROP ROLE IF EXISTS "${role}"`);
+}
+
+/**
+ * The name of a role in this cluster that bypasses Row Level Security.
+ *
+ * A suite asserting that certification *reports* a bypassing role needs one to point at, and
+ * cannot create it: `BYPASSRLS` and `SUPERUSER` are attributes only a superuser may grant, and
+ * these suites deliberately connect as a role that is neither. So the role has to be found.
+ *
+ * Finding it rather than assuming `postgres` is the fix for a real CI failure. Every cluster has
+ * a bootstrap superuser, but its *name* is a deployment detail — the `postgres:16` service
+ * container names it after `POSTGRES_USER`, which here is `assurapay`. The hardcoded name simply
+ * did not exist, so certification correctly reported `RLS_PROBE_ROLE_UNAVAILABLE` and the test
+ * expecting `RLS_ROLE_BYPASSES` failed on the fixture rather than on the behaviour.
+ */
+export async function findBypassingRole(sql: SqlClient): Promise<string> {
+  const [role] = await sql<{ rolname: string }[]>`
+    SELECT rolname FROM pg_roles
+    WHERE rolsuper OR rolbypassrls
+    ORDER BY rolsuper DESC, rolname
+    LIMIT 1
+  `;
+  if (!role)
+    throw new Error(
+      'this cluster has no superuser and no BYPASSRLS role, so there is nothing to assert ' +
+        'bypass detection against. A cluster always has a bootstrap superuser; if this fires, ' +
+        'the connected role cannot read pg_roles rather than the cluster being unusual.',
+    );
+  return role.rolname;
 }
 
 /**

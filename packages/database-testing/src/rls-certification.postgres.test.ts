@@ -13,7 +13,7 @@ import {
   withTrustScope,
 } from '@assurapay/database';
 import type { SqlClient } from '@assurapay/database';
-import { createTestDatabase, requireTestDatabaseUrl } from './index';
+import { createTestDatabase, findBypassingRole, requireTestDatabaseUrl } from './index';
 import type { TestDatabase } from './index';
 
 /**
@@ -235,9 +235,13 @@ describe('integration: a tenant cannot read across the boundary', () => {
     // to be rather than on what the policies enforce.
     const database = await seededDatabase();
 
-    const findings = await assertRoleCannotBypass(database.sql, 'postgres');
+    // The cluster's own bypassing role, discovered rather than named. This test previously
+    // hardcoded `postgres` and failed in CI for a reason that had nothing to do with the
+    // assertion: the service container names its superuser after `POSTGRES_USER`, so no role
+    // called `postgres` existed and the module reported RLS_PROBE_ROLE_UNAVAILABLE — correctly.
+    const findings = await assertRoleCannotBypass(database.sql, await findBypassingRole(database.sql));
     expect(findings.map((finding) => finding.code)).toContain('RLS_ROLE_BYPASSES');
-    expect(findings[0].detail).toContain('superuser');
+    expect(findings[0].detail).toMatch(/superuser|BYPASSRLS/);
   });
 
   it('reports a role that does not exist rather than certifying without a probe', async () => {
