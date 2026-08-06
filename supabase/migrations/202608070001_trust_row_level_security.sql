@@ -42,51 +42,46 @@ COMMENT ON FUNCTION trust_current_workspace() IS
 
 -- ---------------------------------------------------------------- the application role
 
--- Created if absent so the migration is runnable on a fresh database and on one where an
--- operator has already provisioned the role with a password. NOLOGIN here: a deployment
--- grants LOGIN and a credential out of band, because a migration must not put a password
--- in a file that lives in the repository.
+-- The migration does not create the role, and does not grant it to anybody.
+--
+-- It did both at first, and that was wrong twice over. Creating a role needs CREATEROLE, and
+-- granting membership needs ADMIN OPTION on the role — privileges a migration credential may
+-- not hold, and which it should not need, since a migration's job is the schema. Worse, the
+-- grant is not idempotent across credentials: a role created by one operator cannot be granted
+-- by another, so the migration succeeded on the machine that first ran it and failed with a
+-- bare "permission denied" everywhere else.
+--
+-- Role provisioning is an operator action, for the same reason the password is: it belongs to
+-- the deployment, not to a file in the repository. What the migration owns is the privileges
+-- *on its own objects*, applied when the role is present and skipped with a notice when it is
+-- not — so a database can carry the policies before the role exists, and gain the grants when
+-- an operator creates it and re-runs the corrective migration.
 DO $$
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'assurapay_app') THEN
-    CREATE ROLE assurapay_app NOLOGIN;
+    RAISE NOTICE 'assurapay_app does not exist; policies are applied but no privileges granted. Create the role and grant it the privileges listed in this migration before pointing an application at this database.';
+    RETURN;
   END IF;
-END $$;
 
-COMMENT ON ROLE assurapay_app IS
-  'The application connects as this role. It owns nothing, so RLS applies to it by default rather than by FORCE alone.';
-
--- The current schema, not a hard-coded `public`. Without USAGE on the schema the tables are
--- not merely unreadable but invisible — a query reports that the relation does not exist,
--- which reads as a missing migration rather than a missing grant.
-DO $$
-BEGIN
+  -- The current schema, not a hard-coded `public`. Without USAGE on the schema the tables are
+  -- not merely unreadable but invisible — a query reports that the relation does not exist,
+  -- which reads as a missing migration rather than a missing grant.
   EXECUTE format('GRANT USAGE ON SCHEMA %I TO assurapay_app', current_schema());
+
+  -- DML only. No DDL, no ownership, and deliberately no DELETE on history: the append-only
+  -- constraint is enforced by a trigger, and a role that cannot issue DELETE at all cannot
+  -- reach the trigger to be refused by it.
+  EXECUTE 'GRANT SELECT, INSERT, UPDATE ON
+    trust_tenants, trust_workspaces, trust_memberships, trust_permission_grants,
+    trust_bootstrap_state, trust_outbox_events, trust_idempotency_keys, trust_records
+    TO assurapay_app';
+
+  EXECUTE 'GRANT SELECT, INSERT ON trust_audit_records TO assurapay_app';
+
+  -- The ledger is read to verify schema compatibility at startup and never written by the
+  -- application; the migration runner writes it as the owner.
+  EXECUTE 'GRANT SELECT ON trust_migration_ledger TO assurapay_app';
 END $$;
-
--- The owner may assume the application role, which is what makes certification possible:
--- proving that a cross-tenant read fails requires attempting one *as the application*, and a
--- probe running as the owner would prove only that FORCE works. No privilege is added — the
--- owner already exceeds this role — but the grant is what lets a deployment gate ask the
--- database the question rather than trusting the policy text.
-DO $$
-BEGIN
-  EXECUTE format('GRANT assurapay_app TO %I', current_user);
-END $$;
-
--- DML only. No DDL, no ownership, and deliberately no DELETE on history: the append-only
--- constraint is enforced by a trigger, and a role that cannot issue DELETE at all cannot
--- reach the trigger to be refused by it.
-GRANT SELECT, INSERT, UPDATE ON
-  trust_tenants, trust_workspaces, trust_memberships, trust_permission_grants,
-  trust_bootstrap_state, trust_outbox_events, trust_idempotency_keys, trust_records
-  TO assurapay_app;
-
-GRANT SELECT, INSERT ON trust_audit_records TO assurapay_app;
-
--- The ledger is read to verify schema compatibility at startup and never written by the
--- application; the migration runner writes it as the owner.
-GRANT SELECT ON trust_migration_ledger TO assurapay_app;
 
 -- ---------------------------------------------------------------- workspaces
 

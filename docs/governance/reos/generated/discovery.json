@@ -2110,7 +2110,7 @@
       "moduleType": null,
       "name": "@assurapay/database-testing",
       "sourceFiles": 1,
-      "sourceLines": 255,
+      "sourceLines": 314,
       "testFiles": [
         "packages/database-testing/src/migrations.postgres.test.ts",
         "packages/database-testing/src/postgres-store.postgres.test.ts",
@@ -2718,13 +2718,13 @@
       ],
       "clean": false,
       "dirtyFiles": [
-        ".github/workflows/ci.yml",
         "packages/database-testing/src/index.ts",
         "packages/database-testing/src/rls-certification.postgres.test.ts",
-        "packages/database/src/rls-certification.ts"
+        "packages/runtime/src/rls-runtime.postgres.test.ts",
+        "supabase/migrations/202608070001_trust_row_level_security.sql"
       ],
-      "head": "ffa60b1ad5a4d5fa83114044c053b2b154d84973",
-      "headShort": "ffa60b1",
+      "head": "b0ba3ed649e91d436ae0274eb0f7fd44f68933b6",
+      "headShort": "b0ba3ed",
       "reflogAvailable": true,
       "remotes": [
         "origin"

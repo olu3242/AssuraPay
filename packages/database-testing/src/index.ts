@@ -32,6 +32,15 @@ export function migrationsDirectory(): string {
 export type TestDatabase = {
   readonly sql: SqlClient;
   readonly schema: string;
+  /**
+   * A non-owning role the tenancy probes may assume, present when the policies were applied.
+   *
+   * Run-scoped rather than the shared `assurapay_app`. A cluster-wide role belongs to whichever
+   * credential created it, and a later credential holds no ADMIN OPTION on it — so `SET ROLE`
+   * is refused with a bare "permission denied to grant role" that says nothing about why. A role
+   * this connection just created is one it can always assume.
+   */
+  readonly probeRole?: string;
   /** Drops the schema and closes the pool. Safe to call twice. */
   dispose(): Promise<void>;
 };
@@ -90,13 +99,18 @@ export async function createTestDatabase(
   });
 
   let disposed = false;
+  let probeRole: string | undefined;
   const database: TestDatabase = {
     sql: pool.sql,
     schema,
+    get probeRole() {
+      return probeRole;
+    },
     async dispose() {
       if (disposed) return;
       disposed = true;
       await pool.dispose();
+      if (probeRole) await dropProbeRole(databaseUrl, probeRole);
       const teardown = createPostgresPool({
         databaseUrl,
         max: 1,
@@ -125,6 +139,7 @@ export async function createTestDatabase(
       if (options.applyRls !== false) {
         await assertConnectionCannotBypassRls(pool.sql);
         await applyRlsMigration(pool.sql);
+        probeRole = await createProbeRole(pool.sql, schema);
       }
     }
   } catch (error) {
@@ -133,6 +148,53 @@ export async function createTestDatabase(
   }
 
   return database;
+}
+
+/**
+ * Provisions the application role the denial probes run as.
+ *
+ * Here rather than in the migration, because creating a role needs CREATEROLE and granting
+ * membership needs ADMIN OPTION — privileges a migration credential may not hold and should not
+ * need. A role created by one credential also cannot be granted by another, so a migration that
+ * did this succeeded on the machine that first ran it and failed with a bare "permission denied"
+ * everywhere else. Provisioning is an operator action; a test harness is the operator here.
+ *
+ * Membership in the role is what makes certification possible: proving a cross-tenant read fails
+ * requires attempting one *as the application*, and `SET ROLE` needs membership. A probe running
+ * as the owner would prove only that FORCE works.
+ */
+async function createProbeRole(sql: SqlClient, schema: string): Promise<string> {
+  // Named for the schema, so it is unique to this database and cannot collide with a role
+  // another run or another credential created.
+  const role = `probe_${schema.replace(/[^a-z0-9_]/gi, '').slice(0, 40)}`;
+  await sql.unsafe(`CREATE ROLE "${role}" NOLOGIN`);
+  await sql.unsafe(`GRANT "${role}" TO CURRENT_USER`);
+  await sql.unsafe(`GRANT USAGE ON SCHEMA "${schema}" TO "${role}"`);
+
+  // The full DML the application holds, granted directly rather than relying on the migration
+  // having granted it to `assurapay_app`. The property under test is that the *policies* deny a
+  // cross-tenant read, and a probe that was denied by a missing table grant would look identical
+  // while proving nothing about the policies.
+  await sql.unsafe(
+    `GRANT SELECT, INSERT, UPDATE ON
+       trust_tenants, trust_workspaces, trust_memberships, trust_permission_grants,
+       trust_bootstrap_state, trust_outbox_events, trust_idempotency_keys, trust_records
+     TO "${role}"`,
+  );
+  await sql.unsafe(`GRANT SELECT, INSERT ON trust_audit_records TO "${role}"`);
+  return role;
+}
+
+/** Drops a probe role, after reassigning nothing — it owns no objects by construction. */
+async function dropProbeRole(databaseUrl: string, role: string): Promise<void> {
+  const admin = createPostgresPool({ databaseUrl, max: 1, applicationName: 'assurapay-test-teardown' });
+  try {
+    await admin.sql.unsafe(`DROP ROLE IF EXISTS "${role}"`);
+  } catch {
+    // A role left behind is noise in a test cluster, not a failure of the thing under test.
+  } finally {
+    await admin.dispose();
+  }
 }
 
 /**

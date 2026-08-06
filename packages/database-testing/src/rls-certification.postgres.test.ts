@@ -38,8 +38,6 @@ afterEach(async () => {
   for (const database of databases.splice(0)) await database.dispose();
 });
 
-const PROBE_ROLE = 'assurapay_app';
-
 const TENANT_A = { tenantId: 'tenant-a', workspaceId: 'workspace-a' };
 const TENANT_B = { tenantId: 'tenant-b', workspaceId: 'workspace-b' };
 
@@ -140,7 +138,16 @@ async function withoutForcedRls(sql: SqlClient, operation: () => Promise<void>):
   }
 }
 
-const probeContext = { role: PROBE_ROLE, ...TENANT_A, actorId: 'user-1' };
+/**
+ * The probe context for a database, using the role that database provisioned.
+ *
+ * Run-scoped rather than the shared `assurapay_app`: a cluster-wide role belongs to whichever
+ * credential created it, and a later credential cannot assume it.
+ */
+function probeContextFor(database: TestDatabase) {
+  if (!database.probeRole) throw new Error('the test database provisioned no probe role');
+  return { role: database.probeRole, ...TENANT_A, actorId: 'user-1' };
+}
 
 describe('integration: the policies are actually in force', () => {
   it('enables and forces row-level security on every governed table', async () => {
@@ -173,7 +180,7 @@ describe('integration: the policies are actually in force', () => {
     const database = await seededDatabase();
     const certification = await certifyRowLevelSecurity(database.sql, {
       schema: database.schema,
-      probe: { context: probeContext, foreign: TENANT_B },
+      probe: { context: probeContextFor(database), foreign: TENANT_B },
     });
 
     expect(certification.findings).toEqual([]);
@@ -185,7 +192,7 @@ describe('integration: the policies are actually in force', () => {
 describe('integration: a tenant cannot read across the boundary', () => {
   it('denies every cross-tenant read while permitting the caller’s own', async () => {
     const database = await seededDatabase();
-    expect(await assertCrossTenantDenied(database.sql, probeContext, TENANT_B)).toEqual([]);
+    expect(await assertCrossTenantDenied(database.sql, probeContextFor(database), TENANT_B)).toEqual([]);
   });
 
   it('denies a cross-tenant write, not only a read', async () => {
@@ -193,14 +200,14 @@ describe('integration: a tenant cannot read across the boundary', () => {
     // tenants' rows while letting a caller *insert* into their scope — worse than a read
     // leak, because it plants data the owning tenant cannot see the origin of.
     const database = await seededDatabase();
-    expect(await assertCrossTenantWriteDenied(database.sql, probeContext, TENANT_B)).toEqual([]);
+    expect(await assertCrossTenantWriteDenied(database.sql, probeContextFor(database), TENANT_B)).toEqual([]);
   });
 
   it('denies everything to a caller with no scope at all', async () => {
     // The state a connection is in before anything sets it, and therefore the state a bug
     // leaves it in.
     const database = await seededDatabase();
-    expect(await assertUnscopedReadDenied(database.sql, PROBE_ROLE)).toEqual([]);
+    expect(await assertUnscopedReadDenied(database.sql, probeContextFor(database).role)).toEqual([]);
   });
 
   it('reports a finding when a policy is dropped, rather than certifying anyway', async () => {
@@ -213,7 +220,7 @@ describe('integration: a tenant cannot read across the boundary', () => {
 
     const certification = await certifyRowLevelSecurity(database.sql, {
       schema: database.schema,
-      probe: { context: probeContext, foreign: TENANT_B },
+      probe: { context: probeContextFor(database), foreign: TENANT_B },
     });
 
     expect(certification.certified).toBe(false);

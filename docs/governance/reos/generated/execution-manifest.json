@@ -3292,7 +3292,7 @@
   "identity": {
     "branch": "feat/persistence-rls-certification",
     "clean": false,
-    "head": "ffa60b1ad5a4d5fa83114044c053b2b154d84973",
+    "head": "b0ba3ed649e91d436ae0274eb0f7fd44f68933b6",
     "repository": "assurapay",
     "version": "0.1.0"
   },
@@ -3380,7 +3380,7 @@
     "released": 71,
     "validated": 0
   },
-  "manifestDigest": "50763075818d",
+  "manifestDigest": "808475c992c8",
   "missingCapabilities": [],
   "packages": [
     {
@@ -3594,7 +3594,7 @@
       "moduleType": null,
       "name": "@assurapay/database-testing",
       "sourceFiles": 1,
-      "sourceLines": 255,
+      "sourceLines": 314,
       "testFiles": [
         "packages/database-testing/src/migrations.postgres.test.ts",
         "packages/database-testing/src/postgres-store.postgres.test.ts",

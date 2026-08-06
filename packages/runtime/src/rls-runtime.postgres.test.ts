@@ -135,7 +135,8 @@ describe('integration: the application works with the boundary in force', () => 
     const certification = await certifyRowLevelSecurity(database.sql, {
       schema: database.schema,
       probe: {
-        context: { role: 'assurapay_app', ...TENANT_A, actorId: TENANT_A.userId },
+        // The role this database provisioned, not a cluster-wide one another credential may own.
+        context: { role: database.probeRole!, ...TENANT_A, actorId: TENANT_A.userId },
         foreign: TENANT_B,
       },
     });
