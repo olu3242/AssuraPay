@@ -104,6 +104,16 @@ export const ASYNC_PERSISTENCE_RULES: readonly AsyncPersistenceRule[] = Object.f
       'A NEXT_PUBLIC_ variable is compiled into the browser bundle. One naming a database or a persistence mode publishes deployment topology and offers a client a say in where data goes.',
   },
   {
+    rule: 'persistence/cwd-relative-data-path',
+    rationale:
+      'A persistence path resolved from process.cwd() names a different file depending on the directory the process was started from, so one build silently forks its own state and neither copy is discoverably the real one.',
+  },
+  {
+    rule: 'persistence/ungated-demo-seeding',
+    rationale:
+      'Demo seeding that is not gated on the deployment class fabricates invented tenants and records into an empty production dataset, indistinguishable from real ones.',
+  },
+  {
     rule: 'persistence/retired-table-reference',
     rationale:
       'A retired trust table is not the canonical owner of anything and no longer exists after reconciliation. SQL naming one either targets a model with no rows or resurrects a second writable model for an aggregate that already has an owner.',
@@ -134,6 +144,24 @@ const RETIRED_TRUST_TABLES = Object.freeze([
  * The registry that records the retirement, and the validator's own vocabulary. Nothing else:
  * the point of retiring an object is that code stops referring to it.
  */
+/**
+ * Modules allowed to resolve a persistence path from the working directory.
+ *
+ * The test harness, which locates the migration directory relative to the repository it is run
+ * from, and the validator's own vocabulary. Neither is a persistence file whose identity must be
+ * stable across launch directories.
+ */
+const DATA_PATH_VOCABULARY = Object.freeze([
+  'packages/database-testing/src/index.ts',
+  'packages/reos/src/validators/persistence.ts',
+]);
+
+/** Modules allowed to name a demo seed: the gate's own definition, and this validator. */
+const DEMO_SEED_VOCABULARY = Object.freeze([
+  'packages/database/src/domain-store-environment.ts',
+  'packages/reos/src/validators/persistence.ts',
+]);
+
 const RETIRED_TABLE_VOCABULARY = Object.freeze([
   'packages/database/src/schema-ownership.ts',
   'packages/reos/src/validators/persistence.ts',
@@ -529,6 +557,47 @@ function checkAdapterBoundaries(repoRoot: string, files: readonly string[]): Fin
           location: at,
           subject: file,
         });
+
+      // A persistence path resolved from the working directory. Matched on `process.cwd()`
+      // combined with a data-file-looking argument, so ordinary cwd use — a migration
+      // directory, a config lookup — is not a finding.
+      if (
+        /process\.cwd\(\)/.test(line) &&
+        /\.json|\.jsonl|data\//.test(line) &&
+        !DATA_PATH_VOCABULARY.includes(file)
+      )
+        findings.push({
+          rule: 'persistence/cwd-relative-data-path',
+          severity: 'error',
+          message: `${at} resolves a persistence path from process.cwd(), so the file it names depends on the directory the process was started from. Derive it from the module's own location, or take it from an explicit variable.`,
+          location: at,
+          subject: file,
+        });
+
+      // Demo seeding with no deployment condition. The guard has to be on the same statement
+      // as the seed decision; a check somewhere else in the file is not one a reader can trust.
+      if (
+        // A *call*, not a declaration or an import. Defining a seed scenario is legitimate —
+        // the repository needs one for development; invoking it without a gate is the defect.
+        /\b(createSeedScenario|demoSeed|fabricateDemo)\s*\(/.test(line) &&
+        !/^\s*(export\s+)?(async\s+)?function\b/.test(line) &&
+        !/^\s*(import|export)\b/.test(line) &&
+        !/mayFabricateDemoData|isDurable|DEPLOYMENT/.test(line) &&
+        !isTestFile(file) &&
+        !DEMO_SEED_VOCABULARY.includes(file)
+      ) {
+        const guarded = lines.some(
+          (candidate) => /mayFabricateDemoData\(/.test(candidate) && /if\s*\(/.test(candidate),
+        );
+        if (!guarded)
+          findings.push({
+            rule: 'persistence/ungated-demo-seeding',
+            severity: 'error',
+            message: `${at} fabricates demo data with no deployment gate. Guard it with mayFabricateDemoData(), which is false for every durable class.`,
+            location: at,
+            subject: file,
+          });
+      }
 
       // SQL naming a retired trust table. Matched only in statement position, so a
       // TypeScript identifier that happens to share the name — `permissionGrants`, a

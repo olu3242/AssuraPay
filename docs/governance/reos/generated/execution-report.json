@@ -1,24 +1,16 @@
 {
-  "capability": "persistence.async-domain-repository-interface",
-  "capabilityLifecycle": "released",
+  "capability": "persistence.domain-store-environment-gate",
+  "capabilityLifecycle": "certified",
   "certification": {
     "available": true,
     "failedSteps": [],
     "passed": true
   },
-  "commit": "544011abfd074e15296d8ba2c1a9b399ee880f04",
+  "commit": "cdffedc19f1c740a44de008ff7f97cec816c99e3",
   "filesModified": [
-    "apps/web/app/api/v1/completion-certificates/[id]/verify/route.ts",
-    "apps/web/app/api/v1/contracts/route.ts",
-    "apps/web/app/api/v1/me/workspaces/route.ts",
-    "apps/web/app/api/v1/payment-eligibility/[id]/blockers/route.ts",
-    "apps/web/app/execution/milestones/[id]/page.tsx",
-    "apps/web/app/execution/page.tsx",
-    "apps/web/app/page.tsx",
-    "apps/web/app/settlements/page.tsx",
     "apps/web/lib/assurapay-app.ts",
-    "docs/governance/execution-ledger/544011abfd07-persistence.async-domain-repository-interface.json",
     "docs/governance/execution-ledger/INDEX.md",
+    "docs/governance/execution-ledger/cdffedc19f1c-persistence.domain-store-environment-gate.json",
     "docs/governance/reos/capability-registry.json",
     "docs/governance/reos/generated/CERTIFICATION_REPORT.md",
     "docs/governance/reos/generated/DEPENDENCY_RESOLUTION.md",
@@ -28,17 +20,13 @@
     "docs/governance/reos/generated/discovery.json",
     "docs/governance/reos/generated/execution-manifest.json",
     "docs/governance/reos/generated/forensics.json",
-    "packages/database/src/domain-repository.test.ts",
+    "packages/database/src/domain-store-environment.test.ts",
+    "packages/database/src/domain-store-environment.ts",
     "packages/database/src/index.ts",
-    "packages/domain/src/services/assurapay-service.test.ts",
-    "packages/domain/src/services/assurapay-service.ts",
-    "packages/domain/src/services/batch2-remediation.test.ts",
-    "packages/domain/src/services/batch4-extensions.test.ts",
-    "packages/domain/src/services/intelligence-foundation.test.ts",
-    "packages/domain/src/services/settlement-assurance.test.ts",
+    "packages/reos/src/reos.persistence.test.ts",
     "packages/reos/src/validators/persistence.ts"
   ],
-  "generatedAt": "2026-08-06T09:10:59.523Z",
+  "generatedAt": "2026-08-06T09:35:33.597Z",
   "governance": {
     "baselined": 15,
     "findings": [
@@ -198,17 +186,17 @@
     "phase": 2,
     "resolved": []
   },
-  "ledgerEntryId": "544011abfd07-persistence.async-domain-repository-interface",
+  "ledgerEntryId": "cdffedc19f1c-persistence.domain-store-environment-gate",
   "recommendedNextCapability": {
     "blockedBy": [],
     "blocks": [],
     "dependsOn": [
-      "persistence.async-domain-repository-interface"
+      "persistence.domain-store-environment-gate"
     ],
     "executable": true,
     "id": "persistence.domain-store-durability",
     "lifecycle": "planned",
-    "priority": 44,
+    "priority": 45,
     "requiresLiveInfrastructure": true,
     "scope": {
       "estimated": false,
@@ -223,12 +211,12 @@
       "blockedBy": [],
       "blocks": [],
       "dependsOn": [
-        "persistence.async-domain-repository-interface"
+        "persistence.domain-store-environment-gate"
       ],
       "executable": true,
       "id": "persistence.domain-store-durability",
       "lifecycle": "planned",
-      "priority": 44,
+      "priority": 45,
       "requiresLiveInfrastructure": true,
       "scope": {
         "estimated": false,
@@ -241,17 +229,9 @@
   ],
   "reosVersion": "1.0.0",
   "repositoryState": {
-    "branch": "feat/persistence-async-domain-repository",
+    "branch": "feat/persistence-domain-store-durable-environment-gate",
     "clean": false,
     "dirtyFiles": [
-      "apps/web/app/api/v1/completion-certificates/[id]/verify/route.ts",
-      "apps/web/app/api/v1/contracts/route.ts",
-      "apps/web/app/api/v1/me/workspaces/route.ts",
-      "apps/web/app/api/v1/payment-eligibility/[id]/blockers/route.ts",
-      "apps/web/app/execution/milestones/[id]/page.tsx",
-      "apps/web/app/execution/page.tsx",
-      "apps/web/app/page.tsx",
-      "apps/web/app/settlements/page.tsx",
       "apps/web/lib/assurapay-app.ts",
       "docs/governance/reos/capability-registry.json",
       "docs/governance/reos/generated/CERTIFICATION_REPORT.md",
@@ -262,22 +242,18 @@
       "docs/governance/reos/generated/discovery.json",
       "docs/governance/reos/generated/execution-manifest.json",
       "docs/governance/reos/generated/forensics.json",
-      "packages/database/src/domain-repository.test.ts",
+      "packages/database/src/domain-store-environment.test.ts",
+      "packages/database/src/domain-store-environment.ts",
       "packages/database/src/index.ts",
-      "packages/domain/src/services/assurapay-service.test.ts",
-      "packages/domain/src/services/assurapay-service.ts",
-      "packages/domain/src/services/batch2-remediation.test.ts",
-      "packages/domain/src/services/batch4-extensions.test.ts",
-      "packages/domain/src/services/intelligence-foundation.test.ts",
-      "packages/domain/src/services/settlement-assurance.test.ts",
+      "packages/reos/src/reos.persistence.test.ts",
       "packages/reos/src/validators/persistence.ts"
     ],
-    "head": "544011abfd074e15296d8ba2c1a9b399ee880f04"
+    "head": "cdffedc19f1c740a44de008ff7f97cec816c99e3"
   },
   "stage": "report",
   "validation": [
     {
-      "checked": 193,
+      "checked": 197,
       "findings": [],
       "passed": true,
       "validator": "architecture"
@@ -289,21 +265,14 @@
       "validator": "dependencies"
     },
     {
-      "checked": 271,
+      "checked": 272,
       "findings": [],
       "passed": true,
       "validator": "security"
     },
     {
-      "checked": 19,
-      "findings": [
-        {
-          "location": "packages/reos/src",
-          "message": "packages/reos has modified source but no modified tests in this change.",
-          "rule": "contract/tests-not-updated",
-          "severity": "warning"
-        }
-      ],
+      "checked": 7,
+      "findings": [],
       "passed": true,
       "validator": "execution-contract"
     }

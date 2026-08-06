@@ -1,11 +1,24 @@
-import { FileAssuraStore } from '@assurapay/database';
+import { FileAssuraStore, mayFabricateDemoData } from '@assurapay/database';
 import { AssuraPayService, createSeedScenario } from '@assurapay/domain';
 
+/**
+ * The Engine 06-60 domain service.
+ *
+ * `FileAssuraStore.load()` refuses in a durable deployment, so this composition root cannot
+ * serve one — see `packages/database/src/domain-store-environment.ts` for why refusing beats
+ * serving. `persistence.domain-store-durability` is what replaces it.
+ *
+ * The seeding below fabricates a `tenant-demo` workspace and a full contract-to-payment
+ * scenario. It previously ran on any environment whose `contracts` collection was empty, with no
+ * condition, so an empty production dataset acquired invented tenants, milestones and
+ * payment-eligibility records indistinguishable from real ones. It is now gated, and the gate is
+ * checked rather than assumed: `mayFabricateDemoData` is false for every durable class.
+ */
 export async function getAssuraService() {
   const store = await FileAssuraStore.load();
   const snapshot = await store.getSnapshot();
 
-  if (snapshot.contracts.length === 0) {
+  if (snapshot.contracts.length === 0 && mayFabricateDemoData()) {
     const scenario = createSeedScenario();
     snapshot.workspaces = [
       {

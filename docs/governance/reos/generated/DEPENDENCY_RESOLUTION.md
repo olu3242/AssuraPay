@@ -10,9 +10,9 @@
 | Title | Domain store durability for Engines 06-60 |
 | Current status | missing |
 | Lifecycle | planned |
-| Priority | 44 |
-| Reason | Highest-priority executable capability (priority 44, lifecycle planned) — selected despite needing live infrastructure, nothing else is executable |
-| Depends on | persistence.async-domain-repository-interface |
+| Priority | 45 |
+| Reason | Highest-priority executable capability (priority 45, lifecycle planned) — selected despite needing live infrastructure, nothing else is executable |
+| Depends on | persistence.domain-store-environment-gate |
 | Unmet dependencies | none |
 | Blocks (transitive) | — |
 | Declared scope | 1 file(s), 1 test suite(s) |
@@ -22,7 +22,7 @@
 
 | Capability | Title | Lifecycle | Priority | Blocks | Live infra |
 | --- | --- | --- | --- | --- | --- |
-| persistence.domain-store-durability | Domain store durability for Engines 06-60 | planned | 44 | — | yes |
+| persistence.domain-store-durability | Domain store durability for Engines 06-60 | planned | 45 | — | yes |
 
 ## Blocked
 
@@ -32,7 +32,7 @@ Nothing blocked.
 
 - persistence.domain-store-durability
 
-## Completed (74)
+## Completed (75)
 
 - engine:01
 - engine:02
@@ -92,6 +92,7 @@ Nothing blocked.
 - engine:60
 - persistence.async-domain-repository-interface
 - persistence.async-repository-interface
+- persistence.domain-store-environment-gate
 - persistence.postgres-repository
 - persistence.production-runtime-wiring
 - persistence.repository-conformance
