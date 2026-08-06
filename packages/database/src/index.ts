@@ -1,7 +1,20 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
+import {
+  assertDomainStoreAllowed,
+  resolveDomainStoreFile,
+} from './domain-store-environment';
 
-const DATA_FILE = path.resolve(process.cwd(), 'apps/web/data/assurapay.json');
+/**
+ * Resolved per call rather than captured at module load.
+ *
+ * A module-level constant froze whatever `process.cwd()` happened to be when the module was
+ * first imported, which is both untestable and wrong: the same build read a different file
+ * depending on how the process was started. See `domain-store-environment.ts`.
+ */
+function dataFile(): string {
+  return resolveDomainStoreFile();
+}
 
 export type Snapshot = {
   workspaces: any[];
@@ -191,23 +204,35 @@ export class FileAssuraStore implements AssuraRepository {
     this.snapshot = normalizeSnapshot(snapshot);
   }
 
+  /**
+   * Loads the file-backed domain store, or refuses.
+   *
+   * The refusal is first, before any file is touched. A durable deployment must not end up with
+   * a JSON file created as a side effect of discovering it is not allowed to have one.
+   */
   static async load(): Promise<FileAssuraStore> {
+    assertDomainStoreAllowed();
     if (process.env.VITEST) return new FileAssuraStore(emptySnapshot);
+    const file = dataFile();
     try {
-      const raw = await fs.readFile(DATA_FILE, 'utf8');
+      const raw = await fs.readFile(file, 'utf8');
       const parsed = JSON.parse(raw) as Snapshot;
       return new FileAssuraStore(parsed);
     } catch {
-      await fs.mkdir(path.dirname(DATA_FILE), { recursive: true });
-      await fs.writeFile(DATA_FILE, JSON.stringify(emptySnapshot, null, 2));
+      await fs.mkdir(path.dirname(file), { recursive: true });
+      await fs.writeFile(file, JSON.stringify(emptySnapshot, null, 2));
       return new FileAssuraStore(emptySnapshot);
     }
   }
 
   async save(): Promise<void> {
+    // Checked on every write, not only at load. A store constructed directly — which tests do,
+    // and which a future caller might — would otherwise bypass the gate and write anyway.
+    assertDomainStoreAllowed();
     if (process.env.VITEST) return;
-    await fs.mkdir(path.dirname(DATA_FILE), { recursive: true });
-    await fs.writeFile(DATA_FILE, JSON.stringify(this.snapshot, null, 2));
+    const file = dataFile();
+    await fs.mkdir(path.dirname(file), { recursive: true });
+    await fs.writeFile(file, JSON.stringify(this.snapshot, null, 2));
   }
 
   async getSnapshot(): Promise<Snapshot> {
@@ -386,3 +411,4 @@ export * from './migrations';
 export * from './trust-scope';
 export * from './rls-certification';
 export * from './schema-ownership';
+export * from './domain-store-environment';

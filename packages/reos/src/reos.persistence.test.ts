@@ -377,6 +377,72 @@ describe('persistence rules: the adapter boundary holds', () => {
   });
 });
 
+describe('persistence/cwd-relative-data-path and ungated-demo-seeding', () => {
+  const withInterface = (files: Record<string, string>) => ({
+    'packages/shared/src/trust.ts': ASYNC_INTERFACE,
+    ...files,
+  });
+
+  it('reports a data path resolved from the working directory', () => {
+    // The real defect: the same build read /repo/apps/web/data/assurapay.json from the root and
+    // /repo/apps/web/apps/web/data/assurapay.json from apps/web, and both files existed.
+    const root = fakeRepo(
+      withInterface({
+        'packages/database/src/store.ts':
+          "const DATA_FILE = path.resolve(process.cwd(), 'apps/web/data/assurapay.json');\n",
+      }),
+    );
+    expect(rulesFired(collectAsyncPersistenceFindings(root))).toEqual([
+      'persistence/cwd-relative-data-path',
+    ]);
+  });
+
+  it('ignores process.cwd() used for something that is not a data file', () => {
+    const root = fakeRepo(
+      withInterface({
+        'packages/database/src/store.ts':
+          "const migrations = path.resolve(process.cwd(), 'supabase/migrations');\n",
+      }),
+    );
+    expect(collectAsyncPersistenceFindings(root)).toEqual([]);
+  });
+
+  it('reports demo seeding with no deployment gate', () => {
+    const root = fakeRepo(
+      withInterface({
+        'apps/web/lib/app.ts': 'const scenario = createSeedScenario();\n',
+      }),
+    );
+    expect(rulesFired(collectAsyncPersistenceFindings(root))).toEqual([
+      'persistence/ungated-demo-seeding',
+    ]);
+  });
+
+  it('accepts demo seeding behind the gate', () => {
+    const root = fakeRepo(
+      withInterface({
+        'apps/web/lib/app.ts': [
+          'if (empty && mayFabricateDemoData()) {',
+          '  const scenario = createSeedScenario();',
+          '}',
+        ].join('\n'),
+      }),
+    );
+    expect(collectAsyncPersistenceFindings(root)).toEqual([]);
+  });
+
+  it('does not report the seed scenario\u2019s own definition', () => {
+    // The repository needs a seed scenario for development. Defining one is not fabricating it
+    // into production, and a rule that forbade the definition would forbid having one at all.
+    const root = fakeRepo(
+      withInterface({
+        'packages/domain/src/seed-data.ts': 'export function createSeedScenario() {\n  return {};\n}\n',
+      }),
+    );
+    expect(collectAsyncPersistenceFindings(root)).toEqual([]);
+  });
+});
+
 describe('persistence/retired-table-reference', () => {
   const withInterface = (files: Record<string, string>) => ({
     'packages/shared/src/trust.ts': ASYNC_INTERFACE,
@@ -449,6 +515,8 @@ describe('persistence rules: the vocabulary itself', () => {
       'persistence/store-constructed-outside-runtime',
       'persistence/client-database-variable',
       'persistence/retired-table-reference',
+      'persistence/cwd-relative-data-path',
+      'persistence/ungated-demo-seeding',
     ]);
     expect(ASYNC_PERSISTENCE_RULES.map((rule) => rule.rule).filter((rule) => !fired.has(rule))).toEqual(
       [],

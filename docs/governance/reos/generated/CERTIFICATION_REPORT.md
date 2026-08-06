@@ -4,9 +4,9 @@
 
 | Field | Value |
 | --- | --- |
-| Branch | feat/persistence-async-domain-repository |
-| HEAD | 544011abfd074e15296d8ba2c1a9b399ee880f04 |
-| Generated at | 2026-08-06T09:10:14.777Z |
+| Branch | feat/persistence-domain-store-durable-environment-gate |
+| HEAD | cdffedc19f1c740a44de008ff7f97cec816c99e3 |
+| Generated at | 2026-08-06T09:35:28.544Z |
 | Result | **PASSED** |
 | Steps | 11 passed, 0 failed, 0 skipped |
 
@@ -14,14 +14,14 @@
 
 | Step | Description | Result | Duration | Findings |
 | --- | --- | --- | --- | --- |
-| lint | ESLint across the workspace | pass | 5890 ms | — |
-| typecheck | TypeScript project typecheck | pass | 2520 ms | — |
-| test:unit | Unit tests | pass | 22490 ms | — |
-| test:integration | Integration tests | pass | 12802 ms | — |
-| test:e2e | End-to-end tests | pass | 22024 ms | — |
-| architecture | Architecture validation | pass | 363 ms | — |
-| dependencies | Dependency validation | pass | 16 ms | — |
+| lint | ESLint across the workspace | pass | 5682 ms | — |
+| typecheck | TypeScript project typecheck | pass | 2328 ms | — |
+| test:unit | Unit tests | pass | 22254 ms | — |
+| test:integration | Integration tests | pass | 12139 ms | — |
+| test:e2e | End-to-end tests | pass | 21594 ms | — |
+| architecture | Architecture validation | pass | 381 ms | — |
+| dependencies | Dependency validation | pass | 15 ms | — |
 | security | Security validation | pass | 32 ms | — |
-| contract | Execution contract validation | pass | 19 ms | 1 |
+| contract | Execution contract validation | pass | 18 ms | — |
 | governance | Reconciliation governance policy | pass | 1 ms | 15 |
-| build | Production build | pass | 31711 ms | — |
+| build | Production build | pass | 30573 ms | — |

@@ -9,10 +9,10 @@
 | --- | --- |
 | Repository | assurapay |
 | Version | 0.1.0 |
-| Branch | feat/persistence-async-domain-repository |
-| HEAD | 544011abfd074e15296d8ba2c1a9b399ee880f04 |
+| Branch | feat/persistence-domain-store-durable-environment-gate |
+| HEAD | cdffedc19f1c740a44de008ff7f97cec816c99e3 |
 | Worktree clean | no |
-| Manifest digest | f501be5d3c17 |
+| Manifest digest | 042427d7c9c5 |
 | REOS version | 1.0.0 |
 
 ## Architecture
@@ -27,6 +27,7 @@
 | Lifecycle | Count |
 | --- | --- |
 | planned | 1 |
+| certified | 1 |
 | released | 74 |
 | deferred | 4 |
 
@@ -105,6 +106,7 @@ from repository evidence: package presence, test files, and certification wiring
 | persistence.async-domain-repository-interface | Asynchronous domain repository interface | implemented | released | 7/7 | All 7 evidence probes satisfied at HEAD. |
 | persistence.async-repository-interface | Asynchronous repository interface | implemented | released | 5/5 | All 5 evidence probes satisfied at HEAD. |
 | persistence.domain-store-durability | Domain store durability for Engines 06-60 | missing | planned | 0/4 | No evidence at HEAD, on any ref, or in history. |
+| persistence.domain-store-environment-gate | Domain store durable-environment gate | implemented | certified | 8/8 | All 8 evidence probes satisfied at HEAD. |
 | persistence.postgres-repository | PostgreSQL repository implementation | implemented | released | 10/10 | All 10 evidence probes satisfied at HEAD. |
 | persistence.production-runtime-wiring | Production persistence runtime wiring | implemented | released | 10/10 | All 10 evidence probes satisfied at HEAD. |
 | persistence.repository-conformance | TrustPersistence conformance specification | implemented | released | 4/4 | All 4 evidence probes satisfied at HEAD. |
@@ -148,7 +150,7 @@ from repository evidence: package presence, test files, and certification wiring
 
 | Capability | Title | Lifecycle | Priority | Executable | Blocked by | Blocks |
 | --- | --- | --- | --- | --- | --- | --- |
-| persistence.domain-store-durability | Domain store durability for Engines 06-60 | planned | 44 | yes | — | — |
+| persistence.domain-store-durability | Domain store durability for Engines 06-60 | planned | 45 | yes | — | — |
 
 ## Certification coverage
 

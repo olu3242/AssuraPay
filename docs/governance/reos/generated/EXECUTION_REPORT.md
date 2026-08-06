@@ -6,29 +6,21 @@
 
 | Field | Value |
 | --- | --- |
-| Branch | feat/persistence-async-domain-repository |
-| HEAD | 544011abfd074e15296d8ba2c1a9b399ee880f04 |
+| Branch | feat/persistence-domain-store-durable-environment-gate |
+| HEAD | cdffedc19f1c740a44de008ff7f97cec816c99e3 |
 | Worktree clean | no |
-| Uncommitted files | 27 |
-| Generated at | 2026-08-06T09:10:59.523Z |
+| Uncommitted files | 15 |
+| Generated at | 2026-08-06T09:35:33.597Z |
 
 ## Capability implemented
 
-`persistence.async-domain-repository-interface` — lifecycle **released**
+`persistence.domain-store-environment-gate` — lifecycle **certified**
 
-## Files modified (29)
+## Files modified (17)
 
-- `apps/web/app/api/v1/completion-certificates/[id]/verify/route.ts`
-- `apps/web/app/api/v1/contracts/route.ts`
-- `apps/web/app/api/v1/me/workspaces/route.ts`
-- `apps/web/app/api/v1/payment-eligibility/[id]/blockers/route.ts`
-- `apps/web/app/execution/milestones/[id]/page.tsx`
-- `apps/web/app/execution/page.tsx`
-- `apps/web/app/page.tsx`
-- `apps/web/app/settlements/page.tsx`
 - `apps/web/lib/assurapay-app.ts`
-- `docs/governance/execution-ledger/544011abfd07-persistence.async-domain-repository-interface.json`
 - `docs/governance/execution-ledger/INDEX.md`
+- `docs/governance/execution-ledger/cdffedc19f1c-persistence.domain-store-environment-gate.json`
 - `docs/governance/reos/capability-registry.json`
 - `docs/governance/reos/generated/CERTIFICATION_REPORT.md`
 - `docs/governance/reos/generated/DEPENDENCY_RESOLUTION.md`
@@ -38,28 +30,20 @@
 - `docs/governance/reos/generated/discovery.json`
 - `docs/governance/reos/generated/execution-manifest.json`
 - `docs/governance/reos/generated/forensics.json`
-- `packages/database/src/domain-repository.test.ts`
+- `packages/database/src/domain-store-environment.test.ts`
+- `packages/database/src/domain-store-environment.ts`
 - `packages/database/src/index.ts`
-- `packages/domain/src/services/assurapay-service.test.ts`
-- `packages/domain/src/services/assurapay-service.ts`
-- `packages/domain/src/services/batch2-remediation.test.ts`
-- `packages/domain/src/services/batch4-extensions.test.ts`
-- `packages/domain/src/services/intelligence-foundation.test.ts`
-- `packages/domain/src/services/settlement-assurance.test.ts`
+- `packages/reos/src/reos.persistence.test.ts`
 - `packages/reos/src/validators/persistence.ts`
 
 ## Validation
 
 | Validator | Result | Checked | Errors | Warnings |
 | --- | --- | --- | --- | --- |
-| architecture | pass | 193 | 0 | 0 |
+| architecture | pass | 197 | 0 | 0 |
 | dependencies | pass | 26 | 0 | 0 |
-| security | pass | 271 | 0 | 0 |
-| execution-contract | pass | 19 | 0 | 1 |
-
-### Findings
-
-- **warning** `contract/tests-not-updated` (packages/reos/src) — packages/reos has modified source but no modified tests in this change.
+| security | pass | 272 | 0 | 0 |
+| execution-contract | pass | 7 | 0 | 0 |
 
 ## Governance
 
@@ -83,8 +67,8 @@ No newly introduced violations.
 
 ## Ledger
 
-Recorded as `544011abfd07-persistence.async-domain-repository-interface` in `docs/governance/execution-ledger/`.
+Recorded as `cdffedc19f1c-persistence.domain-store-environment-gate` in `docs/governance/execution-ledger/`.
 
 ## Commit
 
-`544011abfd074e15296d8ba2c1a9b399ee880f04`
+`cdffedc19f1c740a44de008ff7f97cec816c99e3`

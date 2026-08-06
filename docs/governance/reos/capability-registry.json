@@ -556,12 +556,39 @@
       "notes": "The real blocker on the Engine 06-60 Postgres adapter, and the exact defect persistence.async-repository-interface fixed for the trust domain one year of capabilities earlier. AssuraRepository declared getSnapshot(): Snapshot and setSnapshot(...): void - synchronous, across 115 production and test call sites, none awaited. No network-backed store can implement either, because JavaScript cannot block on I/O: the only way to satisfy the old signature was to hold the whole database in memory and return the cache, which is arrays behind a PostgreSQL adapter rather than durability and is explicitly forbidden. So persistence.domain-store-durability was unimplementable rather than merely unstarted, and this is its prerequisite. The interface itself was made asynchronous rather than adding a parallel async variant, for the same reasons recorded against the trust capability: two interfaces let call sites keep the synchronous one, and a MaybePromise union lets a caller forget to await and still compile. A second defect surfaced while fixing the first - getSnapshot returned this.snapshot, so every caller held a live handle to the store's interior and could mutate persisted state with no write method, no validation and nothing in the audit trail to attribute it to. normalizeSnapshot was not sufficient as a defence because it builds a new outer object while reusing the same arrays; the store now detaches on both read and write. Enforcement was generalised: the sync-interface-method rule checked TrustPersistence only, which is how the second contract stayed synchronous while the first was certified. Not claimed: no PostgreSQL domain store, no domain schema, no JSON migration, no domain RLS, no cutover. getSnapshot remains snapshot-shaped, so a relational implementation would read every collection per call - implementable and durable, but an efficiency problem persistence.domain-store-durability must address by moving to per-collection reads."
     },
     {
-      "id": "persistence.domain-store-durability",
-      "title": "Domain store durability for Engines 06-60",
+      "id": "persistence.domain-store-environment-gate",
+      "title": "Domain store durable-environment gate",
       "kind": "platform",
       "priority": 44,
       "dependsOn": [
         "persistence.async-domain-repository-interface"
+      ],
+      "evidence": {
+        "paths": [
+          "packages/database/src/domain-store-environment.ts",
+          "apps/web/lib/assurapay-app.ts"
+        ],
+        "symbols": [
+          "assertDomainStoreAllowed",
+          "mayFabricateDemoData",
+          "resolveDomainStoreFile",
+          "DomainStoreNotDurableError"
+        ],
+        "tests": [
+          "packages/database/src/domain-store-environment.test.ts",
+          "packages/reos/src/reos.persistence.test.ts"
+        ]
+      },
+      "certify": "certify:persistence",
+      "notes": "Two live defects in the file-backed domain store, found by inspecting the composition root rather than by reading the plan, and both forbidden by the persistence invariants while persistence.domain-store-durability remains unimplemented. First, the data file's path was path.resolve(process.cwd(), 'apps/web/data/assurapay.json'), so a process started from the repository root and one started from apps/web read and wrote different files - not hypothetical, the nested copy existed on disk holding thirteen records the canonical file did not have. A store whose identity depends on how the process was launched silently forks its own state and neither copy is discoverably real. The path is now derived from the module's own location, or taken from an explicit variable, and never from the working directory. Second, the composition root fabricated a tenant-demo workspace and a full contract-to-payment scenario whenever contracts was empty, with no environment condition at all, so an empty production dataset acquired invented tenants, milestones and payment-eligibility records indistinguishable from real ones. Seeding is now gated on the deployment class, and a durable deployment refuses to construct the store at all - the same answer the trust runtime already gives to volatile storage, because refusing is safer than serving fabricated data. The refusal precedes any filesystem access, so a deployment cannot acquire a JSON file as a side effect of learning it may not have one, and it is re-checked on every write because a directly constructed store would otherwise walk around a factory-only gate. NODE_ENV is deliberately not consulted: it is production for any optimized build, so gating on it would refuse development and permit a real deployment that never set it. Not claimed: this is not persistence.domain-store-durability. There is no PostgreSQL domain store, no domain schema, no JSON migration, no domain RLS and no cutover; Engines 06-60 remain file-backed in non-durable environments and unavailable in durable ones."
+    },
+    {
+      "id": "persistence.domain-store-durability",
+      "title": "Domain store durability for Engines 06-60",
+      "kind": "platform",
+      "priority": 45,
+      "dependsOn": [
+        "persistence.domain-store-environment-gate"
       ],
       "evidence": {
         "paths": [
