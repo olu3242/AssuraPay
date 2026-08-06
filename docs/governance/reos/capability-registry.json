@@ -275,23 +275,32 @@
       "kind": "platform",
       "priority": 41,
       "dependsOn": [
-        "persistence.postgres-repository"
+        "persistence.postgres-repository",
+        "persistence.production-runtime-wiring"
       ],
       "evidence": {
         "paths": [
-          "packages/database/src/rls-certification.ts"
+          "packages/database/src/rls-certification.ts",
+          "packages/database/src/trust-scope.ts",
+          "supabase/migrations/202608070001_trust_row_level_security.sql"
         ],
         "symbols": [
           "certifyRowLevelSecurity",
-          "assertCrossTenantDenied"
+          "assertCrossTenantDenied",
+          "withTrustScope"
         ],
         "tests": [
-          "packages/database/src/rls-certification.integration.test.ts"
+          "packages/database-testing/src/rls-certification.postgres.test.ts",
+          "packages/database/src/rls-certification.test.ts"
         ]
       },
-      "certify": "certify:tenancy",
+      "certify": "certify:postgres",
       "requiresLiveInfrastructure": true,
-      "notes": "Cross-tenant denial proof against a live Postgres instance with policies applied."
+      "notes": "The defect was found against a live instance rather than by reading SQL. One hundred tables already carried ENABLE ROW LEVEL SECURITY and a policy requiring workspace_id = current_workspace_id(), and none of it applied to the application: ENABLE does not constrain a table's owner, and the application role owned every table. Inserting a membership, clearing app.workspace_id and counting rows returned one, on a table whose policy said zero. A policy present but bypassed is worse than none because it is read as protection. Corrected by FORCE ROW LEVEL SECURITY on every governed trust table, so the owner is subject to its own policies, plus a non-owning assurapay_app role holding DML only - and no DELETE on history, so a role that cannot issue the statement cannot reach the trigger that would refuse it. Scope reaches the database through transaction-local session variables set by the repository from an AsyncLocalStorage the composition root establishes: TrustPersistence takes no context, and adding one would change every method and call site a second time. Transaction-local because a global set_config would leave one request's tenant on the pooled connection for the next, which is a cross-tenant read with no bug in any policy. An unscoped operation reads nothing rather than everything - the honest failure mode of ambient scope, and why scope is established at the funnel every protected route passes through. Certification is never 'does a policy exist': it checks enabled, forced, and policy-present, then runs live denial probes as the non-owning role for cross-tenant read, cross-tenant write through WITH CHECK, and the unscoped case. Named weak point: trust_records rows with neither tenant nor workspace - identities and sessions, which exist before any workspace and are how a caller establishes who they are - are visible to any scoped caller and still depend on application-level scoping. Narrowing that needs a tenant column on those records, which is a data-model change rather than a policy one. The 20 historical engine tables remain ENABLE-only and uncertified; this capability covers the trust store.",
+      "scope": {
+        "files": 8,
+        "tests": 2
+      }
     },
     {
       "id": "trust.route-permission-integration",

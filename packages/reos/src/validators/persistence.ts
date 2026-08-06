@@ -136,6 +136,11 @@ const UNSAFE_SQL_MODULES = Object.freeze([
   'packages/database/src/migrations.ts',
   'packages/database/src/postgres-client.ts',
   'packages/database-testing/src/index.ts',
+  // `SET LOCAL ROLE` and a table name in a count are identifiers, and PostgreSQL does not
+  // bind identifiers. Every such use in this module passes through `quoteIdentifier`, which
+  // refuses anything that is not a bare identifier — so the values that reach the statement
+  // are a closed set the module itself defines, never anything from a request.
+  'packages/database/src/rls-certification.ts',
 ]);
 
 /** Test-only modules that production code must not reach. */

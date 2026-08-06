@@ -23,7 +23,10 @@ afterEach(async () => {
 });
 
 async function freshStore() {
-  const database = await createTestDatabase();
+  // Without the tenancy policies. This suite is about whether Engine 08's verifier agrees with
+  // what the store wrote, from an unscoped caller; the tenancy boundary has its own suite, and
+  // mixing them would mean a failure here could be either.
+  const database = await createTestDatabase({ applyRls: false });
   databases.push(database);
   return { database, store: new PostgresTrustStore(database.sql) };
 }

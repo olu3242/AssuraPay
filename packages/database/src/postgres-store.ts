@@ -7,6 +7,8 @@ import {
 } from '@assurapay/shared';
 import type { SqlClient } from './postgres-client';
 import { sanitizeDatabaseFailure } from './postgres-client';
+import { currentTrustScope, isTenantScoped } from './trust-scope';
+import type { TrustScope } from './trust-scope';
 
 /**
  * The durable `TrustPersistence` implementation.
@@ -315,18 +317,80 @@ export class PostgresTrustStore implements TrustPersistence {
   }
 
   /**
+   * Runs an operation with the ambient tenancy scope applied to its connection.
+   *
+   * Row Level Security reads `app.tenant_id` and `app.workspace_id`, and those are session
+   * variables — so they must be set on the same connection that runs the statement, and
+   * only for its duration. `set_config(..., true)` is transaction-local, which is why every
+   * scoped operation opens a transaction: a value set without one would persist on the
+   * pooled connection and become the next request's scope, which is a cross-tenant read
+   * with no bug in any policy.
+   *
+   * Three cases, and the third is the one that matters:
+   *
+   *   Already inside a transaction — the scope was applied when it opened.
+   *   An ambient scope exists — open a transaction, set it, run.
+   *   No ambient scope — run unscoped. Under forced RLS that reads nothing and writes
+   *     nothing, which is the correct outcome: an unscoped governed operation must not
+   *     quietly see every tenant. It fails at the database rather than at the type level,
+   *     which is the cost of carrying scope ambiently and is why scope is established at
+   *     the funnel every protected route passes through.
+   */
+  private async inScope<T>(run: (store: PostgresTrustStore) => Promise<T>): Promise<T> {
+    if (this.withinTransaction) return await run(this);
+
+    const scope = currentTrustScope();
+    if (!isTenantScoped(scope)) return await run(this);
+
+    try {
+      return await this.sql.begin(async (tx) => {
+        await applyTrustScope(tx, scope);
+        return await run(new PostgresTrustStore(tx, { now: this.now, withinTransaction: true }));
+      });
+    } catch (error) {
+      fail(error);
+    }
+  }
+
+  async list<T>(collection: string): Promise<T[]> {
+    return await this.inScope((store) => store.listScoped<T>(collection));
+  }
+
+  async append<T>(collection: string, value: T): Promise<void> {
+    await this.inScope((store) => store.appendScoped(collection, value));
+  }
+
+  async replace<T extends { id: string }>(collection: string, value: T): Promise<void> {
+    await this.inScope((store) => store.replaceScoped(collection, value));
+  }
+
+  async audit(
+    input: Omit<AuditRecord, 'id' | 'createdAt' | 'integrityHash' | 'previousHash'>,
+  ): Promise<AuditRecord> {
+    return await this.inScope((store) => store.auditScoped(input));
+  }
+
+  async emit(input: Omit<OutboxEvent, 'id' | 'occurredAt'>): Promise<OutboxEvent> {
+    return await this.inScope((store) => store.emitScoped(input));
+  }
+
+  /**
    * Reads a collection.
    *
    * Returns rows in insertion order, which the audit chain depends on and which every
    * engine that takes `records[records.length - 1]` as "the latest" assumes. An
    * unordered read would make those engines non-deterministic under any plan change.
    */
-  async list<T>(collection: string): Promise<T[]> {
+  private async listScoped<T>(collection: string): Promise<T[]> {
     const dedicated = DEDICATED[collection];
     try {
       if (collection === 'auditRecords') {
+        // Ordered by position within the tenant. Under RLS a caller sees only its own
+        // records, and those form a complete chain from position 1 — which is exactly what
+        // `verifyAuditChain` needs and what a global chain could not provide.
         const rows = await this.sql<AuditRow[]>`
-          SELECT * FROM trust_audit_records ORDER BY chain_position ASC
+          SELECT * FROM trust_audit_records
+          ORDER BY coalesce(tenant_id, '') ASC, chain_position ASC
         `;
         return rows.map(auditRowToRecord) as unknown as T[];
       }
@@ -374,7 +438,7 @@ export class PostgresTrustStore implements TrustPersistence {
     return rows.map((row) => rowToRecord<T>(row));
   }
 
-  async append<T>(collection: string, value: T): Promise<void> {
+  private async appendScoped<T>(collection: string, value: T): Promise<void> {
     const record = asRecord(value);
     const id = requireRecordId(value);
     const digest = payloadDigest(record);
@@ -478,7 +542,7 @@ export class PostgresTrustStore implements TrustPersistence {
    * turning that into a create would resurrect a deleted aggregate and skip every
    * precondition the engine checked.
    */
-  async replace<T extends { id: string }>(collection: string, value: T): Promise<void> {
+  private async replaceScoped<T extends { id: string }>(collection: string, value: T): Promise<void> {
     const record = asRecord(value);
     const id = requireRecordId(value);
     const digest = payloadDigest(record);
@@ -567,7 +631,7 @@ export class PostgresTrustStore implements TrustPersistence {
    * in-memory store's sequential grant issuance was changed to avoid, except that a
    * database has genuinely concurrent writers and cannot be fixed by ordering calls.
    */
-  async audit(
+  private async auditScoped(
     input: Omit<AuditRecord, 'id' | 'createdAt' | 'integrityHash' | 'previousHash'>,
   ): Promise<AuditRecord> {
     try {
@@ -596,8 +660,15 @@ export class PostgresTrustStore implements TrustPersistence {
     input: Omit<AuditRecord, 'id' | 'createdAt' | 'integrityHash' | 'previousHash'>,
   ): Promise<AuditRecord> {
     await sql`LOCK TABLE trust_audit_records IN EXCLUSIVE MODE`;
+    // The tail of *this tenant's* chain. Read globally, this returns whatever row happened to
+    // be last across all tenants — and under Row Level Security it returns nothing at all for
+    // the second tenant, because the policy hides the first tenant's rows. The caller then
+    // computes position 1 and collides. One chain per tenant is what makes the position
+    // allocatable and the chain verifiable from inside a tenant scope.
+    const tenantId = input.tenantId ?? '';
     const [tail] = await sql<{ chain_position: string; integrity_hash: string }[]>`
       SELECT chain_position, integrity_hash FROM trust_audit_records
+      WHERE coalesce(tenant_id, '') = ${tenantId}
       ORDER BY chain_position DESC LIMIT 1
     `;
 
@@ -636,7 +707,7 @@ export class PostgresTrustStore implements TrustPersistence {
     return record;
   }
 
-  async emit(input: Omit<OutboxEvent, 'id' | 'occurredAt'>): Promise<OutboxEvent> {
+  private async emitScoped(input: Omit<OutboxEvent, 'id' | 'occurredAt'>): Promise<OutboxEvent> {
     const event: OutboxEvent = {
       ...input,
       id: randomUUID(),
@@ -680,9 +751,16 @@ export class PostgresTrustStore implements TrustPersistence {
     if (this.withinTransaction) return await operation(this);
 
     try {
-      return await this.sql.begin(async (tx) =>
-        operation(new PostgresTrustStore(tx, { now: this.now, withinTransaction: true })),
-      );
+      return await this.sql.begin(async (tx) => {
+        // Once, for the whole transaction. Every operation inside it then runs on this
+        // connection with this scope, and `inScope` sees `withinTransaction` and does not
+        // reapply it.
+        const scope = currentTrustScope();
+        if (isTenantScoped(scope)) await applyTrustScope(tx, scope);
+        return await operation(
+          new PostgresTrustStore(tx, { now: this.now, withinTransaction: true }),
+        );
+      });
     } catch (error) {
       if (error instanceof PostgresStoreError) throw error;
       throw new PostgresStoreError('PERSISTENCE_TRANSACTION_FAILED', sanitizeDatabaseFailure(error));
@@ -784,6 +862,25 @@ function requireScope(record: Record<string, unknown>, field: string): string {
   if (typeof value !== 'string' || value.length === 0)
     throw new PostgresStoreError('PERSISTENCE_SCOPE_INVALID', `${field} is required`);
   return value;
+}
+
+/**
+ * Sets the session variables the policies read, transaction-locally.
+ *
+ * `true` is the `is_local` argument: the value reverts when the transaction ends. A global
+ * `set_config` would leave the scope on the pooled connection for whatever request it serves
+ * next — the failure mode being guarded against here is not a policy bug but a scope that
+ * outlives its request.
+ *
+ * Absent parts are set to the empty string rather than left alone, so a connection cannot
+ * inherit a previous transaction's value through a variable this one did not mention.
+ */
+export async function applyTrustScope(sql: SqlClient, scope: TrustScope): Promise<void> {
+  await sql`SELECT
+    set_config('app.tenant_id', ${scope.tenantId ?? ''}, true),
+    set_config('app.workspace_id', ${scope.workspaceId ?? ''}, true),
+    set_config('app.actor_id', ${scope.actorId ?? ''}, true)
+  `;
 }
 
 function asVersion(record: Record<string, unknown>): number {

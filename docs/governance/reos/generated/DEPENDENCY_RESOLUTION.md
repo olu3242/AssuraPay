@@ -4,25 +4,11 @@
 
 ## Selected capability
 
-| Field | Value |
-| --- | --- |
-| Capability | persistence.rls-certification |
-| Title | Row Level Security certification |
-| Current status | missing |
-| Lifecycle | planned |
-| Priority | 41 |
-| Reason | Highest-priority executable capability (priority 41, lifecycle planned) — selected despite needing live infrastructure, nothing else is executable |
-| Depends on | persistence.postgres-repository |
-| Unmet dependencies | none |
-| Blocks (transitive) | — |
-| Declared scope | 1 file(s), 1 test suite(s) |
-| Requires live infrastructure | yes |
+No executable capability. Every backlog item is blocked, deferred or complete.
 
 ## Executable queue
 
-| Capability | Title | Lifecycle | Priority | Blocks | Live infra |
-| --- | --- | --- | --- | --- | --- |
-| persistence.rls-certification | Row Level Security certification | planned | 41 | — | yes |
+Empty.
 
 ## Blocked
 
@@ -30,9 +16,9 @@ Nothing blocked.
 
 ## Awaiting live infrastructure
 
-- persistence.rls-certification
+None.
 
-## Completed (71)
+## Completed (72)
 
 - engine:01
 - engine:02
@@ -94,6 +80,7 @@ Nothing blocked.
 - persistence.postgres-repository
 - persistence.production-runtime-wiring
 - persistence.repository-conformance
+- persistence.rls-certification
 - reos.execution-os
 - runtime.agent-registration
 - settlement.non-custody-guard

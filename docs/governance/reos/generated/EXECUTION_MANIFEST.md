@@ -9,10 +9,10 @@
 | --- | --- |
 | Repository | assurapay |
 | Version | 0.1.0 |
-| Branch | feat/persistence-production-runtime-wiring |
-| HEAD | 2387406b853ac2b1e7040eddd663d8f813294498 |
+| Branch | feat/persistence-rls-certification |
+| HEAD | d0816647eda267035e2a43c6c853f0ceacf9043a |
 | Worktree clean | no |
-| Manifest digest | 4f5d524eb6e0 |
+| Manifest digest | 5ee357ea901f |
 | REOS version | 1.0.0 |
 
 ## Architecture
@@ -26,9 +26,8 @@
 
 | Lifecycle | Count |
 | --- | --- |
-| planned | 1 |
 | certified | 1 |
-| released | 70 |
+| released | 71 |
 | deferred | 4 |
 
 ## Engine reconciliation
@@ -105,9 +104,9 @@ from repository evidence: package presence, test files, and certification wiring
 | --- | --- | --- | --- | --- | --- |
 | persistence.async-repository-interface | Asynchronous repository interface | implemented | released | 5/5 | All 5 evidence probes satisfied at HEAD. |
 | persistence.postgres-repository | PostgreSQL repository implementation | implemented | released | 10/10 | All 10 evidence probes satisfied at HEAD. |
-| persistence.production-runtime-wiring | Production persistence runtime wiring | implemented | certified | 10/10 | All 10 evidence probes satisfied at HEAD. |
+| persistence.production-runtime-wiring | Production persistence runtime wiring | implemented | released | 10/10 | All 10 evidence probes satisfied at HEAD. |
 | persistence.repository-conformance | TrustPersistence conformance specification | implemented | released | 4/4 | All 4 evidence probes satisfied at HEAD. |
-| persistence.rls-certification | Row Level Security certification | missing | planned | 0/4 | No evidence at HEAD, on any ref, or in history. |
+| persistence.rls-certification | Row Level Security certification | implemented | certified | 8/8 | All 8 evidence probes satisfied at HEAD. |
 | reos.execution-os | Repository Execution Operating System | implemented | released | 7/7 | All 7 evidence probes satisfied at HEAD. |
 | runtime.agent-registration | Agent Runtime registration | implemented | released | 3/3 | All 3 evidence probes satisfied at HEAD. |
 | settlement.non-custody-guard | Non-custody architectural guard | implemented | released | 4/4 | All 4 evidence probes satisfied at HEAD. |
@@ -142,11 +141,9 @@ from repository evidence: package presence, test files, and certification wiring
 
 ## Execution backlog
 
-1 open item(s). Highest-priority first.
+0 open item(s). Highest-priority first.
 
-| Capability | Title | Lifecycle | Priority | Executable | Blocked by | Blocks |
-| --- | --- | --- | --- | --- | --- | --- |
-| persistence.rls-certification | Row Level Security certification | planned | 41 | yes | — | — |
+Backlog empty.
 
 ## Certification coverage
 

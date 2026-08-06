@@ -32,6 +32,15 @@ export function migrationsDirectory(): string {
 export type TestDatabase = {
   readonly sql: SqlClient;
   readonly schema: string;
+  /**
+   * A non-owning role the tenancy probes may assume, present when the policies were applied.
+   *
+   * Run-scoped rather than the shared `assurapay_app`. A cluster-wide role belongs to whichever
+   * credential created it, and a later credential holds no ADMIN OPTION on it — so `SET ROLE`
+   * is refused with a bare "permission denied to grant role" that says nothing about why. A role
+   * this connection just created is one it can always assume.
+   */
+  readonly probeRole?: string;
   /** Drops the schema and closes the pool. Safe to call twice. */
   dispose(): Promise<void>;
 };
@@ -70,7 +79,7 @@ export function requireTestDatabaseUrl(): string {
  * the pool, so the DDL in `supabase/migrations` lands there without being rewritten.
  */
 export async function createTestDatabase(
-  options: { applyAllMigrations?: boolean } = {},
+  options: { applyAllMigrations?: boolean; applyRls?: boolean } = {},
 ): Promise<TestDatabase> {
   const databaseUrl = requireTestDatabaseUrl();
   const schema = `trust_test_${randomUUID().replace(/-/g, '').slice(0, 20)}`;
@@ -90,9 +99,13 @@ export async function createTestDatabase(
   });
 
   let disposed = false;
+  let probeRole: string | undefined;
   const database: TestDatabase = {
     sql: pool.sql,
     schema,
+    get probeRole() {
+      return probeRole;
+    },
     async dispose() {
       if (disposed) return;
       disposed = true;
@@ -103,7 +116,15 @@ export async function createTestDatabase(
         applicationName: 'assurapay-test-teardown',
       });
       try {
+        // The schema first, then the role. A role cannot be dropped while anything
+        // depends on it, and the probe role's privileges on this schema and its tables
+        // are exactly such dependencies — dropping the role first failed with
+        // "cannot be dropped because some objects depend on it" on every single test,
+        // silently, and the roles accumulated in the cluster. `DROP SCHEMA CASCADE`
+        // takes the grants with the objects they are grants on, which leaves nothing
+        // for `DROP ROLE` to trip over.
         await teardown.sql.unsafe(`DROP SCHEMA IF EXISTS "${schema}" CASCADE`);
+        if (probeRole) await dropProbeRole(teardown.sql, probeRole);
       } finally {
         await teardown.dispose();
       }
@@ -118,13 +139,164 @@ export async function createTestDatabase(
       // describe a per-engine model the repository contract does not read, and applying
       // them would make every suite pay for 126 tables it never touches.
       await applyTrustStoreMigration(pool.sql);
+      // Applied by default, because this is the set a host requires: the runtime refuses to
+      // start without it. A suite testing store behaviour rather than the tenancy boundary
+      // opts out, and says so — an unscoped caller reads nothing once the policies are forced,
+      // which is correct and would make those suites test the boundary by accident.
+      if (options.applyRls !== false) {
+        await assertConnectionCannotBypassRls(pool.sql);
+        await applyRlsMigration(pool.sql);
+        probeRole = await createProbeRole(pool.sql, schema);
+      }
     }
   } catch (error) {
-    await database.dispose();
+    // Teardown must not displace the reason setup failed. `dispose` now reports its own
+    // failures rather than swallowing them, which is right everywhere except here: a
+    // half-created schema can fail to tear down *because* of the error being reported,
+    // and that error is the one the caller needs to read.
+    await database.dispose().catch(() => undefined);
     throw error;
   }
 
   return database;
+}
+
+/**
+ * Provisions the application role the denial probes run as.
+ *
+ * Here rather than in the migration, because creating a role needs CREATEROLE and granting
+ * membership needs ADMIN OPTION — privileges a migration credential may not hold and should not
+ * need. A role created by one credential also cannot be granted by another, so a migration that
+ * did this succeeded on the machine that first ran it and failed with a bare "permission denied"
+ * everywhere else. Provisioning is an operator action; a test harness is the operator here.
+ *
+ * Membership in the role is what makes certification possible: proving a cross-tenant read fails
+ * requires attempting one *as the application*, and `SET ROLE` needs membership. A probe running
+ * as the owner would prove only that FORCE works.
+ */
+async function createProbeRole(sql: SqlClient, schema: string): Promise<string> {
+  // Named for the schema, so it is unique to this database and cannot collide with a role
+  // another run or another credential created.
+  const role = `probe_${schema.replace(/[^a-z0-9_]/gi, '').slice(0, 40)}`;
+  await sql.unsafe(`CREATE ROLE "${role}" NOLOGIN`);
+  await sql.unsafe(`GRANT "${role}" TO CURRENT_USER`);
+  await sql.unsafe(`GRANT USAGE ON SCHEMA "${schema}" TO "${role}"`);
+
+  // The full DML the application holds, granted directly rather than relying on the migration
+  // having granted it to `assurapay_app`. The property under test is that the *policies* deny a
+  // cross-tenant read, and a probe that was denied by a missing table grant would look identical
+  // while proving nothing about the policies.
+  await sql.unsafe(
+    `GRANT SELECT, INSERT, UPDATE ON
+       trust_tenants, trust_workspaces, trust_memberships, trust_permission_grants,
+       trust_bootstrap_state, trust_outbox_events, trust_idempotency_keys, trust_records
+     TO "${role}"`,
+  );
+  await sql.unsafe(`GRANT SELECT, INSERT ON trust_audit_records TO "${role}"`);
+  return role;
+}
+
+/**
+ * Drops a probe role and everything that depends on it.
+ *
+ * Called after the schema is gone, so the table and schema grants have already been dropped
+ * with the objects they applied to. `DROP OWNED BY` still runs, because it is what removes
+ * any privilege *outside* that schema — a grant added later in this database would otherwise
+ * reintroduce the accumulating-roles defect, and it would do so silently.
+ *
+ * A failure here is not swallowed. A role that cannot be dropped is a leak in the cluster
+ * running the suite, and a teardown that hides its own failure is how ninety-nine of them
+ * accumulated unnoticed.
+ */
+async function dropProbeRole(sql: SqlClient, role: string): Promise<void> {
+  await sql.unsafe(`DROP OWNED BY "${role}"`);
+  await sql.unsafe(`DROP ROLE IF EXISTS "${role}"`);
+}
+
+/**
+ * The name of a role in this cluster that bypasses Row Level Security.
+ *
+ * A suite asserting that certification *reports* a bypassing role needs one to point at, and
+ * cannot create it: `BYPASSRLS` and `SUPERUSER` are attributes only a superuser may grant, and
+ * these suites deliberately connect as a role that is neither. So the role has to be found.
+ *
+ * Finding it rather than assuming `postgres` is the fix for a real CI failure. Every cluster has
+ * a bootstrap superuser, but its *name* is a deployment detail — the `postgres:16` service
+ * container names it after `POSTGRES_USER`, which here is `assurapay`. The hardcoded name simply
+ * did not exist, so certification correctly reported `RLS_PROBE_ROLE_UNAVAILABLE` and the test
+ * expecting `RLS_ROLE_BYPASSES` failed on the fixture rather than on the behaviour.
+ */
+export async function findBypassingRole(sql: SqlClient): Promise<string> {
+  const [role] = await sql<{ rolname: string }[]>`
+    SELECT rolname FROM pg_roles
+    WHERE rolsuper OR rolbypassrls
+    ORDER BY rolsuper DESC, rolname
+    LIMIT 1
+  `;
+  if (!role)
+    throw new Error(
+      'this cluster has no superuser and no BYPASSRLS role, so there is nothing to assert ' +
+        'bypass detection against. A cluster always has a bootstrap superuser; if this fires, ' +
+        'the connected role cannot read pg_roles rather than the cluster being unusual.',
+    );
+  return role.rolname;
+}
+
+/**
+ * Refuses to hand back a policy-governed database to a connection that can ignore the policies.
+ *
+ * A superuser is exempt from every Row Level Security policy, `FORCE` included, and so is any
+ * role holding `BYPASSRLS`. Run as one, the tenancy suites pass or fail on what the data
+ * happens to be rather than on what the policies enforce — which is how a CI run reported four
+ * unrelated-looking assertion failures whose single cause was that its `POSTGRES_USER` had been
+ * created as a superuser.
+ *
+ * Failing here turns that into one sentence naming the reason. `certifyRowLevelSecurity` reports
+ * the same condition as an `RLS_ROLE_BYPASSES` finding for a caller that wants a report rather
+ * than an exception.
+ */
+async function assertConnectionCannotBypassRls(sql: SqlClient): Promise<void> {
+  const [role] = await sql<{ who: string; rolsuper: boolean; rolbypassrls: boolean }[]>`
+    SELECT current_user AS who,
+           r.rolsuper, r.rolbypassrls
+    FROM pg_roles r WHERE r.rolname = current_user
+  `;
+  if (role?.rolsuper || role?.rolbypassrls)
+    throw new Error(
+      `${role.who} can bypass row-level security (${role.rolsuper ? 'superuser' : 'BYPASSRLS'}), ` +
+        'so a tenancy suite run as it would prove nothing: every policy is ignored for this role, ' +
+        'forced or not. Connect as a role that owns nothing and holds neither attribute.',
+    );
+}
+
+/**
+ * Applies the row-level-security migration.
+ *
+ * Separate from the trust-store migration so a suite chooses whether the tenancy boundary is
+ * in force. It is not optional in a deployment — the migration runner applies both — but a
+ * store test that had to establish a tenant scope for every read would be testing two things
+ * and reporting one.
+ */
+export async function applyRlsMigration(sql: SqlClient): Promise<void> {
+  // Both, in order. The per-tenant chain migration is inseparable from RLS: forcing the
+  // policies without it makes every second tenant's first audited action collide on a chain
+  // position it cannot see.
+  const migrations = readMigrations(migrationsDirectory()).filter(
+    (entry) =>
+      entry.id.endsWith('trust_row_level_security') ||
+      entry.id.endsWith('trust_audit_chain_per_tenant'),
+  );
+  if (migrations.length !== 2) throw new Error('a row-level-security migration is missing');
+  await sql.begin(async (tx) => {
+    for (const migration of migrations) {
+      await tx.unsafe(migration.sql);
+      await tx`
+        INSERT INTO trust_migration_ledger (migration_id, checksum, applied_by, execution_ms, ordinal)
+        VALUES (${migration.id}, ${migration.checksum}, 'integration-test', 0, ${migration.ordinal})
+        ON CONFLICT (migration_id) DO NOTHING
+      `;
+    }
+  });
 }
 
 /** Applies the trust-store migration alone, through the same governed runner. */

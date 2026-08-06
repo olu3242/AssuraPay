@@ -343,3 +343,5 @@ export * from './conformance';
 export * from './postgres-client';
 export * from './postgres-store';
 export * from './migrations';
+export * from './trust-scope';
+export * from './rls-certification';
