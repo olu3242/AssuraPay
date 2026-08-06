@@ -1,0 +1,828 @@
+{
+  "generatedFrom": {
+    "catalogue": "docs/ENGINE_CATALOG.md",
+    "migrations": "supabase/migrations"
+  },
+  "canonicalEngineCount": 20,
+  "engines": [
+    {
+      "engine": "31",
+      "canonicalName": "Execution Orchestration",
+      "package": "packages/execution-orchestration",
+      "engineClass": "ExecutionOrchestrationEngine",
+      "classDeclared": true,
+      "runtimeRegistered": true,
+      "runtimeRegistrationFile": "apps/web/lib/trust-app.ts",
+      "persistenceInterface": "TrustPersistence",
+      "usesFileAssuraStore": false,
+      "issuesRawSql": false,
+      "tests": [
+        "execution-orchestration.e2e.test.ts",
+        "execution-orchestration.integration.test.ts",
+        "execution-orchestration.test.ts"
+      ]
+    },
+    {
+      "engine": "32",
+      "canonicalName": "Progress Measurement",
+      "package": "packages/execution-orchestration",
+      "engineClass": "ProgressMeasurementEngine",
+      "classDeclared": true,
+      "runtimeRegistered": true,
+      "runtimeRegistrationFile": "apps/web/lib/trust-app.ts",
+      "persistenceInterface": "TrustPersistence",
+      "usesFileAssuraStore": false,
+      "issuesRawSql": false,
+      "tests": [
+        "execution-orchestration.e2e.test.ts",
+        "execution-orchestration.integration.test.ts",
+        "execution-orchestration.test.ts"
+      ]
+    },
+    {
+      "engine": "33",
+      "canonicalName": "Evidence Management",
+      "package": "packages/execution-orchestration",
+      "engineClass": "EvidenceManagementEngine",
+      "classDeclared": true,
+      "runtimeRegistered": true,
+      "runtimeRegistrationFile": "apps/web/lib/trust-app.ts",
+      "persistenceInterface": "TrustPersistence",
+      "usesFileAssuraStore": false,
+      "issuesRawSql": false,
+      "tests": [
+        "execution-orchestration.e2e.test.ts",
+        "execution-orchestration.integration.test.ts",
+        "execution-orchestration.test.ts"
+      ]
+    },
+    {
+      "engine": "34",
+      "canonicalName": "Validation & Acceptance Testing",
+      "package": "packages/execution-orchestration",
+      "engineClass": "ValidationAcceptanceTestingEngine",
+      "classDeclared": true,
+      "runtimeRegistered": true,
+      "runtimeRegistrationFile": "apps/web/lib/trust-app.ts",
+      "persistenceInterface": "TrustPersistence",
+      "usesFileAssuraStore": false,
+      "issuesRawSql": false,
+      "tests": [
+        "execution-orchestration.e2e.test.ts",
+        "execution-orchestration.integration.test.ts",
+        "execution-orchestration.test.ts"
+      ]
+    },
+    {
+      "engine": "35",
+      "canonicalName": "Quality Assurance",
+      "package": "packages/execution-orchestration",
+      "engineClass": "QualityAssuranceEngine",
+      "classDeclared": true,
+      "runtimeRegistered": true,
+      "runtimeRegistrationFile": "apps/web/lib/trust-app.ts",
+      "persistenceInterface": "TrustPersistence",
+      "usesFileAssuraStore": false,
+      "issuesRawSql": false,
+      "tests": [
+        "execution-orchestration.e2e.test.ts",
+        "execution-orchestration.integration.test.ts",
+        "execution-orchestration.test.ts"
+      ]
+    },
+    {
+      "engine": "36",
+      "canonicalName": "Inspection & Field Verification",
+      "package": "packages/completion-assurance",
+      "engineClass": "InspectionEngine",
+      "classDeclared": true,
+      "runtimeRegistered": true,
+      "runtimeRegistrationFile": "apps/web/lib/trust-app.ts",
+      "persistenceInterface": "TrustPersistence",
+      "usesFileAssuraStore": false,
+      "issuesRawSql": false,
+      "tests": [
+        "completion-assurance.e2e.test.ts",
+        "completion-assurance.integration.test.ts",
+        "completion-assurance.test.ts"
+      ]
+    },
+    {
+      "engine": "37",
+      "canonicalName": "Issue, Risk & Corrective Action",
+      "package": "packages/completion-assurance",
+      "engineClass": "IssueRiskCorrectiveActionEngine",
+      "classDeclared": true,
+      "runtimeRegistered": true,
+      "runtimeRegistrationFile": "apps/web/lib/trust-app.ts",
+      "persistenceInterface": "TrustPersistence",
+      "usesFileAssuraStore": false,
+      "issuesRawSql": false,
+      "tests": [
+        "completion-assurance.e2e.test.ts",
+        "completion-assurance.integration.test.ts",
+        "completion-assurance.test.ts"
+      ]
+    },
+    {
+      "engine": "38",
+      "canonicalName": "Change Control",
+      "package": "packages/completion-assurance",
+      "engineClass": "ChangeControlEngine",
+      "classDeclared": true,
+      "runtimeRegistered": true,
+      "runtimeRegistrationFile": "apps/web/lib/trust-app.ts",
+      "persistenceInterface": "TrustPersistence",
+      "usesFileAssuraStore": false,
+      "issuesRawSql": false,
+      "tests": [
+        "completion-assurance.e2e.test.ts",
+        "completion-assurance.integration.test.ts",
+        "completion-assurance.test.ts"
+      ]
+    },
+    {
+      "engine": "39",
+      "canonicalName": "Acceptance & Decision",
+      "package": "packages/completion-assurance",
+      "engineClass": "AcceptanceDecisionEngine",
+      "classDeclared": true,
+      "runtimeRegistered": true,
+      "runtimeRegistrationFile": "apps/web/lib/trust-app.ts",
+      "persistenceInterface": "TrustPersistence",
+      "usesFileAssuraStore": false,
+      "issuesRawSql": false,
+      "tests": [
+        "completion-assurance.e2e.test.ts",
+        "completion-assurance.integration.test.ts",
+        "completion-assurance.test.ts"
+      ]
+    },
+    {
+      "engine": "40",
+      "canonicalName": "Completion Certification",
+      "package": "packages/completion-assurance",
+      "engineClass": "CompletionCertificationEngine",
+      "classDeclared": true,
+      "runtimeRegistered": true,
+      "runtimeRegistrationFile": "apps/web/lib/trust-app.ts",
+      "persistenceInterface": "TrustPersistence",
+      "usesFileAssuraStore": false,
+      "issuesRawSql": false,
+      "tests": [
+        "completion-assurance.e2e.test.ts",
+        "completion-assurance.integration.test.ts",
+        "completion-assurance.test.ts"
+      ]
+    },
+    {
+      "engine": "41",
+      "canonicalName": "Payment Eligibility",
+      "package": "packages/settlement-assurance",
+      "engineClass": "PaymentEligibilityEngine",
+      "classDeclared": true,
+      "runtimeRegistered": true,
+      "runtimeRegistrationFile": "apps/web/lib/trust-app.ts",
+      "persistenceInterface": "TrustPersistence",
+      "usesFileAssuraStore": false,
+      "issuesRawSql": false,
+      "tests": [
+        "settlement-assurance.e2e.test.ts",
+        "settlement-assurance.integration.test.ts",
+        "settlement-assurance.non-custody.test.ts",
+        "settlement-assurance.test.ts"
+      ]
+    },
+    {
+      "engine": "42",
+      "canonicalName": "Financial Entitlement",
+      "package": "packages/settlement-assurance",
+      "engineClass": "FinancialEntitlementEngine",
+      "classDeclared": true,
+      "runtimeRegistered": true,
+      "runtimeRegistrationFile": "apps/web/lib/trust-app.ts",
+      "persistenceInterface": "TrustPersistence",
+      "usesFileAssuraStore": false,
+      "issuesRawSql": false,
+      "tests": [
+        "settlement-assurance.e2e.test.ts",
+        "settlement-assurance.integration.test.ts",
+        "settlement-assurance.non-custody.test.ts",
+        "settlement-assurance.test.ts"
+      ]
+    },
+    {
+      "engine": "43",
+      "canonicalName": "Invoice & Claim Management",
+      "package": "packages/settlement-assurance",
+      "engineClass": "InvoiceClaimEngine",
+      "classDeclared": true,
+      "runtimeRegistered": true,
+      "runtimeRegistrationFile": "apps/web/lib/trust-app.ts",
+      "persistenceInterface": "TrustPersistence",
+      "usesFileAssuraStore": false,
+      "issuesRawSql": false,
+      "tests": [
+        "settlement-assurance.e2e.test.ts",
+        "settlement-assurance.integration.test.ts",
+        "settlement-assurance.non-custody.test.ts",
+        "settlement-assurance.test.ts"
+      ]
+    },
+    {
+      "engine": "44",
+      "canonicalName": "Escrow & Funding Assurance",
+      "package": "packages/settlement-assurance",
+      "engineClass": "EscrowFundingAssuranceEngine",
+      "classDeclared": true,
+      "runtimeRegistered": true,
+      "runtimeRegistrationFile": "apps/web/lib/trust-app.ts",
+      "persistenceInterface": "TrustPersistence",
+      "usesFileAssuraStore": false,
+      "issuesRawSql": false,
+      "tests": [
+        "settlement-assurance.e2e.test.ts",
+        "settlement-assurance.integration.test.ts",
+        "settlement-assurance.non-custody.test.ts",
+        "settlement-assurance.test.ts"
+      ]
+    },
+    {
+      "engine": "45",
+      "canonicalName": "Conditional Release Orchestration",
+      "package": "packages/settlement-assurance",
+      "engineClass": "ConditionalReleaseOrchestrationEngine",
+      "classDeclared": true,
+      "runtimeRegistered": true,
+      "runtimeRegistrationFile": "apps/web/lib/trust-app.ts",
+      "persistenceInterface": "TrustPersistence",
+      "usesFileAssuraStore": false,
+      "issuesRawSql": false,
+      "tests": [
+        "settlement-assurance.e2e.test.ts",
+        "settlement-assurance.integration.test.ts",
+        "settlement-assurance.non-custody.test.ts",
+        "settlement-assurance.test.ts"
+      ]
+    },
+    {
+      "engine": "46",
+      "canonicalName": "Financial Approval & Authority",
+      "package": "packages/settlement-execution",
+      "engineClass": "FinancialApprovalAuthorityEngine",
+      "classDeclared": true,
+      "runtimeRegistered": true,
+      "runtimeRegistrationFile": "apps/web/lib/trust-app.ts",
+      "persistenceInterface": "TrustPersistence",
+      "usesFileAssuraStore": false,
+      "issuesRawSql": false,
+      "tests": [
+        "settlement-execution.e2e.test.ts",
+        "settlement-execution.integration.test.ts",
+        "settlement-execution.non-custody.test.ts",
+        "settlement-execution.test.ts"
+      ]
+    },
+    {
+      "engine": "47",
+      "canonicalName": "Payment Execution & Treasury Integration",
+      "package": "packages/settlement-execution",
+      "engineClass": "PaymentExecutionEngine",
+      "classDeclared": true,
+      "runtimeRegistered": true,
+      "runtimeRegistrationFile": "apps/web/lib/trust-app.ts",
+      "persistenceInterface": "TrustPersistence",
+      "usesFileAssuraStore": false,
+      "issuesRawSql": false,
+      "tests": [
+        "settlement-execution.e2e.test.ts",
+        "settlement-execution.integration.test.ts",
+        "settlement-execution.non-custody.test.ts",
+        "settlement-execution.test.ts"
+      ]
+    },
+    {
+      "engine": "48",
+      "canonicalName": "Reconciliation & Financial Ledger",
+      "package": "packages/settlement-execution",
+      "engineClass": "ReconciliationLedgerEngine",
+      "classDeclared": true,
+      "runtimeRegistered": true,
+      "runtimeRegistrationFile": "apps/web/lib/trust-app.ts",
+      "persistenceInterface": "TrustPersistence",
+      "usesFileAssuraStore": false,
+      "issuesRawSql": false,
+      "tests": [
+        "settlement-execution.e2e.test.ts",
+        "settlement-execution.integration.test.ts",
+        "settlement-execution.non-custody.test.ts",
+        "settlement-execution.test.ts"
+      ]
+    },
+    {
+      "engine": "49",
+      "canonicalName": "Dispute, Claim & Appeal Resolution",
+      "package": "packages/settlement-execution",
+      "engineClass": "DisputeResolutionEngine",
+      "classDeclared": true,
+      "runtimeRegistered": true,
+      "runtimeRegistrationFile": "apps/web/lib/trust-app.ts",
+      "persistenceInterface": "TrustPersistence",
+      "usesFileAssuraStore": false,
+      "issuesRawSql": false,
+      "tests": [
+        "settlement-execution.e2e.test.ts",
+        "settlement-execution.integration.test.ts",
+        "settlement-execution.non-custody.test.ts",
+        "settlement-execution.test.ts"
+      ]
+    },
+    {
+      "engine": "50",
+      "canonicalName": "Final Settlement & Financial Closure",
+      "package": "packages/settlement-execution",
+      "engineClass": "FinalSettlementEngine",
+      "classDeclared": true,
+      "runtimeRegistered": true,
+      "runtimeRegistrationFile": "apps/web/lib/trust-app.ts",
+      "persistenceInterface": "TrustPersistence",
+      "usesFileAssuraStore": false,
+      "issuesRawSql": false,
+      "tests": [
+        "settlement-execution.e2e.test.ts",
+        "settlement-execution.integration.test.ts",
+        "settlement-execution.non-custody.test.ts",
+        "settlement-execution.test.ts"
+      ]
+    }
+  ],
+  "collectionCount": 35,
+  "collections": [
+    {
+      "collection": "acceptanceDecisions",
+      "owningPackages": [
+        "packages/completion-assurance"
+      ],
+      "physicalTableWritten": "trust_records",
+      "storageShape": "JSONB payload keyed by collection",
+      "purposeBuiltTable": "acceptance_decisions",
+      "purposeBuiltCreatedBy": "202608030007_completion_assurance",
+      "productionSqlReaders": [],
+      "testSqlReaders": [],
+      "classification": "RELATIONAL_TABLE_DEAD"
+    },
+    {
+      "collection": "approvalThresholds",
+      "owningPackages": [
+        "packages/settlement-execution"
+      ],
+      "physicalTableWritten": "trust_records",
+      "storageShape": "JSONB payload keyed by collection",
+      "purposeBuiltTable": "approval_thresholds",
+      "purposeBuiltCreatedBy": "202608030009_settlement_execution",
+      "productionSqlReaders": [],
+      "testSqlReaders": [],
+      "classification": "RELATIONAL_TABLE_DEAD"
+    },
+    {
+      "collection": "authorizationDecisions",
+      "owningPackages": [
+        "packages/settlement-execution"
+      ],
+      "physicalTableWritten": "trust_records",
+      "storageShape": "JSONB payload keyed by collection",
+      "purposeBuiltTable": "authorization_decisions",
+      "purposeBuiltCreatedBy": "202608030009_settlement_execution",
+      "productionSqlReaders": [],
+      "testSqlReaders": [],
+      "classification": "RELATIONAL_TABLE_DEAD"
+    },
+    {
+      "collection": "changeApprovals",
+      "owningPackages": [
+        "packages/completion-assurance"
+      ],
+      "physicalTableWritten": "trust_records",
+      "storageShape": "JSONB payload keyed by collection",
+      "purposeBuiltTable": "change_approvals",
+      "purposeBuiltCreatedBy": "202608030007_completion_assurance",
+      "productionSqlReaders": [],
+      "testSqlReaders": [],
+      "classification": "RELATIONAL_TABLE_DEAD"
+    },
+    {
+      "collection": "changeRequests",
+      "owningPackages": [
+        "packages/completion-assurance"
+      ],
+      "physicalTableWritten": "trust_records",
+      "storageShape": "JSONB payload keyed by collection",
+      "purposeBuiltTable": "change_requests",
+      "purposeBuiltCreatedBy": "202608030007_completion_assurance",
+      "productionSqlReaders": [],
+      "testSqlReaders": [],
+      "classification": "RELATIONAL_TABLE_DEAD"
+    },
+    {
+      "collection": "completionCertificates",
+      "owningPackages": [
+        "packages/completion-assurance"
+      ],
+      "physicalTableWritten": "trust_records",
+      "storageShape": "JSONB payload keyed by collection",
+      "purposeBuiltTable": "completion_certificates",
+      "purposeBuiltCreatedBy": "202608030007_completion_assurance",
+      "productionSqlReaders": [],
+      "testSqlReaders": [],
+      "classification": "RELATIONAL_TABLE_DEAD"
+    },
+    {
+      "collection": "correctiveActionPlans",
+      "owningPackages": [
+        "packages/completion-assurance"
+      ],
+      "physicalTableWritten": "trust_records",
+      "storageShape": "JSONB payload keyed by collection",
+      "purposeBuiltTable": "corrective_action_plans",
+      "purposeBuiltCreatedBy": "202608030007_completion_assurance",
+      "productionSqlReaders": [],
+      "testSqlReaders": [],
+      "classification": "RELATIONAL_TABLE_DEAD"
+    },
+    {
+      "collection": "defects",
+      "owningPackages": [
+        "packages/execution-orchestration"
+      ],
+      "physicalTableWritten": "trust_records",
+      "storageShape": "JSONB payload keyed by collection",
+      "purposeBuiltTable": "defects",
+      "purposeBuiltCreatedBy": "202608030006_execution_orchestration",
+      "productionSqlReaders": [],
+      "testSqlReaders": [],
+      "classification": "RELATIONAL_TABLE_DEAD"
+    },
+    {
+      "collection": "disputeDecisions",
+      "owningPackages": [
+        "packages/settlement-execution"
+      ],
+      "physicalTableWritten": "trust_records",
+      "storageShape": "JSONB payload keyed by collection",
+      "purposeBuiltTable": "dispute_decisions",
+      "purposeBuiltCreatedBy": "202608030009_settlement_execution",
+      "productionSqlReaders": [],
+      "testSqlReaders": [],
+      "classification": "RELATIONAL_TABLE_DEAD"
+    },
+    {
+      "collection": "disputeEvidence",
+      "owningPackages": [
+        "packages/settlement-execution"
+      ],
+      "physicalTableWritten": "trust_records",
+      "storageShape": "JSONB payload keyed by collection",
+      "purposeBuiltTable": "dispute_evidence",
+      "purposeBuiltCreatedBy": "202608030009_settlement_execution",
+      "productionSqlReaders": [],
+      "testSqlReaders": [],
+      "classification": "RELATIONAL_TABLE_DEAD"
+    },
+    {
+      "collection": "disputeHolds",
+      "owningPackages": [
+        "packages/settlement-execution"
+      ],
+      "physicalTableWritten": "trust_records",
+      "storageShape": "JSONB payload keyed by collection",
+      "purposeBuiltTable": "dispute_holds",
+      "purposeBuiltCreatedBy": "202608030009_settlement_execution",
+      "productionSqlReaders": [],
+      "testSqlReaders": [],
+      "classification": "RELATIONAL_TABLE_DEAD"
+    },
+    {
+      "collection": "disputePositions",
+      "owningPackages": [
+        "packages/settlement-execution"
+      ],
+      "physicalTableWritten": "trust_records",
+      "storageShape": "JSONB payload keyed by collection",
+      "purposeBuiltTable": "dispute_positions",
+      "purposeBuiltCreatedBy": "202608030009_settlement_execution",
+      "productionSqlReaders": [],
+      "testSqlReaders": [],
+      "classification": "RELATIONAL_TABLE_DEAD"
+    },
+    {
+      "collection": "disputes",
+      "owningPackages": [
+        "packages/settlement-execution"
+      ],
+      "physicalTableWritten": "trust_records",
+      "storageShape": "JSONB payload keyed by collection",
+      "purposeBuiltTable": "disputes",
+      "purposeBuiltCreatedBy": "202608030009_settlement_execution",
+      "productionSqlReaders": [],
+      "testSqlReaders": [],
+      "classification": "RELATIONAL_TABLE_DEAD"
+    },
+    {
+      "collection": "evidencePackages",
+      "owningPackages": [
+        "packages/execution-orchestration"
+      ],
+      "physicalTableWritten": "trust_records",
+      "storageShape": "JSONB payload keyed by collection",
+      "purposeBuiltTable": "evidence_packages",
+      "purposeBuiltCreatedBy": "202608030006_execution_orchestration",
+      "productionSqlReaders": [],
+      "testSqlReaders": [],
+      "classification": "RELATIONAL_TABLE_DEAD"
+    },
+    {
+      "collection": "evidenceRequirements",
+      "owningPackages": [
+        "packages/execution-orchestration"
+      ],
+      "physicalTableWritten": "trust_records",
+      "storageShape": "JSONB payload keyed by collection",
+      "purposeBuiltTable": "evidence_requirements",
+      "purposeBuiltCreatedBy": "202608030006_execution_orchestration",
+      "productionSqlReaders": [],
+      "testSqlReaders": [],
+      "classification": "RELATIONAL_TABLE_DEAD"
+    },
+    {
+      "collection": "executionWorkspaces",
+      "owningPackages": [
+        "packages/execution-orchestration"
+      ],
+      "physicalTableWritten": "trust_records",
+      "storageShape": "JSONB payload keyed by collection",
+      "purposeBuiltTable": "execution_workspaces",
+      "purposeBuiltCreatedBy": "202608030006_execution_orchestration",
+      "productionSqlReaders": [],
+      "testSqlReaders": [],
+      "classification": "RELATIONAL_TABLE_DEAD"
+    },
+    {
+      "collection": "finalSettlementAccounts",
+      "owningPackages": [
+        "packages/settlement-execution"
+      ],
+      "physicalTableWritten": "trust_records",
+      "storageShape": "JSONB payload keyed by collection",
+      "purposeBuiltTable": "final_settlement_accounts",
+      "purposeBuiltCreatedBy": "202608030009_settlement_execution",
+      "productionSqlReaders": [],
+      "testSqlReaders": [],
+      "classification": "RELATIONAL_TABLE_DEAD"
+    },
+    {
+      "collection": "financialApprovalDecisions",
+      "owningPackages": [
+        "packages/settlement-execution"
+      ],
+      "physicalTableWritten": "trust_records",
+      "storageShape": "JSONB payload keyed by collection",
+      "purposeBuiltTable": "financial_approval_decisions",
+      "purposeBuiltCreatedBy": "202608030009_settlement_execution",
+      "productionSqlReaders": [],
+      "testSqlReaders": [],
+      "classification": "RELATIONAL_TABLE_DEAD"
+    },
+    {
+      "collection": "financialClosureCertificates",
+      "owningPackages": [
+        "packages/settlement-execution"
+      ],
+      "physicalTableWritten": "trust_records",
+      "storageShape": "JSONB payload keyed by collection",
+      "purposeBuiltTable": "financial_closure_certificates",
+      "purposeBuiltCreatedBy": "202608030009_settlement_execution",
+      "productionSqlReaders": [],
+      "testSqlReaders": [],
+      "classification": "RELATIONAL_TABLE_DEAD"
+    },
+    {
+      "collection": "financialEntitlements",
+      "owningPackages": [
+        "packages/settlement-assurance"
+      ],
+      "physicalTableWritten": "trust_records",
+      "storageShape": "JSONB payload keyed by collection",
+      "purposeBuiltTable": "financial_entitlements",
+      "purposeBuiltCreatedBy": "202608030008_settlement_assurance",
+      "productionSqlReaders": [],
+      "testSqlReaders": [],
+      "classification": "RELATIONAL_TABLE_DEAD"
+    },
+    {
+      "collection": "fundReservations",
+      "owningPackages": [
+        "packages/settlement-assurance"
+      ],
+      "physicalTableWritten": "trust_records",
+      "storageShape": "JSONB payload keyed by collection",
+      "purposeBuiltTable": "fund_reservations",
+      "purposeBuiltCreatedBy": "202608030008_settlement_assurance",
+      "productionSqlReaders": [],
+      "testSqlReaders": [],
+      "classification": "RELATIONAL_TABLE_DEAD"
+    },
+    {
+      "collection": "fundingCommitments",
+      "owningPackages": [
+        "packages/settlement-assurance"
+      ],
+      "physicalTableWritten": "trust_records",
+      "storageShape": "JSONB payload keyed by collection",
+      "purposeBuiltTable": "funding_commitments",
+      "purposeBuiltCreatedBy": "202608030008_settlement_assurance",
+      "productionSqlReaders": [],
+      "testSqlReaders": [],
+      "classification": "RELATIONAL_TABLE_DEAD"
+    },
+    {
+      "collection": "inspections",
+      "owningPackages": [
+        "packages/completion-assurance"
+      ],
+      "physicalTableWritten": "trust_records",
+      "storageShape": "JSONB payload keyed by collection",
+      "purposeBuiltTable": "inspections",
+      "purposeBuiltCreatedBy": "202608030007_completion_assurance",
+      "productionSqlReaders": [],
+      "testSqlReaders": [],
+      "classification": "RELATIONAL_TABLE_DEAD"
+    },
+    {
+      "collection": "invoices",
+      "owningPackages": [
+        "packages/settlement-assurance"
+      ],
+      "physicalTableWritten": "trust_records",
+      "storageShape": "JSONB payload keyed by collection",
+      "purposeBuiltTable": "invoices",
+      "purposeBuiltCreatedBy": "202608030008_settlement_assurance",
+      "productionSqlReaders": [],
+      "testSqlReaders": [],
+      "classification": "RELATIONAL_TABLE_DEAD"
+    },
+    {
+      "collection": "issueRecords",
+      "owningPackages": [
+        "packages/completion-assurance"
+      ],
+      "physicalTableWritten": "trust_records",
+      "storageShape": "JSONB payload keyed by collection",
+      "purposeBuiltTable": "issue_records",
+      "purposeBuiltCreatedBy": "202608030007_completion_assurance",
+      "productionSqlReaders": [],
+      "testSqlReaders": [],
+      "classification": "RELATIONAL_TABLE_DEAD"
+    },
+    {
+      "collection": "ledgerEntries",
+      "owningPackages": [
+        "packages/settlement-execution"
+      ],
+      "physicalTableWritten": "trust_records",
+      "storageShape": "JSONB payload keyed by collection",
+      "purposeBuiltTable": "ledger_entries",
+      "purposeBuiltCreatedBy": "202608030009_settlement_execution",
+      "productionSqlReaders": [],
+      "testSqlReaders": [],
+      "classification": "RELATIONAL_TABLE_DEAD"
+    },
+    {
+      "collection": "paymentEligibilities",
+      "owningPackages": [
+        "packages/settlement-assurance"
+      ],
+      "physicalTableWritten": "trust_records",
+      "storageShape": "JSONB payload keyed by collection",
+      "purposeBuiltTable": "payment_eligibilities",
+      "purposeBuiltCreatedBy": "202608030008_settlement_assurance",
+      "productionSqlReaders": [],
+      "testSqlReaders": [],
+      "classification": "RELATIONAL_TABLE_DEAD"
+    },
+    {
+      "collection": "paymentInstructions",
+      "owningPackages": [
+        "packages/settlement-execution"
+      ],
+      "physicalTableWritten": "trust_records",
+      "storageShape": "JSONB payload keyed by collection",
+      "purposeBuiltTable": "payment_instructions",
+      "purposeBuiltCreatedBy": "202608030009_settlement_execution",
+      "productionSqlReaders": [],
+      "testSqlReaders": [],
+      "classification": "RELATIONAL_TABLE_DEAD"
+    },
+    {
+      "collection": "progressRecords",
+      "owningPackages": [
+        "packages/execution-orchestration"
+      ],
+      "physicalTableWritten": "trust_records",
+      "storageShape": "JSONB payload keyed by collection",
+      "purposeBuiltTable": "progress_records",
+      "purposeBuiltCreatedBy": "202608030006_execution_orchestration",
+      "productionSqlReaders": [],
+      "testSqlReaders": [],
+      "classification": "RELATIONAL_TABLE_DEAD"
+    },
+    {
+      "collection": "qualityGateResults",
+      "owningPackages": [
+        "packages/execution-orchestration"
+      ],
+      "physicalTableWritten": "trust_records",
+      "storageShape": "JSONB payload keyed by collection",
+      "purposeBuiltTable": "quality_gate_results",
+      "purposeBuiltCreatedBy": "202608030006_execution_orchestration",
+      "productionSqlReaders": [],
+      "testSqlReaders": [],
+      "classification": "RELATIONAL_TABLE_DEAD"
+    },
+    {
+      "collection": "qualityPlans",
+      "owningPackages": [
+        "packages/execution-orchestration"
+      ],
+      "physicalTableWritten": "trust_records",
+      "storageShape": "JSONB payload keyed by collection",
+      "purposeBuiltTable": "quality_plans",
+      "purposeBuiltCreatedBy": "202608030006_execution_orchestration",
+      "productionSqlReaders": [],
+      "testSqlReaders": [],
+      "classification": "RELATIONAL_TABLE_DEAD"
+    },
+    {
+      "collection": "reconciliationRecords",
+      "owningPackages": [
+        "packages/settlement-execution"
+      ],
+      "physicalTableWritten": "trust_records",
+      "storageShape": "JSONB payload keyed by collection",
+      "purposeBuiltTable": "reconciliation_records",
+      "purposeBuiltCreatedBy": "202608030009_settlement_execution",
+      "productionSqlReaders": [],
+      "testSqlReaders": [],
+      "classification": "RELATIONAL_TABLE_DEAD"
+    },
+    {
+      "collection": "releaseRequests",
+      "owningPackages": [
+        "packages/settlement-assurance"
+      ],
+      "physicalTableWritten": "trust_records",
+      "storageShape": "JSONB payload keyed by collection",
+      "purposeBuiltTable": "release_requests",
+      "purposeBuiltCreatedBy": "202608030008_settlement_assurance",
+      "productionSqlReaders": [],
+      "testSqlReaders": [],
+      "classification": "RELATIONAL_TABLE_DEAD"
+    },
+    {
+      "collection": "validationTests",
+      "owningPackages": [
+        "packages/execution-orchestration"
+      ],
+      "physicalTableWritten": "trust_records",
+      "storageShape": "JSONB payload keyed by collection",
+      "purposeBuiltTable": "validation_tests",
+      "purposeBuiltCreatedBy": "202608030006_execution_orchestration",
+      "productionSqlReaders": [],
+      "testSqlReaders": [],
+      "classification": "RELATIONAL_TABLE_DEAD"
+    },
+    {
+      "collection": "workItems",
+      "owningPackages": [
+        "packages/execution-orchestration"
+      ],
+      "physicalTableWritten": "trust_records",
+      "storageShape": "JSONB payload keyed by collection",
+      "purposeBuiltTable": "work_items",
+      "purposeBuiltCreatedBy": "202608030006_execution_orchestration",
+      "productionSqlReaders": [],
+      "testSqlReaders": [],
+      "classification": "RELATIONAL_TABLE_DEAD"
+    }
+  ],
+  "totals": {
+    "classDeclared": 20,
+    "runtimeRegistered": 20,
+    "onTrustPersistence": 20,
+    "usingFileAssuraStore": 0,
+    "issuingRawSql": 0,
+    "apiRouteFiles": 163,
+    "relationalTableDead": 35,
+    "genericOnly": 0,
+    "dualWrite": 0
+  }
+}

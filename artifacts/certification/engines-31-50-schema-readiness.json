@@ -1,0 +1,323 @@
+{
+  "collectionCount": 35,
+  "counts": {
+    "TYPE_EXISTS_SCHEMA_MISSING": 35
+  },
+  "results": [
+    {
+      "collection": "acceptanceDecisions",
+      "exportedType": "AcceptanceDecision",
+      "declaredIn": "packages/completion-assurance/src/index.ts",
+      "containsAny": false,
+      "zodSchema": false,
+      "inDataSchemaDoc": false,
+      "status": "TYPE_EXISTS_SCHEMA_MISSING"
+    },
+    {
+      "collection": "approvalThresholds",
+      "exportedType": "ApprovalThreshold",
+      "declaredIn": "packages/settlement-execution/src/index.ts",
+      "containsAny": false,
+      "zodSchema": false,
+      "inDataSchemaDoc": false,
+      "status": "TYPE_EXISTS_SCHEMA_MISSING"
+    },
+    {
+      "collection": "authorizationDecisions",
+      "exportedType": "AuthorizationDecision",
+      "declaredIn": "packages/settlement-execution/src/index.ts",
+      "containsAny": false,
+      "zodSchema": false,
+      "inDataSchemaDoc": false,
+      "status": "TYPE_EXISTS_SCHEMA_MISSING"
+    },
+    {
+      "collection": "changeApprovals",
+      "exportedType": "ChangeApproval",
+      "declaredIn": "packages/completion-assurance/src/index.ts",
+      "containsAny": false,
+      "zodSchema": false,
+      "inDataSchemaDoc": false,
+      "status": "TYPE_EXISTS_SCHEMA_MISSING"
+    },
+    {
+      "collection": "changeRequests",
+      "exportedType": "ChangeRequest",
+      "declaredIn": "packages/completion-assurance/src/index.ts",
+      "containsAny": false,
+      "zodSchema": false,
+      "inDataSchemaDoc": false,
+      "status": "TYPE_EXISTS_SCHEMA_MISSING"
+    },
+    {
+      "collection": "completionCertificates",
+      "exportedType": "CompletionCertificate",
+      "declaredIn": "packages/completion-assurance/src/index.ts",
+      "containsAny": false,
+      "zodSchema": false,
+      "inDataSchemaDoc": false,
+      "status": "TYPE_EXISTS_SCHEMA_MISSING"
+    },
+    {
+      "collection": "correctiveActionPlans",
+      "exportedType": "CorrectiveActionPlan",
+      "declaredIn": "packages/completion-assurance/src/index.ts",
+      "containsAny": false,
+      "zodSchema": false,
+      "inDataSchemaDoc": false,
+      "status": "TYPE_EXISTS_SCHEMA_MISSING"
+    },
+    {
+      "collection": "defects",
+      "exportedType": "Defect",
+      "declaredIn": "packages/execution-orchestration/src/index.ts",
+      "containsAny": false,
+      "zodSchema": false,
+      "inDataSchemaDoc": true,
+      "status": "TYPE_EXISTS_SCHEMA_MISSING"
+    },
+    {
+      "collection": "disputeDecisions",
+      "exportedType": "DisputeDecision",
+      "declaredIn": "packages/settlement-execution/src/index.ts",
+      "containsAny": false,
+      "zodSchema": false,
+      "inDataSchemaDoc": false,
+      "status": "TYPE_EXISTS_SCHEMA_MISSING"
+    },
+    {
+      "collection": "disputeEvidence",
+      "exportedType": "DisputeEvidence",
+      "declaredIn": "packages/settlement-execution/src/index.ts",
+      "containsAny": false,
+      "zodSchema": false,
+      "inDataSchemaDoc": false,
+      "status": "TYPE_EXISTS_SCHEMA_MISSING"
+    },
+    {
+      "collection": "disputeHolds",
+      "exportedType": "DisputeHold",
+      "declaredIn": "packages/settlement-execution/src/index.ts",
+      "containsAny": false,
+      "zodSchema": false,
+      "inDataSchemaDoc": false,
+      "status": "TYPE_EXISTS_SCHEMA_MISSING"
+    },
+    {
+      "collection": "disputePositions",
+      "exportedType": "DisputePosition",
+      "declaredIn": "packages/settlement-execution/src/index.ts",
+      "containsAny": false,
+      "zodSchema": false,
+      "inDataSchemaDoc": false,
+      "status": "TYPE_EXISTS_SCHEMA_MISSING"
+    },
+    {
+      "collection": "disputes",
+      "exportedType": "Dispute",
+      "declaredIn": "packages/settlement-execution/src/index.ts",
+      "containsAny": false,
+      "zodSchema": false,
+      "inDataSchemaDoc": true,
+      "status": "TYPE_EXISTS_SCHEMA_MISSING"
+    },
+    {
+      "collection": "evidencePackages",
+      "exportedType": "EvidencePackage",
+      "declaredIn": "packages/execution-orchestration/src/index.ts",
+      "containsAny": false,
+      "zodSchema": false,
+      "inDataSchemaDoc": false,
+      "status": "TYPE_EXISTS_SCHEMA_MISSING"
+    },
+    {
+      "collection": "evidenceRequirements",
+      "exportedType": "EvidenceRequirement",
+      "declaredIn": "packages/execution-orchestration/src/index.ts",
+      "containsAny": false,
+      "zodSchema": false,
+      "inDataSchemaDoc": false,
+      "status": "TYPE_EXISTS_SCHEMA_MISSING"
+    },
+    {
+      "collection": "executionWorkspaces",
+      "exportedType": "ExecutionWorkspace",
+      "declaredIn": "packages/execution-orchestration/src/index.ts",
+      "containsAny": false,
+      "zodSchema": false,
+      "inDataSchemaDoc": false,
+      "status": "TYPE_EXISTS_SCHEMA_MISSING"
+    },
+    {
+      "collection": "finalSettlementAccounts",
+      "exportedType": "FinalSettlementAccount",
+      "declaredIn": "packages/settlement-execution/src/index.ts",
+      "containsAny": false,
+      "zodSchema": false,
+      "inDataSchemaDoc": false,
+      "status": "TYPE_EXISTS_SCHEMA_MISSING"
+    },
+    {
+      "collection": "financialApprovalDecisions",
+      "exportedType": "FinancialApprovalDecision",
+      "declaredIn": "packages/settlement-execution/src/index.ts",
+      "containsAny": false,
+      "zodSchema": false,
+      "inDataSchemaDoc": false,
+      "status": "TYPE_EXISTS_SCHEMA_MISSING"
+    },
+    {
+      "collection": "financialClosureCertificates",
+      "exportedType": "FinancialClosureCertificate",
+      "declaredIn": "packages/settlement-execution/src/index.ts",
+      "containsAny": false,
+      "zodSchema": false,
+      "inDataSchemaDoc": false,
+      "status": "TYPE_EXISTS_SCHEMA_MISSING"
+    },
+    {
+      "collection": "financialEntitlements",
+      "exportedType": "FinancialEntitlement",
+      "declaredIn": "packages/settlement-assurance/src/index.ts",
+      "containsAny": false,
+      "zodSchema": false,
+      "inDataSchemaDoc": false,
+      "status": "TYPE_EXISTS_SCHEMA_MISSING"
+    },
+    {
+      "collection": "fundReservations",
+      "exportedType": "FundReservation",
+      "declaredIn": "packages/settlement-assurance/src/index.ts",
+      "containsAny": false,
+      "zodSchema": false,
+      "inDataSchemaDoc": false,
+      "status": "TYPE_EXISTS_SCHEMA_MISSING"
+    },
+    {
+      "collection": "fundingCommitments",
+      "exportedType": "FundingCommitment",
+      "declaredIn": "packages/settlement-assurance/src/index.ts",
+      "containsAny": false,
+      "zodSchema": false,
+      "inDataSchemaDoc": false,
+      "status": "TYPE_EXISTS_SCHEMA_MISSING"
+    },
+    {
+      "collection": "inspections",
+      "exportedType": "Inspection",
+      "declaredIn": "packages/completion-assurance/src/index.ts",
+      "containsAny": false,
+      "zodSchema": false,
+      "inDataSchemaDoc": true,
+      "status": "TYPE_EXISTS_SCHEMA_MISSING"
+    },
+    {
+      "collection": "invoices",
+      "exportedType": "Invoice",
+      "declaredIn": "packages/settlement-assurance/src/index.ts",
+      "containsAny": false,
+      "zodSchema": false,
+      "inDataSchemaDoc": true,
+      "status": "TYPE_EXISTS_SCHEMA_MISSING"
+    },
+    {
+      "collection": "issueRecords",
+      "exportedType": "IssueRecord",
+      "declaredIn": "packages/completion-assurance/src/index.ts",
+      "containsAny": false,
+      "zodSchema": false,
+      "inDataSchemaDoc": false,
+      "status": "TYPE_EXISTS_SCHEMA_MISSING"
+    },
+    {
+      "collection": "ledgerEntries",
+      "exportedType": "LedgerEntry",
+      "declaredIn": "packages/reos/src/types.ts",
+      "containsAny": false,
+      "zodSchema": false,
+      "inDataSchemaDoc": false,
+      "status": "TYPE_EXISTS_SCHEMA_MISSING"
+    },
+    {
+      "collection": "paymentEligibilities",
+      "exportedType": "PaymentEligibility",
+      "declaredIn": "packages/settlement-assurance/src/index.ts",
+      "containsAny": false,
+      "zodSchema": false,
+      "inDataSchemaDoc": false,
+      "status": "TYPE_EXISTS_SCHEMA_MISSING"
+    },
+    {
+      "collection": "paymentInstructions",
+      "exportedType": "PaymentInstruction",
+      "declaredIn": "packages/settlement-execution/src/index.ts",
+      "containsAny": false,
+      "zodSchema": false,
+      "inDataSchemaDoc": false,
+      "status": "TYPE_EXISTS_SCHEMA_MISSING"
+    },
+    {
+      "collection": "progressRecords",
+      "exportedType": "ProgressRecord",
+      "declaredIn": "packages/execution-orchestration/src/index.ts",
+      "containsAny": false,
+      "zodSchema": false,
+      "inDataSchemaDoc": false,
+      "status": "TYPE_EXISTS_SCHEMA_MISSING"
+    },
+    {
+      "collection": "qualityGateResults",
+      "exportedType": "QualityGateResult",
+      "declaredIn": "packages/execution-orchestration/src/index.ts",
+      "containsAny": false,
+      "zodSchema": false,
+      "inDataSchemaDoc": false,
+      "status": "TYPE_EXISTS_SCHEMA_MISSING"
+    },
+    {
+      "collection": "qualityPlans",
+      "exportedType": "QualityPlan",
+      "declaredIn": "packages/execution-orchestration/src/index.ts",
+      "containsAny": false,
+      "zodSchema": false,
+      "inDataSchemaDoc": false,
+      "status": "TYPE_EXISTS_SCHEMA_MISSING"
+    },
+    {
+      "collection": "reconciliationRecords",
+      "exportedType": "ReconciliationRecord",
+      "declaredIn": "packages/settlement-execution/src/index.ts",
+      "containsAny": false,
+      "zodSchema": false,
+      "inDataSchemaDoc": false,
+      "status": "TYPE_EXISTS_SCHEMA_MISSING"
+    },
+    {
+      "collection": "releaseRequests",
+      "exportedType": "ReleaseRequest",
+      "declaredIn": "packages/settlement-assurance/src/index.ts",
+      "containsAny": false,
+      "zodSchema": false,
+      "inDataSchemaDoc": false,
+      "status": "TYPE_EXISTS_SCHEMA_MISSING"
+    },
+    {
+      "collection": "validationTests",
+      "exportedType": "ValidationTest",
+      "declaredIn": "packages/execution-orchestration/src/index.ts",
+      "containsAny": false,
+      "zodSchema": false,
+      "inDataSchemaDoc": false,
+      "status": "TYPE_EXISTS_SCHEMA_MISSING"
+    },
+    {
+      "collection": "workItems",
+      "exportedType": "WorkItem",
+      "declaredIn": "packages/execution-orchestration/src/index.ts",
+      "containsAny": false,
+      "zodSchema": false,
+      "inDataSchemaDoc": false,
+      "status": "TYPE_EXISTS_SCHEMA_MISSING"
+    }
+  ]
+}
