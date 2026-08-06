@@ -1,9 +1,16 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import type { AuditRecord } from '@assurapay/shared';
 import { IdentityService } from '@assurapay/identity';
-import { PermissionService, TrustStoreMembershipReader, enforcePermission } from '@assurapay/permissions';
+import {
+  PermissionService,
+  TrustStoreMembershipReader,
+  enforcePermission,
+} from '@assurapay/permissions';
 import { verifyAuditChain } from '@assurapay/audit-ledger';
-import { createTestDatabase, requireTestDatabaseUrl } from '@assurapay/database-testing';
+import {
+  createTestDatabase,
+  requireTestDatabaseUrl,
+} from '@assurapay/database-testing';
 import type { TestDatabase } from '@assurapay/database-testing';
 import {
   ProtectedWorkGateError,
@@ -11,8 +18,26 @@ import {
   createPersistenceRuntime,
   requirePersistenceReady,
 } from './persistence-runtime';
-import type { PersistenceRuntime, RuntimeEvidence } from './persistence-runtime';
+import type {
+  PersistenceRuntime,
+  RuntimeEvidence,
+} from './persistence-runtime';
 import { loadPersistenceConfig } from './config';
+import { withTrustScope } from '@assurapay/database';
+
+/**
+ * The scope these suites write under.
+ *
+ * The harness applies the tenancy policies by default, because that is the set a host
+ * requires to start. So even a test about runtime lifecycle has to establish a scope before it
+ * writes — which is the same requirement production has, and better than opting out of the
+ * policies to make the test simpler.
+ */
+const SCOPE = {
+  tenantId: 'tenant-1',
+  workspaceId: 'workspace-1',
+  actorId: 'user-1',
+};
 
 /**
  * integration: the production composition path, against real PostgreSQL.
@@ -32,7 +57,10 @@ afterEach(async () => {
 });
 
 /** An isolated schema, and a production-like configuration pointed at it. */
-async function isolatedDatabase(): Promise<{ database: TestDatabase; url: string }> {
+async function isolatedDatabase(): Promise<{
+  database: TestDatabase;
+  url: string;
+}> {
   const database = await createTestDatabase();
   disposables.push(() => database.dispose());
   const url = new URL(databaseUrl);
@@ -40,7 +68,10 @@ async function isolatedDatabase(): Promise<{ database: TestDatabase; url: string
   return { database, url: url.toString() };
 }
 
-function productionEnvironment(url: string, overrides: Record<string, string | undefined> = {}) {
+function productionEnvironment(
+  url: string,
+  overrides: Record<string, string | undefined> = {},
+) {
   return {
     // A durable class, so the memory adapter is refused and the strict rules apply. TLS is
     // disabled only because the test server is a local socket; the configuration still had
@@ -69,7 +100,8 @@ async function startRuntime(
 }
 
 const openSockets = () =>
-  process.getActiveResourcesInfo().filter((kind) => kind.startsWith('TCP')).length;
+  process.getActiveResourcesInfo().filter((kind) => kind.startsWith('TCP'))
+    .length;
 
 /**
  * Waits for the socket count to return to `baseline`, then asserts it did.
@@ -84,7 +116,9 @@ async function expectNoSocketLeak(baseline: number): Promise<void> {
   const deadline = Date.now() + 1000;
   while (openSockets() > baseline && Date.now() < deadline)
     await new Promise((resolve) => setTimeout(resolve, 10));
-  expect(openSockets(), 'a socket outlived the runtime that opened it').toBe(baseline);
+  expect(openSockets(), 'a socket outlived the runtime that opened it').toBe(
+    baseline,
+  );
 }
 
 const context = (workspaceId: string, userId: string) => ({
@@ -154,7 +188,9 @@ describe('integration: a durable environment never falls back to memory', () => 
     }).catch((caught: unknown) => caught);
 
     expect(error).toBeInstanceOf(RuntimeStartupError);
-    expect((error as RuntimeStartupError).code).toBe('RUNTIME_DATABASE_UNREACHABLE');
+    expect((error as RuntimeStartupError).code).toBe(
+      'RUNTIME_DATABASE_UNREACHABLE',
+    );
   });
 
   it('refuses to start against a database with no schema', async () => {
@@ -162,17 +198,24 @@ describe('integration: a durable environment never falls back to memory', () => 
     // missing-table error, after the caller had been told the request was accepted.
     const database = await createTestDatabase();
     disposables.push(() => database.dispose());
-    await database.sql.unsafe('DROP TABLE trust_records, trust_audit_records CASCADE');
+    await database.sql.unsafe(
+      'DROP TABLE trust_records, trust_audit_records CASCADE',
+    );
 
     const url = new URL(databaseUrl);
     url.searchParams.set('options', `-c search_path=${database.schema}`);
 
     const error = await createPersistenceRuntime({
-      config: { ...loadPersistenceConfig(productionEnvironment(url.toString())), ssl: 'disable' },
+      config: {
+        ...loadPersistenceConfig(productionEnvironment(url.toString())),
+        ssl: 'disable',
+      },
     }).catch((caught: unknown) => caught);
 
     expect(error).toBeInstanceOf(RuntimeStartupError);
-    expect((error as RuntimeStartupError).code).toBe('RUNTIME_SCHEMA_INCOMPATIBLE');
+    expect((error as RuntimeStartupError).code).toBe(
+      'RUNTIME_SCHEMA_INCOMPATIBLE',
+    );
   });
 
   it('leaks no connection when startup fails', async () => {
@@ -181,7 +224,9 @@ describe('integration: a durable environment never falls back to memory', () => 
 
     await createPersistenceRuntime({
       config: {
-        ...loadPersistenceConfig(productionEnvironment('postgres://nobody:nothing@127.0.0.1:1/absent')),
+        ...loadPersistenceConfig(
+          productionEnvironment('postgres://nobody:nothing@127.0.0.1:1/absent'),
+        ),
         ssl: 'disable',
         connectTimeoutSeconds: 2,
         startupTimeoutSeconds: 3,
@@ -199,9 +244,13 @@ describe('integration: protected work is gated on readiness as well as authoriza
 
     await runtime.dispose();
 
-    const error = await requirePersistenceReady(runtime).catch((caught: unknown) => caught);
+    const error = await requirePersistenceReady(runtime).catch(
+      (caught: unknown) => caught,
+    );
     expect(error).toBeInstanceOf(ProtectedWorkGateError);
-    expect((error as ProtectedWorkGateError).readiness.code).toBe('POOL_CLOSED');
+    expect((error as ProtectedWorkGateError).readiness.code).toBe(
+      'POOL_CLOSED',
+    );
   });
 
   it('reports unready when the database goes away after startup', async () => {
@@ -215,7 +264,9 @@ describe('integration: protected work is gated on readiness as well as authoriza
 
     const readiness = await runtime.checkReadiness();
     expect(readiness.ready).toBe(false);
-    expect(['DATABASE_UNREACHABLE', 'SCHEMA_INCOMPATIBLE']).toContain(readiness.code);
+    expect(['DATABASE_UNREACHABLE', 'SCHEMA_INCOMPATIBLE']).toContain(
+      readiness.code,
+    );
     expect(runtime.getState()).toBe('degraded');
     // Still alive: liveness is about the process, and killing a healthy process because
     // its database blinked loses in-flight work and fixes nothing.
@@ -242,46 +293,51 @@ describe('integration: the full trust application, composed through the runtime'
     const workspaceId = 'workspace-1';
     const userId = 'user-1';
 
-    await first.store.append('trustWorkspaces', {
-      id: workspaceId,
-      tenantId: 'tenant-1',
-      name: 'Workspace',
-      status: 'ACTIVE',
-      createdAt: new Date().toISOString(),
-      version: 1,
-    });
-    await first.store.append('memberships', {
-      id: 'membership-1',
-      workspaceId,
-      userId,
-      status: 'ACTIVE',
-      role: 'OWNER',
-      createdAt: new Date().toISOString(),
-      version: 1,
-    });
+    // Scoped, because the harness applies the tenancy policies by default — the same set a
+    // host requires to start. A test that opted out of them would prove durability against a
+    // schema no deployment runs.
+    await withTrustScope(SCOPE, async () => {
+      await first.store.append('trustWorkspaces', {
+        id: workspaceId,
+        tenantId: 'tenant-1',
+        name: 'Workspace',
+        status: 'ACTIVE',
+        createdAt: new Date().toISOString(),
+        version: 1,
+      });
+      await first.store.append('memberships', {
+        id: 'membership-1',
+        workspaceId,
+        userId,
+        status: 'ACTIVE',
+        role: 'OWNER',
+        createdAt: new Date().toISOString(),
+        version: 1,
+      });
 
-    const permissions = new PermissionService(first.store);
-    await permissions.grant(context(workspaceId, userId), {
-      userId,
-      permissionKey: 'settlement:approve',
-      effect: 'ALLOW',
-      scopeType: 'WORKSPACE',
-      sourceType: 'ROLE',
-      sourceId: 'OWNER',
-      effectiveFrom: '2020-01-01T00:00:00.000Z',
-    });
+      const permissions = new PermissionService(first.store);
+      await permissions.grant(context(workspaceId, userId), {
+        userId,
+        permissionKey: 'settlement:approve',
+        effect: 'ALLOW',
+        scopeType: 'WORKSPACE',
+        sourceType: 'ROLE',
+        sourceId: 'OWNER',
+        effectiveFrom: '2020-01-01T00:00:00.000Z',
+      });
 
-    // A protected operation, enforced at the composition root exactly as a route would.
-    const authorized = await enforcePermission(
-      { ...context(workspaceId, userId), memberships: [] },
-      { permissionKey: 'settlement:approve' },
-      {
-        memberships: new TrustStoreMembershipReader(first.store),
-        permissions,
-        store: first.store,
-      },
-    );
-    expect(authorized.memberships).toEqual([workspaceId]);
+      // A protected operation, enforced at the composition root exactly as a route would.
+      const authorized = await enforcePermission(
+        { ...context(workspaceId, userId), memberships: [] },
+        { permissionKey: 'settlement:approve' },
+        {
+          memberships: new TrustStoreMembershipReader(first.store),
+          permissions,
+          store: first.store,
+        },
+      );
+      expect(authorized.memberships).toEqual([workspaceId]);
+    });
 
     await first.dispose();
 
@@ -289,58 +345,73 @@ describe('integration: the full trust application, composed through the runtime'
     const second = await startRuntime(url);
     const rebuilt = new PermissionService(second.store);
 
-    expect(await second.store.list('trustWorkspaces')).toHaveLength(1);
-    expect(
-      (await rebuilt.evaluate(context(workspaceId, userId), 'settlement:approve')).allowed,
-    ).toBe(true);
+    await withTrustScope(SCOPE, async () => {
+      expect(await second.store.list('trustWorkspaces')).toHaveLength(1);
+      expect(
+        (
+          await rebuilt.evaluate(
+            context(workspaceId, userId),
+            'settlement:approve',
+          )
+        ).allowed,
+      ).toBe(true);
 
-    // Authorization still works against recovered state, not just the rows being present.
-    const reauthorized = await enforcePermission(
-      { ...context(workspaceId, userId), memberships: [] },
-      { permissionKey: 'settlement:approve' },
-      {
-        memberships: new TrustStoreMembershipReader(second.store),
-        permissions: rebuilt,
-        store: second.store,
-      },
-    );
-    expect(reauthorized.memberships).toEqual([workspaceId]);
+      // Authorization still works against recovered state, not just the rows being present.
+      const reauthorized = await enforcePermission(
+        { ...context(workspaceId, userId), memberships: [] },
+        { permissionKey: 'settlement:approve' },
+        {
+          memberships: new TrustStoreMembershipReader(second.store),
+          permissions: rebuilt,
+          store: second.store,
+        },
+      );
+      expect(reauthorized.memberships).toEqual([workspaceId]);
 
-    const audits = await second.store.list<AuditRecord>('auditRecords');
-    expect(audits.length).toBeGreaterThan(0);
-    expect(verifyAuditChain(audits).valid).toBe(true);
+      const audits = await second.store.list<AuditRecord>('auditRecords');
+      expect(audits.length).toBeGreaterThan(0);
+      expect(verifyAuditChain(audits).valid).toBe(true);
+    });
   });
 
   it('keeps an identity durable across runtimes, so a session survives a deploy', async () => {
     const { url } = await isolatedDatabase();
 
     const first = await startRuntime(url);
-    const identities = new IdentityService(first.store);
-    const registered = await identities.register({
-      email: 'owner@example.test',
-      displayName: 'Owner',
-      correlationId: 'corr-1',
+    const registered = await withTrustScope(SCOPE, async () => {
+      const identities = new IdentityService(first.store);
+      const identity = await identities.register({
+        email: 'owner@example.test',
+        displayName: 'Owner',
+        correlationId: 'corr-1',
+      });
+      await identities.activate(identity.id, 'corr-2');
+      return identity;
     });
-    await identities.activate(registered.id, 'corr-2');
     await first.dispose();
 
     const second = await startRuntime(url);
-    const recovered = new IdentityService(second.store);
-    const login = await recovered.login({
-      email: 'owner@example.test',
-      rawSessionToken: 'raw-token',
-      correlationId: 'corr-3',
-    });
+    await withTrustScope(SCOPE, async () => {
+      const recovered = new IdentityService(second.store);
+      const login = await recovered.login({
+        email: 'owner@example.test',
+        rawSessionToken: 'raw-token',
+        correlationId: 'corr-3',
+      });
 
-    expect(login.session.userId).toBe(registered.id);
-    expect(verifyAuditChain(await second.store.list<AuditRecord>('auditRecords')).valid).toBe(true);
+      expect(login.session.userId).toBe(registered.id);
+      expect(
+        verifyAuditChain(await second.store.list<AuditRecord>('auditRecords'))
+          .valid,
+      ).toBe(true);
+    });
   });
 
   it('closes every connection on shutdown, and is idempotent about it', async () => {
     const { database, url } = await isolatedDatabase();
     const before = openSockets();
     const runtime = await startRuntime(url);
-    await runtime.store.list('parties');
+    await withTrustScope(SCOPE, () => runtime.store.list('parties'));
     expect(openSockets()).toBeGreaterThan(before);
 
     // Twice, because a shutdown handler can fire more than once and a second call must not

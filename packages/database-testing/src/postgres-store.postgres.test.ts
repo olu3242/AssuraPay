@@ -26,7 +26,11 @@ requireTestDatabaseUrl();
 const databases: TestDatabase[] = [];
 
 async function freshDatabase(): Promise<TestDatabase> {
-  const database = await createTestDatabase();
+  // Without the tenancy policies. These suites exercise the store's contract — ordering,
+  // transactions, error mapping, the audit chain — from an unscoped caller, which under forced
+  // RLS would read nothing. The boundary has its own suite; conflating them would mean a
+  // failure here could be either.
+  const database = await createTestDatabase({ applyRls: false });
   databases.push(database);
   return database;
 }
@@ -126,7 +130,7 @@ describe('integration: TrustPersistence conformance — PostgresTrustStore', () 
   // check can observe another's writes.
   for (const check of TRUST_PERSISTENCE_CONFORMANCE) {
     it(check.name, async () => {
-      const database = await createTestDatabase();
+      const database = await createTestDatabase({ applyRls: false });
       try {
         await check.run(new PostgresTrustStore(database.sql), POSTGRES_CONFORMANCE_COLLECTIONS);
       } finally {
@@ -140,7 +144,7 @@ describe('integration: TrustPersistence conformance — PostgresTrustStore', () 
     const results = await runTrustPersistenceConformance({
       collections: POSTGRES_CONFORMANCE_COLLECTIONS,
       async create() {
-        const database = await createTestDatabase();
+        const database = await createTestDatabase({ applyRls: false });
         created.push(database);
         return new PostgresTrustStore(database.sql);
       },
@@ -217,7 +221,7 @@ describe('integration: durability survives losing the process', () => {
       process.getActiveResourcesInfo().filter((kind) => kind.startsWith('TCP')).length;
 
     const before = sockets();
-    const database = await createTestDatabase();
+    const database = await createTestDatabase({ applyRls: false });
     const store = new PostgresTrustStore(database.sql);
     await seedWorkspace(store);
     expect(sockets(), 'a live pool holds at least one socket').toBeGreaterThan(before);
@@ -533,7 +537,7 @@ describe('integration: failures are reported, never swallowed', () => {
     // The failure mode that matters most: an empty list from a broken connection reads
     // as "no grants", and deny-by-default then turns an outage into a silent
     // authorization change.
-    const database = await createTestDatabase();
+    const database = await createTestDatabase({ applyRls: false });
     const store = new PostgresTrustStore(database.sql);
     await database.dispose();
 

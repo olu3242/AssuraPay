@@ -2425,12 +2425,14 @@
       "status": "implemented"
     },
     {
-      "blocks": [],
+      "blocks": [
+        "persistence.rls-certification"
+      ],
       "dependsOn": [
         "persistence.postgres-repository"
       ],
       "id": "persistence.production-runtime-wiring",
-      "lifecycle": "certified",
+      "lifecycle": "released",
       "status": "implemented"
     },
     {
@@ -2450,11 +2452,12 @@
     {
       "blocks": [],
       "dependsOn": [
-        "persistence.postgres-repository"
+        "persistence.postgres-repository",
+        "persistence.production-runtime-wiring"
       ],
       "id": "persistence.rls-certification",
-      "lifecycle": "planned",
-      "status": "missing"
+      "lifecycle": "certified",
+      "status": "implemented"
     },
     {
       "blocks": [
@@ -3285,31 +3288,11 @@
       "wave": 6
     }
   ],
-  "executionBacklog": [
-    {
-      "blockedBy": [],
-      "blocks": [],
-      "dependsOn": [
-        "persistence.postgres-repository"
-      ],
-      "executable": true,
-      "id": "persistence.rls-certification",
-      "lifecycle": "planned",
-      "priority": 41,
-      "requiresLiveInfrastructure": true,
-      "scope": {
-        "estimated": false,
-        "files": 1,
-        "tests": 1
-      },
-      "status": "missing",
-      "title": "Row Level Security certification"
-    }
-  ],
+  "executionBacklog": [],
   "identity": {
-    "branch": "feat/persistence-production-runtime-wiring",
+    "branch": "feat/persistence-rls-certification",
     "clean": false,
-    "head": "2387406b853ac2b1e7040eddd663d8f813294498",
+    "head": "1a2913b6997c0a4e5d7ee741a3f9fddca7643893",
     "repository": "assurapay",
     "version": "0.1.0"
   },
@@ -3374,6 +3357,7 @@
     "persistence.postgres-repository",
     "persistence.production-runtime-wiring",
     "persistence.repository-conformance",
+    "persistence.rls-certification",
     "reos.execution-os",
     "runtime.agent-registration",
     "settlement.non-custody-guard",
@@ -3392,14 +3376,12 @@
     "implemented": 0,
     "implementing": 0,
     "missing": 0,
-    "planned": 1,
-    "released": 70,
+    "planned": 0,
+    "released": 71,
     "validated": 0
   },
-  "manifestDigest": "4f5d524eb6e0",
-  "missingCapabilities": [
-    "persistence.rls-certification"
-  ],
+  "manifestDigest": "f80eb817652b",
+  "missingCapabilities": [],
   "packages": [
     {
       "directory": "packages/agent-runtime",
@@ -3583,10 +3565,11 @@
       "main": "src/index.ts",
       "moduleType": null,
       "name": "@assurapay/database",
-      "sourceFiles": 6,
-      "sourceLines": 2109,
+      "sourceFiles": 8,
+      "sourceLines": 2588,
       "testFiles": [
         "packages/database/src/async-conformance.test.ts",
+        "packages/database/src/rls-certification.test.ts",
         "packages/database/src/trust-migrations.integration.test.ts",
         "packages/database/src/trust-store.test.ts"
       ],
@@ -3595,7 +3578,7 @@
         "integration": 1,
         "performance": 0,
         "security": 0,
-        "unit": 2
+        "unit": 3
       },
       "workspaceDependencies": [
         "@assurapay/shared"
@@ -3611,17 +3594,18 @@
       "moduleType": null,
       "name": "@assurapay/database-testing",
       "sourceFiles": 1,
-      "sourceLines": 192,
+      "sourceLines": 226,
       "testFiles": [
         "packages/database-testing/src/migrations.postgres.test.ts",
-        "packages/database-testing/src/postgres-store.postgres.test.ts"
+        "packages/database-testing/src/postgres-store.postgres.test.ts",
+        "packages/database-testing/src/rls-certification.postgres.test.ts"
       ],
       "tests": {
         "e2e": 0,
         "integration": 0,
         "performance": 0,
         "security": 0,
-        "unit": 2
+        "unit": 3
       },
       "workspaceDependencies": [
         "@assurapay/database",
@@ -4010,7 +3994,7 @@
       "moduleType": "module",
       "name": "@assurapay/reos",
       "sourceFiles": 25,
-      "sourceLines": 4641,
+      "sourceLines": 4646,
       "testFiles": [
         "packages/reos/src/reos.e2e.test.ts",
         "packages/reos/src/reos.governance.test.ts",
@@ -4044,14 +4028,15 @@
       "sourceLines": 669,
       "testFiles": [
         "packages/runtime/src/config.test.ts",
-        "packages/runtime/src/persistence-runtime.postgres.test.ts"
+        "packages/runtime/src/persistence-runtime.postgres.test.ts",
+        "packages/runtime/src/rls-runtime.postgres.test.ts"
       ],
       "tests": {
         "e2e": 0,
         "integration": 0,
         "performance": 0,
         "security": 0,
-        "unit": 2
+        "unit": 3
       },
       "workspaceDependencies": [
         "@assurapay/audit-ledger",
@@ -4302,6 +4287,7 @@
           "matches": [
             "packages/audit-ledger/src/audit-ledger.postgres.test.ts",
             "packages/database-testing/src/postgres-store.postgres.test.ts",
+            "packages/database-testing/src/rls-certification.postgres.test.ts",
             "packages/database/src/conformance.ts",
             "packages/database/src/postgres-store.ts",
             "packages/reos/src/reos.persistence.test.ts",
@@ -4373,7 +4359,7 @@
       },
       "id": "persistence.production-runtime-wiring",
       "kind": "platform",
-      "onDefaultBranch": false,
+      "onDefaultBranch": true,
       "probes": [
         {
           "kind": "path",
@@ -4412,7 +4398,8 @@
           "matches": [
             "apps/web/lib/persistence.ts",
             "packages/runtime/src/persistence-runtime.postgres.test.ts",
-            "packages/runtime/src/persistence-runtime.ts"
+            "packages/runtime/src/persistence-runtime.ts",
+            "packages/runtime/src/rls-runtime.postgres.test.ts"
           ],
           "query": "createPersistenceRuntime",
           "satisfied": true
@@ -4423,7 +4410,8 @@
             "packages/runtime/src/config.test.ts",
             "packages/runtime/src/config.ts",
             "packages/runtime/src/persistence-runtime.postgres.test.ts",
-            "packages/runtime/src/persistence-runtime.ts"
+            "packages/runtime/src/persistence-runtime.ts",
+            "packages/runtime/src/rls-runtime.postgres.test.ts"
           ],
           "query": "loadPersistenceConfig",
           "satisfied": true
@@ -4526,7 +4514,7 @@
     {
       "git": {
         "historicalCommits": [],
-        "reachableFromHead": false,
+        "reachableFromHead": true,
         "refsContaining": [],
         "removedFromHead": false
       },
@@ -4536,34 +4524,80 @@
       "probes": [
         {
           "kind": "path",
-          "matches": [],
+          "matches": [
+            "packages/database/src/rls-certification.ts"
+          ],
           "query": "packages/database/src/rls-certification.ts",
-          "satisfied": false
+          "satisfied": true
+        },
+        {
+          "kind": "path",
+          "matches": [
+            "packages/database/src/trust-scope.ts"
+          ],
+          "query": "packages/database/src/trust-scope.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "path",
+          "matches": [
+            "supabase/migrations/202608070001_trust_row_level_security.sql"
+          ],
+          "query": "supabase/migrations/202608070001_trust_row_level_security.sql",
+          "satisfied": true
         },
         {
           "kind": "symbol",
-          "matches": [],
+          "matches": [
+            "packages/database-testing/src/rls-certification.postgres.test.ts",
+            "packages/database/src/rls-certification.ts",
+            "packages/runtime/src/rls-runtime.postgres.test.ts"
+          ],
           "query": "certifyRowLevelSecurity",
-          "satisfied": false
+          "satisfied": true
         },
         {
           "kind": "symbol",
-          "matches": [],
+          "matches": [
+            "packages/database-testing/src/rls-certification.postgres.test.ts",
+            "packages/database/src/rls-certification.ts"
+          ],
           "query": "assertCrossTenantDenied",
-          "satisfied": false
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "packages/database-testing/src/rls-certification.postgres.test.ts",
+            "packages/database/src/trust-scope.ts",
+            "packages/runtime/src/persistence-runtime.postgres.test.ts",
+            "packages/runtime/src/rls-runtime.postgres.test.ts"
+          ],
+          "query": "withTrustScope",
+          "satisfied": true
         },
         {
           "kind": "test",
-          "matches": [],
-          "query": "packages/database/src/rls-certification.integration.test.ts",
-          "satisfied": false
+          "matches": [
+            "packages/database-testing/src/rls-certification.postgres.test.ts"
+          ],
+          "query": "packages/database-testing/src/rls-certification.postgres.test.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "test",
+          "matches": [
+            "packages/database/src/rls-certification.test.ts"
+          ],
+          "query": "packages/database/src/rls-certification.test.ts",
+          "satisfied": true
         }
       ],
-      "rationale": "No evidence at HEAD, on any ref, or in history.",
-      "satisfiedProbes": 0,
-      "status": "missing",
+      "rationale": "All 8 evidence probes satisfied at HEAD.",
+      "satisfiedProbes": 8,
+      "status": "implemented",
       "title": "Row Level Security certification",
-      "totalProbes": 4
+      "totalProbes": 8
     },
     {
       "git": {
@@ -4954,7 +4988,8 @@
             "apps/web/lib/trust-app.ts",
             "packages/permissions/src/enforcement.test.ts",
             "packages/permissions/src/enforcement.ts",
-            "packages/runtime/src/persistence-runtime.postgres.test.ts"
+            "packages/runtime/src/persistence-runtime.postgres.test.ts",
+            "packages/runtime/src/rls-runtime.postgres.test.ts"
           ],
           "query": "enforcePermission",
           "satisfied": true

@@ -70,7 +70,7 @@ export function requireTestDatabaseUrl(): string {
  * the pool, so the DDL in `supabase/migrations` lands there without being rewritten.
  */
 export async function createTestDatabase(
-  options: { applyAllMigrations?: boolean } = {},
+  options: { applyAllMigrations?: boolean; applyRls?: boolean } = {},
 ): Promise<TestDatabase> {
   const databaseUrl = requireTestDatabaseUrl();
   const schema = `trust_test_${randomUUID().replace(/-/g, '').slice(0, 20)}`;
@@ -118,6 +118,11 @@ export async function createTestDatabase(
       // describe a per-engine model the repository contract does not read, and applying
       // them would make every suite pay for 126 tables it never touches.
       await applyTrustStoreMigration(pool.sql);
+      // Applied by default, because this is the set a host requires: the runtime refuses to
+      // start without it. A suite testing store behaviour rather than the tenancy boundary
+      // opts out, and says so — an unscoped caller reads nothing once the policies are forced,
+      // which is correct and would make those suites test the boundary by accident.
+      if (options.applyRls !== false) await applyRlsMigration(pool.sql);
     }
   } catch (error) {
     await database.dispose();
@@ -125,6 +130,36 @@ export async function createTestDatabase(
   }
 
   return database;
+}
+
+/**
+ * Applies the row-level-security migration.
+ *
+ * Separate from the trust-store migration so a suite chooses whether the tenancy boundary is
+ * in force. It is not optional in a deployment — the migration runner applies both — but a
+ * store test that had to establish a tenant scope for every read would be testing two things
+ * and reporting one.
+ */
+export async function applyRlsMigration(sql: SqlClient): Promise<void> {
+  // Both, in order. The per-tenant chain migration is inseparable from RLS: forcing the
+  // policies without it makes every second tenant's first audited action collide on a chain
+  // position it cannot see.
+  const migrations = readMigrations(migrationsDirectory()).filter(
+    (entry) =>
+      entry.id.endsWith('trust_row_level_security') ||
+      entry.id.endsWith('trust_audit_chain_per_tenant'),
+  );
+  if (migrations.length !== 2) throw new Error('a row-level-security migration is missing');
+  await sql.begin(async (tx) => {
+    for (const migration of migrations) {
+      await tx.unsafe(migration.sql);
+      await tx`
+        INSERT INTO trust_migration_ledger (migration_id, checksum, applied_by, execution_ms, ordinal)
+        VALUES (${migration.id}, ${migration.checksum}, 'integration-test', 0, ${migration.ordinal})
+        ON CONFLICT (migration_id) DO NOTHING
+      `;
+    }
+  });
 }
 
 /** Applies the trust-store migration alone, through the same governed runner. */

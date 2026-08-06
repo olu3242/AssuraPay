@@ -230,6 +230,8 @@ export async function applyMigrations(
  */
 export const REQUIRED_TRUST_MIGRATIONS: readonly string[] = Object.freeze([
   '202608060001_trust_repository_store',
+  '202608070001_trust_row_level_security',
+  '202608070002_trust_audit_chain_per_tenant',
 ]);
 
 export type SchemaCompatibility = {

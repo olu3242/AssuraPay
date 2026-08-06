@@ -1,26 +1,16 @@
 {
-  "capability": "persistence.production-runtime-wiring",
+  "capability": "persistence.rls-certification",
   "capabilityLifecycle": "certified",
   "certification": {
     "available": true,
     "failedSteps": [],
     "passed": true
   },
-  "commit": "2387406b853ac2b1e7040eddd663d8f813294498",
+  "commit": "1a2913b6997c0a4e5d7ee741a3f9fddca7643893",
   "filesModified": [
     ".github/workflows/ci.yml",
-    "apps/web/app/api/health/live/route.ts",
-    "apps/web/app/api/health/ready/route.ts",
-    "apps/web/instrumentation.ts",
-    "apps/web/lib/persistence.test.ts",
-    "apps/web/lib/persistence.ts",
-    "apps/web/lib/route-coverage.test.ts",
-    "apps/web/lib/route-permissions.test.ts",
-    "apps/web/lib/route-permissions.ts",
-    "apps/web/lib/shutdown.ts",
     "apps/web/lib/trust-app.ts",
-    "apps/web/package.json",
-    "docs/governance/execution-ledger/2387406b853a-persistence.production-runtime-wiring.json",
+    "docs/governance/execution-ledger/1a2913b6997c-persistence.rls-certification.json",
     "docs/governance/execution-ledger/INDEX.md",
     "docs/governance/reos/capability-registry.json",
     "docs/governance/reos/generated/CERTIFICATION_REPORT.md",
@@ -31,23 +21,25 @@
     "docs/governance/reos/generated/discovery.json",
     "docs/governance/reos/generated/execution-manifest.json",
     "docs/governance/reos/generated/forensics.json",
-    "package.json",
-    "packages/database-testing/src/migrations.postgres.test.ts",
+    "packages/audit-ledger/src/audit-ledger.postgres.test.ts",
+    "packages/database-testing/src/index.ts",
+    "packages/database-testing/src/postgres-store.postgres.test.ts",
+    "packages/database-testing/src/rls-certification.postgres.test.ts",
+    "packages/database/src/index.ts",
     "packages/database/src/migrations.ts",
-    "packages/reos/src/reos.persistence.test.ts",
+    "packages/database/src/postgres-store.ts",
+    "packages/database/src/rls-certification.test.ts",
+    "packages/database/src/rls-certification.ts",
+    "packages/database/src/trust-scope.ts",
+    "packages/reos/src/reos.e2e.test.ts",
+    "packages/reos/src/reos.integration.test.ts",
     "packages/reos/src/validators/persistence.ts",
-    "packages/runtime/package.json",
-    "packages/runtime/src/config.test.ts",
-    "packages/runtime/src/config.ts",
-    "packages/runtime/src/index.ts",
     "packages/runtime/src/persistence-runtime.postgres.test.ts",
-    "packages/runtime/src/persistence-runtime.ts",
-    "pnpm-lock.yaml",
-    "tsconfig.json",
-    "vitest.config.ts",
-    "vitest.postgres.config.ts"
+    "packages/runtime/src/rls-runtime.postgres.test.ts",
+    "supabase/migrations/202608070001_trust_row_level_security.sql",
+    "supabase/migrations/202608070002_trust_audit_chain_per_tenant.sql"
   ],
-  "generatedAt": "2026-08-05T22:39:52.658Z",
+  "generatedAt": "2026-08-06T02:56:28.792Z",
   "governance": {
     "baselined": 15,
     "findings": [
@@ -207,64 +199,16 @@
     "phase": 2,
     "resolved": []
   },
-  "ledgerEntryId": "2387406b853a-persistence.production-runtime-wiring",
-  "recommendedNextCapability": {
-    "blockedBy": [],
-    "blocks": [],
-    "dependsOn": [
-      "persistence.postgres-repository"
-    ],
-    "executable": true,
-    "id": "persistence.rls-certification",
-    "lifecycle": "planned",
-    "priority": 41,
-    "requiresLiveInfrastructure": true,
-    "scope": {
-      "estimated": false,
-      "files": 1,
-      "tests": 1
-    },
-    "status": "missing",
-    "title": "Row Level Security certification"
-  },
-  "remainingBacklog": [
-    {
-      "blockedBy": [],
-      "blocks": [],
-      "dependsOn": [
-        "persistence.postgres-repository"
-      ],
-      "executable": true,
-      "id": "persistence.rls-certification",
-      "lifecycle": "planned",
-      "priority": 41,
-      "requiresLiveInfrastructure": true,
-      "scope": {
-        "estimated": false,
-        "files": 1,
-        "tests": 1
-      },
-      "status": "missing",
-      "title": "Row Level Security certification"
-    }
-  ],
+  "ledgerEntryId": "1a2913b6997c-persistence.rls-certification",
+  "recommendedNextCapability": null,
+  "remainingBacklog": [],
   "reosVersion": "1.0.0",
   "repositoryState": {
-    "branch": "feat/persistence-production-runtime-wiring",
+    "branch": "feat/persistence-rls-certification",
     "clean": false,
     "dirtyFiles": [
       ".github/workflows/ci.yml",
-      "apps/web/app/api/health/live/route.ts",
-      "apps/web/app/api/health/ready/route.ts",
-      "apps/web/instrumentation.ts",
-      "apps/web/lib/persistence.test.ts",
-      "apps/web/lib/persistence.ts",
-      "apps/web/lib/route-coverage.test.ts",
-      "apps/web/lib/route-permissions.test.ts",
-      "apps/web/lib/route-permissions.ts",
-      "apps/web/lib/shutdown.ts",
       "apps/web/lib/trust-app.ts",
-      "apps/web/package.json",
       "docs/governance/reos/capability-registry.json",
       "docs/governance/reos/generated/CERTIFICATION_REPORT.md",
       "docs/governance/reos/generated/DEPENDENCY_RESOLUTION.md",
@@ -274,28 +218,30 @@
       "docs/governance/reos/generated/discovery.json",
       "docs/governance/reos/generated/execution-manifest.json",
       "docs/governance/reos/generated/forensics.json",
-      "package.json",
-      "packages/database-testing/src/migrations.postgres.test.ts",
+      "packages/audit-ledger/src/audit-ledger.postgres.test.ts",
+      "packages/database-testing/src/index.ts",
+      "packages/database-testing/src/postgres-store.postgres.test.ts",
+      "packages/database-testing/src/rls-certification.postgres.test.ts",
+      "packages/database/src/index.ts",
       "packages/database/src/migrations.ts",
-      "packages/reos/src/reos.persistence.test.ts",
+      "packages/database/src/postgres-store.ts",
+      "packages/database/src/rls-certification.test.ts",
+      "packages/database/src/rls-certification.ts",
+      "packages/database/src/trust-scope.ts",
+      "packages/reos/src/reos.e2e.test.ts",
+      "packages/reos/src/reos.integration.test.ts",
       "packages/reos/src/validators/persistence.ts",
-      "packages/runtime/package.json",
-      "packages/runtime/src/config.test.ts",
-      "packages/runtime/src/config.ts",
-      "packages/runtime/src/index.ts",
       "packages/runtime/src/persistence-runtime.postgres.test.ts",
-      "packages/runtime/src/persistence-runtime.ts",
-      "pnpm-lock.yaml",
-      "tsconfig.json",
-      "vitest.config.ts",
-      "vitest.postgres.config.ts"
+      "packages/runtime/src/rls-runtime.postgres.test.ts",
+      "supabase/migrations/202608070001_trust_row_level_security.sql",
+      "supabase/migrations/202608070002_trust_audit_chain_per_tenant.sql"
     ],
-    "head": "2387406b853ac2b1e7040eddd663d8f813294498"
+    "head": "1a2913b6997c0a4e5d7ee741a3f9fddca7643893"
   },
   "stage": "report",
   "validation": [
     {
-      "checked": 183,
+      "checked": 188,
       "findings": [],
       "passed": true,
       "validator": "architecture"
@@ -307,21 +253,14 @@
       "validator": "dependencies"
     },
     {
-      "checked": 268,
+      "checked": 270,
       "findings": [],
       "passed": true,
       "validator": "security"
     },
     {
-      "checked": 28,
-      "findings": [
-        {
-          "location": "packages/database/src",
-          "message": "packages/database has modified source but no modified tests in this change.",
-          "rule": "contract/tests-not-updated",
-          "severity": "warning"
-        }
-      ],
+      "checked": 20,
+      "findings": [],
       "passed": true,
       "validator": "execution-contract"
     }

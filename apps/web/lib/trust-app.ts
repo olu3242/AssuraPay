@@ -130,6 +130,7 @@ import {
 } from '@assurapay/workflow-intelligence';
 import { AuditLedgerEngine } from '@assurapay/audit-ledger';
 import { RouteAccessError, requirementForRoute } from './route-permissions';
+import { enterTrustScope } from '@assurapay/database';
 import { requireReadyPersistence, trustStore } from './persistence';
 
 const globalTrust = globalThis as typeof globalThis & {
@@ -380,6 +381,19 @@ export async function authorizedContextForRoute(request: Request): Promise<Reque
   await requireReadyPersistence();
 
   const identity = await getIdentityGateway().authenticate(request, correlationId);
+
+  // The tenancy scope Row Level Security reads, established here because this is the one
+  // place every protected route passes through. Without it, forced RLS denies every read —
+  // which is the correct default and would also be a broken application.
+  //
+  // Set from the verified identity, never from a request field. A tenant taken from a header
+  // or a body would let a caller name the scope its own reads are checked against, which is
+  // the whole boundary handed to the caller.
+  enterTrustScope({
+    tenantId: identity.tenantId,
+    workspaceId: identity.activeWorkspaceId,
+    actorId: identity.actorUserId,
+  });
 
   // An identity-class route is authenticated and membership-scoped, but carries no
   // permission requirement; see route-permissions.ts for why that is not a gap.

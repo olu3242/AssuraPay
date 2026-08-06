@@ -64,8 +64,11 @@ jobs:
       # CREATEDB, because the historical migration set is not schema-relocatable:
       # one of its SECURITY DEFINER functions pins search_path=public, so the
       # full-set test needs its own database rather than its own schema.
-      - name: Grant CREATEDB to the test role
-        run: psql "$ADMIN_URL" -c 'ALTER ROLE assurapay CREATEDB'
+      # CREATEDB for the historical migration set, which is not schema-relocatable, and
+      # CREATEROLE so the RLS suite can provision the non-owning application role the denial
+      # probes run as.
+      - name: Grant CREATEDB and CREATEROLE to the test role
+        run: psql "$ADMIN_URL" -c 'ALTER ROLE assurapay CREATEDB CREATEROLE'
         env:
           ADMIN_URL: postgres://assurapay:assurapay@127.0.0.1:5432/assurapay_test
 

@@ -6,31 +6,21 @@
 
 | Field | Value |
 | --- | --- |
-| Branch | feat/persistence-production-runtime-wiring |
-| HEAD | 2387406b853ac2b1e7040eddd663d8f813294498 |
+| Branch | feat/persistence-rls-certification |
+| HEAD | 1a2913b6997c0a4e5d7ee741a3f9fddca7643893 |
 | Worktree clean | no |
-| Uncommitted files | 36 |
-| Generated at | 2026-08-05T22:39:52.658Z |
+| Uncommitted files | 28 |
+| Generated at | 2026-08-06T02:56:28.792Z |
 
 ## Capability implemented
 
-`persistence.production-runtime-wiring` — lifecycle **certified**
+`persistence.rls-certification` — lifecycle **certified**
 
-## Files modified (38)
+## Files modified (30)
 
 - `.github/workflows/ci.yml`
-- `apps/web/app/api/health/live/route.ts`
-- `apps/web/app/api/health/ready/route.ts`
-- `apps/web/instrumentation.ts`
-- `apps/web/lib/persistence.test.ts`
-- `apps/web/lib/persistence.ts`
-- `apps/web/lib/route-coverage.test.ts`
-- `apps/web/lib/route-permissions.test.ts`
-- `apps/web/lib/route-permissions.ts`
-- `apps/web/lib/shutdown.ts`
 - `apps/web/lib/trust-app.ts`
-- `apps/web/package.json`
-- `docs/governance/execution-ledger/2387406b853a-persistence.production-runtime-wiring.json`
+- `docs/governance/execution-ledger/1a2913b6997c-persistence.rls-certification.json`
 - `docs/governance/execution-ledger/INDEX.md`
 - `docs/governance/reos/capability-registry.json`
 - `docs/governance/reos/generated/CERTIFICATION_REPORT.md`
@@ -41,34 +31,32 @@
 - `docs/governance/reos/generated/discovery.json`
 - `docs/governance/reos/generated/execution-manifest.json`
 - `docs/governance/reos/generated/forensics.json`
-- `package.json`
-- `packages/database-testing/src/migrations.postgres.test.ts`
+- `packages/audit-ledger/src/audit-ledger.postgres.test.ts`
+- `packages/database-testing/src/index.ts`
+- `packages/database-testing/src/postgres-store.postgres.test.ts`
+- `packages/database-testing/src/rls-certification.postgres.test.ts`
+- `packages/database/src/index.ts`
 - `packages/database/src/migrations.ts`
-- `packages/reos/src/reos.persistence.test.ts`
+- `packages/database/src/postgres-store.ts`
+- `packages/database/src/rls-certification.test.ts`
+- `packages/database/src/rls-certification.ts`
+- `packages/database/src/trust-scope.ts`
+- `packages/reos/src/reos.e2e.test.ts`
+- `packages/reos/src/reos.integration.test.ts`
 - `packages/reos/src/validators/persistence.ts`
-- `packages/runtime/package.json`
-- `packages/runtime/src/config.test.ts`
-- `packages/runtime/src/config.ts`
-- `packages/runtime/src/index.ts`
 - `packages/runtime/src/persistence-runtime.postgres.test.ts`
-- `packages/runtime/src/persistence-runtime.ts`
-- `pnpm-lock.yaml`
-- `tsconfig.json`
-- `vitest.config.ts`
-- `vitest.postgres.config.ts`
+- `packages/runtime/src/rls-runtime.postgres.test.ts`
+- `supabase/migrations/202608070001_trust_row_level_security.sql`
+- `supabase/migrations/202608070002_trust_audit_chain_per_tenant.sql`
 
 ## Validation
 
 | Validator | Result | Checked | Errors | Warnings |
 | --- | --- | --- | --- | --- |
-| architecture | pass | 183 | 0 | 0 |
+| architecture | pass | 188 | 0 | 0 |
 | dependencies | pass | 26 | 0 | 0 |
-| security | pass | 268 | 0 | 0 |
-| execution-contract | pass | 28 | 0 | 1 |
-
-### Findings
-
-- **warning** `contract/tests-not-updated` (packages/database/src) — packages/database has modified source but no modified tests in this change.
+| security | pass | 270 | 0 | 0 |
+| execution-contract | pass | 20 | 0 | 0 |
 
 ## Governance
 
@@ -80,20 +68,18 @@ No newly introduced violations.
 
 **PASSED** — every certification gate is green.
 
-## Remaining backlog (1)
+## Remaining backlog (0)
 
-| Capability | Status | Executable | Blocked by |
-| --- | --- | --- | --- |
-| persistence.rls-certification | missing | yes |  |
+Backlog empty.
 
 ## Recommended next capability
 
-`persistence.rls-certification` — Row Level Security certification
+None available.
 
 ## Ledger
 
-Recorded as `2387406b853a-persistence.production-runtime-wiring` in `docs/governance/execution-ledger/`.
+Recorded as `1a2913b6997c-persistence.rls-certification` in `docs/governance/execution-ledger/`.
 
 ## Commit
 
-`2387406b853ac2b1e7040eddd663d8f813294498`
+`1a2913b6997c0a4e5d7ee741a3f9fddca7643893`

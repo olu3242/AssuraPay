@@ -1,7 +1,17 @@
 {
-  "awaitingInfrastructure": [],
-  "blocked": [],
-  "completed": [
+  "branch": "feat/persistence-rls-certification",
+  "capabilityId": "persistence.rls-certification",
+  "certification": {
+    "available": true,
+    "failedSteps": [],
+    "passed": true
+  },
+  "commit": "1a2913b6997c0a4e5d7ee741a3f9fddca7643893",
+  "entryId": "1a2913b6997c-persistence.rls-certification",
+  "lifecycle": "certified",
+  "manifestDigest": "f80eb817652b",
+  "recordedAt": "2026-08-06T02:56:28.102Z",
+  "supersedes": [
     "engine:01",
     "engine:02",
     "engine:03",
@@ -62,7 +72,6 @@
     "persistence.postgres-repository",
     "persistence.production-runtime-wiring",
     "persistence.repository-conformance",
-    "persistence.rls-certification",
     "reos.execution-os",
     "runtime.agent-registration",
     "settlement.non-custody-guard",
@@ -75,11 +84,30 @@
     "trust.route-permission-rollout",
     "trust.session-assertion-issuance"
   ],
-  "executable": [],
-  "head": "1a2913b6997c0a4e5d7ee741a3f9fddca7643893",
-  "rejected": [],
-  "reosVersion": "1.0.0",
-  "selected": null,
-  "selectionReason": null,
-  "stage": "dependencies"
+  "validation": [
+    {
+      "errors": 0,
+      "passed": true,
+      "validator": "architecture",
+      "warnings": 0
+    },
+    {
+      "errors": 0,
+      "passed": true,
+      "validator": "dependencies",
+      "warnings": 0
+    },
+    {
+      "errors": 0,
+      "passed": true,
+      "validator": "security",
+      "warnings": 0
+    },
+    {
+      "errors": 0,
+      "passed": true,
+      "validator": "execution-contract",
+      "warnings": 0
+    }
+  ]
 }
