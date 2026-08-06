@@ -284,9 +284,15 @@ export async function applyRlsMigration(sql: SqlClient): Promise<void> {
   const migrations = readMigrations(migrationsDirectory()).filter(
     (entry) =>
       entry.id.endsWith('trust_row_level_security') ||
-      entry.id.endsWith('trust_audit_chain_per_tenant'),
+      entry.id.endsWith('trust_audit_chain_per_tenant') ||
+      // Reconciliation too, because the runtime requires it and a harness whose schemas were
+      // missing a required migration would produce a database no host would start against.
+      // It is existence-conditional, so on a trust-only schema it marks nothing and drops
+      // nothing — which is the correct outcome when the historical model was never created.
+      entry.id.endsWith('trust_schema_ownership_reconciliation'),
   );
-  if (migrations.length !== 2) throw new Error('a row-level-security migration is missing');
+  if (migrations.length !== 3)
+    throw new Error('a row-level-security or reconciliation migration is missing');
   await sql.begin(async (tx) => {
     for (const migration of migrations) {
       await tx.unsafe(migration.sql);

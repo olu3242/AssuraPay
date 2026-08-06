@@ -4,11 +4,25 @@
 
 ## Selected capability
 
-No executable capability. Every backlog item is blocked, deferred or complete.
+| Field | Value |
+| --- | --- |
+| Capability | persistence.domain-store-durability |
+| Title | Domain store durability for Engines 06-60 |
+| Current status | missing |
+| Lifecycle | planned |
+| Priority | 43 |
+| Reason | Highest-priority executable capability (priority 43, lifecycle planned) — selected despite needing live infrastructure, nothing else is executable |
+| Depends on | persistence.schema-ownership-reconciliation |
+| Unmet dependencies | none |
+| Blocks (transitive) | — |
+| Declared scope | 1 file(s), 1 test suite(s) |
+| Requires live infrastructure | yes |
 
 ## Executable queue
 
-Empty.
+| Capability | Title | Lifecycle | Priority | Blocks | Live infra |
+| --- | --- | --- | --- | --- | --- |
+| persistence.domain-store-durability | Domain store durability for Engines 06-60 | planned | 43 | — | yes |
 
 ## Blocked
 
@@ -16,9 +30,9 @@ Nothing blocked.
 
 ## Awaiting live infrastructure
 
-None.
+- persistence.domain-store-durability
 
-## Completed (72)
+## Completed (73)
 
 - engine:01
 - engine:02
@@ -81,6 +95,7 @@ None.
 - persistence.production-runtime-wiring
 - persistence.repository-conformance
 - persistence.rls-certification
+- persistence.schema-ownership-reconciliation
 - reos.execution-os
 - runtime.agent-registration
 - settlement.non-custody-guard

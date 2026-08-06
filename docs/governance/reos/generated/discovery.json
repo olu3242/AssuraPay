@@ -704,6 +704,11 @@
     },
     {
       "category": "architecture",
+      "path": "docs/architecture/SCHEMA_OWNERSHIP.md",
+      "title": "Trust schema ownership"
+    },
+    {
+      "category": "architecture",
       "path": "docs/architecture/SETTLEMENT_ASSURANCE_ARCHITECTURE.md",
       "title": "Settlement Assurance Architecture"
     },
@@ -1896,6 +1901,13 @@
       "id": "202608070002",
       "name": "trust_audit_chain_per_tenant",
       "path": "supabase/migrations/202608070002_trust_audit_chain_per_tenant.sql"
+    },
+    {
+      "declaresPolicies": 0,
+      "declaresRowLevelSecurity": false,
+      "id": "202608080001",
+      "name": "trust_schema_ownership_reconciliation",
+      "path": "supabase/migrations/202608080001_trust_schema_ownership_reconciliation.sql"
     }
   ],
   "packages": [
@@ -2081,11 +2093,12 @@
       "main": "src/index.ts",
       "moduleType": null,
       "name": "@assurapay/database",
-      "sourceFiles": 8,
-      "sourceLines": 2645,
+      "sourceFiles": 9,
+      "sourceLines": 3146,
       "testFiles": [
         "packages/database/src/async-conformance.test.ts",
         "packages/database/src/rls-certification.test.ts",
+        "packages/database/src/schema-ownership.test.ts",
         "packages/database/src/trust-migrations.integration.test.ts",
         "packages/database/src/trust-store.test.ts"
       ],
@@ -2094,7 +2107,7 @@
         "integration": 1,
         "performance": 0,
         "security": 0,
-        "unit": 3
+        "unit": 4
       },
       "workspaceDependencies": [
         "@assurapay/shared"
@@ -2110,18 +2123,19 @@
       "moduleType": null,
       "name": "@assurapay/database-testing",
       "sourceFiles": 1,
-      "sourceLines": 358,
+      "sourceLines": 364,
       "testFiles": [
         "packages/database-testing/src/migrations.postgres.test.ts",
         "packages/database-testing/src/postgres-store.postgres.test.ts",
-        "packages/database-testing/src/rls-certification.postgres.test.ts"
+        "packages/database-testing/src/rls-certification.postgres.test.ts",
+        "packages/database-testing/src/schema-ownership.postgres.test.ts"
       ],
       "tests": {
         "e2e": 0,
         "integration": 0,
         "performance": 0,
         "security": 0,
-        "unit": 3
+        "unit": 4
       },
       "workspaceDependencies": [
         "@assurapay/database",
@@ -2510,7 +2524,7 @@
       "moduleType": "module",
       "name": "@assurapay/reos",
       "sourceFiles": 25,
-      "sourceLines": 4646,
+      "sourceLines": 4704,
       "testFiles": [
         "packages/reos/src/reos.e2e.test.ts",
         "packages/reos/src/reos.governance.test.ts",
@@ -2541,7 +2555,7 @@
       "moduleType": null,
       "name": "@assurapay/runtime",
       "sourceFiles": 3,
-      "sourceLines": 669,
+      "sourceLines": 701,
       "testFiles": [
         "packages/runtime/src/config.test.ts",
         "packages/runtime/src/persistence-runtime.postgres.test.ts",
@@ -2693,13 +2707,14 @@
   "reosVersion": "1.0.0",
   "repository": {
     "git": {
-      "branch": "feat/persistence-rls-certification",
+      "branch": "feat/persistence-schema-ownership-reconciliation",
       "branches": [
         "claude/git-pull-cqc04u",
         "feat/persistence-async-repository-interface",
         "feat/persistence-postgres-trust-store",
         "feat/persistence-production-runtime-wiring",
         "feat/persistence-rls-certification",
+        "feat/persistence-schema-ownership-reconciliation",
         "main",
         "origin/claude/git-pull-cqc04u",
         "origin/claude/implementation-02q40a",
@@ -2718,11 +2733,30 @@
       ],
       "clean": false,
       "dirtyFiles": [
+        ".github/workflows/ci.yml",
+        "docs/architecture/SCHEMA_OWNERSHIP.md",
+        "docs/governance/reos/capability-registry.json",
+        "docs/governance/reos/generated/CERTIFICATION_REPORT.md",
+        "docs/governance/reos/generated/DEPENDENCY_RESOLUTION.md",
+        "docs/governance/reos/generated/EXECUTION_MANIFEST.md",
+        "docs/governance/reos/generated/certification.json",
+        "docs/governance/reos/generated/dependency-resolution.json",
+        "docs/governance/reos/generated/discovery.json",
+        "docs/governance/reos/generated/execution-manifest.json",
+        "docs/governance/reos/generated/forensics.json",
         "packages/database-testing/src/index.ts",
-        "packages/database-testing/src/rls-certification.postgres.test.ts"
+        "packages/database-testing/src/schema-ownership.postgres.test.ts",
+        "packages/database/src/index.ts",
+        "packages/database/src/migrations.ts",
+        "packages/database/src/schema-ownership.test.ts",
+        "packages/database/src/schema-ownership.ts",
+        "packages/reos/src/reos.persistence.test.ts",
+        "packages/reos/src/validators/persistence.ts",
+        "packages/runtime/src/persistence-runtime.ts",
+        "supabase/migrations/202608080001_trust_schema_ownership_reconciliation.sql"
       ],
-      "head": "d0816647eda267035e2a43c6c853f0ceacf9043a",
-      "headShort": "d081664",
+      "head": "ea6cbb6560b676efccf3a59e3d92aabebdb77dc8",
+      "headShort": "ea6cbb6",
       "reflogAvailable": true,
       "remotes": [
         "origin"
@@ -2731,7 +2765,7 @@
         "platform-trust-foundation",
         "rc-engine-60"
       ],
-      "upstream": "origin/feat/persistence-rls-certification"
+      "upstream": null
     },
     "name": "assurapay",
     "packageManager": "pnpm@11.3.0",
@@ -2913,17 +2947,17 @@
       "integration": 15,
       "performance": 2,
       "security": 3,
-      "unit": 48
+      "unit": 50
     },
-    "files": 83
+    "files": 85
   },
   "totals": {
     "applications": 1,
-    "documents": 140,
+    "documents": 141,
     "engines": 60,
-    "migrations": 23,
+    "migrations": 24,
     "packages": 25,
-    "testFiles": 83
+    "testFiles": 85
   },
   "workflows": [
     {

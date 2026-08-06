@@ -103,6 +103,45 @@ export const ASYNC_PERSISTENCE_RULES: readonly AsyncPersistenceRule[] = Object.f
     rationale:
       'A NEXT_PUBLIC_ variable is compiled into the browser bundle. One naming a database or a persistence mode publishes deployment topology and offers a client a say in where data goes.',
   },
+  {
+    rule: 'persistence/retired-table-reference',
+    rationale:
+      'A retired trust table is not the canonical owner of anything and no longer exists after reconciliation. SQL naming one either targets a model with no rows or resurrects a second writable model for an aggregate that already has an owner.',
+  },
+]);
+
+/**
+ * Trust-domain tables retired by `202608080001_trust_schema_ownership_reconciliation`.
+ *
+ * Restated here rather than imported from `@assurapay/database`: the validators must not
+ * depend on the packages they validate, or a broken package takes the tool that would have
+ * reported it down with it. `packages/database/src/schema-ownership.test.ts` pins the two
+ * lists against each other, so drift fails a test rather than going unnoticed.
+ */
+const RETIRED_TRUST_TABLES = Object.freeze([
+  'audit_records', 'authentication_methods', 'authority_rules', 'beneficiary_account_references',
+  'consent_records', 'delegations', 'event_outbox', 'field_permissions', 'legal_entities',
+  'legal_holds', 'legal_policies', 'legal_policy_versions', 'organization_units', 'organizations',
+  'parties', 'permission_definitions', 'permission_grants', 'policy_acceptances',
+  'policy_assignments', 'role_definitions', 'segregation_rules', 'signature_policies',
+  'step_up_challenges', 'trusted_devices', 'user_sessions', 'verification_requests',
+  'verification_results', 'workspace_invitations',
+]);
+
+/**
+ * Modules allowed to name a retired table.
+ *
+ * The registry that records the retirement, and the validator's own vocabulary. Nothing else:
+ * the point of retiring an object is that code stops referring to it.
+ */
+const RETIRED_TABLE_VOCABULARY = Object.freeze([
+  'packages/database/src/schema-ownership.ts',
+  'packages/reos/src/validators/persistence.ts',
+  // The suite that certifies the retirement. It has to seed a retired table to prove the
+  // migration refuses rather than discards, and recreate one to prove the certification
+  // notices — neither of which is possible without naming them. A rule that forbade its own
+  // evidence would be a rule nothing could demonstrate.
+  'packages/database-testing/src/schema-ownership.postgres.test.ts',
 ]);
 
 /**
@@ -464,6 +503,28 @@ function checkAdapterBoundaries(repoRoot: string, files: readonly string[]): Fin
           location: at,
           subject: file,
         });
+
+      // SQL naming a retired trust table. Matched only in statement position, so a
+      // TypeScript identifier that happens to share the name — `permissionGrants`, a
+      // `parties` variable — is not a finding; what is forbidden is querying the object.
+      if (!RETIRED_TABLE_VOCABULARY.includes(file)) {
+        const sqlReference = line.match(
+          new RegExp(
+            String.raw`(?:FROM|INTO|UPDATE|JOIN|TABLE)\s+"?(` +
+              RETIRED_TRUST_TABLES.join('|') +
+              String.raw`)"?\b`,
+            'i',
+          ),
+        );
+        if (sqlReference)
+          findings.push({
+            rule: 'persistence/retired-table-reference',
+            severity: 'error',
+            message: `${at} issues SQL against ${sqlReference[1]}, which was retired by 202608080001_trust_schema_ownership_reconciliation. The canonical owner is a trust_* table; see packages/database/src/schema-ownership.ts.`,
+            location: at,
+            subject: file,
+          });
+      }
 
       if (isTestFile(file)) continue;
       for (const helper of TEST_HELPER_MODULES)

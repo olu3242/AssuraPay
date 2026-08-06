@@ -345,3 +345,4 @@ export * from './postgres-store';
 export * from './migrations';
 export * from './trust-scope';
 export * from './rls-certification';
+export * from './schema-ownership';

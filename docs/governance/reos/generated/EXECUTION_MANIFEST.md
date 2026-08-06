@@ -9,10 +9,10 @@
 | --- | --- |
 | Repository | assurapay |
 | Version | 0.1.0 |
-| Branch | feat/persistence-rls-certification |
-| HEAD | d0816647eda267035e2a43c6c853f0ceacf9043a |
+| Branch | feat/persistence-schema-ownership-reconciliation |
+| HEAD | ea6cbb6560b676efccf3a59e3d92aabebdb77dc8 |
 | Worktree clean | no |
-| Manifest digest | 5ee357ea901f |
+| Manifest digest | 31f5a2094ffa |
 | REOS version | 1.0.0 |
 
 ## Architecture
@@ -26,8 +26,9 @@
 
 | Lifecycle | Count |
 | --- | --- |
+| planned | 1 |
 | certified | 1 |
-| released | 71 |
+| released | 72 |
 | deferred | 4 |
 
 ## Engine reconciliation
@@ -103,10 +104,12 @@ from repository evidence: package presence, test files, and certification wiring
 | Capability | Title | Status | Lifecycle | Probes | Rationale |
 | --- | --- | --- | --- | --- | --- |
 | persistence.async-repository-interface | Asynchronous repository interface | implemented | released | 5/5 | All 5 evidence probes satisfied at HEAD. |
+| persistence.domain-store-durability | Domain store durability for Engines 06-60 | missing | planned | 0/4 | No evidence at HEAD, on any ref, or in history. |
 | persistence.postgres-repository | PostgreSQL repository implementation | implemented | released | 10/10 | All 10 evidence probes satisfied at HEAD. |
 | persistence.production-runtime-wiring | Production persistence runtime wiring | implemented | released | 10/10 | All 10 evidence probes satisfied at HEAD. |
 | persistence.repository-conformance | TrustPersistence conformance specification | implemented | released | 4/4 | All 4 evidence probes satisfied at HEAD. |
-| persistence.rls-certification | Row Level Security certification | implemented | certified | 8/8 | All 8 evidence probes satisfied at HEAD. |
+| persistence.rls-certification | Row Level Security certification | implemented | released | 8/8 | All 8 evidence probes satisfied at HEAD. |
+| persistence.schema-ownership-reconciliation | Trust schema ownership reconciliation | implemented | certified | 8/8 | All 8 evidence probes satisfied at HEAD. |
 | reos.execution-os | Repository Execution Operating System | implemented | released | 7/7 | All 7 evidence probes satisfied at HEAD. |
 | runtime.agent-registration | Agent Runtime registration | implemented | released | 3/3 | All 3 evidence probes satisfied at HEAD. |
 | settlement.non-custody-guard | Non-custody architectural guard | implemented | released | 4/4 | All 4 evidence probes satisfied at HEAD. |
@@ -141,9 +144,11 @@ from repository evidence: package presence, test files, and certification wiring
 
 ## Execution backlog
 
-0 open item(s). Highest-priority first.
+1 open item(s). Highest-priority first.
 
-Backlog empty.
+| Capability | Title | Lifecycle | Priority | Executable | Blocked by | Blocks |
+| --- | --- | --- | --- | --- | --- | --- |
+| persistence.domain-store-durability | Domain store durability for Engines 06-60 | planned | 43 | yes | — | — |
 
 ## Certification coverage
 

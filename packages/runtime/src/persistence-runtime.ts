@@ -7,6 +7,7 @@ import {
   checkConnectivity,
   createPostgresPool,
   sanitizeDatabaseFailure,
+  certifySchemaOwnership,
   verifySchemaCompatibility,
 } from '@assurapay/database';
 import type { PostgresPool } from '@assurapay/database';
@@ -44,6 +45,13 @@ export type PersistenceReadinessCode =
   | 'DATABASE_UNREACHABLE'
   | 'MIGRATIONS_PENDING'
   | 'SCHEMA_INCOMPATIBLE'
+  /**
+   * The database holds two relational models for the same trust aggregate, or the runtime can
+   * write an object it does not own. Distinct from SCHEMA_INCOMPATIBLE because the tables the
+   * store needs are all present: what is wrong is which of them owns what, and a host that
+   * started anyway would be one console session away from writing the wrong model.
+   */
+  | 'SCHEMA_OWNERSHIP_UNRECONCILED'
   | 'POOL_CLOSED'
   | 'SHUTTING_DOWN';
 
@@ -347,6 +355,31 @@ function postgresRuntime(
             ready: false,
             code: 'MIGRATIONS_PENDING',
             detail: `${compatibility.pendingRequired.length} required migration(s) pending`,
+            checkedAt,
+          };
+        }
+
+        // Ownership, after the tables exist and the migrations are in. Readiness must not be
+        // satisfiable by "both schemas are present" — that was true of every database before
+        // this capability, and it is the condition it exists to refuse. Findings are reported
+        // by code and table only: the detail reaches logs, and a policy expression or a
+        // connection string never should.
+        // No schema passed: it is resolved from the connection's own `search_path`, so the
+        // certification reads the schema the store actually writes rather than assuming one.
+        const ownership = await certifySchemaOwnership(pool.sql).catch(() => undefined);
+        if (!ownership || !ownership.safeToServe) {
+          state = 'degraded';
+          emit('runtime.unready', { code: 'SCHEMA_OWNERSHIP_UNRECONCILED' });
+          return {
+            ready: false,
+            code: 'SCHEMA_OWNERSHIP_UNRECONCILED',
+            detail: ownership
+              ? ownership.findings
+                  .filter((finding) => finding.severity === 'error')
+                  .slice(0, 4)
+                  .map((finding) => `${finding.code}${finding.table ? `:${finding.table}` : ''}`)
+                  .join(', ')
+              : 'schema ownership could not be read',
             checkedAt,
           };
         }
