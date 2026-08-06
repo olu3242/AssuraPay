@@ -1,7 +1,18 @@
 # Wave 4–5 domain-store durability — architecture decision
 
-**Status: PROPOSED.** Not accepted. No aggregate migrated, no table removed, no migration
-modified. Acceptance is a governance act and is not taken here.
+**Status: ACCEPTED.** The three decisions this document was waiting on were supplied by the
+owner and are recorded in the companion specifications below. The assessment that produced this
+document changed nothing: no aggregate was migrated, no table removed, no migration modified.
+Implementation proceeds under `persistence.domain-store-durability`.
+
+| Decision | Resolution | Specification |
+|---|---|---|
+| Monetary invariant set | fixed-scale integer minor units, ISO 4217, non-negative base amounts, signed effects only through explicit adjustment/reversal records, immutable posted values, tenant-scoped idempotency, exact reconciliation | `docs/finance/MONETARY_INVARIANTS.md` |
+| Double-entry enforcement | transactionally enforced PostgreSQL posting procedure plus deferred balance validation; application checks supplementary, never authoritative | `docs/finance/DOUBLE_ENTRY_POSTING_MODEL.md` |
+| Schema authority | canonical exported domain contracts and Zod schemas derived from engine semantics; the database enforces persistence invariants; `docs/DATA_SCHEMA.md` is supporting evidence, not automatically authoritative | `docs/persistence/WAVE_4_SCHEMA_AUTHORITY.md` |
+
+The recommendation below — Option D as the target, Option B in batches as the strategy, Option C
+rejected on the evidence — is unchanged by these decisions and is now the accepted plan.
 
 Evidence: `docs/certification/ENGINES_31_50_CERTIFICATION_GAP_MATRIX.md` and the three artifacts
 under `artifacts/certification/`.
