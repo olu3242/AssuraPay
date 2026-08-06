@@ -1,0 +1,3188 @@
+{
+  "canonicalSource": "docs/ENGINE_CATALOG.md",
+  "engineCount": 20,
+  "layerCount": 30,
+  "statusTally": {
+    "CERTIFIED": 270,
+    "PARTIALLY_CERTIFIED": 124,
+    "NOT_CERTIFIED": 170,
+    "NOT_APPLICABLE": 36
+  },
+  "collectionCount": 35,
+  "duplicateModelClassification": {
+    "classDeclared": 20,
+    "runtimeRegistered": 20,
+    "onTrustPersistence": 20,
+    "usingFileAssuraStore": 0,
+    "issuingRawSql": 0,
+    "apiRouteFiles": 163,
+    "relationalTableDead": 35,
+    "genericOnly": 0,
+    "dualWrite": 0
+  },
+  "schemaReadiness": {
+    "TYPE_EXISTS_SCHEMA_MISSING": 35
+  },
+  "engines": [
+    {
+      "engine": "31",
+      "canonicalName": "Execution Orchestration",
+      "package": "packages/execution-orchestration",
+      "engineClass": "ExecutionOrchestrationEngine",
+      "layers": [
+        {
+          "layer": "canonical-identity",
+          "status": "CERTIFIED",
+          "evidence": "catalogue name matches package class; docs/ENGINE_CATALOG.md"
+        },
+        {
+          "layer": "package-boundary",
+          "status": "CERTIFIED",
+          "evidence": "one package per five engines; no cross-package engine class"
+        },
+        {
+          "layer": "public-contracts",
+          "status": "CERTIFIED",
+          "evidence": "engine class exported from the package barrel"
+        },
+        {
+          "layer": "runtime-registration",
+          "status": "CERTIFIED",
+          "evidence": "apps/web/lib/trust-app.ts"
+        },
+        {
+          "layer": "dependency-declaration",
+          "status": "CERTIFIED",
+          "evidence": "imports @assurapay/shared only"
+        },
+        {
+          "layer": "command-handling",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "engine methods exist; no command bus or expected-version contract observed"
+        },
+        {
+          "layer": "query-handling",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "list/find via TrustPersistence; bounded pagination not enforced at the store"
+        },
+        {
+          "layer": "event-production",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_outbox_events exists; per-engine event coverage unverified"
+        },
+        {
+          "layer": "event-consumption",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no consumer of wave 4-5 events found in the repository"
+        },
+        {
+          "layer": "authorization",
+          "status": "CERTIFIED",
+          "evidence": "apps/web/lib/route-coverage.test.ts passes with zero unmapped protected routes"
+        },
+        {
+          "layer": "route-permission-mapping",
+          "status": "CERTIFIED",
+          "evidence": "route-coverage test is the oracle; 0 unmapped"
+        },
+        {
+          "layer": "tenant-isolation",
+          "status": "CERTIFIED",
+          "evidence": "trust_records FORCE RLS with tenant predicate"
+        },
+        {
+          "layer": "workspace-isolation",
+          "status": "CERTIFIED",
+          "evidence": "trust_records policy carries workspace scope"
+        },
+        {
+          "layer": "postgresql-durability",
+          "status": "CERTIFIED",
+          "evidence": "PostgresTrustStore via RuntimeTrustStore; zero memory fallback"
+        },
+        {
+          "layer": "aggregate-schema-validation",
+          "status": "NOT_CERTIFIED",
+          "evidence": "zero Zod schemas in packages; payload is unvalidated JSONB"
+        },
+        {
+          "layer": "relational-integrity",
+          "status": "NOT_CERTIFIED",
+          "evidence": "aggregates live in trust_records with no per-aggregate FK, unique or check constraint"
+        },
+        {
+          "layer": "idempotency",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_idempotency_keys exists; per-command coverage unverified"
+        },
+        {
+          "layer": "concurrency-control",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_records.version present; per-engine expected-version use unverified"
+        },
+        {
+          "layer": "audit-trail",
+          "status": "CERTIFIED",
+          "evidence": "trust_audit_records, per-tenant hash chain, append-only trigger"
+        },
+        {
+          "layer": "observability",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no wave 4-5 metric, trace or health signal found"
+        },
+        {
+          "layer": "error-taxonomy",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no governed failure taxonomy covers these engines"
+        },
+        {
+          "layer": "retry-recovery",
+          "status": "NOT_CERTIFIED",
+          "evidence": "persistence.operational-resilience is absent from the repository"
+        },
+        {
+          "layer": "integration-coverage",
+          "status": "CERTIFIED",
+          "evidence": "*.integration.test.ts present in each package"
+        },
+        {
+          "layer": "end-to-end-coverage",
+          "status": "CERTIFIED",
+          "evidence": "*.e2e.test.ts present in each package"
+        },
+        {
+          "layer": "live-postgresql-coverage",
+          "status": "NOT_CERTIFIED",
+          "evidence": "42 of 42 store instantiations use InMemoryTrustStore; no *.postgres.test.ts in any wave 4-5 package"
+        },
+        {
+          "layer": "rls-enforcement",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_records forced; the purpose-built tables for the same aggregates are ENABLE-only"
+        },
+        {
+          "layer": "non-custody-boundary",
+          "status": "NOT_APPLICABLE",
+          "evidence": "settlement-*.non-custody.test.ts"
+        },
+        {
+          "layer": "financial-integrity",
+          "status": "NOT_APPLICABLE",
+          "evidence": "no database-enforced money, balance or immutability on trust_records, the table actually written"
+        },
+        {
+          "layer": "evidence-integrity",
+          "status": "NOT_APPLICABLE",
+          "evidence": "payload_digest on trust_records; no per-evidence checksum constraint"
+        },
+        {
+          "layer": "production-readiness",
+          "status": "NOT_CERTIFIED",
+          "evidence": "derived from aggregate-schema-validation, relational-integrity and financial-integrity"
+        }
+      ]
+    },
+    {
+      "engine": "32",
+      "canonicalName": "Progress Measurement",
+      "package": "packages/execution-orchestration",
+      "engineClass": "ProgressMeasurementEngine",
+      "layers": [
+        {
+          "layer": "canonical-identity",
+          "status": "CERTIFIED",
+          "evidence": "catalogue name matches package class; docs/ENGINE_CATALOG.md"
+        },
+        {
+          "layer": "package-boundary",
+          "status": "CERTIFIED",
+          "evidence": "one package per five engines; no cross-package engine class"
+        },
+        {
+          "layer": "public-contracts",
+          "status": "CERTIFIED",
+          "evidence": "engine class exported from the package barrel"
+        },
+        {
+          "layer": "runtime-registration",
+          "status": "CERTIFIED",
+          "evidence": "apps/web/lib/trust-app.ts"
+        },
+        {
+          "layer": "dependency-declaration",
+          "status": "CERTIFIED",
+          "evidence": "imports @assurapay/shared only"
+        },
+        {
+          "layer": "command-handling",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "engine methods exist; no command bus or expected-version contract observed"
+        },
+        {
+          "layer": "query-handling",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "list/find via TrustPersistence; bounded pagination not enforced at the store"
+        },
+        {
+          "layer": "event-production",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_outbox_events exists; per-engine event coverage unverified"
+        },
+        {
+          "layer": "event-consumption",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no consumer of wave 4-5 events found in the repository"
+        },
+        {
+          "layer": "authorization",
+          "status": "CERTIFIED",
+          "evidence": "apps/web/lib/route-coverage.test.ts passes with zero unmapped protected routes"
+        },
+        {
+          "layer": "route-permission-mapping",
+          "status": "CERTIFIED",
+          "evidence": "route-coverage test is the oracle; 0 unmapped"
+        },
+        {
+          "layer": "tenant-isolation",
+          "status": "CERTIFIED",
+          "evidence": "trust_records FORCE RLS with tenant predicate"
+        },
+        {
+          "layer": "workspace-isolation",
+          "status": "CERTIFIED",
+          "evidence": "trust_records policy carries workspace scope"
+        },
+        {
+          "layer": "postgresql-durability",
+          "status": "CERTIFIED",
+          "evidence": "PostgresTrustStore via RuntimeTrustStore; zero memory fallback"
+        },
+        {
+          "layer": "aggregate-schema-validation",
+          "status": "NOT_CERTIFIED",
+          "evidence": "zero Zod schemas in packages; payload is unvalidated JSONB"
+        },
+        {
+          "layer": "relational-integrity",
+          "status": "NOT_CERTIFIED",
+          "evidence": "aggregates live in trust_records with no per-aggregate FK, unique or check constraint"
+        },
+        {
+          "layer": "idempotency",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_idempotency_keys exists; per-command coverage unverified"
+        },
+        {
+          "layer": "concurrency-control",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_records.version present; per-engine expected-version use unverified"
+        },
+        {
+          "layer": "audit-trail",
+          "status": "CERTIFIED",
+          "evidence": "trust_audit_records, per-tenant hash chain, append-only trigger"
+        },
+        {
+          "layer": "observability",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no wave 4-5 metric, trace or health signal found"
+        },
+        {
+          "layer": "error-taxonomy",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no governed failure taxonomy covers these engines"
+        },
+        {
+          "layer": "retry-recovery",
+          "status": "NOT_CERTIFIED",
+          "evidence": "persistence.operational-resilience is absent from the repository"
+        },
+        {
+          "layer": "integration-coverage",
+          "status": "CERTIFIED",
+          "evidence": "*.integration.test.ts present in each package"
+        },
+        {
+          "layer": "end-to-end-coverage",
+          "status": "CERTIFIED",
+          "evidence": "*.e2e.test.ts present in each package"
+        },
+        {
+          "layer": "live-postgresql-coverage",
+          "status": "NOT_CERTIFIED",
+          "evidence": "42 of 42 store instantiations use InMemoryTrustStore; no *.postgres.test.ts in any wave 4-5 package"
+        },
+        {
+          "layer": "rls-enforcement",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_records forced; the purpose-built tables for the same aggregates are ENABLE-only"
+        },
+        {
+          "layer": "non-custody-boundary",
+          "status": "NOT_APPLICABLE",
+          "evidence": "settlement-*.non-custody.test.ts"
+        },
+        {
+          "layer": "financial-integrity",
+          "status": "NOT_APPLICABLE",
+          "evidence": "no database-enforced money, balance or immutability on trust_records, the table actually written"
+        },
+        {
+          "layer": "evidence-integrity",
+          "status": "NOT_APPLICABLE",
+          "evidence": "payload_digest on trust_records; no per-evidence checksum constraint"
+        },
+        {
+          "layer": "production-readiness",
+          "status": "NOT_CERTIFIED",
+          "evidence": "derived from aggregate-schema-validation, relational-integrity and financial-integrity"
+        }
+      ]
+    },
+    {
+      "engine": "33",
+      "canonicalName": "Evidence Management",
+      "package": "packages/execution-orchestration",
+      "engineClass": "EvidenceManagementEngine",
+      "layers": [
+        {
+          "layer": "canonical-identity",
+          "status": "CERTIFIED",
+          "evidence": "catalogue name matches package class; docs/ENGINE_CATALOG.md"
+        },
+        {
+          "layer": "package-boundary",
+          "status": "CERTIFIED",
+          "evidence": "one package per five engines; no cross-package engine class"
+        },
+        {
+          "layer": "public-contracts",
+          "status": "CERTIFIED",
+          "evidence": "engine class exported from the package barrel"
+        },
+        {
+          "layer": "runtime-registration",
+          "status": "CERTIFIED",
+          "evidence": "apps/web/lib/trust-app.ts"
+        },
+        {
+          "layer": "dependency-declaration",
+          "status": "CERTIFIED",
+          "evidence": "imports @assurapay/shared only"
+        },
+        {
+          "layer": "command-handling",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "engine methods exist; no command bus or expected-version contract observed"
+        },
+        {
+          "layer": "query-handling",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "list/find via TrustPersistence; bounded pagination not enforced at the store"
+        },
+        {
+          "layer": "event-production",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_outbox_events exists; per-engine event coverage unverified"
+        },
+        {
+          "layer": "event-consumption",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no consumer of wave 4-5 events found in the repository"
+        },
+        {
+          "layer": "authorization",
+          "status": "CERTIFIED",
+          "evidence": "apps/web/lib/route-coverage.test.ts passes with zero unmapped protected routes"
+        },
+        {
+          "layer": "route-permission-mapping",
+          "status": "CERTIFIED",
+          "evidence": "route-coverage test is the oracle; 0 unmapped"
+        },
+        {
+          "layer": "tenant-isolation",
+          "status": "CERTIFIED",
+          "evidence": "trust_records FORCE RLS with tenant predicate"
+        },
+        {
+          "layer": "workspace-isolation",
+          "status": "CERTIFIED",
+          "evidence": "trust_records policy carries workspace scope"
+        },
+        {
+          "layer": "postgresql-durability",
+          "status": "CERTIFIED",
+          "evidence": "PostgresTrustStore via RuntimeTrustStore; zero memory fallback"
+        },
+        {
+          "layer": "aggregate-schema-validation",
+          "status": "NOT_CERTIFIED",
+          "evidence": "zero Zod schemas in packages; payload is unvalidated JSONB"
+        },
+        {
+          "layer": "relational-integrity",
+          "status": "NOT_CERTIFIED",
+          "evidence": "aggregates live in trust_records with no per-aggregate FK, unique or check constraint"
+        },
+        {
+          "layer": "idempotency",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_idempotency_keys exists; per-command coverage unverified"
+        },
+        {
+          "layer": "concurrency-control",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_records.version present; per-engine expected-version use unverified"
+        },
+        {
+          "layer": "audit-trail",
+          "status": "CERTIFIED",
+          "evidence": "trust_audit_records, per-tenant hash chain, append-only trigger"
+        },
+        {
+          "layer": "observability",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no wave 4-5 metric, trace or health signal found"
+        },
+        {
+          "layer": "error-taxonomy",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no governed failure taxonomy covers these engines"
+        },
+        {
+          "layer": "retry-recovery",
+          "status": "NOT_CERTIFIED",
+          "evidence": "persistence.operational-resilience is absent from the repository"
+        },
+        {
+          "layer": "integration-coverage",
+          "status": "CERTIFIED",
+          "evidence": "*.integration.test.ts present in each package"
+        },
+        {
+          "layer": "end-to-end-coverage",
+          "status": "CERTIFIED",
+          "evidence": "*.e2e.test.ts present in each package"
+        },
+        {
+          "layer": "live-postgresql-coverage",
+          "status": "NOT_CERTIFIED",
+          "evidence": "42 of 42 store instantiations use InMemoryTrustStore; no *.postgres.test.ts in any wave 4-5 package"
+        },
+        {
+          "layer": "rls-enforcement",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_records forced; the purpose-built tables for the same aggregates are ENABLE-only"
+        },
+        {
+          "layer": "non-custody-boundary",
+          "status": "NOT_APPLICABLE",
+          "evidence": "settlement-*.non-custody.test.ts"
+        },
+        {
+          "layer": "financial-integrity",
+          "status": "NOT_APPLICABLE",
+          "evidence": "no database-enforced money, balance or immutability on trust_records, the table actually written"
+        },
+        {
+          "layer": "evidence-integrity",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "payload_digest on trust_records; no per-evidence checksum constraint"
+        },
+        {
+          "layer": "production-readiness",
+          "status": "NOT_CERTIFIED",
+          "evidence": "derived from aggregate-schema-validation, relational-integrity and financial-integrity"
+        }
+      ]
+    },
+    {
+      "engine": "34",
+      "canonicalName": "Validation & Acceptance Testing",
+      "package": "packages/execution-orchestration",
+      "engineClass": "ValidationAcceptanceTestingEngine",
+      "layers": [
+        {
+          "layer": "canonical-identity",
+          "status": "CERTIFIED",
+          "evidence": "catalogue name matches package class; docs/ENGINE_CATALOG.md"
+        },
+        {
+          "layer": "package-boundary",
+          "status": "CERTIFIED",
+          "evidence": "one package per five engines; no cross-package engine class"
+        },
+        {
+          "layer": "public-contracts",
+          "status": "CERTIFIED",
+          "evidence": "engine class exported from the package barrel"
+        },
+        {
+          "layer": "runtime-registration",
+          "status": "CERTIFIED",
+          "evidence": "apps/web/lib/trust-app.ts"
+        },
+        {
+          "layer": "dependency-declaration",
+          "status": "CERTIFIED",
+          "evidence": "imports @assurapay/shared only"
+        },
+        {
+          "layer": "command-handling",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "engine methods exist; no command bus or expected-version contract observed"
+        },
+        {
+          "layer": "query-handling",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "list/find via TrustPersistence; bounded pagination not enforced at the store"
+        },
+        {
+          "layer": "event-production",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_outbox_events exists; per-engine event coverage unverified"
+        },
+        {
+          "layer": "event-consumption",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no consumer of wave 4-5 events found in the repository"
+        },
+        {
+          "layer": "authorization",
+          "status": "CERTIFIED",
+          "evidence": "apps/web/lib/route-coverage.test.ts passes with zero unmapped protected routes"
+        },
+        {
+          "layer": "route-permission-mapping",
+          "status": "CERTIFIED",
+          "evidence": "route-coverage test is the oracle; 0 unmapped"
+        },
+        {
+          "layer": "tenant-isolation",
+          "status": "CERTIFIED",
+          "evidence": "trust_records FORCE RLS with tenant predicate"
+        },
+        {
+          "layer": "workspace-isolation",
+          "status": "CERTIFIED",
+          "evidence": "trust_records policy carries workspace scope"
+        },
+        {
+          "layer": "postgresql-durability",
+          "status": "CERTIFIED",
+          "evidence": "PostgresTrustStore via RuntimeTrustStore; zero memory fallback"
+        },
+        {
+          "layer": "aggregate-schema-validation",
+          "status": "NOT_CERTIFIED",
+          "evidence": "zero Zod schemas in packages; payload is unvalidated JSONB"
+        },
+        {
+          "layer": "relational-integrity",
+          "status": "NOT_CERTIFIED",
+          "evidence": "aggregates live in trust_records with no per-aggregate FK, unique or check constraint"
+        },
+        {
+          "layer": "idempotency",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_idempotency_keys exists; per-command coverage unverified"
+        },
+        {
+          "layer": "concurrency-control",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_records.version present; per-engine expected-version use unverified"
+        },
+        {
+          "layer": "audit-trail",
+          "status": "CERTIFIED",
+          "evidence": "trust_audit_records, per-tenant hash chain, append-only trigger"
+        },
+        {
+          "layer": "observability",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no wave 4-5 metric, trace or health signal found"
+        },
+        {
+          "layer": "error-taxonomy",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no governed failure taxonomy covers these engines"
+        },
+        {
+          "layer": "retry-recovery",
+          "status": "NOT_CERTIFIED",
+          "evidence": "persistence.operational-resilience is absent from the repository"
+        },
+        {
+          "layer": "integration-coverage",
+          "status": "CERTIFIED",
+          "evidence": "*.integration.test.ts present in each package"
+        },
+        {
+          "layer": "end-to-end-coverage",
+          "status": "CERTIFIED",
+          "evidence": "*.e2e.test.ts present in each package"
+        },
+        {
+          "layer": "live-postgresql-coverage",
+          "status": "NOT_CERTIFIED",
+          "evidence": "42 of 42 store instantiations use InMemoryTrustStore; no *.postgres.test.ts in any wave 4-5 package"
+        },
+        {
+          "layer": "rls-enforcement",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_records forced; the purpose-built tables for the same aggregates are ENABLE-only"
+        },
+        {
+          "layer": "non-custody-boundary",
+          "status": "NOT_APPLICABLE",
+          "evidence": "settlement-*.non-custody.test.ts"
+        },
+        {
+          "layer": "financial-integrity",
+          "status": "NOT_APPLICABLE",
+          "evidence": "no database-enforced money, balance or immutability on trust_records, the table actually written"
+        },
+        {
+          "layer": "evidence-integrity",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "payload_digest on trust_records; no per-evidence checksum constraint"
+        },
+        {
+          "layer": "production-readiness",
+          "status": "NOT_CERTIFIED",
+          "evidence": "derived from aggregate-schema-validation, relational-integrity and financial-integrity"
+        }
+      ]
+    },
+    {
+      "engine": "35",
+      "canonicalName": "Quality Assurance",
+      "package": "packages/execution-orchestration",
+      "engineClass": "QualityAssuranceEngine",
+      "layers": [
+        {
+          "layer": "canonical-identity",
+          "status": "CERTIFIED",
+          "evidence": "catalogue name matches package class; docs/ENGINE_CATALOG.md"
+        },
+        {
+          "layer": "package-boundary",
+          "status": "CERTIFIED",
+          "evidence": "one package per five engines; no cross-package engine class"
+        },
+        {
+          "layer": "public-contracts",
+          "status": "CERTIFIED",
+          "evidence": "engine class exported from the package barrel"
+        },
+        {
+          "layer": "runtime-registration",
+          "status": "CERTIFIED",
+          "evidence": "apps/web/lib/trust-app.ts"
+        },
+        {
+          "layer": "dependency-declaration",
+          "status": "CERTIFIED",
+          "evidence": "imports @assurapay/shared only"
+        },
+        {
+          "layer": "command-handling",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "engine methods exist; no command bus or expected-version contract observed"
+        },
+        {
+          "layer": "query-handling",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "list/find via TrustPersistence; bounded pagination not enforced at the store"
+        },
+        {
+          "layer": "event-production",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_outbox_events exists; per-engine event coverage unverified"
+        },
+        {
+          "layer": "event-consumption",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no consumer of wave 4-5 events found in the repository"
+        },
+        {
+          "layer": "authorization",
+          "status": "CERTIFIED",
+          "evidence": "apps/web/lib/route-coverage.test.ts passes with zero unmapped protected routes"
+        },
+        {
+          "layer": "route-permission-mapping",
+          "status": "CERTIFIED",
+          "evidence": "route-coverage test is the oracle; 0 unmapped"
+        },
+        {
+          "layer": "tenant-isolation",
+          "status": "CERTIFIED",
+          "evidence": "trust_records FORCE RLS with tenant predicate"
+        },
+        {
+          "layer": "workspace-isolation",
+          "status": "CERTIFIED",
+          "evidence": "trust_records policy carries workspace scope"
+        },
+        {
+          "layer": "postgresql-durability",
+          "status": "CERTIFIED",
+          "evidence": "PostgresTrustStore via RuntimeTrustStore; zero memory fallback"
+        },
+        {
+          "layer": "aggregate-schema-validation",
+          "status": "NOT_CERTIFIED",
+          "evidence": "zero Zod schemas in packages; payload is unvalidated JSONB"
+        },
+        {
+          "layer": "relational-integrity",
+          "status": "NOT_CERTIFIED",
+          "evidence": "aggregates live in trust_records with no per-aggregate FK, unique or check constraint"
+        },
+        {
+          "layer": "idempotency",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_idempotency_keys exists; per-command coverage unverified"
+        },
+        {
+          "layer": "concurrency-control",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_records.version present; per-engine expected-version use unverified"
+        },
+        {
+          "layer": "audit-trail",
+          "status": "CERTIFIED",
+          "evidence": "trust_audit_records, per-tenant hash chain, append-only trigger"
+        },
+        {
+          "layer": "observability",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no wave 4-5 metric, trace or health signal found"
+        },
+        {
+          "layer": "error-taxonomy",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no governed failure taxonomy covers these engines"
+        },
+        {
+          "layer": "retry-recovery",
+          "status": "NOT_CERTIFIED",
+          "evidence": "persistence.operational-resilience is absent from the repository"
+        },
+        {
+          "layer": "integration-coverage",
+          "status": "CERTIFIED",
+          "evidence": "*.integration.test.ts present in each package"
+        },
+        {
+          "layer": "end-to-end-coverage",
+          "status": "CERTIFIED",
+          "evidence": "*.e2e.test.ts present in each package"
+        },
+        {
+          "layer": "live-postgresql-coverage",
+          "status": "NOT_CERTIFIED",
+          "evidence": "42 of 42 store instantiations use InMemoryTrustStore; no *.postgres.test.ts in any wave 4-5 package"
+        },
+        {
+          "layer": "rls-enforcement",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_records forced; the purpose-built tables for the same aggregates are ENABLE-only"
+        },
+        {
+          "layer": "non-custody-boundary",
+          "status": "NOT_APPLICABLE",
+          "evidence": "settlement-*.non-custody.test.ts"
+        },
+        {
+          "layer": "financial-integrity",
+          "status": "NOT_APPLICABLE",
+          "evidence": "no database-enforced money, balance or immutability on trust_records, the table actually written"
+        },
+        {
+          "layer": "evidence-integrity",
+          "status": "NOT_APPLICABLE",
+          "evidence": "payload_digest on trust_records; no per-evidence checksum constraint"
+        },
+        {
+          "layer": "production-readiness",
+          "status": "NOT_CERTIFIED",
+          "evidence": "derived from aggregate-schema-validation, relational-integrity and financial-integrity"
+        }
+      ]
+    },
+    {
+      "engine": "36",
+      "canonicalName": "Inspection & Field Verification",
+      "package": "packages/completion-assurance",
+      "engineClass": "InspectionEngine",
+      "layers": [
+        {
+          "layer": "canonical-identity",
+          "status": "CERTIFIED",
+          "evidence": "catalogue name matches package class; docs/ENGINE_CATALOG.md"
+        },
+        {
+          "layer": "package-boundary",
+          "status": "CERTIFIED",
+          "evidence": "one package per five engines; no cross-package engine class"
+        },
+        {
+          "layer": "public-contracts",
+          "status": "CERTIFIED",
+          "evidence": "engine class exported from the package barrel"
+        },
+        {
+          "layer": "runtime-registration",
+          "status": "CERTIFIED",
+          "evidence": "apps/web/lib/trust-app.ts"
+        },
+        {
+          "layer": "dependency-declaration",
+          "status": "CERTIFIED",
+          "evidence": "imports @assurapay/shared only"
+        },
+        {
+          "layer": "command-handling",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "engine methods exist; no command bus or expected-version contract observed"
+        },
+        {
+          "layer": "query-handling",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "list/find via TrustPersistence; bounded pagination not enforced at the store"
+        },
+        {
+          "layer": "event-production",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_outbox_events exists; per-engine event coverage unverified"
+        },
+        {
+          "layer": "event-consumption",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no consumer of wave 4-5 events found in the repository"
+        },
+        {
+          "layer": "authorization",
+          "status": "CERTIFIED",
+          "evidence": "apps/web/lib/route-coverage.test.ts passes with zero unmapped protected routes"
+        },
+        {
+          "layer": "route-permission-mapping",
+          "status": "CERTIFIED",
+          "evidence": "route-coverage test is the oracle; 0 unmapped"
+        },
+        {
+          "layer": "tenant-isolation",
+          "status": "CERTIFIED",
+          "evidence": "trust_records FORCE RLS with tenant predicate"
+        },
+        {
+          "layer": "workspace-isolation",
+          "status": "CERTIFIED",
+          "evidence": "trust_records policy carries workspace scope"
+        },
+        {
+          "layer": "postgresql-durability",
+          "status": "CERTIFIED",
+          "evidence": "PostgresTrustStore via RuntimeTrustStore; zero memory fallback"
+        },
+        {
+          "layer": "aggregate-schema-validation",
+          "status": "NOT_CERTIFIED",
+          "evidence": "zero Zod schemas in packages; payload is unvalidated JSONB"
+        },
+        {
+          "layer": "relational-integrity",
+          "status": "NOT_CERTIFIED",
+          "evidence": "aggregates live in trust_records with no per-aggregate FK, unique or check constraint"
+        },
+        {
+          "layer": "idempotency",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_idempotency_keys exists; per-command coverage unverified"
+        },
+        {
+          "layer": "concurrency-control",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_records.version present; per-engine expected-version use unverified"
+        },
+        {
+          "layer": "audit-trail",
+          "status": "CERTIFIED",
+          "evidence": "trust_audit_records, per-tenant hash chain, append-only trigger"
+        },
+        {
+          "layer": "observability",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no wave 4-5 metric, trace or health signal found"
+        },
+        {
+          "layer": "error-taxonomy",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no governed failure taxonomy covers these engines"
+        },
+        {
+          "layer": "retry-recovery",
+          "status": "NOT_CERTIFIED",
+          "evidence": "persistence.operational-resilience is absent from the repository"
+        },
+        {
+          "layer": "integration-coverage",
+          "status": "CERTIFIED",
+          "evidence": "*.integration.test.ts present in each package"
+        },
+        {
+          "layer": "end-to-end-coverage",
+          "status": "CERTIFIED",
+          "evidence": "*.e2e.test.ts present in each package"
+        },
+        {
+          "layer": "live-postgresql-coverage",
+          "status": "NOT_CERTIFIED",
+          "evidence": "42 of 42 store instantiations use InMemoryTrustStore; no *.postgres.test.ts in any wave 4-5 package"
+        },
+        {
+          "layer": "rls-enforcement",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_records forced; the purpose-built tables for the same aggregates are ENABLE-only"
+        },
+        {
+          "layer": "non-custody-boundary",
+          "status": "NOT_APPLICABLE",
+          "evidence": "settlement-*.non-custody.test.ts"
+        },
+        {
+          "layer": "financial-integrity",
+          "status": "NOT_APPLICABLE",
+          "evidence": "no database-enforced money, balance or immutability on trust_records, the table actually written"
+        },
+        {
+          "layer": "evidence-integrity",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "payload_digest on trust_records; no per-evidence checksum constraint"
+        },
+        {
+          "layer": "production-readiness",
+          "status": "NOT_CERTIFIED",
+          "evidence": "derived from aggregate-schema-validation, relational-integrity and financial-integrity"
+        }
+      ]
+    },
+    {
+      "engine": "37",
+      "canonicalName": "Issue, Risk & Corrective Action",
+      "package": "packages/completion-assurance",
+      "engineClass": "IssueRiskCorrectiveActionEngine",
+      "layers": [
+        {
+          "layer": "canonical-identity",
+          "status": "CERTIFIED",
+          "evidence": "catalogue name matches package class; docs/ENGINE_CATALOG.md"
+        },
+        {
+          "layer": "package-boundary",
+          "status": "CERTIFIED",
+          "evidence": "one package per five engines; no cross-package engine class"
+        },
+        {
+          "layer": "public-contracts",
+          "status": "CERTIFIED",
+          "evidence": "engine class exported from the package barrel"
+        },
+        {
+          "layer": "runtime-registration",
+          "status": "CERTIFIED",
+          "evidence": "apps/web/lib/trust-app.ts"
+        },
+        {
+          "layer": "dependency-declaration",
+          "status": "CERTIFIED",
+          "evidence": "imports @assurapay/shared only"
+        },
+        {
+          "layer": "command-handling",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "engine methods exist; no command bus or expected-version contract observed"
+        },
+        {
+          "layer": "query-handling",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "list/find via TrustPersistence; bounded pagination not enforced at the store"
+        },
+        {
+          "layer": "event-production",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_outbox_events exists; per-engine event coverage unverified"
+        },
+        {
+          "layer": "event-consumption",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no consumer of wave 4-5 events found in the repository"
+        },
+        {
+          "layer": "authorization",
+          "status": "CERTIFIED",
+          "evidence": "apps/web/lib/route-coverage.test.ts passes with zero unmapped protected routes"
+        },
+        {
+          "layer": "route-permission-mapping",
+          "status": "CERTIFIED",
+          "evidence": "route-coverage test is the oracle; 0 unmapped"
+        },
+        {
+          "layer": "tenant-isolation",
+          "status": "CERTIFIED",
+          "evidence": "trust_records FORCE RLS with tenant predicate"
+        },
+        {
+          "layer": "workspace-isolation",
+          "status": "CERTIFIED",
+          "evidence": "trust_records policy carries workspace scope"
+        },
+        {
+          "layer": "postgresql-durability",
+          "status": "CERTIFIED",
+          "evidence": "PostgresTrustStore via RuntimeTrustStore; zero memory fallback"
+        },
+        {
+          "layer": "aggregate-schema-validation",
+          "status": "NOT_CERTIFIED",
+          "evidence": "zero Zod schemas in packages; payload is unvalidated JSONB"
+        },
+        {
+          "layer": "relational-integrity",
+          "status": "NOT_CERTIFIED",
+          "evidence": "aggregates live in trust_records with no per-aggregate FK, unique or check constraint"
+        },
+        {
+          "layer": "idempotency",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_idempotency_keys exists; per-command coverage unverified"
+        },
+        {
+          "layer": "concurrency-control",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_records.version present; per-engine expected-version use unverified"
+        },
+        {
+          "layer": "audit-trail",
+          "status": "CERTIFIED",
+          "evidence": "trust_audit_records, per-tenant hash chain, append-only trigger"
+        },
+        {
+          "layer": "observability",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no wave 4-5 metric, trace or health signal found"
+        },
+        {
+          "layer": "error-taxonomy",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no governed failure taxonomy covers these engines"
+        },
+        {
+          "layer": "retry-recovery",
+          "status": "NOT_CERTIFIED",
+          "evidence": "persistence.operational-resilience is absent from the repository"
+        },
+        {
+          "layer": "integration-coverage",
+          "status": "CERTIFIED",
+          "evidence": "*.integration.test.ts present in each package"
+        },
+        {
+          "layer": "end-to-end-coverage",
+          "status": "CERTIFIED",
+          "evidence": "*.e2e.test.ts present in each package"
+        },
+        {
+          "layer": "live-postgresql-coverage",
+          "status": "NOT_CERTIFIED",
+          "evidence": "42 of 42 store instantiations use InMemoryTrustStore; no *.postgres.test.ts in any wave 4-5 package"
+        },
+        {
+          "layer": "rls-enforcement",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_records forced; the purpose-built tables for the same aggregates are ENABLE-only"
+        },
+        {
+          "layer": "non-custody-boundary",
+          "status": "NOT_APPLICABLE",
+          "evidence": "settlement-*.non-custody.test.ts"
+        },
+        {
+          "layer": "financial-integrity",
+          "status": "NOT_APPLICABLE",
+          "evidence": "no database-enforced money, balance or immutability on trust_records, the table actually written"
+        },
+        {
+          "layer": "evidence-integrity",
+          "status": "NOT_APPLICABLE",
+          "evidence": "payload_digest on trust_records; no per-evidence checksum constraint"
+        },
+        {
+          "layer": "production-readiness",
+          "status": "NOT_CERTIFIED",
+          "evidence": "derived from aggregate-schema-validation, relational-integrity and financial-integrity"
+        }
+      ]
+    },
+    {
+      "engine": "38",
+      "canonicalName": "Change Control",
+      "package": "packages/completion-assurance",
+      "engineClass": "ChangeControlEngine",
+      "layers": [
+        {
+          "layer": "canonical-identity",
+          "status": "CERTIFIED",
+          "evidence": "catalogue name matches package class; docs/ENGINE_CATALOG.md"
+        },
+        {
+          "layer": "package-boundary",
+          "status": "CERTIFIED",
+          "evidence": "one package per five engines; no cross-package engine class"
+        },
+        {
+          "layer": "public-contracts",
+          "status": "CERTIFIED",
+          "evidence": "engine class exported from the package barrel"
+        },
+        {
+          "layer": "runtime-registration",
+          "status": "CERTIFIED",
+          "evidence": "apps/web/lib/trust-app.ts"
+        },
+        {
+          "layer": "dependency-declaration",
+          "status": "CERTIFIED",
+          "evidence": "imports @assurapay/shared only"
+        },
+        {
+          "layer": "command-handling",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "engine methods exist; no command bus or expected-version contract observed"
+        },
+        {
+          "layer": "query-handling",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "list/find via TrustPersistence; bounded pagination not enforced at the store"
+        },
+        {
+          "layer": "event-production",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_outbox_events exists; per-engine event coverage unverified"
+        },
+        {
+          "layer": "event-consumption",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no consumer of wave 4-5 events found in the repository"
+        },
+        {
+          "layer": "authorization",
+          "status": "CERTIFIED",
+          "evidence": "apps/web/lib/route-coverage.test.ts passes with zero unmapped protected routes"
+        },
+        {
+          "layer": "route-permission-mapping",
+          "status": "CERTIFIED",
+          "evidence": "route-coverage test is the oracle; 0 unmapped"
+        },
+        {
+          "layer": "tenant-isolation",
+          "status": "CERTIFIED",
+          "evidence": "trust_records FORCE RLS with tenant predicate"
+        },
+        {
+          "layer": "workspace-isolation",
+          "status": "CERTIFIED",
+          "evidence": "trust_records policy carries workspace scope"
+        },
+        {
+          "layer": "postgresql-durability",
+          "status": "CERTIFIED",
+          "evidence": "PostgresTrustStore via RuntimeTrustStore; zero memory fallback"
+        },
+        {
+          "layer": "aggregate-schema-validation",
+          "status": "NOT_CERTIFIED",
+          "evidence": "zero Zod schemas in packages; payload is unvalidated JSONB"
+        },
+        {
+          "layer": "relational-integrity",
+          "status": "NOT_CERTIFIED",
+          "evidence": "aggregates live in trust_records with no per-aggregate FK, unique or check constraint"
+        },
+        {
+          "layer": "idempotency",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_idempotency_keys exists; per-command coverage unverified"
+        },
+        {
+          "layer": "concurrency-control",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_records.version present; per-engine expected-version use unverified"
+        },
+        {
+          "layer": "audit-trail",
+          "status": "CERTIFIED",
+          "evidence": "trust_audit_records, per-tenant hash chain, append-only trigger"
+        },
+        {
+          "layer": "observability",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no wave 4-5 metric, trace or health signal found"
+        },
+        {
+          "layer": "error-taxonomy",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no governed failure taxonomy covers these engines"
+        },
+        {
+          "layer": "retry-recovery",
+          "status": "NOT_CERTIFIED",
+          "evidence": "persistence.operational-resilience is absent from the repository"
+        },
+        {
+          "layer": "integration-coverage",
+          "status": "CERTIFIED",
+          "evidence": "*.integration.test.ts present in each package"
+        },
+        {
+          "layer": "end-to-end-coverage",
+          "status": "CERTIFIED",
+          "evidence": "*.e2e.test.ts present in each package"
+        },
+        {
+          "layer": "live-postgresql-coverage",
+          "status": "NOT_CERTIFIED",
+          "evidence": "42 of 42 store instantiations use InMemoryTrustStore; no *.postgres.test.ts in any wave 4-5 package"
+        },
+        {
+          "layer": "rls-enforcement",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_records forced; the purpose-built tables for the same aggregates are ENABLE-only"
+        },
+        {
+          "layer": "non-custody-boundary",
+          "status": "NOT_APPLICABLE",
+          "evidence": "settlement-*.non-custody.test.ts"
+        },
+        {
+          "layer": "financial-integrity",
+          "status": "NOT_APPLICABLE",
+          "evidence": "no database-enforced money, balance or immutability on trust_records, the table actually written"
+        },
+        {
+          "layer": "evidence-integrity",
+          "status": "NOT_APPLICABLE",
+          "evidence": "payload_digest on trust_records; no per-evidence checksum constraint"
+        },
+        {
+          "layer": "production-readiness",
+          "status": "NOT_CERTIFIED",
+          "evidence": "derived from aggregate-schema-validation, relational-integrity and financial-integrity"
+        }
+      ]
+    },
+    {
+      "engine": "39",
+      "canonicalName": "Acceptance & Decision",
+      "package": "packages/completion-assurance",
+      "engineClass": "AcceptanceDecisionEngine",
+      "layers": [
+        {
+          "layer": "canonical-identity",
+          "status": "CERTIFIED",
+          "evidence": "catalogue name matches package class; docs/ENGINE_CATALOG.md"
+        },
+        {
+          "layer": "package-boundary",
+          "status": "CERTIFIED",
+          "evidence": "one package per five engines; no cross-package engine class"
+        },
+        {
+          "layer": "public-contracts",
+          "status": "CERTIFIED",
+          "evidence": "engine class exported from the package barrel"
+        },
+        {
+          "layer": "runtime-registration",
+          "status": "CERTIFIED",
+          "evidence": "apps/web/lib/trust-app.ts"
+        },
+        {
+          "layer": "dependency-declaration",
+          "status": "CERTIFIED",
+          "evidence": "imports @assurapay/shared only"
+        },
+        {
+          "layer": "command-handling",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "engine methods exist; no command bus or expected-version contract observed"
+        },
+        {
+          "layer": "query-handling",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "list/find via TrustPersistence; bounded pagination not enforced at the store"
+        },
+        {
+          "layer": "event-production",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_outbox_events exists; per-engine event coverage unverified"
+        },
+        {
+          "layer": "event-consumption",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no consumer of wave 4-5 events found in the repository"
+        },
+        {
+          "layer": "authorization",
+          "status": "CERTIFIED",
+          "evidence": "apps/web/lib/route-coverage.test.ts passes with zero unmapped protected routes"
+        },
+        {
+          "layer": "route-permission-mapping",
+          "status": "CERTIFIED",
+          "evidence": "route-coverage test is the oracle; 0 unmapped"
+        },
+        {
+          "layer": "tenant-isolation",
+          "status": "CERTIFIED",
+          "evidence": "trust_records FORCE RLS with tenant predicate"
+        },
+        {
+          "layer": "workspace-isolation",
+          "status": "CERTIFIED",
+          "evidence": "trust_records policy carries workspace scope"
+        },
+        {
+          "layer": "postgresql-durability",
+          "status": "CERTIFIED",
+          "evidence": "PostgresTrustStore via RuntimeTrustStore; zero memory fallback"
+        },
+        {
+          "layer": "aggregate-schema-validation",
+          "status": "NOT_CERTIFIED",
+          "evidence": "zero Zod schemas in packages; payload is unvalidated JSONB"
+        },
+        {
+          "layer": "relational-integrity",
+          "status": "NOT_CERTIFIED",
+          "evidence": "aggregates live in trust_records with no per-aggregate FK, unique or check constraint"
+        },
+        {
+          "layer": "idempotency",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_idempotency_keys exists; per-command coverage unverified"
+        },
+        {
+          "layer": "concurrency-control",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_records.version present; per-engine expected-version use unverified"
+        },
+        {
+          "layer": "audit-trail",
+          "status": "CERTIFIED",
+          "evidence": "trust_audit_records, per-tenant hash chain, append-only trigger"
+        },
+        {
+          "layer": "observability",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no wave 4-5 metric, trace or health signal found"
+        },
+        {
+          "layer": "error-taxonomy",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no governed failure taxonomy covers these engines"
+        },
+        {
+          "layer": "retry-recovery",
+          "status": "NOT_CERTIFIED",
+          "evidence": "persistence.operational-resilience is absent from the repository"
+        },
+        {
+          "layer": "integration-coverage",
+          "status": "CERTIFIED",
+          "evidence": "*.integration.test.ts present in each package"
+        },
+        {
+          "layer": "end-to-end-coverage",
+          "status": "CERTIFIED",
+          "evidence": "*.e2e.test.ts present in each package"
+        },
+        {
+          "layer": "live-postgresql-coverage",
+          "status": "NOT_CERTIFIED",
+          "evidence": "42 of 42 store instantiations use InMemoryTrustStore; no *.postgres.test.ts in any wave 4-5 package"
+        },
+        {
+          "layer": "rls-enforcement",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_records forced; the purpose-built tables for the same aggregates are ENABLE-only"
+        },
+        {
+          "layer": "non-custody-boundary",
+          "status": "NOT_APPLICABLE",
+          "evidence": "settlement-*.non-custody.test.ts"
+        },
+        {
+          "layer": "financial-integrity",
+          "status": "NOT_APPLICABLE",
+          "evidence": "no database-enforced money, balance or immutability on trust_records, the table actually written"
+        },
+        {
+          "layer": "evidence-integrity",
+          "status": "NOT_APPLICABLE",
+          "evidence": "payload_digest on trust_records; no per-evidence checksum constraint"
+        },
+        {
+          "layer": "production-readiness",
+          "status": "NOT_CERTIFIED",
+          "evidence": "derived from aggregate-schema-validation, relational-integrity and financial-integrity"
+        }
+      ]
+    },
+    {
+      "engine": "40",
+      "canonicalName": "Completion Certification",
+      "package": "packages/completion-assurance",
+      "engineClass": "CompletionCertificationEngine",
+      "layers": [
+        {
+          "layer": "canonical-identity",
+          "status": "CERTIFIED",
+          "evidence": "catalogue name matches package class; docs/ENGINE_CATALOG.md"
+        },
+        {
+          "layer": "package-boundary",
+          "status": "CERTIFIED",
+          "evidence": "one package per five engines; no cross-package engine class"
+        },
+        {
+          "layer": "public-contracts",
+          "status": "CERTIFIED",
+          "evidence": "engine class exported from the package barrel"
+        },
+        {
+          "layer": "runtime-registration",
+          "status": "CERTIFIED",
+          "evidence": "apps/web/lib/trust-app.ts"
+        },
+        {
+          "layer": "dependency-declaration",
+          "status": "CERTIFIED",
+          "evidence": "imports @assurapay/shared only"
+        },
+        {
+          "layer": "command-handling",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "engine methods exist; no command bus or expected-version contract observed"
+        },
+        {
+          "layer": "query-handling",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "list/find via TrustPersistence; bounded pagination not enforced at the store"
+        },
+        {
+          "layer": "event-production",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_outbox_events exists; per-engine event coverage unverified"
+        },
+        {
+          "layer": "event-consumption",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no consumer of wave 4-5 events found in the repository"
+        },
+        {
+          "layer": "authorization",
+          "status": "CERTIFIED",
+          "evidence": "apps/web/lib/route-coverage.test.ts passes with zero unmapped protected routes"
+        },
+        {
+          "layer": "route-permission-mapping",
+          "status": "CERTIFIED",
+          "evidence": "route-coverage test is the oracle; 0 unmapped"
+        },
+        {
+          "layer": "tenant-isolation",
+          "status": "CERTIFIED",
+          "evidence": "trust_records FORCE RLS with tenant predicate"
+        },
+        {
+          "layer": "workspace-isolation",
+          "status": "CERTIFIED",
+          "evidence": "trust_records policy carries workspace scope"
+        },
+        {
+          "layer": "postgresql-durability",
+          "status": "CERTIFIED",
+          "evidence": "PostgresTrustStore via RuntimeTrustStore; zero memory fallback"
+        },
+        {
+          "layer": "aggregate-schema-validation",
+          "status": "NOT_CERTIFIED",
+          "evidence": "zero Zod schemas in packages; payload is unvalidated JSONB"
+        },
+        {
+          "layer": "relational-integrity",
+          "status": "NOT_CERTIFIED",
+          "evidence": "aggregates live in trust_records with no per-aggregate FK, unique or check constraint"
+        },
+        {
+          "layer": "idempotency",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_idempotency_keys exists; per-command coverage unverified"
+        },
+        {
+          "layer": "concurrency-control",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_records.version present; per-engine expected-version use unverified"
+        },
+        {
+          "layer": "audit-trail",
+          "status": "CERTIFIED",
+          "evidence": "trust_audit_records, per-tenant hash chain, append-only trigger"
+        },
+        {
+          "layer": "observability",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no wave 4-5 metric, trace or health signal found"
+        },
+        {
+          "layer": "error-taxonomy",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no governed failure taxonomy covers these engines"
+        },
+        {
+          "layer": "retry-recovery",
+          "status": "NOT_CERTIFIED",
+          "evidence": "persistence.operational-resilience is absent from the repository"
+        },
+        {
+          "layer": "integration-coverage",
+          "status": "CERTIFIED",
+          "evidence": "*.integration.test.ts present in each package"
+        },
+        {
+          "layer": "end-to-end-coverage",
+          "status": "CERTIFIED",
+          "evidence": "*.e2e.test.ts present in each package"
+        },
+        {
+          "layer": "live-postgresql-coverage",
+          "status": "NOT_CERTIFIED",
+          "evidence": "42 of 42 store instantiations use InMemoryTrustStore; no *.postgres.test.ts in any wave 4-5 package"
+        },
+        {
+          "layer": "rls-enforcement",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_records forced; the purpose-built tables for the same aggregates are ENABLE-only"
+        },
+        {
+          "layer": "non-custody-boundary",
+          "status": "NOT_APPLICABLE",
+          "evidence": "settlement-*.non-custody.test.ts"
+        },
+        {
+          "layer": "financial-integrity",
+          "status": "NOT_APPLICABLE",
+          "evidence": "no database-enforced money, balance or immutability on trust_records, the table actually written"
+        },
+        {
+          "layer": "evidence-integrity",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "payload_digest on trust_records; no per-evidence checksum constraint"
+        },
+        {
+          "layer": "production-readiness",
+          "status": "NOT_CERTIFIED",
+          "evidence": "derived from aggregate-schema-validation, relational-integrity and financial-integrity"
+        }
+      ]
+    },
+    {
+      "engine": "41",
+      "canonicalName": "Payment Eligibility",
+      "package": "packages/settlement-assurance",
+      "engineClass": "PaymentEligibilityEngine",
+      "layers": [
+        {
+          "layer": "canonical-identity",
+          "status": "CERTIFIED",
+          "evidence": "catalogue name matches package class; docs/ENGINE_CATALOG.md"
+        },
+        {
+          "layer": "package-boundary",
+          "status": "CERTIFIED",
+          "evidence": "one package per five engines; no cross-package engine class"
+        },
+        {
+          "layer": "public-contracts",
+          "status": "CERTIFIED",
+          "evidence": "engine class exported from the package barrel"
+        },
+        {
+          "layer": "runtime-registration",
+          "status": "CERTIFIED",
+          "evidence": "apps/web/lib/trust-app.ts"
+        },
+        {
+          "layer": "dependency-declaration",
+          "status": "CERTIFIED",
+          "evidence": "imports @assurapay/shared only"
+        },
+        {
+          "layer": "command-handling",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "engine methods exist; no command bus or expected-version contract observed"
+        },
+        {
+          "layer": "query-handling",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "list/find via TrustPersistence; bounded pagination not enforced at the store"
+        },
+        {
+          "layer": "event-production",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_outbox_events exists; per-engine event coverage unverified"
+        },
+        {
+          "layer": "event-consumption",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no consumer of wave 4-5 events found in the repository"
+        },
+        {
+          "layer": "authorization",
+          "status": "CERTIFIED",
+          "evidence": "apps/web/lib/route-coverage.test.ts passes with zero unmapped protected routes"
+        },
+        {
+          "layer": "route-permission-mapping",
+          "status": "CERTIFIED",
+          "evidence": "route-coverage test is the oracle; 0 unmapped"
+        },
+        {
+          "layer": "tenant-isolation",
+          "status": "CERTIFIED",
+          "evidence": "trust_records FORCE RLS with tenant predicate"
+        },
+        {
+          "layer": "workspace-isolation",
+          "status": "CERTIFIED",
+          "evidence": "trust_records policy carries workspace scope"
+        },
+        {
+          "layer": "postgresql-durability",
+          "status": "CERTIFIED",
+          "evidence": "PostgresTrustStore via RuntimeTrustStore; zero memory fallback"
+        },
+        {
+          "layer": "aggregate-schema-validation",
+          "status": "NOT_CERTIFIED",
+          "evidence": "zero Zod schemas in packages; payload is unvalidated JSONB"
+        },
+        {
+          "layer": "relational-integrity",
+          "status": "NOT_CERTIFIED",
+          "evidence": "aggregates live in trust_records with no per-aggregate FK, unique or check constraint"
+        },
+        {
+          "layer": "idempotency",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_idempotency_keys exists; per-command coverage unverified"
+        },
+        {
+          "layer": "concurrency-control",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_records.version present; per-engine expected-version use unverified"
+        },
+        {
+          "layer": "audit-trail",
+          "status": "CERTIFIED",
+          "evidence": "trust_audit_records, per-tenant hash chain, append-only trigger"
+        },
+        {
+          "layer": "observability",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no wave 4-5 metric, trace or health signal found"
+        },
+        {
+          "layer": "error-taxonomy",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no governed failure taxonomy covers these engines"
+        },
+        {
+          "layer": "retry-recovery",
+          "status": "NOT_CERTIFIED",
+          "evidence": "persistence.operational-resilience is absent from the repository"
+        },
+        {
+          "layer": "integration-coverage",
+          "status": "CERTIFIED",
+          "evidence": "*.integration.test.ts present in each package"
+        },
+        {
+          "layer": "end-to-end-coverage",
+          "status": "CERTIFIED",
+          "evidence": "*.e2e.test.ts present in each package"
+        },
+        {
+          "layer": "live-postgresql-coverage",
+          "status": "NOT_CERTIFIED",
+          "evidence": "42 of 42 store instantiations use InMemoryTrustStore; no *.postgres.test.ts in any wave 4-5 package"
+        },
+        {
+          "layer": "rls-enforcement",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_records forced; the purpose-built tables for the same aggregates are ENABLE-only"
+        },
+        {
+          "layer": "non-custody-boundary",
+          "status": "CERTIFIED",
+          "evidence": "settlement-*.non-custody.test.ts"
+        },
+        {
+          "layer": "financial-integrity",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no database-enforced money, balance or immutability on trust_records, the table actually written"
+        },
+        {
+          "layer": "evidence-integrity",
+          "status": "NOT_APPLICABLE",
+          "evidence": "payload_digest on trust_records; no per-evidence checksum constraint"
+        },
+        {
+          "layer": "production-readiness",
+          "status": "NOT_CERTIFIED",
+          "evidence": "derived from aggregate-schema-validation, relational-integrity and financial-integrity"
+        }
+      ]
+    },
+    {
+      "engine": "42",
+      "canonicalName": "Financial Entitlement",
+      "package": "packages/settlement-assurance",
+      "engineClass": "FinancialEntitlementEngine",
+      "layers": [
+        {
+          "layer": "canonical-identity",
+          "status": "CERTIFIED",
+          "evidence": "catalogue name matches package class; docs/ENGINE_CATALOG.md"
+        },
+        {
+          "layer": "package-boundary",
+          "status": "CERTIFIED",
+          "evidence": "one package per five engines; no cross-package engine class"
+        },
+        {
+          "layer": "public-contracts",
+          "status": "CERTIFIED",
+          "evidence": "engine class exported from the package barrel"
+        },
+        {
+          "layer": "runtime-registration",
+          "status": "CERTIFIED",
+          "evidence": "apps/web/lib/trust-app.ts"
+        },
+        {
+          "layer": "dependency-declaration",
+          "status": "CERTIFIED",
+          "evidence": "imports @assurapay/shared only"
+        },
+        {
+          "layer": "command-handling",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "engine methods exist; no command bus or expected-version contract observed"
+        },
+        {
+          "layer": "query-handling",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "list/find via TrustPersistence; bounded pagination not enforced at the store"
+        },
+        {
+          "layer": "event-production",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_outbox_events exists; per-engine event coverage unverified"
+        },
+        {
+          "layer": "event-consumption",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no consumer of wave 4-5 events found in the repository"
+        },
+        {
+          "layer": "authorization",
+          "status": "CERTIFIED",
+          "evidence": "apps/web/lib/route-coverage.test.ts passes with zero unmapped protected routes"
+        },
+        {
+          "layer": "route-permission-mapping",
+          "status": "CERTIFIED",
+          "evidence": "route-coverage test is the oracle; 0 unmapped"
+        },
+        {
+          "layer": "tenant-isolation",
+          "status": "CERTIFIED",
+          "evidence": "trust_records FORCE RLS with tenant predicate"
+        },
+        {
+          "layer": "workspace-isolation",
+          "status": "CERTIFIED",
+          "evidence": "trust_records policy carries workspace scope"
+        },
+        {
+          "layer": "postgresql-durability",
+          "status": "CERTIFIED",
+          "evidence": "PostgresTrustStore via RuntimeTrustStore; zero memory fallback"
+        },
+        {
+          "layer": "aggregate-schema-validation",
+          "status": "NOT_CERTIFIED",
+          "evidence": "zero Zod schemas in packages; payload is unvalidated JSONB"
+        },
+        {
+          "layer": "relational-integrity",
+          "status": "NOT_CERTIFIED",
+          "evidence": "aggregates live in trust_records with no per-aggregate FK, unique or check constraint"
+        },
+        {
+          "layer": "idempotency",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_idempotency_keys exists; per-command coverage unverified"
+        },
+        {
+          "layer": "concurrency-control",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_records.version present; per-engine expected-version use unverified"
+        },
+        {
+          "layer": "audit-trail",
+          "status": "CERTIFIED",
+          "evidence": "trust_audit_records, per-tenant hash chain, append-only trigger"
+        },
+        {
+          "layer": "observability",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no wave 4-5 metric, trace or health signal found"
+        },
+        {
+          "layer": "error-taxonomy",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no governed failure taxonomy covers these engines"
+        },
+        {
+          "layer": "retry-recovery",
+          "status": "NOT_CERTIFIED",
+          "evidence": "persistence.operational-resilience is absent from the repository"
+        },
+        {
+          "layer": "integration-coverage",
+          "status": "CERTIFIED",
+          "evidence": "*.integration.test.ts present in each package"
+        },
+        {
+          "layer": "end-to-end-coverage",
+          "status": "CERTIFIED",
+          "evidence": "*.e2e.test.ts present in each package"
+        },
+        {
+          "layer": "live-postgresql-coverage",
+          "status": "NOT_CERTIFIED",
+          "evidence": "42 of 42 store instantiations use InMemoryTrustStore; no *.postgres.test.ts in any wave 4-5 package"
+        },
+        {
+          "layer": "rls-enforcement",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_records forced; the purpose-built tables for the same aggregates are ENABLE-only"
+        },
+        {
+          "layer": "non-custody-boundary",
+          "status": "CERTIFIED",
+          "evidence": "settlement-*.non-custody.test.ts"
+        },
+        {
+          "layer": "financial-integrity",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no database-enforced money, balance or immutability on trust_records, the table actually written"
+        },
+        {
+          "layer": "evidence-integrity",
+          "status": "NOT_APPLICABLE",
+          "evidence": "payload_digest on trust_records; no per-evidence checksum constraint"
+        },
+        {
+          "layer": "production-readiness",
+          "status": "NOT_CERTIFIED",
+          "evidence": "derived from aggregate-schema-validation, relational-integrity and financial-integrity"
+        }
+      ]
+    },
+    {
+      "engine": "43",
+      "canonicalName": "Invoice & Claim Management",
+      "package": "packages/settlement-assurance",
+      "engineClass": "InvoiceClaimEngine",
+      "layers": [
+        {
+          "layer": "canonical-identity",
+          "status": "CERTIFIED",
+          "evidence": "catalogue name matches package class; docs/ENGINE_CATALOG.md"
+        },
+        {
+          "layer": "package-boundary",
+          "status": "CERTIFIED",
+          "evidence": "one package per five engines; no cross-package engine class"
+        },
+        {
+          "layer": "public-contracts",
+          "status": "CERTIFIED",
+          "evidence": "engine class exported from the package barrel"
+        },
+        {
+          "layer": "runtime-registration",
+          "status": "CERTIFIED",
+          "evidence": "apps/web/lib/trust-app.ts"
+        },
+        {
+          "layer": "dependency-declaration",
+          "status": "CERTIFIED",
+          "evidence": "imports @assurapay/shared only"
+        },
+        {
+          "layer": "command-handling",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "engine methods exist; no command bus or expected-version contract observed"
+        },
+        {
+          "layer": "query-handling",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "list/find via TrustPersistence; bounded pagination not enforced at the store"
+        },
+        {
+          "layer": "event-production",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_outbox_events exists; per-engine event coverage unverified"
+        },
+        {
+          "layer": "event-consumption",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no consumer of wave 4-5 events found in the repository"
+        },
+        {
+          "layer": "authorization",
+          "status": "CERTIFIED",
+          "evidence": "apps/web/lib/route-coverage.test.ts passes with zero unmapped protected routes"
+        },
+        {
+          "layer": "route-permission-mapping",
+          "status": "CERTIFIED",
+          "evidence": "route-coverage test is the oracle; 0 unmapped"
+        },
+        {
+          "layer": "tenant-isolation",
+          "status": "CERTIFIED",
+          "evidence": "trust_records FORCE RLS with tenant predicate"
+        },
+        {
+          "layer": "workspace-isolation",
+          "status": "CERTIFIED",
+          "evidence": "trust_records policy carries workspace scope"
+        },
+        {
+          "layer": "postgresql-durability",
+          "status": "CERTIFIED",
+          "evidence": "PostgresTrustStore via RuntimeTrustStore; zero memory fallback"
+        },
+        {
+          "layer": "aggregate-schema-validation",
+          "status": "NOT_CERTIFIED",
+          "evidence": "zero Zod schemas in packages; payload is unvalidated JSONB"
+        },
+        {
+          "layer": "relational-integrity",
+          "status": "NOT_CERTIFIED",
+          "evidence": "aggregates live in trust_records with no per-aggregate FK, unique or check constraint"
+        },
+        {
+          "layer": "idempotency",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_idempotency_keys exists; per-command coverage unverified"
+        },
+        {
+          "layer": "concurrency-control",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_records.version present; per-engine expected-version use unverified"
+        },
+        {
+          "layer": "audit-trail",
+          "status": "CERTIFIED",
+          "evidence": "trust_audit_records, per-tenant hash chain, append-only trigger"
+        },
+        {
+          "layer": "observability",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no wave 4-5 metric, trace or health signal found"
+        },
+        {
+          "layer": "error-taxonomy",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no governed failure taxonomy covers these engines"
+        },
+        {
+          "layer": "retry-recovery",
+          "status": "NOT_CERTIFIED",
+          "evidence": "persistence.operational-resilience is absent from the repository"
+        },
+        {
+          "layer": "integration-coverage",
+          "status": "CERTIFIED",
+          "evidence": "*.integration.test.ts present in each package"
+        },
+        {
+          "layer": "end-to-end-coverage",
+          "status": "CERTIFIED",
+          "evidence": "*.e2e.test.ts present in each package"
+        },
+        {
+          "layer": "live-postgresql-coverage",
+          "status": "NOT_CERTIFIED",
+          "evidence": "42 of 42 store instantiations use InMemoryTrustStore; no *.postgres.test.ts in any wave 4-5 package"
+        },
+        {
+          "layer": "rls-enforcement",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_records forced; the purpose-built tables for the same aggregates are ENABLE-only"
+        },
+        {
+          "layer": "non-custody-boundary",
+          "status": "CERTIFIED",
+          "evidence": "settlement-*.non-custody.test.ts"
+        },
+        {
+          "layer": "financial-integrity",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no database-enforced money, balance or immutability on trust_records, the table actually written"
+        },
+        {
+          "layer": "evidence-integrity",
+          "status": "NOT_APPLICABLE",
+          "evidence": "payload_digest on trust_records; no per-evidence checksum constraint"
+        },
+        {
+          "layer": "production-readiness",
+          "status": "NOT_CERTIFIED",
+          "evidence": "derived from aggregate-schema-validation, relational-integrity and financial-integrity"
+        }
+      ]
+    },
+    {
+      "engine": "44",
+      "canonicalName": "Escrow & Funding Assurance",
+      "package": "packages/settlement-assurance",
+      "engineClass": "EscrowFundingAssuranceEngine",
+      "layers": [
+        {
+          "layer": "canonical-identity",
+          "status": "CERTIFIED",
+          "evidence": "catalogue name matches package class; docs/ENGINE_CATALOG.md"
+        },
+        {
+          "layer": "package-boundary",
+          "status": "CERTIFIED",
+          "evidence": "one package per five engines; no cross-package engine class"
+        },
+        {
+          "layer": "public-contracts",
+          "status": "CERTIFIED",
+          "evidence": "engine class exported from the package barrel"
+        },
+        {
+          "layer": "runtime-registration",
+          "status": "CERTIFIED",
+          "evidence": "apps/web/lib/trust-app.ts"
+        },
+        {
+          "layer": "dependency-declaration",
+          "status": "CERTIFIED",
+          "evidence": "imports @assurapay/shared only"
+        },
+        {
+          "layer": "command-handling",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "engine methods exist; no command bus or expected-version contract observed"
+        },
+        {
+          "layer": "query-handling",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "list/find via TrustPersistence; bounded pagination not enforced at the store"
+        },
+        {
+          "layer": "event-production",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_outbox_events exists; per-engine event coverage unverified"
+        },
+        {
+          "layer": "event-consumption",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no consumer of wave 4-5 events found in the repository"
+        },
+        {
+          "layer": "authorization",
+          "status": "CERTIFIED",
+          "evidence": "apps/web/lib/route-coverage.test.ts passes with zero unmapped protected routes"
+        },
+        {
+          "layer": "route-permission-mapping",
+          "status": "CERTIFIED",
+          "evidence": "route-coverage test is the oracle; 0 unmapped"
+        },
+        {
+          "layer": "tenant-isolation",
+          "status": "CERTIFIED",
+          "evidence": "trust_records FORCE RLS with tenant predicate"
+        },
+        {
+          "layer": "workspace-isolation",
+          "status": "CERTIFIED",
+          "evidence": "trust_records policy carries workspace scope"
+        },
+        {
+          "layer": "postgresql-durability",
+          "status": "CERTIFIED",
+          "evidence": "PostgresTrustStore via RuntimeTrustStore; zero memory fallback"
+        },
+        {
+          "layer": "aggregate-schema-validation",
+          "status": "NOT_CERTIFIED",
+          "evidence": "zero Zod schemas in packages; payload is unvalidated JSONB"
+        },
+        {
+          "layer": "relational-integrity",
+          "status": "NOT_CERTIFIED",
+          "evidence": "aggregates live in trust_records with no per-aggregate FK, unique or check constraint"
+        },
+        {
+          "layer": "idempotency",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_idempotency_keys exists; per-command coverage unverified"
+        },
+        {
+          "layer": "concurrency-control",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_records.version present; per-engine expected-version use unverified"
+        },
+        {
+          "layer": "audit-trail",
+          "status": "CERTIFIED",
+          "evidence": "trust_audit_records, per-tenant hash chain, append-only trigger"
+        },
+        {
+          "layer": "observability",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no wave 4-5 metric, trace or health signal found"
+        },
+        {
+          "layer": "error-taxonomy",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no governed failure taxonomy covers these engines"
+        },
+        {
+          "layer": "retry-recovery",
+          "status": "NOT_CERTIFIED",
+          "evidence": "persistence.operational-resilience is absent from the repository"
+        },
+        {
+          "layer": "integration-coverage",
+          "status": "CERTIFIED",
+          "evidence": "*.integration.test.ts present in each package"
+        },
+        {
+          "layer": "end-to-end-coverage",
+          "status": "CERTIFIED",
+          "evidence": "*.e2e.test.ts present in each package"
+        },
+        {
+          "layer": "live-postgresql-coverage",
+          "status": "NOT_CERTIFIED",
+          "evidence": "42 of 42 store instantiations use InMemoryTrustStore; no *.postgres.test.ts in any wave 4-5 package"
+        },
+        {
+          "layer": "rls-enforcement",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_records forced; the purpose-built tables for the same aggregates are ENABLE-only"
+        },
+        {
+          "layer": "non-custody-boundary",
+          "status": "CERTIFIED",
+          "evidence": "settlement-*.non-custody.test.ts"
+        },
+        {
+          "layer": "financial-integrity",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no database-enforced money, balance or immutability on trust_records, the table actually written"
+        },
+        {
+          "layer": "evidence-integrity",
+          "status": "NOT_APPLICABLE",
+          "evidence": "payload_digest on trust_records; no per-evidence checksum constraint"
+        },
+        {
+          "layer": "production-readiness",
+          "status": "NOT_CERTIFIED",
+          "evidence": "derived from aggregate-schema-validation, relational-integrity and financial-integrity"
+        }
+      ]
+    },
+    {
+      "engine": "45",
+      "canonicalName": "Conditional Release Orchestration",
+      "package": "packages/settlement-assurance",
+      "engineClass": "ConditionalReleaseOrchestrationEngine",
+      "layers": [
+        {
+          "layer": "canonical-identity",
+          "status": "CERTIFIED",
+          "evidence": "catalogue name matches package class; docs/ENGINE_CATALOG.md"
+        },
+        {
+          "layer": "package-boundary",
+          "status": "CERTIFIED",
+          "evidence": "one package per five engines; no cross-package engine class"
+        },
+        {
+          "layer": "public-contracts",
+          "status": "CERTIFIED",
+          "evidence": "engine class exported from the package barrel"
+        },
+        {
+          "layer": "runtime-registration",
+          "status": "CERTIFIED",
+          "evidence": "apps/web/lib/trust-app.ts"
+        },
+        {
+          "layer": "dependency-declaration",
+          "status": "CERTIFIED",
+          "evidence": "imports @assurapay/shared only"
+        },
+        {
+          "layer": "command-handling",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "engine methods exist; no command bus or expected-version contract observed"
+        },
+        {
+          "layer": "query-handling",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "list/find via TrustPersistence; bounded pagination not enforced at the store"
+        },
+        {
+          "layer": "event-production",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_outbox_events exists; per-engine event coverage unverified"
+        },
+        {
+          "layer": "event-consumption",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no consumer of wave 4-5 events found in the repository"
+        },
+        {
+          "layer": "authorization",
+          "status": "CERTIFIED",
+          "evidence": "apps/web/lib/route-coverage.test.ts passes with zero unmapped protected routes"
+        },
+        {
+          "layer": "route-permission-mapping",
+          "status": "CERTIFIED",
+          "evidence": "route-coverage test is the oracle; 0 unmapped"
+        },
+        {
+          "layer": "tenant-isolation",
+          "status": "CERTIFIED",
+          "evidence": "trust_records FORCE RLS with tenant predicate"
+        },
+        {
+          "layer": "workspace-isolation",
+          "status": "CERTIFIED",
+          "evidence": "trust_records policy carries workspace scope"
+        },
+        {
+          "layer": "postgresql-durability",
+          "status": "CERTIFIED",
+          "evidence": "PostgresTrustStore via RuntimeTrustStore; zero memory fallback"
+        },
+        {
+          "layer": "aggregate-schema-validation",
+          "status": "NOT_CERTIFIED",
+          "evidence": "zero Zod schemas in packages; payload is unvalidated JSONB"
+        },
+        {
+          "layer": "relational-integrity",
+          "status": "NOT_CERTIFIED",
+          "evidence": "aggregates live in trust_records with no per-aggregate FK, unique or check constraint"
+        },
+        {
+          "layer": "idempotency",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_idempotency_keys exists; per-command coverage unverified"
+        },
+        {
+          "layer": "concurrency-control",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_records.version present; per-engine expected-version use unverified"
+        },
+        {
+          "layer": "audit-trail",
+          "status": "CERTIFIED",
+          "evidence": "trust_audit_records, per-tenant hash chain, append-only trigger"
+        },
+        {
+          "layer": "observability",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no wave 4-5 metric, trace or health signal found"
+        },
+        {
+          "layer": "error-taxonomy",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no governed failure taxonomy covers these engines"
+        },
+        {
+          "layer": "retry-recovery",
+          "status": "NOT_CERTIFIED",
+          "evidence": "persistence.operational-resilience is absent from the repository"
+        },
+        {
+          "layer": "integration-coverage",
+          "status": "CERTIFIED",
+          "evidence": "*.integration.test.ts present in each package"
+        },
+        {
+          "layer": "end-to-end-coverage",
+          "status": "CERTIFIED",
+          "evidence": "*.e2e.test.ts present in each package"
+        },
+        {
+          "layer": "live-postgresql-coverage",
+          "status": "NOT_CERTIFIED",
+          "evidence": "42 of 42 store instantiations use InMemoryTrustStore; no *.postgres.test.ts in any wave 4-5 package"
+        },
+        {
+          "layer": "rls-enforcement",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_records forced; the purpose-built tables for the same aggregates are ENABLE-only"
+        },
+        {
+          "layer": "non-custody-boundary",
+          "status": "CERTIFIED",
+          "evidence": "settlement-*.non-custody.test.ts"
+        },
+        {
+          "layer": "financial-integrity",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no database-enforced money, balance or immutability on trust_records, the table actually written"
+        },
+        {
+          "layer": "evidence-integrity",
+          "status": "NOT_APPLICABLE",
+          "evidence": "payload_digest on trust_records; no per-evidence checksum constraint"
+        },
+        {
+          "layer": "production-readiness",
+          "status": "NOT_CERTIFIED",
+          "evidence": "derived from aggregate-schema-validation, relational-integrity and financial-integrity"
+        }
+      ]
+    },
+    {
+      "engine": "46",
+      "canonicalName": "Financial Approval & Authority",
+      "package": "packages/settlement-execution",
+      "engineClass": "FinancialApprovalAuthorityEngine",
+      "layers": [
+        {
+          "layer": "canonical-identity",
+          "status": "CERTIFIED",
+          "evidence": "catalogue name matches package class; docs/ENGINE_CATALOG.md"
+        },
+        {
+          "layer": "package-boundary",
+          "status": "CERTIFIED",
+          "evidence": "one package per five engines; no cross-package engine class"
+        },
+        {
+          "layer": "public-contracts",
+          "status": "CERTIFIED",
+          "evidence": "engine class exported from the package barrel"
+        },
+        {
+          "layer": "runtime-registration",
+          "status": "CERTIFIED",
+          "evidence": "apps/web/lib/trust-app.ts"
+        },
+        {
+          "layer": "dependency-declaration",
+          "status": "CERTIFIED",
+          "evidence": "imports @assurapay/shared only"
+        },
+        {
+          "layer": "command-handling",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "engine methods exist; no command bus or expected-version contract observed"
+        },
+        {
+          "layer": "query-handling",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "list/find via TrustPersistence; bounded pagination not enforced at the store"
+        },
+        {
+          "layer": "event-production",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_outbox_events exists; per-engine event coverage unverified"
+        },
+        {
+          "layer": "event-consumption",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no consumer of wave 4-5 events found in the repository"
+        },
+        {
+          "layer": "authorization",
+          "status": "CERTIFIED",
+          "evidence": "apps/web/lib/route-coverage.test.ts passes with zero unmapped protected routes"
+        },
+        {
+          "layer": "route-permission-mapping",
+          "status": "CERTIFIED",
+          "evidence": "route-coverage test is the oracle; 0 unmapped"
+        },
+        {
+          "layer": "tenant-isolation",
+          "status": "CERTIFIED",
+          "evidence": "trust_records FORCE RLS with tenant predicate"
+        },
+        {
+          "layer": "workspace-isolation",
+          "status": "CERTIFIED",
+          "evidence": "trust_records policy carries workspace scope"
+        },
+        {
+          "layer": "postgresql-durability",
+          "status": "CERTIFIED",
+          "evidence": "PostgresTrustStore via RuntimeTrustStore; zero memory fallback"
+        },
+        {
+          "layer": "aggregate-schema-validation",
+          "status": "NOT_CERTIFIED",
+          "evidence": "zero Zod schemas in packages; payload is unvalidated JSONB"
+        },
+        {
+          "layer": "relational-integrity",
+          "status": "NOT_CERTIFIED",
+          "evidence": "aggregates live in trust_records with no per-aggregate FK, unique or check constraint"
+        },
+        {
+          "layer": "idempotency",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_idempotency_keys exists; per-command coverage unverified"
+        },
+        {
+          "layer": "concurrency-control",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_records.version present; per-engine expected-version use unverified"
+        },
+        {
+          "layer": "audit-trail",
+          "status": "CERTIFIED",
+          "evidence": "trust_audit_records, per-tenant hash chain, append-only trigger"
+        },
+        {
+          "layer": "observability",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no wave 4-5 metric, trace or health signal found"
+        },
+        {
+          "layer": "error-taxonomy",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no governed failure taxonomy covers these engines"
+        },
+        {
+          "layer": "retry-recovery",
+          "status": "NOT_CERTIFIED",
+          "evidence": "persistence.operational-resilience is absent from the repository"
+        },
+        {
+          "layer": "integration-coverage",
+          "status": "CERTIFIED",
+          "evidence": "*.integration.test.ts present in each package"
+        },
+        {
+          "layer": "end-to-end-coverage",
+          "status": "CERTIFIED",
+          "evidence": "*.e2e.test.ts present in each package"
+        },
+        {
+          "layer": "live-postgresql-coverage",
+          "status": "NOT_CERTIFIED",
+          "evidence": "42 of 42 store instantiations use InMemoryTrustStore; no *.postgres.test.ts in any wave 4-5 package"
+        },
+        {
+          "layer": "rls-enforcement",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_records forced; the purpose-built tables for the same aggregates are ENABLE-only"
+        },
+        {
+          "layer": "non-custody-boundary",
+          "status": "CERTIFIED",
+          "evidence": "settlement-*.non-custody.test.ts"
+        },
+        {
+          "layer": "financial-integrity",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no database-enforced money, balance or immutability on trust_records, the table actually written"
+        },
+        {
+          "layer": "evidence-integrity",
+          "status": "NOT_APPLICABLE",
+          "evidence": "payload_digest on trust_records; no per-evidence checksum constraint"
+        },
+        {
+          "layer": "production-readiness",
+          "status": "NOT_CERTIFIED",
+          "evidence": "derived from aggregate-schema-validation, relational-integrity and financial-integrity"
+        }
+      ]
+    },
+    {
+      "engine": "47",
+      "canonicalName": "Payment Execution & Treasury Integration",
+      "package": "packages/settlement-execution",
+      "engineClass": "PaymentExecutionEngine",
+      "layers": [
+        {
+          "layer": "canonical-identity",
+          "status": "CERTIFIED",
+          "evidence": "catalogue name matches package class; docs/ENGINE_CATALOG.md"
+        },
+        {
+          "layer": "package-boundary",
+          "status": "CERTIFIED",
+          "evidence": "one package per five engines; no cross-package engine class"
+        },
+        {
+          "layer": "public-contracts",
+          "status": "CERTIFIED",
+          "evidence": "engine class exported from the package barrel"
+        },
+        {
+          "layer": "runtime-registration",
+          "status": "CERTIFIED",
+          "evidence": "apps/web/lib/trust-app.ts"
+        },
+        {
+          "layer": "dependency-declaration",
+          "status": "CERTIFIED",
+          "evidence": "imports @assurapay/shared only"
+        },
+        {
+          "layer": "command-handling",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "engine methods exist; no command bus or expected-version contract observed"
+        },
+        {
+          "layer": "query-handling",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "list/find via TrustPersistence; bounded pagination not enforced at the store"
+        },
+        {
+          "layer": "event-production",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_outbox_events exists; per-engine event coverage unverified"
+        },
+        {
+          "layer": "event-consumption",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no consumer of wave 4-5 events found in the repository"
+        },
+        {
+          "layer": "authorization",
+          "status": "CERTIFIED",
+          "evidence": "apps/web/lib/route-coverage.test.ts passes with zero unmapped protected routes"
+        },
+        {
+          "layer": "route-permission-mapping",
+          "status": "CERTIFIED",
+          "evidence": "route-coverage test is the oracle; 0 unmapped"
+        },
+        {
+          "layer": "tenant-isolation",
+          "status": "CERTIFIED",
+          "evidence": "trust_records FORCE RLS with tenant predicate"
+        },
+        {
+          "layer": "workspace-isolation",
+          "status": "CERTIFIED",
+          "evidence": "trust_records policy carries workspace scope"
+        },
+        {
+          "layer": "postgresql-durability",
+          "status": "CERTIFIED",
+          "evidence": "PostgresTrustStore via RuntimeTrustStore; zero memory fallback"
+        },
+        {
+          "layer": "aggregate-schema-validation",
+          "status": "NOT_CERTIFIED",
+          "evidence": "zero Zod schemas in packages; payload is unvalidated JSONB"
+        },
+        {
+          "layer": "relational-integrity",
+          "status": "NOT_CERTIFIED",
+          "evidence": "aggregates live in trust_records with no per-aggregate FK, unique or check constraint"
+        },
+        {
+          "layer": "idempotency",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_idempotency_keys exists; per-command coverage unverified"
+        },
+        {
+          "layer": "concurrency-control",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_records.version present; per-engine expected-version use unverified"
+        },
+        {
+          "layer": "audit-trail",
+          "status": "CERTIFIED",
+          "evidence": "trust_audit_records, per-tenant hash chain, append-only trigger"
+        },
+        {
+          "layer": "observability",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no wave 4-5 metric, trace or health signal found"
+        },
+        {
+          "layer": "error-taxonomy",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no governed failure taxonomy covers these engines"
+        },
+        {
+          "layer": "retry-recovery",
+          "status": "NOT_CERTIFIED",
+          "evidence": "persistence.operational-resilience is absent from the repository"
+        },
+        {
+          "layer": "integration-coverage",
+          "status": "CERTIFIED",
+          "evidence": "*.integration.test.ts present in each package"
+        },
+        {
+          "layer": "end-to-end-coverage",
+          "status": "CERTIFIED",
+          "evidence": "*.e2e.test.ts present in each package"
+        },
+        {
+          "layer": "live-postgresql-coverage",
+          "status": "NOT_CERTIFIED",
+          "evidence": "42 of 42 store instantiations use InMemoryTrustStore; no *.postgres.test.ts in any wave 4-5 package"
+        },
+        {
+          "layer": "rls-enforcement",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_records forced; the purpose-built tables for the same aggregates are ENABLE-only"
+        },
+        {
+          "layer": "non-custody-boundary",
+          "status": "CERTIFIED",
+          "evidence": "settlement-*.non-custody.test.ts"
+        },
+        {
+          "layer": "financial-integrity",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no database-enforced money, balance or immutability on trust_records, the table actually written"
+        },
+        {
+          "layer": "evidence-integrity",
+          "status": "NOT_APPLICABLE",
+          "evidence": "payload_digest on trust_records; no per-evidence checksum constraint"
+        },
+        {
+          "layer": "production-readiness",
+          "status": "NOT_CERTIFIED",
+          "evidence": "derived from aggregate-schema-validation, relational-integrity and financial-integrity"
+        }
+      ]
+    },
+    {
+      "engine": "48",
+      "canonicalName": "Reconciliation & Financial Ledger",
+      "package": "packages/settlement-execution",
+      "engineClass": "ReconciliationLedgerEngine",
+      "layers": [
+        {
+          "layer": "canonical-identity",
+          "status": "CERTIFIED",
+          "evidence": "catalogue name matches package class; docs/ENGINE_CATALOG.md"
+        },
+        {
+          "layer": "package-boundary",
+          "status": "CERTIFIED",
+          "evidence": "one package per five engines; no cross-package engine class"
+        },
+        {
+          "layer": "public-contracts",
+          "status": "CERTIFIED",
+          "evidence": "engine class exported from the package barrel"
+        },
+        {
+          "layer": "runtime-registration",
+          "status": "CERTIFIED",
+          "evidence": "apps/web/lib/trust-app.ts"
+        },
+        {
+          "layer": "dependency-declaration",
+          "status": "CERTIFIED",
+          "evidence": "imports @assurapay/shared only"
+        },
+        {
+          "layer": "command-handling",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "engine methods exist; no command bus or expected-version contract observed"
+        },
+        {
+          "layer": "query-handling",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "list/find via TrustPersistence; bounded pagination not enforced at the store"
+        },
+        {
+          "layer": "event-production",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_outbox_events exists; per-engine event coverage unverified"
+        },
+        {
+          "layer": "event-consumption",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no consumer of wave 4-5 events found in the repository"
+        },
+        {
+          "layer": "authorization",
+          "status": "CERTIFIED",
+          "evidence": "apps/web/lib/route-coverage.test.ts passes with zero unmapped protected routes"
+        },
+        {
+          "layer": "route-permission-mapping",
+          "status": "CERTIFIED",
+          "evidence": "route-coverage test is the oracle; 0 unmapped"
+        },
+        {
+          "layer": "tenant-isolation",
+          "status": "CERTIFIED",
+          "evidence": "trust_records FORCE RLS with tenant predicate"
+        },
+        {
+          "layer": "workspace-isolation",
+          "status": "CERTIFIED",
+          "evidence": "trust_records policy carries workspace scope"
+        },
+        {
+          "layer": "postgresql-durability",
+          "status": "CERTIFIED",
+          "evidence": "PostgresTrustStore via RuntimeTrustStore; zero memory fallback"
+        },
+        {
+          "layer": "aggregate-schema-validation",
+          "status": "NOT_CERTIFIED",
+          "evidence": "zero Zod schemas in packages; payload is unvalidated JSONB"
+        },
+        {
+          "layer": "relational-integrity",
+          "status": "NOT_CERTIFIED",
+          "evidence": "aggregates live in trust_records with no per-aggregate FK, unique or check constraint"
+        },
+        {
+          "layer": "idempotency",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_idempotency_keys exists; per-command coverage unverified"
+        },
+        {
+          "layer": "concurrency-control",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_records.version present; per-engine expected-version use unverified"
+        },
+        {
+          "layer": "audit-trail",
+          "status": "CERTIFIED",
+          "evidence": "trust_audit_records, per-tenant hash chain, append-only trigger"
+        },
+        {
+          "layer": "observability",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no wave 4-5 metric, trace or health signal found"
+        },
+        {
+          "layer": "error-taxonomy",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no governed failure taxonomy covers these engines"
+        },
+        {
+          "layer": "retry-recovery",
+          "status": "NOT_CERTIFIED",
+          "evidence": "persistence.operational-resilience is absent from the repository"
+        },
+        {
+          "layer": "integration-coverage",
+          "status": "CERTIFIED",
+          "evidence": "*.integration.test.ts present in each package"
+        },
+        {
+          "layer": "end-to-end-coverage",
+          "status": "CERTIFIED",
+          "evidence": "*.e2e.test.ts present in each package"
+        },
+        {
+          "layer": "live-postgresql-coverage",
+          "status": "NOT_CERTIFIED",
+          "evidence": "42 of 42 store instantiations use InMemoryTrustStore; no *.postgres.test.ts in any wave 4-5 package"
+        },
+        {
+          "layer": "rls-enforcement",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_records forced; the purpose-built tables for the same aggregates are ENABLE-only"
+        },
+        {
+          "layer": "non-custody-boundary",
+          "status": "CERTIFIED",
+          "evidence": "settlement-*.non-custody.test.ts"
+        },
+        {
+          "layer": "financial-integrity",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no database-enforced money, balance or immutability on trust_records, the table actually written"
+        },
+        {
+          "layer": "evidence-integrity",
+          "status": "NOT_APPLICABLE",
+          "evidence": "payload_digest on trust_records; no per-evidence checksum constraint"
+        },
+        {
+          "layer": "production-readiness",
+          "status": "NOT_CERTIFIED",
+          "evidence": "derived from aggregate-schema-validation, relational-integrity and financial-integrity"
+        }
+      ]
+    },
+    {
+      "engine": "49",
+      "canonicalName": "Dispute, Claim & Appeal Resolution",
+      "package": "packages/settlement-execution",
+      "engineClass": "DisputeResolutionEngine",
+      "layers": [
+        {
+          "layer": "canonical-identity",
+          "status": "CERTIFIED",
+          "evidence": "catalogue name matches package class; docs/ENGINE_CATALOG.md"
+        },
+        {
+          "layer": "package-boundary",
+          "status": "CERTIFIED",
+          "evidence": "one package per five engines; no cross-package engine class"
+        },
+        {
+          "layer": "public-contracts",
+          "status": "CERTIFIED",
+          "evidence": "engine class exported from the package barrel"
+        },
+        {
+          "layer": "runtime-registration",
+          "status": "CERTIFIED",
+          "evidence": "apps/web/lib/trust-app.ts"
+        },
+        {
+          "layer": "dependency-declaration",
+          "status": "CERTIFIED",
+          "evidence": "imports @assurapay/shared only"
+        },
+        {
+          "layer": "command-handling",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "engine methods exist; no command bus or expected-version contract observed"
+        },
+        {
+          "layer": "query-handling",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "list/find via TrustPersistence; bounded pagination not enforced at the store"
+        },
+        {
+          "layer": "event-production",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_outbox_events exists; per-engine event coverage unverified"
+        },
+        {
+          "layer": "event-consumption",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no consumer of wave 4-5 events found in the repository"
+        },
+        {
+          "layer": "authorization",
+          "status": "CERTIFIED",
+          "evidence": "apps/web/lib/route-coverage.test.ts passes with zero unmapped protected routes"
+        },
+        {
+          "layer": "route-permission-mapping",
+          "status": "CERTIFIED",
+          "evidence": "route-coverage test is the oracle; 0 unmapped"
+        },
+        {
+          "layer": "tenant-isolation",
+          "status": "CERTIFIED",
+          "evidence": "trust_records FORCE RLS with tenant predicate"
+        },
+        {
+          "layer": "workspace-isolation",
+          "status": "CERTIFIED",
+          "evidence": "trust_records policy carries workspace scope"
+        },
+        {
+          "layer": "postgresql-durability",
+          "status": "CERTIFIED",
+          "evidence": "PostgresTrustStore via RuntimeTrustStore; zero memory fallback"
+        },
+        {
+          "layer": "aggregate-schema-validation",
+          "status": "NOT_CERTIFIED",
+          "evidence": "zero Zod schemas in packages; payload is unvalidated JSONB"
+        },
+        {
+          "layer": "relational-integrity",
+          "status": "NOT_CERTIFIED",
+          "evidence": "aggregates live in trust_records with no per-aggregate FK, unique or check constraint"
+        },
+        {
+          "layer": "idempotency",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_idempotency_keys exists; per-command coverage unverified"
+        },
+        {
+          "layer": "concurrency-control",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_records.version present; per-engine expected-version use unverified"
+        },
+        {
+          "layer": "audit-trail",
+          "status": "CERTIFIED",
+          "evidence": "trust_audit_records, per-tenant hash chain, append-only trigger"
+        },
+        {
+          "layer": "observability",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no wave 4-5 metric, trace or health signal found"
+        },
+        {
+          "layer": "error-taxonomy",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no governed failure taxonomy covers these engines"
+        },
+        {
+          "layer": "retry-recovery",
+          "status": "NOT_CERTIFIED",
+          "evidence": "persistence.operational-resilience is absent from the repository"
+        },
+        {
+          "layer": "integration-coverage",
+          "status": "CERTIFIED",
+          "evidence": "*.integration.test.ts present in each package"
+        },
+        {
+          "layer": "end-to-end-coverage",
+          "status": "CERTIFIED",
+          "evidence": "*.e2e.test.ts present in each package"
+        },
+        {
+          "layer": "live-postgresql-coverage",
+          "status": "NOT_CERTIFIED",
+          "evidence": "42 of 42 store instantiations use InMemoryTrustStore; no *.postgres.test.ts in any wave 4-5 package"
+        },
+        {
+          "layer": "rls-enforcement",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_records forced; the purpose-built tables for the same aggregates are ENABLE-only"
+        },
+        {
+          "layer": "non-custody-boundary",
+          "status": "CERTIFIED",
+          "evidence": "settlement-*.non-custody.test.ts"
+        },
+        {
+          "layer": "financial-integrity",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no database-enforced money, balance or immutability on trust_records, the table actually written"
+        },
+        {
+          "layer": "evidence-integrity",
+          "status": "NOT_APPLICABLE",
+          "evidence": "payload_digest on trust_records; no per-evidence checksum constraint"
+        },
+        {
+          "layer": "production-readiness",
+          "status": "NOT_CERTIFIED",
+          "evidence": "derived from aggregate-schema-validation, relational-integrity and financial-integrity"
+        }
+      ]
+    },
+    {
+      "engine": "50",
+      "canonicalName": "Final Settlement & Financial Closure",
+      "package": "packages/settlement-execution",
+      "engineClass": "FinalSettlementEngine",
+      "layers": [
+        {
+          "layer": "canonical-identity",
+          "status": "CERTIFIED",
+          "evidence": "catalogue name matches package class; docs/ENGINE_CATALOG.md"
+        },
+        {
+          "layer": "package-boundary",
+          "status": "CERTIFIED",
+          "evidence": "one package per five engines; no cross-package engine class"
+        },
+        {
+          "layer": "public-contracts",
+          "status": "CERTIFIED",
+          "evidence": "engine class exported from the package barrel"
+        },
+        {
+          "layer": "runtime-registration",
+          "status": "CERTIFIED",
+          "evidence": "apps/web/lib/trust-app.ts"
+        },
+        {
+          "layer": "dependency-declaration",
+          "status": "CERTIFIED",
+          "evidence": "imports @assurapay/shared only"
+        },
+        {
+          "layer": "command-handling",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "engine methods exist; no command bus or expected-version contract observed"
+        },
+        {
+          "layer": "query-handling",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "list/find via TrustPersistence; bounded pagination not enforced at the store"
+        },
+        {
+          "layer": "event-production",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_outbox_events exists; per-engine event coverage unverified"
+        },
+        {
+          "layer": "event-consumption",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no consumer of wave 4-5 events found in the repository"
+        },
+        {
+          "layer": "authorization",
+          "status": "CERTIFIED",
+          "evidence": "apps/web/lib/route-coverage.test.ts passes with zero unmapped protected routes"
+        },
+        {
+          "layer": "route-permission-mapping",
+          "status": "CERTIFIED",
+          "evidence": "route-coverage test is the oracle; 0 unmapped"
+        },
+        {
+          "layer": "tenant-isolation",
+          "status": "CERTIFIED",
+          "evidence": "trust_records FORCE RLS with tenant predicate"
+        },
+        {
+          "layer": "workspace-isolation",
+          "status": "CERTIFIED",
+          "evidence": "trust_records policy carries workspace scope"
+        },
+        {
+          "layer": "postgresql-durability",
+          "status": "CERTIFIED",
+          "evidence": "PostgresTrustStore via RuntimeTrustStore; zero memory fallback"
+        },
+        {
+          "layer": "aggregate-schema-validation",
+          "status": "NOT_CERTIFIED",
+          "evidence": "zero Zod schemas in packages; payload is unvalidated JSONB"
+        },
+        {
+          "layer": "relational-integrity",
+          "status": "NOT_CERTIFIED",
+          "evidence": "aggregates live in trust_records with no per-aggregate FK, unique or check constraint"
+        },
+        {
+          "layer": "idempotency",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_idempotency_keys exists; per-command coverage unverified"
+        },
+        {
+          "layer": "concurrency-control",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_records.version present; per-engine expected-version use unverified"
+        },
+        {
+          "layer": "audit-trail",
+          "status": "CERTIFIED",
+          "evidence": "trust_audit_records, per-tenant hash chain, append-only trigger"
+        },
+        {
+          "layer": "observability",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no wave 4-5 metric, trace or health signal found"
+        },
+        {
+          "layer": "error-taxonomy",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no governed failure taxonomy covers these engines"
+        },
+        {
+          "layer": "retry-recovery",
+          "status": "NOT_CERTIFIED",
+          "evidence": "persistence.operational-resilience is absent from the repository"
+        },
+        {
+          "layer": "integration-coverage",
+          "status": "CERTIFIED",
+          "evidence": "*.integration.test.ts present in each package"
+        },
+        {
+          "layer": "end-to-end-coverage",
+          "status": "CERTIFIED",
+          "evidence": "*.e2e.test.ts present in each package"
+        },
+        {
+          "layer": "live-postgresql-coverage",
+          "status": "NOT_CERTIFIED",
+          "evidence": "42 of 42 store instantiations use InMemoryTrustStore; no *.postgres.test.ts in any wave 4-5 package"
+        },
+        {
+          "layer": "rls-enforcement",
+          "status": "PARTIALLY_CERTIFIED",
+          "evidence": "trust_records forced; the purpose-built tables for the same aggregates are ENABLE-only"
+        },
+        {
+          "layer": "non-custody-boundary",
+          "status": "CERTIFIED",
+          "evidence": "settlement-*.non-custody.test.ts"
+        },
+        {
+          "layer": "financial-integrity",
+          "status": "NOT_CERTIFIED",
+          "evidence": "no database-enforced money, balance or immutability on trust_records, the table actually written"
+        },
+        {
+          "layer": "evidence-integrity",
+          "status": "NOT_APPLICABLE",
+          "evidence": "payload_digest on trust_records; no per-evidence checksum constraint"
+        },
+        {
+          "layer": "production-readiness",
+          "status": "NOT_CERTIFIED",
+          "evidence": "derived from aggregate-schema-validation, relational-integrity and financial-integrity"
+        }
+      ]
+    }
+  ]
+}
