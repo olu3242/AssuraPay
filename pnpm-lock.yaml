@@ -180,12 +180,18 @@ importers:
       '@assurapay/database':
         specifier: workspace:*
         version: link:../database
+      '@assurapay/domain-contracts':
+        specifier: workspace:*
+        version: link:../domain-contracts
       '@assurapay/shared':
         specifier: workspace:*
         version: link:../shared
 
   packages/database:
     dependencies:
+      '@assurapay/domain-contracts':
+        specifier: workspace:*
+        version: link:../domain-contracts
       '@assurapay/shared':
         specifier: workspace:*
         version: link:../shared
@@ -198,6 +204,9 @@ importers:
       '@assurapay/database':
         specifier: workspace:*
         version: link:../database
+      '@assurapay/domain-contracts':
+        specifier: workspace:*
+        version: link:../domain-contracts
       '@assurapay/shared':
         specifier: workspace:*
         version: link:../shared
@@ -229,6 +238,12 @@ importers:
         specifier: workspace:*
         version: link:../shared
 
+  packages/domain-contracts:
+    dependencies:
+      zod:
+        specifier: ^3.23.0
+        version: 3.25.76
+
   packages/enterprise-analytics:
     dependencies:
       '@assurapay/database':
@@ -252,6 +267,9 @@ importers:
       '@assurapay/database':
         specifier: workspace:*
         version: link:../database
+      '@assurapay/domain-contracts':
+        specifier: workspace:*
+        version: link:../domain-contracts
       '@assurapay/shared':
         specifier: workspace:*
         version: link:../shared

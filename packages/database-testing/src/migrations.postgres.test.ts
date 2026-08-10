@@ -6,7 +6,7 @@ import { createPostgresPool } from '@assurapay/database';
 import type { PostgresPool } from '@assurapay/database';
 import {
   MigrationError,
-  REQUIRED_TRUST_TABLES,
+  REQUIRED_STORE_TABLES,
   applyMigrations,
   readMigrations,
   verifySchemaCompatibility,
@@ -93,7 +93,7 @@ describe('integration: the repository’s migration set applies to a clean datab
       SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'
     `;
     const names = new Set(tables.map((row) => row.table_name));
-    for (const table of REQUIRED_TRUST_TABLES) expect(names.has(table), table).toBe(true);
+    for (const table of REQUIRED_STORE_TABLES) expect(names.has(table), table).toBe(true);
     expect(names.size).toBeGreaterThan(100);
   });
 
@@ -271,7 +271,7 @@ describe('integration: compatibility is reported without changing anything', () 
 
     expect(compatibility.compatible).toBe(false);
     expect(compatibility.pending.length).toBeGreaterThanOrEqual(21);
-    expect(compatibility.missingTables).toEqual([...REQUIRED_TRUST_TABLES]);
+    expect(compatibility.missingTables).toEqual([...REQUIRED_STORE_TABLES]);
   });
 
   it('reports compatible once the set has been applied', async () => {

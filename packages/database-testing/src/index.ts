@@ -33,6 +33,15 @@ export type TestDatabase = {
   readonly sql: SqlClient;
   readonly schema: string;
   /**
+   * A connection URL that reaches exactly this database, in this schema.
+   *
+   * Exposed because a runtime test must hand a URL to `createPersistenceRuntime` rather than a
+   * client, and reconstructing one from `ASSURAPAY_TEST_DATABASE_URL` plus the schema only works
+   * for the schema-isolated helper — `createTestDatabaseInstance` creates a whole database whose
+   * name the caller never sees.
+   */
+  readonly url: string;
+  /**
    * A non-owning role the tenancy probes may assume, present when the policies were applied.
    *
    * Run-scoped rather than the shared `assurapay_app`. A cluster-wide role belongs to whichever
@@ -41,6 +50,14 @@ export type TestDatabase = {
    * this connection just created is one it can always assume.
    */
   readonly probeRole?: string;
+  /**
+   * Creates the probe role on demand, for a whole-database harness whose tables the caller
+   * migrates itself. Idempotent; returns the role name.
+   *
+   * Absent on the schema-isolated helper, which provisions its role during setup because it
+   * applies the policies itself and therefore knows the tables exist.
+   */
+  provisionProbeRole?(): Promise<string>;
   /** Drops the schema and closes the pool. Safe to call twice. */
   dispose(): Promise<void>;
 };
@@ -103,6 +120,7 @@ export async function createTestDatabase(
   const database: TestDatabase = {
     sql: pool.sql,
     schema,
+    url: withSearchPath(databaseUrl, schema),
     get probeRole() {
       return probeRole;
     },
@@ -159,6 +177,29 @@ export async function createTestDatabase(
   }
 
   return database;
+}
+
+/**
+ * Provisions a probe role in a whole-database harness.
+ *
+ * `createTestDatabaseInstance` creates its own `public`, so the schema name is fixed and the
+ * grants cover the Batch A tables as well as the trust ones — a certification probe that was
+ * denied by a missing table grant would look identical to one denied by a policy while proving
+ * nothing about the policy.
+ */
+async function provisionInstanceProbeRole(sql: SqlClient): Promise<string> {
+  const role = `probe_db_${randomUUID().replace(/-/g, '').slice(0, 24)}`;
+  await sql.unsafe(`CREATE ROLE "${role}" NOLOGIN`);
+  await sql.unsafe(`GRANT "${role}" TO CURRENT_USER`);
+  await sql.unsafe(`GRANT USAGE ON SCHEMA public TO "${role}"`);
+  await sql.unsafe(
+    `GRANT SELECT, INSERT, UPDATE ON
+       trust_tenants, trust_workspaces, trust_memberships, trust_permission_grants,
+       trust_bootstrap_state, trust_outbox_events, trust_idempotency_keys, trust_records
+     TO "${role}"`,
+  );
+  await sql.unsafe(`GRANT SELECT, INSERT ON trust_audit_records TO "${role}"`);
+  return role;
 }
 
 /**
@@ -355,9 +396,20 @@ export async function createTestDatabaseInstance(): Promise<TestDatabase> {
   const pool = createPostgresPool({ databaseUrl: url.toString(), max: 4, applicationName: 'assurapay-test' });
 
   let disposed = false;
+  let probeRole: string | undefined;
   return {
     sql: pool.sql,
     schema: 'public',
+    url: url.toString(),
+    get probeRole() {
+      return probeRole;
+    },
+    // Lazily, and on request: the grants name tables the caller has not created yet, because this
+    // helper hands back an empty database and the caller chooses which migrations to apply.
+    async provisionProbeRole() {
+      probeRole ??= await provisionInstanceProbeRole(pool.sql);
+      return probeRole;
+    },
     async dispose() {
       if (disposed) return;
       disposed = true;
@@ -369,6 +421,10 @@ export async function createTestDatabaseInstance(): Promise<TestDatabase> {
       });
       try {
         await teardown.sql.unsafe(`DROP DATABASE IF EXISTS "${name}" WITH (FORCE)`);
+        // After the database, for the same reason the schema helper drops it after the schema: a
+        // role cannot be dropped while a grant depends on it, and dropping the database takes the
+        // grants with the objects they applied to.
+        if (probeRole) await dropProbeRole(teardown.sql, probeRole);
       } finally {
         await teardown.dispose();
       }

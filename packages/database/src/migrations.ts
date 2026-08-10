@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
+import { BATCH_A_TABLES } from '@assurapay/domain-contracts';
 import type { SqlClient } from './postgres-client';
 
 /**
@@ -236,6 +237,18 @@ export const REQUIRED_TRUST_MIGRATIONS: readonly string[] = Object.freeze([
   // the same trust aggregates, and a host that started anyway would be one console session
   // away from writing the wrong one.
   '202608080001_trust_schema_ownership_reconciliation',
+  // Batch A. The store routes sixteen Engine 31-40 collections to the tables these four
+  // migrations create, converge and govern, so a host missing any of them would start and then
+  // fail the first execution-workspace write with an undefined-table error. Requiring them has
+  // a deployment consequence worth stating: `202608030006` and `202608030007` belong to the
+  // historical per-engine set, and one of that set's functions is `SECURITY DEFINER` with
+  // `SET search_path=public`, so the set is not schema-relocatable. A trust runtime that serves
+  // Batch A therefore runs in `public`. That was already true of the ninety-three out-of-scope
+  // tables; it is now true of the runtime contract, and stated rather than discovered.
+  '202608030006_execution_orchestration',
+  '202608030007_completion_assurance',
+  '202608090001_wave4_trust_authority',
+  '202608100001_wave4_batch_a_governed_transitions',
 ]);
 
 export type SchemaCompatibility = {
@@ -271,6 +284,30 @@ export const REQUIRED_TRUST_TABLES = Object.freeze([
 ]);
 
 /**
+ * Domain aggregate tables the store owns outside the trust set.
+ *
+ * Batch A's sixteen, taken from the contract registry rather than restated, so a seventeenth
+ * aggregate cannot be given a repository without becoming a readiness requirement.
+ *
+ * Kept as its own constant because it answers a different question. The trust tables are what
+ * authentication, authorization, membership and the audit chain need; these are what Engines
+ * 31-40 need. A deployment could be missing the second set and still serve a login, which is
+ * why the readiness report names which tables are absent rather than only that some are.
+ */
+export const REQUIRED_DOMAIN_AGGREGATE_TABLES = Object.freeze([...BATCH_A_TABLES].sort());
+
+/**
+ * Every table `PostgresTrustStore` reads or writes.
+ *
+ * The union, and the set `verifySchemaCompatibility` actually checks. A store that routes a
+ * collection to a table it does not require at startup discovers the absence on the first
+ * write, having already told the caller the host was ready.
+ */
+export const REQUIRED_STORE_TABLES = Object.freeze(
+  [...REQUIRED_TRUST_TABLES, ...REQUIRED_DOMAIN_AGGREGATE_TABLES].sort(),
+);
+
+/**
  * Answers whether the database matches the migration set, without changing it.
  *
  * Separate from `applyMigrations` because a production host must be able to verify
@@ -293,7 +330,7 @@ export async function verifySchemaCompatibility(
       pending: migrations.map((migration) => migration.id),
       pendingRequired: [...REQUIRED_TRUST_MIGRATIONS],
       divergent: [],
-      missingTables: [...REQUIRED_TRUST_TABLES],
+      missingTables: [...REQUIRED_STORE_TABLES],
     };
   }
 
@@ -313,7 +350,7 @@ export async function verifySchemaCompatibility(
     WHERE table_schema = current_schema()
   `;
   const names = new Set(present.map((row) => row.table_name));
-  const missingTables = REQUIRED_TRUST_TABLES.filter((table) => !names.has(table));
+  const missingTables = REQUIRED_STORE_TABLES.filter((table) => !names.has(table));
 
   const pendingRequired = REQUIRED_TRUST_MIGRATIONS.filter((id) => !ledger.has(id));
 

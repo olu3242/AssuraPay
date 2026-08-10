@@ -8,7 +8,8 @@ import {
 } from '@assurapay/permissions';
 import { verifyAuditChain } from '@assurapay/audit-ledger';
 import {
-  createTestDatabase,
+  createTestDatabaseInstance,
+  migrationsDirectory,
   requireTestDatabaseUrl,
 } from '@assurapay/database-testing';
 import type { TestDatabase } from '@assurapay/database-testing';
@@ -23,7 +24,7 @@ import type {
   RuntimeEvidence,
 } from './persistence-runtime';
 import { loadPersistenceConfig } from './config';
-import { withTrustScope } from '@assurapay/database';
+import { applyMigrations, withTrustScope } from '@assurapay/database';
 
 /**
  * The scope these suites write under.
@@ -48,7 +49,9 @@ const SCOPE = {
  * nothing about how a host obtains one.
  */
 
-const databaseUrl = requireTestDatabaseUrl();
+// Asserted at module load, so a run with no database says so once rather than failing every
+// test on a connection error.
+requireTestDatabaseUrl();
 
 const disposables: (() => Promise<void>)[] = [];
 
@@ -56,16 +59,29 @@ afterEach(async () => {
   for (const dispose of disposables.splice(0).reverse()) await dispose();
 });
 
-/** An isolated schema, and a production-like configuration pointed at it. */
+/**
+ * An isolated database with the full migration set, and a configuration pointed at it.
+ *
+ * A whole database rather than a schema, and every migration rather than the trust subset,
+ * because readiness is now a claim about more tables than the trust ones. `PostgresTrustStore`
+ * routes Batch A's sixteen Engine 31-40 collections to purpose-built tables created by
+ * `202608030006` and `202608030007`, so those tables are part of `REQUIRED_STORE_TABLES` and a
+ * host missing them is correctly unready. The historical set is not schema-relocatable — one of
+ * its functions is `SECURITY DEFINER` with `SET search_path=public` — so a schema-isolated
+ * harness cannot hold them, and a readiness assertion made against one would have been asserting
+ * that a database the runtime refuses to serve is ready.
+ *
+ * The cost is about a second per database, measured, which is what a fresh database plus
+ * twenty-six migrations takes on this cluster.
+ */
 async function isolatedDatabase(): Promise<{
   database: TestDatabase;
   url: string;
 }> {
-  const database = await createTestDatabase();
+  const database = await createTestDatabaseInstance();
   disposables.push(() => database.dispose());
-  const url = new URL(databaseUrl);
-  url.searchParams.set('options', `-c search_path=${database.schema}`);
-  return { database, url: url.toString() };
+  await applyMigrations(database.sql, migrationsDirectory(), { appliedBy: 'integration-test' });
+  return { database, url: database.url };
 }
 
 function productionEnvironment(
@@ -196,18 +212,18 @@ describe('integration: a durable environment never falls back to memory', () => 
   it('refuses to start against a database with no schema', async () => {
     // Reachable is not enough. A host that started here would fail mid-request with a
     // missing-table error, after the caller had been told the request was accepted.
-    const database = await createTestDatabase();
-    disposables.push(() => database.dispose());
+    //
+    // Migrated first, then tables dropped, so the two failure modes stay distinguishable: a
+    // database that was never migrated reports MIGRATIONS_PENDING, and this test is about the
+    // other one — the ledger says the schema is current and the tables are not there.
+    const { database, url } = await isolatedDatabase();
     await database.sql.unsafe(
       'DROP TABLE trust_records, trust_audit_records CASCADE',
     );
 
-    const url = new URL(databaseUrl);
-    url.searchParams.set('options', `-c search_path=${database.schema}`);
-
     const error = await createPersistenceRuntime({
       config: {
-        ...loadPersistenceConfig(productionEnvironment(url.toString())),
+        ...loadPersistenceConfig(productionEnvironment(url)),
         ssl: 'disable',
       },
     }).catch((caught: unknown) => caught);

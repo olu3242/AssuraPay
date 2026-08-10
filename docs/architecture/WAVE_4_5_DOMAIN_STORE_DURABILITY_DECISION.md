@@ -36,6 +36,18 @@ The integrity machinery was built and attached to the wrong tables. Consequences
 **There is no dual write.** One live model, one dead model. That is the single most important
 fact for sequencing: the migration does not need dual-write reconciliation.
 
+> **Corrected during Batch A implementation.** The claim above is right but understated, and the
+> understatement changed the plan. `PostgresTrustStore` did not merely prefer `trust_records` for
+> these aggregates — it *refused* them. All 35 wave 4–5 collections are absent from
+> `GOVERNED_DOCUMENTS`, so every `append`, `replace` and `list` failed with
+> `PERSISTENCE_COLLECTION_NOT_MAPPED`, and Engines 31–60 could not persist to PostgreSQL at all.
+> `trust_records` therefore holds zero rows for them on every database. There is nothing to
+> backfill, no read cutover distinct from the write cutover, and nothing for
+> `persistence.generic-record-retirement` to retire. The three proposed capabilities
+> `persistence.wave4-relational-repositories`, `persistence.wave4-backfill` and
+> `persistence.wave4-read-cutover` collapse into one act per batch: route the collection to its
+> table. See `docs/persistence/WAVE_4_BATCH_A_ACTIVATION.md`.
+
 ## Options
 
 ### Option A — continue generic JSONB
@@ -133,6 +145,15 @@ must be explicit *before* they are enforced.
 
 Engines 31–40. No money. Entry gate: schema foundation complete. Exit gate: live PostgreSQL
 tests per aggregate, forced RLS, cross-tenant denial proven. Rollback: revert read source.
+
+**Delivered.** Sixteen canonical schemas with compile-time conformance assertions, sixteen
+relational repositories, store routing, governed mutation boundaries, per-workspace natural
+uniqueness, readiness coverage, and 26 live-PostgreSQL tests. Three defects the activation found —
+five tables whose append-only trigger forbade the transitions their engines perform, two globally
+scoped unique constraints where the rule is per workspace, and a `DATE` column that would have
+truncated an ISO datetime — are recorded in
+`docs/persistence/WAVE_4_BATCH_A_ACTIVATION.md`. Rollback is reverting the change, not a read
+source, because there was never a second live model.
 
 ### Batch B — entitlement and claim state · complexity **HIGH**
 

@@ -191,7 +191,7 @@
       },
       "id": "persistence.domain-store-environment-gate",
       "kind": "platform",
-      "onDefaultBranch": false,
+      "onDefaultBranch": true,
       "probes": [
         {
           "kind": "path",
@@ -323,7 +323,10 @@
             "packages/database-testing/src/postgres-store.postgres.test.ts",
             "packages/database-testing/src/rls-certification.postgres.test.ts",
             "packages/database-testing/src/schema-ownership.postgres.test.ts",
+            "packages/database-testing/src/wave4-batch-a-repository.postgres.test.ts",
+            "packages/database/src/batch-a-repository.ts",
             "packages/database/src/conformance.ts",
+            "packages/database/src/migrations.ts",
             "packages/database/src/postgres-store.ts",
             "packages/database/src/schema-ownership.ts",
             "packages/reos/src/reos.persistence.test.ts",
@@ -342,8 +345,12 @@
             "packages/database-testing/src/index.ts",
             "packages/database-testing/src/migrations.postgres.test.ts",
             "packages/database-testing/src/schema-ownership.postgres.test.ts",
+            "packages/database-testing/src/wave4-batch-a-repository.postgres.test.ts",
+            "packages/database-testing/src/wave4-trust-authority.postgres.test.ts",
             "packages/database/src/migrations.ts",
-            "packages/database/src/schema-ownership.ts"
+            "packages/database/src/schema-ownership.ts",
+            "packages/runtime/src/persistence-runtime.postgres.test.ts",
+            "packages/runtime/src/rls-runtime.postgres.test.ts"
           ],
           "query": "applyMigrations",
           "satisfied": true
@@ -353,6 +360,7 @@
           "matches": [
             "packages/database-testing/src/migrations.postgres.test.ts",
             "packages/database-testing/src/schema-ownership.postgres.test.ts",
+            "packages/database-testing/src/wave4-batch-a-repository.postgres.test.ts",
             "packages/database/src/migrations.ts",
             "packages/runtime/src/persistence-runtime.ts"
           ],
@@ -437,6 +445,7 @@
           "kind": "symbol",
           "matches": [
             "apps/web/lib/persistence.ts",
+            "packages/database-testing/src/index.ts",
             "packages/runtime/src/persistence-runtime.postgres.test.ts",
             "packages/runtime/src/persistence-runtime.ts",
             "packages/runtime/src/rls-runtime.postgres.test.ts"
@@ -613,6 +622,8 @@
           "matches": [
             "packages/database-testing/src/rls-certification.postgres.test.ts",
             "packages/database-testing/src/schema-ownership.postgres.test.ts",
+            "packages/database-testing/src/wave4-batch-a-repository.postgres.test.ts",
+            "packages/database-testing/src/wave4-trust-authority.postgres.test.ts",
             "packages/database/src/trust-scope.ts",
             "packages/runtime/src/persistence-runtime.postgres.test.ts",
             "packages/runtime/src/rls-runtime.postgres.test.ts"
@@ -1592,7 +1603,7 @@
       "totalProbes": 5
     }
   ],
-  "head": "cdffedc19f1c740a44de008ff7f97cec816c99e3",
+  "head": "c79ec6f78b9e9ebdb1f039466c8880ae207a4363",
   "reosVersion": "1.0.0",
   "stage": "forensics",
   "summary": {

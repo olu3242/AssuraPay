@@ -411,4 +411,5 @@ export * from './migrations';
 export * from './trust-scope';
 export * from './rls-certification';
 export * from './schema-ownership';
+export * from './batch-a-repository';
 export * from './domain-store-environment';

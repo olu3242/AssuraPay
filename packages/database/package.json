@@ -4,6 +4,7 @@
   "private": true,
   "main": "src/index.ts",
   "dependencies": {
+    "@assurapay/domain-contracts": "workspace:*",
     "@assurapay/shared": "workspace:*",
     "postgres": "^3.4.9"
   }

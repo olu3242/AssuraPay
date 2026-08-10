@@ -1,7 +1,16 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { PermissionService, TrustStoreMembershipReader, enforcePermission } from '@assurapay/permissions';
-import { certifyRowLevelSecurity, withTrustScope, withoutTrustScope } from '@assurapay/database';
-import { createTestDatabase, requireTestDatabaseUrl } from '@assurapay/database-testing';
+import {
+  applyMigrations,
+  certifyRowLevelSecurity,
+  withTrustScope,
+  withoutTrustScope,
+} from '@assurapay/database';
+import {
+  createTestDatabaseInstance,
+  migrationsDirectory,
+  requireTestDatabaseUrl,
+} from '@assurapay/database-testing';
 import type { TestDatabase } from '@assurapay/database-testing';
 import { createPersistenceRuntime } from './persistence-runtime';
 import type { PersistenceRuntime } from './persistence-runtime';
@@ -23,7 +32,9 @@ import { loadPersistenceConfig } from './config';
  * rather than a store a test assembled.
  */
 
-const databaseUrl = requireTestDatabaseUrl();
+// Asserted at module load, so a run with no database says so once rather than failing every
+// test on a connection error.
+requireTestDatabaseUrl();
 
 const disposables: (() => Promise<void>)[] = [];
 
@@ -34,14 +45,21 @@ afterEach(async () => {
 const TENANT_A = { tenantId: 'tenant-a', workspaceId: 'workspace-a', userId: 'user-a' };
 const TENANT_B = { tenantId: 'tenant-b', workspaceId: 'workspace-b', userId: 'user-b' };
 
-/** A runtime over a schema with both the store and the RLS migrations applied. */
+/**
+ * A runtime over a database with the full migration set applied.
+ *
+ * A whole database rather than an isolated schema, because readiness is a claim about every
+ * table the store routes to — which since Batch A's activation includes the sixteen Engine 31-40
+ * tables, created by migrations whose set is not schema-relocatable. A schema-isolated harness
+ * cannot hold them, so a runtime started against one is correctly refused as MIGRATIONS_PENDING,
+ * and this suite is about the tenancy boundary rather than about that refusal.
+ */
 async function rlsRuntime(): Promise<{ runtime: PersistenceRuntime; database: TestDatabase }> {
-  // The harness applies the policies by default, because that is the set a host requires.
-  const database = await createTestDatabase();
+  const database = await createTestDatabaseInstance();
   disposables.push(() => database.dispose());
+  await applyMigrations(database.sql, migrationsDirectory(), { appliedBy: 'integration-test' });
 
-  const url = new URL(databaseUrl);
-  url.searchParams.set('options', `-c search_path=${database.schema}`);
+  const url = new URL(database.url);
 
   const runtime = await createPersistenceRuntime({
     config: {
@@ -136,7 +154,11 @@ describe('integration: the application works with the boundary in force', () => 
       schema: database.schema,
       probe: {
         // The role this database provisioned, not a cluster-wide one another credential may own.
-        context: { role: database.probeRole!, ...TENANT_A, actorId: TENANT_A.userId },
+        context: {
+          role: await database.provisionProbeRole!(),
+          ...TENANT_A,
+          actorId: TENANT_A.userId,
+        },
         foreign: TENANT_B,
       },
     });

@@ -5,6 +5,7 @@
   "main": "src/index.ts",
   "dependencies": {
     "@assurapay/database": "workspace:*",
+    "@assurapay/domain-contracts": "workspace:*",
     "postgres": "^3.4.9",
     "@assurapay/shared": "workspace:*"
   }

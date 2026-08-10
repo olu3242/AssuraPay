@@ -31,6 +31,11 @@ export default defineConfig({
         __dirname,
         'packages/shared/src/index.ts',
       ),
+
+      '@assurapay/domain-contracts': path.resolve(
+        __dirname,
+        'packages/domain-contracts/src/index.ts',
+      ),
       '@assurapay/domain': path.resolve(
         __dirname,
         'packages/domain/src/index.ts',
