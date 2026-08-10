@@ -9,10 +9,10 @@
 | --- | --- |
 | Repository | assurapay |
 | Version | 0.1.0 |
-| Branch | main |
-| HEAD | 92860feff2861a4197dcc3b320e53b714e058931 |
-| Worktree clean | no |
-| Manifest digest | 6c5e54dd43f6 |
+| Branch | chore/post-merge-governance-artifacts-batch-a |
+| HEAD | d3a25219e7768a07df1dcb013049a7bcce9acbb1 |
+| Worktree clean | yes |
+| Manifest digest | 9bc5c72cf15c |
 | REOS version | 1.0.0 |
 
 ## Architecture

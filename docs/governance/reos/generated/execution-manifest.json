@@ -3393,9 +3393,9 @@
     }
   ],
   "identity": {
-    "branch": "main",
-    "clean": false,
-    "head": "92860feff2861a4197dcc3b320e53b714e058931",
+    "branch": "chore/post-merge-governance-artifacts-batch-a",
+    "clean": true,
+    "head": "d3a25219e7768a07df1dcb013049a7bcce9acbb1",
     "repository": "assurapay",
     "version": "0.1.0"
   },
@@ -3486,7 +3486,7 @@
     "released": 75,
     "validated": 0
   },
-  "manifestDigest": "6c5e54dd43f6",
+  "manifestDigest": "9bc5c72cf15c",
   "missingCapabilities": [
     "persistence.domain-store-durability"
   ],

@@ -6,44 +6,36 @@
 
 | Field | Value |
 | --- | --- |
-| Branch | feat/persistence-domain-store-durable-environment-gate |
-| HEAD | cdffedc19f1c740a44de008ff7f97cec816c99e3 |
-| Worktree clean | no |
-| Uncommitted files | 15 |
-| Generated at | 2026-08-06T09:35:33.597Z |
+| Branch | chore/post-merge-governance-artifacts-batch-a |
+| HEAD | d3a25219e7768a07df1dcb013049a7bcce9acbb1 |
+| Worktree clean | yes |
+| Uncommitted files | 0 |
+| Generated at | 2026-08-10T13:48:36.344Z |
 
 ## Capability implemented
 
-`persistence.domain-store-environment-gate` — lifecycle **certified**
+`persistence.domain-store-durability` — lifecycle **planned**
 
-## Files modified (17)
+## Files modified (9)
 
-- `apps/web/lib/assurapay-app.ts`
 - `docs/governance/execution-ledger/INDEX.md`
-- `docs/governance/execution-ledger/cdffedc19f1c-persistence.domain-store-environment-gate.json`
-- `docs/governance/reos/capability-registry.json`
+- `docs/governance/execution-ledger/d3a25219e776-persistence.domain-store-durability.json`
 - `docs/governance/reos/generated/CERTIFICATION_REPORT.md`
-- `docs/governance/reos/generated/DEPENDENCY_RESOLUTION.md`
 - `docs/governance/reos/generated/EXECUTION_MANIFEST.md`
 - `docs/governance/reos/generated/certification.json`
 - `docs/governance/reos/generated/dependency-resolution.json`
 - `docs/governance/reos/generated/discovery.json`
 - `docs/governance/reos/generated/execution-manifest.json`
 - `docs/governance/reos/generated/forensics.json`
-- `packages/database/src/domain-store-environment.test.ts`
-- `packages/database/src/domain-store-environment.ts`
-- `packages/database/src/index.ts`
-- `packages/reos/src/reos.persistence.test.ts`
-- `packages/reos/src/validators/persistence.ts`
 
 ## Validation
 
 | Validator | Result | Checked | Errors | Warnings |
 | --- | --- | --- | --- | --- |
-| architecture | pass | 197 | 0 | 0 |
-| dependencies | pass | 26 | 0 | 0 |
-| security | pass | 272 | 0 | 0 |
-| execution-contract | pass | 7 | 0 | 0 |
+| architecture | pass | 208 | 0 | 0 |
+| dependencies | pass | 27 | 0 | 0 |
+| security | pass | 281 | 0 | 0 |
+| execution-contract | pass | 0 | 0 | 0 |
 
 ## Governance
 
@@ -67,8 +59,8 @@ No newly introduced violations.
 
 ## Ledger
 
-Recorded as `cdffedc19f1c-persistence.domain-store-environment-gate` in `docs/governance/execution-ledger/`.
+Recorded as `d3a25219e776-persistence.domain-store-durability` in `docs/governance/execution-ledger/`.
 
 ## Commit
 
-`cdffedc19f1c740a44de008ff7f97cec816c99e3`
+`d3a25219e7768a07df1dcb013049a7bcce9acbb1`

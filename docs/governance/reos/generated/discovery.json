@@ -2785,9 +2785,10 @@
   "reosVersion": "1.0.0",
   "repository": {
     "git": {
-      "branch": "main",
+      "branch": "chore/post-merge-governance-artifacts-batch-a",
       "branches": [
         "assess/engines-31-50-certification-gap-matrix",
+        "chore/post-merge-governance-artifacts-batch-a",
         "claude/git-pull-cqc04u",
         "feat/a1-batch-a-relational-repositories",
         "feat/a1-domain-store-durability",
@@ -2800,6 +2801,7 @@
         "feat/persistence-schema-ownership-reconciliation",
         "main",
         "origin/assess/engines-31-50-certification-gap-matrix",
+        "origin/chore/post-merge-governance-artifacts-batch-a",
         "origin/claude/git-pull-cqc04u",
         "origin/claude/implementation-02q40a",
         "origin/feat/a1-batch-a-relational-repositories",
@@ -2820,18 +2822,10 @@
         "wip/persistence-async-migration",
         "wip/persistence-async-repository-interface"
       ],
-      "clean": false,
-      "dirtyFiles": [
-        "docs/governance/reos/generated/CERTIFICATION_REPORT.md",
-        "docs/governance/reos/generated/EXECUTION_MANIFEST.md",
-        "docs/governance/reos/generated/certification.json",
-        "docs/governance/reos/generated/dependency-resolution.json",
-        "docs/governance/reos/generated/discovery.json",
-        "docs/governance/reos/generated/execution-manifest.json",
-        "docs/governance/reos/generated/forensics.json"
-      ],
-      "head": "92860feff2861a4197dcc3b320e53b714e058931",
-      "headShort": "92860fe",
+      "clean": true,
+      "dirtyFiles": [],
+      "head": "d3a25219e7768a07df1dcb013049a7bcce9acbb1",
+      "headShort": "d3a2521",
       "reflogAvailable": true,
       "remotes": [
         "origin"
@@ -2840,7 +2834,7 @@
         "platform-trust-foundation",
         "rc-engine-60"
       ],
-      "upstream": "origin/main"
+      "upstream": "origin/chore/post-merge-governance-artifacts-batch-a"
     },
     "name": "assurapay",
     "packageManager": "pnpm@11.3.0",
