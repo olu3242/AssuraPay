@@ -3394,8 +3394,8 @@
   ],
   "identity": {
     "branch": "feat/b1-batch-b-settlement-authority",
-    "clean": false,
-    "head": "92860feff2861a4197dcc3b320e53b714e058931",
+    "clean": true,
+    "head": "d065efb65b4a2b7471b089f9ff9554e1de4dece8",
     "repository": "assurapay",
     "version": "0.1.0"
   },
@@ -3486,7 +3486,7 @@
     "released": 75,
     "validated": 0
   },
-  "manifestDigest": "9f072be98b1f",
+  "manifestDigest": "f80b9d2143c7",
   "missingCapabilities": [
     "persistence.domain-store-durability"
   ],
