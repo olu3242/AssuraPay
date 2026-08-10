@@ -140,16 +140,26 @@ describe('integration: Batch A converges on the trust runtime', () => {
     }
   }, 300_000);
 
-  it('preserves the append-only triggers rather than recreating them', async () => {
-    // They already protect progress, evidence, validation, quality and acceptance state from
-    // mutation. Dropping and recreating them would risk losing that behaviour silently.
+  it('leaves every Batch A table with a mutation boundary', async () => {
+    // This migration did not touch the triggers, and the claim it made about them was wrong: it
+    // said the blanket append-only triggers "already protect ... which is the behaviour these
+    // aggregates require", which is true of six tables and false of five. Evidence packages,
+    // defects, inspections, acceptance decisions and completion certificates are all transitioned
+    // by their canonical engines, and the blanket trigger would have refused every one.
+    //
+    // `202608100001` resolved that: six tables keep the blanket trigger, and the other ten get an
+    // explicit governed-transition boundary instead. What this test asserts is the property that
+    // must hold whichever of the two a table has — that none of the sixteen is left with no
+    // boundary at all, which was the state five of them were in before.
     const database = await migratedDatabase();
-    const rows = await database.sql<{ table_name: string }[]>`
-      SELECT c.relname AS table_name FROM pg_trigger t JOIN pg_class c ON c.oid = t.tgrelid
+    const rows = await database.sql<{ table_name: string; tgname: string }[]>`
+      SELECT c.relname AS table_name, t.tgname FROM pg_trigger t
+      JOIN pg_class c ON c.oid = t.tgrelid
       WHERE NOT t.tgisinternal AND c.relname = ANY(${[...BATCH_A]})
-        AND t.tgname LIKE '%append_only'
+        AND (t.tgname LIKE '%append_only' OR t.tgname LIKE '%governed_transition')
     `;
-    expect(rows.length).toBeGreaterThan(0);
+    const guarded = new Set(rows.map((row) => row.table_name));
+    expect([...guarded].sort()).toEqual([...BATCH_A].sort());
   }, 300_000);
 });
 
@@ -239,8 +249,12 @@ describe('integration: the Batch A boundary denies', () => {
     const database = await createTestDatabaseInstance();
     databases.push(database);
     const { readMigrations } = await import('@assurapay/database');
+    // Everything before the convergence, not just everything except it. `202608100001` adds
+    // constraints on `tenant_id`, which only exists once `202608090001` has run, so applying the
+    // later migration against a pre-convergence schema fails on the wrong thing and the refusal
+    // this test exists to observe is never reached.
     const earlier = readMigrations(migrationsDirectory()).filter(
-      (entry) => !entry.id.startsWith('202608090001'),
+      (entry) => entry.id < '202608090001',
     );
     await database.sql.begin(async (tx) => {
       await tx`

@@ -9,6 +9,11 @@ import type { SqlClient } from './postgres-client';
 import { sanitizeDatabaseFailure } from './postgres-client';
 import { currentTrustScope, isTenantScoped } from './trust-scope';
 import type { TrustScope } from './trust-scope';
+import { BATCH_A_RELATIONS, batchARelation, isBatchACollection } from './batch-a-repository';
+import { PostgresStoreError } from './store-error';
+
+export { PostgresStoreError } from './store-error';
+export type { PostgresStoreErrorCode } from './store-error';
 
 /**
  * The durable `TrustPersistence` implementation.
@@ -26,33 +31,6 @@ import type { TrustScope } from './trust-scope';
  * is refused: silently accepting it would persist authorization-relevant state
  * somewhere nothing reads, which is indistinguishable from losing it.
  */
-
-export type PostgresStoreErrorCode =
-  | 'PERSISTENCE_COLLECTION_NOT_MAPPED'
-  | 'PERSISTENCE_RECORD_ID_REQUIRED'
-  | 'PERSISTENCE_RECORD_NOT_FOUND'
-  | 'PERSISTENCE_DUPLICATE_RECORD'
-  | 'PERSISTENCE_SCOPE_INVALID'
-  | 'PERSISTENCE_CONFLICT'
-  | 'PERSISTENCE_CORRUPT_RECORD'
-  | 'PERSISTENCE_HISTORY_IMMUTABLE'
-  | 'PERSISTENCE_UNAVAILABLE'
-  | 'PERSISTENCE_TIMEOUT'
-  | 'PERSISTENCE_TRANSACTION_FAILED'
-  | 'PERSISTENCE_REVOKED_SCOPE';
-
-/** Stable codes so a caller branches on the reason, never on driver text. */
-export class PostgresStoreError extends Error {
-  readonly code: PostgresStoreErrorCode;
-  readonly detail?: string;
-
-  constructor(code: PostgresStoreErrorCode, detail?: string) {
-    super(detail ? `${code}: ${detail}` : code);
-    this.name = 'PostgresStoreError';
-    this.code = code;
-    this.detail = detail;
-  }
-}
 
 /** PostgreSQL SQLSTATE classes the store translates into its own vocabulary. */
 const SQLSTATE = {
@@ -84,6 +62,22 @@ function translate(error: unknown): PostgresStoreError {
 
   // The append-only trigger raises a bare exception with a recognizable prefix.
   if (detail.includes('TRUST_HISTORY_IS_APPEND_ONLY'))
+    return new PostgresStoreError('PERSISTENCE_HISTORY_IMMUTABLE', detail);
+
+  // The domain aggregates' mutation boundaries. `append-only table` is the message
+  // `prevent_append_only_mutation()` has raised since `202608020006`; the three prefixed
+  // codes come from the governed-transition and terminal-state functions
+  // `202608100001` added. All four mean the same thing to a caller — the database refused to
+  // change something it holds immutable — and they must not surface as
+  // PERSISTENCE_UNAVAILABLE, which reads as an outage and invites a retry that can never
+  // succeed.
+  if (
+    detail.includes('AGGREGATE_ROW_IS_NOT_DELETABLE') ||
+    detail.includes('AGGREGATE_FACT_IS_IMMUTABLE') ||
+    detail.includes('AGGREGATE_STATE_IS_TERMINAL') ||
+    detail.includes('AGGREGATE_VERSION_MUST_ADVANCE') ||
+    detail.includes('append-only table')
+  )
     return new PostgresStoreError('PERSISTENCE_HISTORY_IMMUTABLE', detail);
 
   switch (code) {
@@ -211,7 +205,14 @@ const HISTORY_COLLECTIONS = Object.freeze(['auditRecords', 'outboxEvents']);
 
 /** Every collection this store can serve. */
 export const POSTGRES_TRUST_COLLECTIONS: readonly string[] = Object.freeze(
-  [...Object.keys(DEDICATED), ...GOVERNED_DOCUMENTS, ...HISTORY_COLLECTIONS].sort(),
+  [
+    ...Object.keys(DEDICATED),
+    ...GOVERNED_DOCUMENTS,
+    ...HISTORY_COLLECTIONS,
+    // Batch A. Sixteen collections that were refused outright until this capability: Engines
+    // 31-40 could not persist on the durable path at all, only against the in-memory store.
+    ...Object.keys(BATCH_A_RELATIONS),
+  ].sort(),
 );
 
 /** Scope fields promoted to columns in `trust_records`, in priority order. */
@@ -403,6 +404,10 @@ export class PostgresTrustStore implements TrustPersistence {
       // Table identifiers cannot be bound, so each dedicated table is read through
       // its own statement rather than through an interpolated name.
       if (dedicated) return await this.listDedicated<T>(collection);
+      // Batch A reads its own table, rebuilds the record from columns, and validates it
+      // against the aggregate's canonical schema before any engine sees it.
+      if (isBatchACollection(collection))
+        return (await batchARelation(collection).list(this.sql)) as unknown as T[];
       this.requireGoverned(collection);
       const rows = await this.sql<StoredRow[]>`
         SELECT payload, payload_digest FROM trust_records
@@ -444,6 +449,15 @@ export class PostgresTrustStore implements TrustPersistence {
     const digest = payloadDigest(record);
 
     try {
+      if (isBatchACollection(collection)) {
+        await batchARelation(collection).insert(
+          this.sql,
+          record,
+          this.requireBatchATenant(collection, record),
+        );
+        return;
+      }
+
       if (collection === 'trustWorkspaces') {
         const tenantId = firstString(record, ['tenantId']);
         if (!tenantId)
@@ -549,6 +563,16 @@ export class PostgresTrustStore implements TrustPersistence {
     const updatedAt = this.now();
 
     try {
+      if (isBatchACollection(collection)) {
+        // The tenant is re-derived and checked even though the UPDATE does not write it: a
+        // caller replacing a record outside its scope must be refused for that reason, not
+        // discover it as a row that mysteriously does not exist.
+        this.requireBatchATenant(collection, record);
+        const affected = await batchARelation(collection).update(this.sql, record);
+        this.requireAffected(affected, collection, id);
+        return;
+      }
+
       if (collection === 'trustWorkspaces') {
         const rows = await this.sql<{ workspace_id: string }[]>`
           UPDATE trust_workspaces SET
@@ -773,6 +797,44 @@ export class PostgresTrustStore implements TrustPersistence {
         'PERSISTENCE_COLLECTION_NOT_MAPPED',
         `${collection} has no mapping in the durable trust store`,
       );
+  }
+
+  /**
+   * The tenant a Batch A row belongs to, taken from the ambient scope.
+   *
+   * Not from the record, because none of the sixteen domain types has a `tenantId` — they
+   * carry `workspaceId` only, which was sufficient while `workspaces` was the authority and
+   * is not sufficient now that `tenant_id NOT NULL REFERENCES trust_tenants` is. The tenant
+   * therefore comes from the same scope the policies read, which is the only source that
+   * cannot disagree with them.
+   *
+   * The workspace is cross-checked rather than trusted. A record naming a different workspace
+   * than the caller's scope would be refused by the policy's `WITH CHECK` anyway, but as a
+   * bare row-level-security rejection that names no cause; and on a *read* path the row would
+   * simply be invisible, which reads as absence rather than as a boundary violation. Refusing
+   * here names it.
+   */
+  private requireBatchATenant(collection: string, record: Record<string, unknown>): string {
+    const scope = currentTrustScope();
+    if (!scope?.tenantId)
+      throw new PostgresStoreError(
+        'PERSISTENCE_SCOPE_INVALID',
+        `${collection} requires an established tenant scope; the aggregate carries no tenant of its own`,
+      );
+
+    const workspaceId = record.workspaceId;
+    if (typeof workspaceId !== 'string' || workspaceId.length === 0)
+      throw new PostgresStoreError(
+        'PERSISTENCE_SCOPE_INVALID',
+        `${collection} record names no workspace`,
+      );
+    if (scope.workspaceId && scope.workspaceId !== workspaceId)
+      throw new PostgresStoreError(
+        'PERSISTENCE_SCOPE_INVALID',
+        `${collection} record belongs to a workspace other than the caller's scope`,
+      );
+
+    return scope.tenantId;
   }
 
   private requireAffected(affected: number, collection: string, id: string): void {

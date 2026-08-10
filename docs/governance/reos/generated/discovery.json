@@ -729,6 +729,11 @@
     },
     {
       "category": "architecture",
+      "path": "docs/architecture/WAVE_4_5_DOMAIN_STORE_DURABILITY_DECISION.md",
+      "title": "Wave 4–5 domain-store durability — architecture decision"
+    },
+    {
+      "category": "architecture",
       "path": "docs/architecture/WORKFLOW_DEPENDENCY_MODEL.md",
       "title": "Workflow Dependency Model"
     },
@@ -1054,6 +1059,11 @@
     },
     {
       "category": "certification",
+      "path": "docs/certification/ENGINES_31_50_CERTIFICATION_GAP_MATRIX.md",
+      "title": "Engines 31–50 — certification gap matrix"
+    },
+    {
+      "category": "certification",
       "path": "docs/certification/IDENTITY_CERTIFICATION.md",
       "title": "Identity Certification"
     },
@@ -1071,6 +1081,16 @@
       "category": "certification",
       "path": "docs/certification/TENANT_ISOLATION_CERTIFICATION.md",
       "title": "Tenant Isolation Certification"
+    },
+    {
+      "category": "finance",
+      "path": "docs/finance/DOUBLE_ENTRY_POSTING_MODEL.md",
+      "title": "Double-entry posting model"
+    },
+    {
+      "category": "finance",
+      "path": "docs/finance/MONETARY_INVARIANTS.md",
+      "title": "Monetary invariants"
     },
     {
       "category": "governance",
@@ -1136,6 +1156,11 @@
       "category": "operations",
       "path": "docs/operations/AGENT_RUNTIME_OPERATIONAL_GUIDE.md",
       "title": "Agent Runtime Operational Guide"
+    },
+    {
+      "category": "persistence",
+      "path": "docs/persistence/WAVE_4_SCHEMA_AUTHORITY.md",
+      "title": "Wave 4 schema authority"
     },
     {
       "category": "product",
@@ -1908,6 +1933,20 @@
       "id": "202608080001",
       "name": "trust_schema_ownership_reconciliation",
       "path": "supabase/migrations/202608080001_trust_schema_ownership_reconciliation.sql"
+    },
+    {
+      "declaresPolicies": 1,
+      "declaresRowLevelSecurity": true,
+      "id": "202608090001",
+      "name": "wave4_trust_authority",
+      "path": "supabase/migrations/202608090001_wave4_trust_authority.sql"
+    },
+    {
+      "declaresPolicies": 0,
+      "declaresRowLevelSecurity": false,
+      "id": "202608100001",
+      "name": "wave4_batch_a_governed_transitions",
+      "path": "supabase/migrations/202608100001_wave4_batch_a_governed_transitions.sql"
     }
   ],
   "packages": [
@@ -2063,17 +2102,19 @@
       "testFiles": [
         "packages/completion-assurance/src/completion-assurance.e2e.test.ts",
         "packages/completion-assurance/src/completion-assurance.integration.test.ts",
-        "packages/completion-assurance/src/completion-assurance.test.ts"
+        "packages/completion-assurance/src/completion-assurance.test.ts",
+        "packages/completion-assurance/src/persisted-contracts.test.ts"
       ],
       "tests": {
         "e2e": 1,
         "integration": 1,
         "performance": 0,
         "security": 0,
-        "unit": 1
+        "unit": 2
       },
       "workspaceDependencies": [
         "@assurapay/database",
+        "@assurapay/domain-contracts",
         "@assurapay/shared"
       ]
     },
@@ -2094,8 +2135,8 @@
       "main": "src/index.ts",
       "moduleType": null,
       "name": "@assurapay/database",
-      "sourceFiles": 10,
-      "sourceLines": 3317,
+      "sourceFiles": 12,
+      "sourceLines": 4695,
       "testFiles": [
         "packages/database/src/async-conformance.test.ts",
         "packages/database/src/domain-repository.test.ts",
@@ -2113,6 +2154,7 @@
         "unit": 6
       },
       "workspaceDependencies": [
+        "@assurapay/domain-contracts",
         "@assurapay/shared"
       ]
     },
@@ -2126,22 +2168,25 @@
       "moduleType": null,
       "name": "@assurapay/database-testing",
       "sourceFiles": 1,
-      "sourceLines": 364,
+      "sourceLines": 419,
       "testFiles": [
         "packages/database-testing/src/migrations.postgres.test.ts",
         "packages/database-testing/src/postgres-store.postgres.test.ts",
         "packages/database-testing/src/rls-certification.postgres.test.ts",
-        "packages/database-testing/src/schema-ownership.postgres.test.ts"
+        "packages/database-testing/src/schema-ownership.postgres.test.ts",
+        "packages/database-testing/src/wave4-batch-a-repository.postgres.test.ts",
+        "packages/database-testing/src/wave4-trust-authority.postgres.test.ts"
       ],
       "tests": {
         "e2e": 0,
         "integration": 0,
         "performance": 0,
         "security": 0,
-        "unit": 4
+        "unit": 6
       },
       "workspaceDependencies": [
         "@assurapay/database",
+        "@assurapay/domain-contracts",
         "@assurapay/shared"
       ]
     },
@@ -2181,6 +2226,29 @@
         "@assurapay/permissions",
         "@assurapay/shared"
       ]
+    },
+    {
+      "directory": "packages/domain-contracts",
+      "exportedClasses": [],
+      "externalDependencies": [
+        "zod"
+      ],
+      "main": "src/index.ts",
+      "moduleType": null,
+      "name": "@assurapay/domain-contracts",
+      "sourceFiles": 3,
+      "sourceLines": 633,
+      "testFiles": [
+        "packages/domain-contracts/src/batch-a.test.ts"
+      ],
+      "tests": {
+        "e2e": 0,
+        "integration": 0,
+        "performance": 0,
+        "security": 0,
+        "unit": 1
+      },
+      "workspaceDependencies": []
     },
     {
       "directory": "packages/enterprise-analytics",
@@ -2264,17 +2332,19 @@
       "testFiles": [
         "packages/execution-orchestration/src/execution-orchestration.e2e.test.ts",
         "packages/execution-orchestration/src/execution-orchestration.integration.test.ts",
-        "packages/execution-orchestration/src/execution-orchestration.test.ts"
+        "packages/execution-orchestration/src/execution-orchestration.test.ts",
+        "packages/execution-orchestration/src/persisted-contracts.test.ts"
       ],
       "tests": {
         "e2e": 1,
         "integration": 1,
         "performance": 0,
         "security": 0,
-        "unit": 1
+        "unit": 2
       },
       "workspaceDependencies": [
         "@assurapay/database",
+        "@assurapay/domain-contracts",
         "@assurapay/shared"
       ]
     },
@@ -2710,9 +2780,12 @@
   "reosVersion": "1.0.0",
   "repository": {
     "git": {
-      "branch": "feat/persistence-domain-store-durable-environment-gate",
+      "branch": "feat/a1-batch-a-relational-repositories",
       "branches": [
+        "assess/engines-31-50-certification-gap-matrix",
         "claude/git-pull-cqc04u",
+        "feat/a1-batch-a-relational-repositories",
+        "feat/a1-domain-store-durability",
         "feat/persistence-async-domain-repository",
         "feat/persistence-async-repository-interface",
         "feat/persistence-domain-store-durable-environment-gate",
@@ -2721,13 +2794,16 @@
         "feat/persistence-rls-certification",
         "feat/persistence-schema-ownership-reconciliation",
         "main",
+        "origin/assess/engines-31-50-certification-gap-matrix",
         "origin/claude/git-pull-cqc04u",
         "origin/claude/implementation-02q40a",
+        "origin/feat/a1-domain-store-durability",
         "origin/feat/engines-01-05-trust-foundation",
         "origin/feat/engines-06-10-governance-core",
         "origin/feat/engines-61-70-agent-runtime",
         "origin/feat/persistence-async-domain-repository",
         "origin/feat/persistence-async-repository-interface",
+        "origin/feat/persistence-domain-store-durable-environment-gate",
         "origin/feat/persistence-postgres-trust-store",
         "origin/feat/persistence-production-runtime-wiring",
         "origin/feat/persistence-rls-certification",
@@ -2740,24 +2816,43 @@
       ],
       "clean": false,
       "dirtyFiles": [
-        "apps/web/lib/assurapay-app.ts",
-        "docs/governance/reos/capability-registry.json",
         "docs/governance/reos/generated/CERTIFICATION_REPORT.md",
-        "docs/governance/reos/generated/DEPENDENCY_RESOLUTION.md",
         "docs/governance/reos/generated/EXECUTION_MANIFEST.md",
         "docs/governance/reos/generated/certification.json",
         "docs/governance/reos/generated/dependency-resolution.json",
         "docs/governance/reos/generated/discovery.json",
         "docs/governance/reos/generated/execution-manifest.json",
         "docs/governance/reos/generated/forensics.json",
-        "packages/database/src/domain-store-environment.test.ts",
-        "packages/database/src/domain-store-environment.ts",
+        "packages/completion-assurance/package.json",
+        "packages/completion-assurance/src/persisted-contracts.test.ts",
+        "packages/database-testing/package.json",
+        "packages/database-testing/src/index.ts",
+        "packages/database-testing/src/migrations.postgres.test.ts",
+        "packages/database-testing/src/wave4-batch-a-repository.postgres.test.ts",
+        "packages/database-testing/src/wave4-trust-authority.postgres.test.ts",
+        "packages/database/package.json",
+        "packages/database/src/batch-a-repository.ts",
         "packages/database/src/index.ts",
-        "packages/reos/src/reos.persistence.test.ts",
-        "packages/reos/src/validators/persistence.ts"
+        "packages/database/src/migrations.ts",
+        "packages/database/src/postgres-store.ts",
+        "packages/database/src/store-error.ts",
+        "packages/domain-contracts/package.json",
+        "packages/domain-contracts/src/batch-a.test.ts",
+        "packages/domain-contracts/src/batch-a.ts",
+        "packages/domain-contracts/src/index.ts",
+        "packages/domain-contracts/src/primitives.ts",
+        "packages/execution-orchestration/package.json",
+        "packages/execution-orchestration/src/persisted-contracts.test.ts",
+        "packages/runtime/src/persistence-runtime.postgres.test.ts",
+        "packages/runtime/src/rls-runtime.postgres.test.ts",
+        "pnpm-lock.yaml",
+        "supabase/migrations/202608100001_wave4_batch_a_governed_transitions.sql",
+        "tsconfig.json",
+        "vitest.config.ts",
+        "vitest.postgres.config.ts"
       ],
-      "head": "cdffedc19f1c740a44de008ff7f97cec816c99e3",
-      "headShort": "cdffedc",
+      "head": "c79ec6f78b9e9ebdb1f039466c8880ae207a4363",
+      "headShort": "c79ec6f",
       "reflogAvailable": true,
       "remotes": [
         "origin"
@@ -2948,17 +3043,17 @@
       "integration": 15,
       "performance": 2,
       "security": 3,
-      "unit": 52
+      "unit": 57
     },
-    "files": 87
+    "files": 92
   },
   "totals": {
     "applications": 1,
-    "documents": 141,
+    "documents": 146,
     "engines": 60,
-    "migrations": 24,
-    "packages": 25,
-    "testFiles": 87
+    "migrations": 26,
+    "packages": 26,
+    "testFiles": 92
   },
   "workflows": [
     {

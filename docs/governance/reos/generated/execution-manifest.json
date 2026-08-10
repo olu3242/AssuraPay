@@ -47,7 +47,7 @@
       "PaymentInstruction",
       "ReconciliationRecord"
     ],
-    "packageCount": 25,
+    "packageCount": 26,
     "waves": [
       {
         "engines": [
@@ -240,7 +240,8 @@
     "unscripted": [
       "packages/database",
       "packages/database-testing",
-      "packages/domain"
+      "packages/domain",
+      "packages/domain-contracts"
     ]
   },
   "dependencyGraph": [
@@ -2445,7 +2446,7 @@
         "persistence.async-domain-repository-interface"
       ],
       "id": "persistence.domain-store-environment-gate",
-      "lifecycle": "certified",
+      "lifecycle": "released",
       "status": "implemented"
     },
     {
@@ -3392,9 +3393,9 @@
     }
   ],
   "identity": {
-    "branch": "feat/persistence-domain-store-durable-environment-gate",
+    "branch": "feat/a1-batch-a-relational-repositories",
     "clean": false,
-    "head": "cdffedc19f1c740a44de008ff7f97cec816c99e3",
+    "head": "c79ec6f78b9e9ebdb1f039466c8880ae207a4363",
     "repository": "assurapay",
     "version": "0.1.0"
   },
@@ -3476,16 +3477,16 @@
     "trust.session-assertion-issuance"
   ],
   "lifecycleSummary": {
-    "certified": 1,
+    "certified": 0,
     "deferred": 4,
     "implemented": 0,
     "implementing": 0,
     "missing": 0,
     "planned": 1,
-    "released": 74,
+    "released": 75,
     "validated": 0
   },
-  "manifestDigest": "042427d7c9c5",
+  "manifestDigest": "a79eec23d4ca",
   "missingCapabilities": [
     "persistence.domain-store-durability"
   ],
@@ -3642,17 +3643,19 @@
       "testFiles": [
         "packages/completion-assurance/src/completion-assurance.e2e.test.ts",
         "packages/completion-assurance/src/completion-assurance.integration.test.ts",
-        "packages/completion-assurance/src/completion-assurance.test.ts"
+        "packages/completion-assurance/src/completion-assurance.test.ts",
+        "packages/completion-assurance/src/persisted-contracts.test.ts"
       ],
       "tests": {
         "e2e": 1,
         "integration": 1,
         "performance": 0,
         "security": 0,
-        "unit": 1
+        "unit": 2
       },
       "workspaceDependencies": [
         "@assurapay/database",
+        "@assurapay/domain-contracts",
         "@assurapay/shared"
       ]
     },
@@ -3673,8 +3676,8 @@
       "main": "src/index.ts",
       "moduleType": null,
       "name": "@assurapay/database",
-      "sourceFiles": 10,
-      "sourceLines": 3317,
+      "sourceFiles": 12,
+      "sourceLines": 4695,
       "testFiles": [
         "packages/database/src/async-conformance.test.ts",
         "packages/database/src/domain-repository.test.ts",
@@ -3692,6 +3695,7 @@
         "unit": 6
       },
       "workspaceDependencies": [
+        "@assurapay/domain-contracts",
         "@assurapay/shared"
       ]
     },
@@ -3705,22 +3709,25 @@
       "moduleType": null,
       "name": "@assurapay/database-testing",
       "sourceFiles": 1,
-      "sourceLines": 364,
+      "sourceLines": 419,
       "testFiles": [
         "packages/database-testing/src/migrations.postgres.test.ts",
         "packages/database-testing/src/postgres-store.postgres.test.ts",
         "packages/database-testing/src/rls-certification.postgres.test.ts",
-        "packages/database-testing/src/schema-ownership.postgres.test.ts"
+        "packages/database-testing/src/schema-ownership.postgres.test.ts",
+        "packages/database-testing/src/wave4-batch-a-repository.postgres.test.ts",
+        "packages/database-testing/src/wave4-trust-authority.postgres.test.ts"
       ],
       "tests": {
         "e2e": 0,
         "integration": 0,
         "performance": 0,
         "security": 0,
-        "unit": 4
+        "unit": 6
       },
       "workspaceDependencies": [
         "@assurapay/database",
+        "@assurapay/domain-contracts",
         "@assurapay/shared"
       ]
     },
@@ -3760,6 +3767,29 @@
         "@assurapay/permissions",
         "@assurapay/shared"
       ]
+    },
+    {
+      "directory": "packages/domain-contracts",
+      "exportedClasses": [],
+      "externalDependencies": [
+        "zod"
+      ],
+      "main": "src/index.ts",
+      "moduleType": null,
+      "name": "@assurapay/domain-contracts",
+      "sourceFiles": 3,
+      "sourceLines": 633,
+      "testFiles": [
+        "packages/domain-contracts/src/batch-a.test.ts"
+      ],
+      "tests": {
+        "e2e": 0,
+        "integration": 0,
+        "performance": 0,
+        "security": 0,
+        "unit": 1
+      },
+      "workspaceDependencies": []
     },
     {
       "directory": "packages/enterprise-analytics",
@@ -3843,17 +3873,19 @@
       "testFiles": [
         "packages/execution-orchestration/src/execution-orchestration.e2e.test.ts",
         "packages/execution-orchestration/src/execution-orchestration.integration.test.ts",
-        "packages/execution-orchestration/src/execution-orchestration.test.ts"
+        "packages/execution-orchestration/src/execution-orchestration.test.ts",
+        "packages/execution-orchestration/src/persisted-contracts.test.ts"
       ],
       "tests": {
         "e2e": 1,
         "integration": 1,
         "performance": 0,
         "security": 0,
-        "unit": 1
+        "unit": 2
       },
       "workspaceDependencies": [
         "@assurapay/database",
+        "@assurapay/domain-contracts",
         "@assurapay/shared"
       ]
     },
@@ -4478,7 +4510,7 @@
       },
       "id": "persistence.domain-store-environment-gate",
       "kind": "platform",
-      "onDefaultBranch": false,
+      "onDefaultBranch": true,
       "probes": [
         {
           "kind": "path",
@@ -4610,7 +4642,10 @@
             "packages/database-testing/src/postgres-store.postgres.test.ts",
             "packages/database-testing/src/rls-certification.postgres.test.ts",
             "packages/database-testing/src/schema-ownership.postgres.test.ts",
+            "packages/database-testing/src/wave4-batch-a-repository.postgres.test.ts",
+            "packages/database/src/batch-a-repository.ts",
             "packages/database/src/conformance.ts",
+            "packages/database/src/migrations.ts",
             "packages/database/src/postgres-store.ts",
             "packages/database/src/schema-ownership.ts",
             "packages/reos/src/reos.persistence.test.ts",
@@ -4629,8 +4664,12 @@
             "packages/database-testing/src/index.ts",
             "packages/database-testing/src/migrations.postgres.test.ts",
             "packages/database-testing/src/schema-ownership.postgres.test.ts",
+            "packages/database-testing/src/wave4-batch-a-repository.postgres.test.ts",
+            "packages/database-testing/src/wave4-trust-authority.postgres.test.ts",
             "packages/database/src/migrations.ts",
-            "packages/database/src/schema-ownership.ts"
+            "packages/database/src/schema-ownership.ts",
+            "packages/runtime/src/persistence-runtime.postgres.test.ts",
+            "packages/runtime/src/rls-runtime.postgres.test.ts"
           ],
           "query": "applyMigrations",
           "satisfied": true
@@ -4640,6 +4679,7 @@
           "matches": [
             "packages/database-testing/src/migrations.postgres.test.ts",
             "packages/database-testing/src/schema-ownership.postgres.test.ts",
+            "packages/database-testing/src/wave4-batch-a-repository.postgres.test.ts",
             "packages/database/src/migrations.ts",
             "packages/runtime/src/persistence-runtime.ts"
           ],
@@ -4724,6 +4764,7 @@
           "kind": "symbol",
           "matches": [
             "apps/web/lib/persistence.ts",
+            "packages/database-testing/src/index.ts",
             "packages/runtime/src/persistence-runtime.postgres.test.ts",
             "packages/runtime/src/persistence-runtime.ts",
             "packages/runtime/src/rls-runtime.postgres.test.ts"
@@ -4900,6 +4941,8 @@
           "matches": [
             "packages/database-testing/src/rls-certification.postgres.test.ts",
             "packages/database-testing/src/schema-ownership.postgres.test.ts",
+            "packages/database-testing/src/wave4-batch-a-repository.postgres.test.ts",
+            "packages/database-testing/src/wave4-trust-authority.postgres.test.ts",
             "packages/database/src/trust-scope.ts",
             "packages/runtime/src/persistence-runtime.postgres.test.ts",
             "packages/runtime/src/rls-runtime.postgres.test.ts"

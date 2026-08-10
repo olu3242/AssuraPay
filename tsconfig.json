@@ -26,6 +26,9 @@
       "@assurapay/domain": [
         "packages/domain/src/index.ts"
       ],
+      "@assurapay/domain-contracts": [
+        "packages/domain-contracts/src/index.ts"
+      ],
       "@assurapay/database": [
         "packages/database/src/index.ts"
       ],
