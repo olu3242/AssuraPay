@@ -1159,6 +1159,11 @@
     },
     {
       "category": "persistence",
+      "path": "docs/persistence/WAVE_4_BATCH_A_ACTIVATION.md",
+      "title": "Wave 4 Batch A activation"
+    },
+    {
+      "category": "persistence",
       "path": "docs/persistence/WAVE_4_SCHEMA_AUTHORITY.md",
       "title": "Wave 4 schema authority"
     },
@@ -2780,7 +2785,7 @@
   "reosVersion": "1.0.0",
   "repository": {
     "git": {
-      "branch": "feat/a1-batch-a-relational-repositories",
+      "branch": "main",
       "branches": [
         "assess/engines-31-50-certification-gap-matrix",
         "claude/git-pull-cqc04u",
@@ -2797,6 +2802,7 @@
         "origin/assess/engines-31-50-certification-gap-matrix",
         "origin/claude/git-pull-cqc04u",
         "origin/claude/implementation-02q40a",
+        "origin/feat/a1-batch-a-relational-repositories",
         "origin/feat/a1-domain-store-durability",
         "origin/feat/engines-01-05-trust-foundation",
         "origin/feat/engines-06-10-governance-core",
@@ -2822,37 +2828,10 @@
         "docs/governance/reos/generated/dependency-resolution.json",
         "docs/governance/reos/generated/discovery.json",
         "docs/governance/reos/generated/execution-manifest.json",
-        "docs/governance/reos/generated/forensics.json",
-        "packages/completion-assurance/package.json",
-        "packages/completion-assurance/src/persisted-contracts.test.ts",
-        "packages/database-testing/package.json",
-        "packages/database-testing/src/index.ts",
-        "packages/database-testing/src/migrations.postgres.test.ts",
-        "packages/database-testing/src/wave4-batch-a-repository.postgres.test.ts",
-        "packages/database-testing/src/wave4-trust-authority.postgres.test.ts",
-        "packages/database/package.json",
-        "packages/database/src/batch-a-repository.ts",
-        "packages/database/src/index.ts",
-        "packages/database/src/migrations.ts",
-        "packages/database/src/postgres-store.ts",
-        "packages/database/src/store-error.ts",
-        "packages/domain-contracts/package.json",
-        "packages/domain-contracts/src/batch-a.test.ts",
-        "packages/domain-contracts/src/batch-a.ts",
-        "packages/domain-contracts/src/index.ts",
-        "packages/domain-contracts/src/primitives.ts",
-        "packages/execution-orchestration/package.json",
-        "packages/execution-orchestration/src/persisted-contracts.test.ts",
-        "packages/runtime/src/persistence-runtime.postgres.test.ts",
-        "packages/runtime/src/rls-runtime.postgres.test.ts",
-        "pnpm-lock.yaml",
-        "supabase/migrations/202608100001_wave4_batch_a_governed_transitions.sql",
-        "tsconfig.json",
-        "vitest.config.ts",
-        "vitest.postgres.config.ts"
+        "docs/governance/reos/generated/forensics.json"
       ],
-      "head": "c79ec6f78b9e9ebdb1f039466c8880ae207a4363",
-      "headShort": "c79ec6f",
+      "head": "92860feff2861a4197dcc3b320e53b714e058931",
+      "headShort": "92860fe",
       "reflogAvailable": true,
       "remotes": [
         "origin"
@@ -2861,7 +2840,7 @@
         "platform-trust-foundation",
         "rc-engine-60"
       ],
-      "upstream": null
+      "upstream": "origin/main"
     },
     "name": "assurapay",
     "packageManager": "pnpm@11.3.0",
@@ -3049,7 +3028,7 @@
   },
   "totals": {
     "applications": 1,
-    "documents": 146,
+    "documents": 147,
     "engines": 60,
     "migrations": 26,
     "packages": 26,

@@ -9,10 +9,10 @@
 | --- | --- |
 | Repository | assurapay |
 | Version | 0.1.0 |
-| Branch | feat/a1-batch-a-relational-repositories |
-| HEAD | c79ec6f78b9e9ebdb1f039466c8880ae207a4363 |
+| Branch | main |
+| HEAD | 92860feff2861a4197dcc3b320e53b714e058931 |
 | Worktree clean | no |
-| Manifest digest | a79eec23d4ca |
+| Manifest digest | 6c5e54dd43f6 |
 | REOS version | 1.0.0 |
 
 ## Architecture

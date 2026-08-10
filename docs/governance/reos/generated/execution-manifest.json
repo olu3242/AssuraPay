@@ -3393,9 +3393,9 @@
     }
   ],
   "identity": {
-    "branch": "feat/a1-batch-a-relational-repositories",
+    "branch": "main",
     "clean": false,
-    "head": "c79ec6f78b9e9ebdb1f039466c8880ae207a4363",
+    "head": "92860feff2861a4197dcc3b320e53b714e058931",
     "repository": "assurapay",
     "version": "0.1.0"
   },
@@ -3486,7 +3486,7 @@
     "released": 75,
     "validated": 0
   },
-  "manifestDigest": "a79eec23d4ca",
+  "manifestDigest": "6c5e54dd43f6",
   "missingCapabilities": [
     "persistence.domain-store-durability"
   ],
