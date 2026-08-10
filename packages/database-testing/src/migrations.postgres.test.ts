@@ -76,7 +76,7 @@ function trustStoreMigration(): { name: string; sql: string } {
 }
 
 describe('integration: the repository’s migration set applies to a clean database', () => {
-  it('applies all twenty-one migrations in order, on vanilla PostgreSQL', async () => {
+  it('applies every migration the directory declares, in order, on vanilla PostgreSQL', async () => {
     // The 20 historical migrations had never been run anywhere. They need nothing
     // Supabase-specific — `current_setting('app.*')` session variables and pgcrypto,
     // both of which vanilla PostgreSQL 16 provides — but they are not

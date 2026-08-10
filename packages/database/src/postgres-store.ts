@@ -10,6 +10,7 @@ import { sanitizeDatabaseFailure } from './postgres-client';
 import { currentTrustScope, isTenantScoped } from './trust-scope';
 import type { TrustScope } from './trust-scope';
 import { BATCH_A_RELATIONS, batchARelation, isBatchACollection } from './batch-a-repository';
+import { BATCH_B_RELATIONS, batchBRelation, isBatchBCollection } from './batch-b-repository';
 import { PostgresStoreError } from './store-error';
 
 export { PostgresStoreError } from './store-error';
@@ -212,6 +213,9 @@ export const POSTGRES_TRUST_COLLECTIONS: readonly string[] = Object.freeze(
     // Batch A. Sixteen collections that were refused outright until this capability: Engines
     // 31-40 could not persist on the durable path at all, only against the in-memory store.
     ...Object.keys(BATCH_A_RELATIONS),
+    // Batch B. Seven more, refused the same way: Engines 41-46 could not persist an entitlement,
+    // an invoice, a release request or an authorization to PostgreSQL at all.
+    ...Object.keys(BATCH_B_RELATIONS),
   ].sort(),
 );
 
@@ -404,10 +408,12 @@ export class PostgresTrustStore implements TrustPersistence {
       // Table identifiers cannot be bound, so each dedicated table is read through
       // its own statement rather than through an interpolated name.
       if (dedicated) return await this.listDedicated<T>(collection);
-      // Batch A reads its own table, rebuilds the record from columns, and validates it
-      // against the aggregate's canonical schema before any engine sees it.
+      // Batch A and Batch B each read their own table, rebuild the record from columns, and
+      // validate it against the aggregate's canonical schema before any engine sees it.
       if (isBatchACollection(collection))
         return (await batchARelation(collection).list(this.sql)) as unknown as T[];
+      if (isBatchBCollection(collection))
+        return (await batchBRelation(collection).list(this.sql)) as unknown as T[];
       this.requireGoverned(collection);
       const rows = await this.sql<StoredRow[]>`
         SELECT payload, payload_digest FROM trust_records
@@ -453,7 +459,16 @@ export class PostgresTrustStore implements TrustPersistence {
         await batchARelation(collection).insert(
           this.sql,
           record,
-          this.requireBatchATenant(collection, record),
+          this.requireRelationalTenant(collection, record),
+        );
+        return;
+      }
+
+      if (isBatchBCollection(collection)) {
+        await batchBRelation(collection).insert(
+          this.sql,
+          record,
+          this.requireRelationalTenant(collection, record),
         );
         return;
       }
@@ -563,12 +578,15 @@ export class PostgresTrustStore implements TrustPersistence {
     const updatedAt = this.now();
 
     try {
-      if (isBatchACollection(collection)) {
+      if (isBatchACollection(collection) || isBatchBCollection(collection)) {
         // The tenant is re-derived and checked even though the UPDATE does not write it: a
         // caller replacing a record outside its scope must be refused for that reason, not
         // discover it as a row that mysteriously does not exist.
-        this.requireBatchATenant(collection, record);
-        const affected = await batchARelation(collection).update(this.sql, record);
+        this.requireRelationalTenant(collection, record);
+        const relation = isBatchACollection(collection)
+          ? batchARelation(collection)
+          : batchBRelation(collection);
+        const affected = await relation.update(this.sql, record);
         this.requireAffected(affected, collection, id);
         return;
       }
@@ -800,13 +818,13 @@ export class PostgresTrustStore implements TrustPersistence {
   }
 
   /**
-   * The tenant a Batch A row belongs to, taken from the ambient scope.
+   * The tenant a relational domain row belongs to, taken from the ambient scope.
    *
-   * Not from the record, because none of the sixteen domain types has a `tenantId` — they
-   * carry `workspaceId` only, which was sufficient while `workspaces` was the authority and
-   * is not sufficient now that `tenant_id NOT NULL REFERENCES trust_tenants` is. The tenant
-   * therefore comes from the same scope the policies read, which is the only source that
-   * cannot disagree with them.
+   * Shared by Batch A and Batch B, because the reason is the same for both: none of their
+   * twenty-three domain types has a `tenantId` — they carry `workspaceId` only, which was
+   * sufficient while `workspaces` was the authority and is not sufficient now that
+   * `tenant_id NOT NULL REFERENCES trust_tenants` is. The tenant therefore comes from the same
+   * scope the policies read, which is the only source that cannot disagree with them.
    *
    * The workspace is cross-checked rather than trusted. A record naming a different workspace
    * than the caller's scope would be refused by the policy's `WITH CHECK` anyway, but as a
@@ -814,7 +832,7 @@ export class PostgresTrustStore implements TrustPersistence {
    * simply be invisible, which reads as absence rather than as a boundary violation. Refusing
    * here names it.
    */
-  private requireBatchATenant(collection: string, record: Record<string, unknown>): string {
+  private requireRelationalTenant(collection: string, record: Record<string, unknown>): string {
     const scope = currentTrustScope();
     if (!scope?.tenantId)
       throw new PostgresStoreError(

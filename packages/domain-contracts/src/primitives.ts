@@ -75,6 +75,61 @@ export const calendarDate = z
  */
 export const minorUnits = z.number().int().min(0).max(Number.MAX_SAFE_INTEGER);
 
+/**
+ * The governed currency set.
+ *
+ * NGN and USD, which are the only codes any canonical behaviour uses, and CLAUDE.md is Naira-first
+ * and multi-currency-ready. `202608100002` puts the same pair in a `CHECK` on every settlement
+ * table that carries an amount, so the schema and the column agree by construction.
+ */
+export const SUPPORTED_CURRENCIES: readonly string[] = Object.freeze(['NGN', 'USD']);
+
+/**
+ * An ISO 4217 code from the governed set.
+ *
+ * `z.string().refine(...)` rather than `z.enum([...])`, and the reason is the conformance
+ * assertions. The domain types declare `currency: string`; an enum would infer `'NGN' | 'USD'`,
+ * which is not identical to `string`, and the compile-time proof binding each schema to its
+ * hand-written type would fail. Narrowing the accepted *values* without narrowing the *type* is
+ * the same technique `calendarDate` uses, and it keeps the published contract unchanged while the
+ * validator still refuses an unsupported code.
+ */
+export const currencyCode = z
+  .string()
+  .refine((value) => SUPPORTED_CURRENCIES.includes(value), {
+    message: 'not a governed currency',
+  });
+
+/**
+ * A strictly positive amount in integer minor units.
+ *
+ * Distinct from `minorUnits`, which permits zero. A gross entitlement, an invoice, a requested
+ * release, a reservation and a commitment are all `CHECK (... > 0)` in the schema: a zero-amount
+ * claim is not a claim, and the engines refuse it.
+ */
+export const positiveMinorUnits = z
+  .number()
+  .int()
+  .min(1)
+  .max(Number.MAX_SAFE_INTEGER);
+
+/**
+ * A signed amount in integer minor units.
+ *
+ * For a *delta*, never for a base amount. `docs/finance/MONETARY_INVARIANTS.md` makes base
+ * contractual, claim, invoice, entitlement, funding, release and payment amounts non-negative and
+ * requires signed effects to use an explicit adjustment record — a contract variation is neither a
+ * base amount nor a posted correction, and it may legitimately reduce an entitlement.
+ */
+export const signedMinorUnits = z
+  .number()
+  .int()
+  .min(-Number.MAX_SAFE_INTEGER)
+  .max(Number.MAX_SAFE_INTEGER);
+
+/** A required-approval count, matching `CHECK (required_approvals >= 1)`. */
+export const approvalCount = z.number().int().min(1).max(Number.MAX_SAFE_INTEGER);
+
 /** A non-negative count, as the quality-gate aggregates carry. */
 export const count = z.number().int().min(0).max(Number.MAX_SAFE_INTEGER);
 

@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
-import { BATCH_A_TABLES } from '@assurapay/domain-contracts';
+import { BATCH_A_TABLES, BATCH_B_TABLES } from '@assurapay/domain-contracts';
 import type { SqlClient } from './postgres-client';
 
 /**
@@ -249,6 +249,13 @@ export const REQUIRED_TRUST_MIGRATIONS: readonly string[] = Object.freeze([
   '202608030007_completion_assurance',
   '202608090001_wave4_trust_authority',
   '202608100001_wave4_batch_a_governed_transitions',
+  // Batch B, for the same reason: the store routes seven Engine 41-46 collections to tables these
+  // three migrations create, converge and govern. `202608030008` and `202608030009` belong to the
+  // same non-schema-relocatable historical set as Batch A's, so this adds no new deployment
+  // constraint beyond the one already stated.
+  '202608030008_settlement_assurance',
+  '202608030009_settlement_execution',
+  '202608100002_wave5_batch_b_settlement_authority',
 ]);
 
 export type SchemaCompatibility = {
@@ -286,15 +293,22 @@ export const REQUIRED_TRUST_TABLES = Object.freeze([
 /**
  * Domain aggregate tables the store owns outside the trust set.
  *
- * Batch A's sixteen, taken from the contract registry rather than restated, so a seventeenth
- * aggregate cannot be given a repository without becoming a readiness requirement.
+ * Batch A's sixteen and Batch B's seven, taken from the contract registries rather than restated,
+ * so an aggregate cannot be given a repository without becoming a readiness requirement.
+ *
+ * `fund_reservations` and `funding_commitments` are deliberately absent. `202608100002` converged
+ * their schema — Batch B's foreign-key closure forced it, because the closure could not be converted
+ * in parts — but they are Batch C aggregates, no repository routes to them, and requiring a table
+ * the store never reads would make readiness assert something it does not depend on.
  *
  * Kept as its own constant because it answers a different question. The trust tables are what
  * authentication, authorization, membership and the audit chain need; these are what Engines
- * 31-40 need. A deployment could be missing the second set and still serve a login, which is
+ * 31-46 need. A deployment could be missing the second set and still serve a login, which is
  * why the readiness report names which tables are absent rather than only that some are.
  */
-export const REQUIRED_DOMAIN_AGGREGATE_TABLES = Object.freeze([...BATCH_A_TABLES].sort());
+export const REQUIRED_DOMAIN_AGGREGATE_TABLES = Object.freeze(
+  [...BATCH_A_TABLES, ...BATCH_B_TABLES].sort(),
+);
 
 /**
  * Every table `PostgresTrustStore` reads or writes.

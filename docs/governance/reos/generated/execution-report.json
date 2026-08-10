@@ -1,32 +1,42 @@
 {
-  "capability": "persistence.domain-store-environment-gate",
-  "capabilityLifecycle": "certified",
+  "capability": "persistence.domain-store-durability",
+  "capabilityLifecycle": "planned",
   "certification": {
     "available": true,
     "failedSteps": [],
     "passed": true
   },
-  "commit": "cdffedc19f1c740a44de008ff7f97cec816c99e3",
+  "commit": "92860feff2861a4197dcc3b320e53b714e058931",
   "filesModified": [
-    "apps/web/lib/assurapay-app.ts",
+    "docs/governance/execution-ledger/92860feff286-persistence.domain-store-durability.json",
     "docs/governance/execution-ledger/INDEX.md",
-    "docs/governance/execution-ledger/cdffedc19f1c-persistence.domain-store-environment-gate.json",
-    "docs/governance/reos/capability-registry.json",
     "docs/governance/reos/generated/CERTIFICATION_REPORT.md",
-    "docs/governance/reos/generated/DEPENDENCY_RESOLUTION.md",
     "docs/governance/reos/generated/EXECUTION_MANIFEST.md",
     "docs/governance/reos/generated/certification.json",
     "docs/governance/reos/generated/dependency-resolution.json",
     "docs/governance/reos/generated/discovery.json",
     "docs/governance/reos/generated/execution-manifest.json",
     "docs/governance/reos/generated/forensics.json",
-    "packages/database/src/domain-store-environment.test.ts",
-    "packages/database/src/domain-store-environment.ts",
+    "docs/persistence/WAVE_5_BATCH_B_ACTIVATION.md",
+    "packages/database-testing/src/migrations.postgres.test.ts",
+    "packages/database-testing/src/postgres-store.postgres.test.ts",
+    "packages/database-testing/src/wave4-batch-a-repository.postgres.test.ts",
+    "packages/database-testing/src/wave5-batch-b-repository.postgres.test.ts",
+    "packages/database/src/batch-b-repository.ts",
     "packages/database/src/index.ts",
-    "packages/reos/src/reos.persistence.test.ts",
-    "packages/reos/src/validators/persistence.ts"
+    "packages/database/src/migrations.ts",
+    "packages/database/src/postgres-store.ts",
+    "packages/domain-contracts/src/batch-b.ts",
+    "packages/domain-contracts/src/index.ts",
+    "packages/domain-contracts/src/primitives.ts",
+    "packages/settlement-assurance/package.json",
+    "packages/settlement-assurance/src/persisted-contracts.test.ts",
+    "packages/settlement-execution/package.json",
+    "packages/settlement-execution/src/persisted-contracts.test.ts",
+    "pnpm-lock.yaml",
+    "supabase/migrations/202608100002_wave5_batch_b_settlement_authority.sql"
   ],
-  "generatedAt": "2026-08-06T09:35:33.597Z",
+  "generatedAt": "2026-08-10T20:04:34.515Z",
   "governance": {
     "baselined": 15,
     "findings": [
@@ -186,7 +196,7 @@
     "phase": 2,
     "resolved": []
   },
-  "ledgerEntryId": "cdffedc19f1c-persistence.domain-store-environment-gate",
+  "ledgerEntryId": "92860feff286-persistence.domain-store-durability",
   "recommendedNextCapability": {
     "blockedBy": [],
     "blocks": [],
@@ -229,50 +239,73 @@
   ],
   "reosVersion": "1.0.0",
   "repositoryState": {
-    "branch": "feat/persistence-domain-store-durable-environment-gate",
+    "branch": "feat/b1-batch-b-settlement-authority",
     "clean": false,
     "dirtyFiles": [
-      "apps/web/lib/assurapay-app.ts",
-      "docs/governance/reos/capability-registry.json",
       "docs/governance/reos/generated/CERTIFICATION_REPORT.md",
-      "docs/governance/reos/generated/DEPENDENCY_RESOLUTION.md",
       "docs/governance/reos/generated/EXECUTION_MANIFEST.md",
       "docs/governance/reos/generated/certification.json",
       "docs/governance/reos/generated/dependency-resolution.json",
       "docs/governance/reos/generated/discovery.json",
       "docs/governance/reos/generated/execution-manifest.json",
       "docs/governance/reos/generated/forensics.json",
-      "packages/database/src/domain-store-environment.test.ts",
-      "packages/database/src/domain-store-environment.ts",
+      "docs/persistence/WAVE_5_BATCH_B_ACTIVATION.md",
+      "packages/database-testing/src/migrations.postgres.test.ts",
+      "packages/database-testing/src/postgres-store.postgres.test.ts",
+      "packages/database-testing/src/wave4-batch-a-repository.postgres.test.ts",
+      "packages/database-testing/src/wave5-batch-b-repository.postgres.test.ts",
+      "packages/database/src/batch-b-repository.ts",
       "packages/database/src/index.ts",
-      "packages/reos/src/reos.persistence.test.ts",
-      "packages/reos/src/validators/persistence.ts"
+      "packages/database/src/migrations.ts",
+      "packages/database/src/postgres-store.ts",
+      "packages/domain-contracts/src/batch-b.ts",
+      "packages/domain-contracts/src/index.ts",
+      "packages/domain-contracts/src/primitives.ts",
+      "packages/settlement-assurance/package.json",
+      "packages/settlement-assurance/src/persisted-contracts.test.ts",
+      "packages/settlement-execution/package.json",
+      "packages/settlement-execution/src/persisted-contracts.test.ts",
+      "pnpm-lock.yaml",
+      "supabase/migrations/202608100002_wave5_batch_b_settlement_authority.sql"
     ],
-    "head": "cdffedc19f1c740a44de008ff7f97cec816c99e3"
+    "head": "92860feff2861a4197dcc3b320e53b714e058931"
   },
   "stage": "report",
   "validation": [
     {
-      "checked": 197,
+      "checked": 213,
       "findings": [],
       "passed": true,
       "validator": "architecture"
     },
     {
-      "checked": 26,
+      "checked": 27,
       "findings": [],
       "passed": true,
       "validator": "dependencies"
     },
     {
-      "checked": 272,
+      "checked": 283,
       "findings": [],
       "passed": true,
       "validator": "security"
     },
     {
-      "checked": 7,
-      "findings": [],
+      "checked": 18,
+      "findings": [
+        {
+          "location": "packages/database/src",
+          "message": "packages/database has modified source but no modified tests in this change.",
+          "rule": "contract/tests-not-updated",
+          "severity": "warning"
+        },
+        {
+          "location": "packages/domain-contracts/src",
+          "message": "packages/domain-contracts has modified source but no modified tests in this change.",
+          "rule": "contract/tests-not-updated",
+          "severity": "warning"
+        }
+      ],
       "passed": true,
       "validator": "execution-contract"
     }

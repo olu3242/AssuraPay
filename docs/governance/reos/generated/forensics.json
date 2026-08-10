@@ -324,7 +324,9 @@
             "packages/database-testing/src/rls-certification.postgres.test.ts",
             "packages/database-testing/src/schema-ownership.postgres.test.ts",
             "packages/database-testing/src/wave4-batch-a-repository.postgres.test.ts",
+            "packages/database-testing/src/wave5-batch-b-repository.postgres.test.ts",
             "packages/database/src/batch-a-repository.ts",
+            "packages/database/src/batch-b-repository.ts",
             "packages/database/src/conformance.ts",
             "packages/database/src/migrations.ts",
             "packages/database/src/postgres-store.ts",
@@ -347,6 +349,7 @@
             "packages/database-testing/src/schema-ownership.postgres.test.ts",
             "packages/database-testing/src/wave4-batch-a-repository.postgres.test.ts",
             "packages/database-testing/src/wave4-trust-authority.postgres.test.ts",
+            "packages/database-testing/src/wave5-batch-b-repository.postgres.test.ts",
             "packages/database/src/migrations.ts",
             "packages/database/src/schema-ownership.ts",
             "packages/runtime/src/persistence-runtime.postgres.test.ts",
@@ -361,6 +364,7 @@
             "packages/database-testing/src/migrations.postgres.test.ts",
             "packages/database-testing/src/schema-ownership.postgres.test.ts",
             "packages/database-testing/src/wave4-batch-a-repository.postgres.test.ts",
+            "packages/database-testing/src/wave5-batch-b-repository.postgres.test.ts",
             "packages/database/src/migrations.ts",
             "packages/runtime/src/persistence-runtime.ts"
           ],
@@ -624,6 +628,7 @@
             "packages/database-testing/src/schema-ownership.postgres.test.ts",
             "packages/database-testing/src/wave4-batch-a-repository.postgres.test.ts",
             "packages/database-testing/src/wave4-trust-authority.postgres.test.ts",
+            "packages/database-testing/src/wave5-batch-b-repository.postgres.test.ts",
             "packages/database/src/trust-scope.ts",
             "packages/runtime/src/persistence-runtime.postgres.test.ts",
             "packages/runtime/src/rls-runtime.postgres.test.ts"
@@ -1603,7 +1608,7 @@
       "totalProbes": 5
     }
   ],
-  "head": "c79ec6f78b9e9ebdb1f039466c8880ae207a4363",
+  "head": "92860feff2861a4197dcc3b320e53b714e058931",
   "reosVersion": "1.0.0",
   "stage": "forensics",
   "summary": {

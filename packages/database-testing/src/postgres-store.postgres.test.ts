@@ -512,7 +512,10 @@ describe('integration: failures are reported, never swallowed', () => {
     // nothing reads, which is indistinguishable from losing it.
     const database = await freshDatabase();
     const store = new PostgresTrustStore(database.sql);
-    await expect(store.append('releaseRequests', { id: 'release-1' })).rejects.toThrow(
+    // `paymentInstructions`, not `releaseRequests`: Batch B routes release requests to their own
+    // table now, so the refusal has to be proved against a collection that genuinely has no
+    // mapping. A payment instruction keeps the point money-relevant.
+    await expect(store.append('paymentInstructions', { id: 'instruction-1' })).rejects.toThrow(
       'PERSISTENCE_COLLECTION_NOT_MAPPED',
     );
   });

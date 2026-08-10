@@ -12,3 +12,4 @@
  */
 export * from './primitives';
 export * from './batch-a';
+export * from './batch-b';
