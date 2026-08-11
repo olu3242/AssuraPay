@@ -560,12 +560,17 @@ export class NegotiationEngine {
     const x = await find<NegotiationRound>(this.s, 'negotiationRounds', c, id);
     if (x.submittedBy !== c.actorUserId)
       throw new Error('NEGOTIATION_UNAUTHORIZED');
+    // A closed round stays closed. Neither method checked the status before, so an accepted round could
+    // be withdrawn — reversing a settled negotiation position after both parties had agreed it, and
+    // leaving the contract's own document lineage pointing at a version nobody had accepted.
+    if (x.status !== 'SUBMITTED') throw new Error('NEGOTIATION_ROUND_CLOSED');
     const y = { ...x, status: 'WITHDRAWN' as const };
     await this.s.replace('negotiationRounds', y);
     return y;
   }
   async accept(c: RequestContext, id: string) {
     const x = await find<NegotiationRound>(this.s, 'negotiationRounds', c, id);
+    if (x.status !== 'SUBMITTED') throw new Error('NEGOTIATION_ROUND_CLOSED');
     if (x.mandatoryOpenItems.length)
       throw new Error('MANDATORY_POSITIONS_UNRESOLVED');
     const y = { ...x, status: 'ACCEPTED' as const };
@@ -733,6 +738,19 @@ export type ExecutionCertificate = {
   status: 'VALID' | 'REVOKED';
   issuedAt: string;
 };
+/**
+ * A provider callback already consumed.
+ *
+ * Named rather than left as the inline literal `callback` used to append, because the aggregate is
+ * persisted and every other persisted aggregate in this package has a type its canonical schema can be
+ * proved against.
+ */
+export type SignatureCallback = {
+  id: string;
+  workspaceId: string;
+  eventId: string;
+  createdAt: string;
+};
 export interface SignatureProvider {
   providerKey: string;
   send(p: SignaturePackage): Promise<{ reference: string }>;
@@ -812,13 +830,23 @@ export class DigitalExecutionEngine {
       !timingSafeEqual(expected, supplied)
     )
       throw new Error('INVALID_PROVIDER_WEBHOOK');
+    // Scoped to the workspace, which it was not. A provider event identifier is unique within the
+    // account it was issued for, not across every account the platform serves, so an unscoped match
+    // treated another workspace's event as a replay of this one — and the replay path returns the
+    // package unchanged, which means a real signature event would have been silently dropped.
     if (
       (await this.s
-        .list<{ eventId: string }>('signatureCallbacks'))
-        .some((x) => x.eventId === payload.eventId)
+        .list<SignatureCallback>('signatureCallbacks'))
+        .some((x) => x.workspaceId === workspace(c) && x.eventId === payload.eventId)
     )
       return await find<SignaturePackage>(this.s, 'signaturePackages', c, id);
     const p = await find<SignaturePackage>(this.s, 'signaturePackages', c, id);
+    // A closed package does not reopen. Without this, a stray SIGNED event arriving after a signatory
+    // declined would recompute the signer list, find nothing outstanding, and move the package to
+    // COMPLETED — resurrecting a declined execution. Checked after the replay test so that a duplicate
+    // delivery of the event that closed the package stays idempotent rather than becoming an error.
+    if (['COMPLETED', 'DECLINED', 'VOID'].includes(p.status))
+      throw new Error('SIGNATURE_PACKAGE_CLOSED');
     if (payload.documentHash !== p.documentHash)
       throw new Error('DOCUMENT_HASH_MISMATCH');
     await this.s.append('signatureCallbacks', {

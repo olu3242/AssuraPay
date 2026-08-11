@@ -169,3 +169,43 @@ without manufacturing a verdict.
   suite that the reconciliation key now carries currency.
 - Full gates on this branch: typecheck 0, lint clean, **766** default, **231** PostgreSQL, **78**
   runtime, `repo:certify` **11/11**, reconciliation findings **15** unchanged.
+
+---
+
+## Recorded by Batch F: the agreement-creation engines barely guard their transitions
+
+Added while certifying `202608110005`, because it is a domain change rather than a persistence one and
+approximating it inside a persistence batch is how a constraint nobody chose gets inherited.
+
+A terminal state is a claim that no transition leaves it. Across Batch F's ten governed tables that claim
+is provable for three, and the reason is uniform: **four transition methods check nothing about the row's
+current status**, so each can be re-applied to a row already in the state it writes.
+
+| engine method | accepts a row in | consequence |
+|---|---|---|
+| `ClauseIntelligenceEngine.retire` | any state | a retired clause version can be retired again |
+| `ClauseIntelligenceEngine.approve` | any state | an approved deviation can be approved again; a rejected one can be approved |
+| `ApprovalWorkflowEngine.invalidateOnChange` | any state | an invalidated request can be invalidated again |
+| `DigitalExecutionEngine.revoke` | any state | a revoked execution certificate can be revoked again |
+
+Three of the four are idempotent re-writes and harmless in themselves. The second is not: nothing rejects
+a clause deviation today, so `REJECTED` is unreachable — but if it is ever written, `approve` would
+currently accept it and overturn a rejection with no record that it had been one.
+
+Batch F fixed the three cases where the missing guard reversed a settled outcome rather than repeating
+one — a resurrected DECLINED signature package, a withdrawn ACCEPTED negotiation round, and a
+cross-workspace callback replay — and left these four alone deliberately. Tightening them means changing
+five engines' behaviour, which needs its own change with its own tests, and `AGGREGATE_STATE_IS_TERMINAL`
+would then become enforceable on seven more tables.
+
+`BATCH_F_UNREACHED_STATES` records which declared states no engine writes, so whoever does this work can
+tell "unreachable" from "reachable and unguarded" without re-deriving it.
+
+### And a correction Batch F made to Batch E
+
+`batch-e.ts` assigned the performance-blueprint aggregates to Engines 16–20. The canonical catalog and the
+package's own unit tests both say **21–25**; 16–20 belong to `agreement-intelligence`. The error was
+copied into five artefacts and the durability register's other four package attributions were wrong too.
+All corrected, and `packages/database-testing/src/engine-identity.test.ts` now parses
+`docs/ENGINE_CATALOG.md` and asserts every registry against it by engine *name* — a number that exists is
+not the same as a number that is right.

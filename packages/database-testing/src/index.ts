@@ -378,6 +378,42 @@ export async function applyTrustStoreMigration(sql: SqlClient): Promise<void> {
  * A deployment constraint worth knowing: the historical set is not schema-relocatable.
  * The trust-store migration this capability adds has no such pin and applies anywhere.
  */
+/**
+ * Drops a throwaway database, without depending on a privilege the test role does not have.
+ *
+ * `DROP DATABASE … WITH (FORCE)` terminates whatever is still connected to the target, and a
+ * non-superuser may only terminate backends belonging to a role it is a member of. The certification
+ * role is neither a superuser nor a member of `pg_signal_backend`, so when PostgreSQL's own background
+ * workers — autovacuum, most often — are attached to the database at drop time, FORCE fails with
+ * `permission denied to terminate process` and the database is **leaked**.
+ *
+ * That is a real race rather than a theoretical one. It surfaced while certifying Batch F, on a
+ * different suite each run, and it had left nine databases behind: every one of them dropped without
+ * FORCE on the first attempt, because the harness's own connections were already closed and only a
+ * transient background worker had stood in the way.
+ *
+ * So FORCE is an optimisation, not the mechanism. The plain drop is attempted first — it is what
+ * succeeds once `pool.dispose()` has closed this database's own connections — and FORCE is the fallback
+ * for the case the plain drop is actually meant to prevent: something else still holding a session. A
+ * failure of both is re-raised rather than swallowed, because a silently leaked database becomes the
+ * next run's confusing failure.
+ */
+async function dropDatabase(sql: SqlClient, name: string): Promise<void> {
+  try {
+    await sql.unsafe(`DROP DATABASE IF EXISTS "${name}"`);
+    return;
+  } catch (plain) {
+    try {
+      await sql.unsafe(`DROP DATABASE IF EXISTS "${name}" WITH (FORCE)`);
+      return;
+    } catch {
+      // The plain failure is the more informative of the two: it names what is still connected,
+      // whereas FORCE reports only that it could not signal it.
+      throw plain;
+    }
+  }
+}
+
 export async function createTestDatabaseInstance(): Promise<TestDatabase> {
   const databaseUrl = requireTestDatabaseUrl();
   const name = `trust_db_${randomUUID().replace(/-/g, '').slice(0, 20)}`;
@@ -420,7 +456,7 @@ export async function createTestDatabaseInstance(): Promise<TestDatabase> {
         applicationName: 'assurapay-test-teardown',
       });
       try {
-        await teardown.sql.unsafe(`DROP DATABASE IF EXISTS "${name}" WITH (FORCE)`);
+        await dropDatabase(teardown.sql, name);
         // After the database, for the same reason the schema helper drops it after the schema: a
         // role cannot be dropped while a grant depends on it, and dropping the database takes the
         // grants with the objects they applied to.

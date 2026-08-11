@@ -99,6 +99,18 @@ describe('Engine 13 Negotiation', () => {
     });
     await expect(e.accept(ctx, r.id)).rejects.toThrow('UNRESOLVED');
     expect((await e.withdraw(ctx, r.id)).status).toBe('WITHDRAWN');
+    // A withdrawn round is closed. Neither method checked the status before, so an accepted round could
+    // be withdrawn and a withdrawn one accepted — reversing a settled position after the fact.
+    await expect(e.withdraw(ctx, r.id)).rejects.toThrow('CLOSED');
+    await expect(e.accept(ctx, r.id)).rejects.toThrow('CLOSED');
+    const open = await e.submit(ctx, {
+      contractId: 'c',
+      documentVersionId: 'd',
+      participantIds: ['author'],
+      mandatoryOpenItems: [],
+    });
+    expect((await e.accept(ctx, open.id)).status).toBe('ACCEPTED');
+    await expect(e.withdraw(ctx, open.id)).rejects.toThrow('CLOSED');
   });
 });
 describe('Engine 14 Approval Workflow', () => {
@@ -191,5 +203,76 @@ describe('Engine 15 Digital Execution', () => {
     const cert = await e.issue(ctx, pack.id);
     expect((await e.issue(ctx, pack.id)).canonicalHash).toBe(cert.canonicalHash);
     expect((await e.revoke(ctx, cert.id)).status).toBe('REVOKED');
+  });
+
+  it('scopes callback replay to the workspace and refuses to reopen a closed package', async () => {
+    const s = new InMemoryTrustStore(),
+      sig = (x: unknown) =>
+        createHmac('sha256', 'secret').update(JSON.stringify(x)).digest('hex'),
+      e = new DigitalExecutionEngine(s, deterministicSignatureProvider, 'secret');
+    // Built per workspace rather than through the shared `draft` helper, which authors into `ctx`'s
+    // workspace under a fixed contract number whatever context it is handed.
+    async function sent(c: typeof ctx) {
+      const a = new ContractAuthoringEngine(s),
+        contract = await a.create(c, {
+          contractNumber: `AP-${c.activeWorkspaceId}`,
+          title: 'Data Agreement',
+          contractType: 'DATA',
+          ownerUserId: 'author',
+        }),
+        template = await a.publishTemplate(
+          c,
+          (await a.createTemplateVersion(c, {
+            templateKey: 'data',
+            variableSchema: [],
+            content: 'template',
+          })).id,
+        ),
+        d = await a.createDraft(c, contract.id, template.id, 'docs/1', 'body'),
+        approval = new ApprovalWorkflowEngine(s),
+        p = await approval.policy(c, [
+          { role: 'LEGAL', minimumAssurance: 'IAL2_VERIFIED' },
+        ]),
+        r = await approval.route(c, {
+          contractId: d.contractId,
+          documentVersionId: d.documentVersionId,
+          policyId: p.id,
+        });
+      await approval.decide({ ...c, actorUserId: 'legal' }, r.id, 'APPROVE', [], ['LEGAL']);
+      const pack = await e.create(c, {
+        contractId: d.contractId,
+        approvalRequestId: r.id,
+        documentVersionId: d.documentVersionId,
+        signers: [
+          { userId: 'signer', authorityReference: 'board-1', witnessRequired: false },
+        ],
+      });
+      await e.send(c, pack.id);
+      return pack;
+    }
+    const first = await sent(ctx);
+    const signed = {
+      eventId: 'provider-collision',
+      userId: 'signer',
+      action: 'SIGNED' as const,
+      documentHash: first.documentHash,
+    };
+    expect((await e.callback(ctx, first.id, signed, sig(signed))).status).toBe('COMPLETED');
+    // The same event delivered twice is a replay: the package comes back unchanged rather than
+    // transitioning again.
+    expect((await e.callback(ctx, first.id, signed, sig(signed))).status).toBe('COMPLETED');
+
+    // A second workspace whose provider issued the same event identifier. Before the replay check was
+    // scoped, this matched the first workspace's row and returned the package untouched — silently
+    // dropping a real signature event rather than recording it.
+    const other = { ...ctx, activeWorkspaceId: 'w2', memberships: ['w2'] },
+      second = await sent(other),
+      collision = { ...signed, documentHash: second.documentHash };
+    expect((await e.callback(other, second.id, collision, sig(collision))).status).toBe('COMPLETED');
+
+    // A stray event arriving after the package closed does not reopen it. The signer list would be
+    // recomputed, nothing would be outstanding, and a declined execution would read as completed.
+    const stray = { ...signed, eventId: 'late', userId: 'someone-else' };
+    await expect(e.callback(ctx, first.id, stray, sig(stray))).rejects.toThrow('CLOSED');
   });
 });

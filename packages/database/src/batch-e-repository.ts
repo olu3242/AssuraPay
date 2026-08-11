@@ -9,7 +9,7 @@ import { PostgresStoreError } from './store-error';
 
 /**
  * Relational repositories for Batch E — the six performance-blueprint aggregates of canonical
- * Engines 16-20.
+ * Engines 21-25.
  *
  * ## What this replaces
  *
@@ -250,7 +250,7 @@ function relation(
   };
 }
 // ---------------------------------------------------------------------------------------
-// Engine 16 — Performance Blueprint
+// Engine 21 — Performance Blueprint
 // ---------------------------------------------------------------------------------------
 
 const performanceBlueprints = relation('performanceBlueprints', 'performance_blueprints', {
@@ -313,7 +313,7 @@ const performanceBlueprints = relation('performanceBlueprints', 'performance_blu
 });
 
 // ---------------------------------------------------------------------------------------
-// Engine 17 — Scope Definition
+// Engine 22 — Scope Definition
 // ---------------------------------------------------------------------------------------
 
 const scopeItems = relation('scopeItems', 'scope_items', {
@@ -368,7 +368,7 @@ const scopeItems = relation('scopeItems', 'scope_items', {
 });
 
 // ---------------------------------------------------------------------------------------
-// Engine 18 — Deliverables
+// Engine 23 — Deliverables
 // ---------------------------------------------------------------------------------------
 
 const deliverables = relation('deliverables', 'deliverables', {
@@ -431,7 +431,7 @@ const deliverables = relation('deliverables', 'deliverables', {
 });
 
 // ---------------------------------------------------------------------------------------
-// Engine 19 — Milestone Planning
+// Engine 24 — Milestone Planning
 // ---------------------------------------------------------------------------------------
 
 // No `update`. Nothing in the repository transitions a milestone: `BlueprintMilestone.status` declares
@@ -520,7 +520,7 @@ const milestoneSequenceEdges = relation('milestoneSequenceEdges', 'milestone_seq
 });
 
 // ---------------------------------------------------------------------------------------
-// Engine 20 — Definition of Done
+// Engine 25 — Definition of Done
 // ---------------------------------------------------------------------------------------
 
 const dodPackages = relation('dodPackages', 'dod_packages', {

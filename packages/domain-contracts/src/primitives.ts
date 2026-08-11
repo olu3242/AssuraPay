@@ -136,6 +136,34 @@ export const count = z.number().int().min(0).max(Number.MAX_SAFE_INTEGER);
 /** A percentage between 0 and 100 inclusive, matching `CHECK (… BETWEEN 0 AND 100)`. */
 export const percentage = z.number().min(0).max(100);
 
+/**
+ * A revision number: which iteration of something a row *is*.
+ *
+ * Shares its shape with `approvalCount` and is deliberately not the same constant. An agreement
+ * version, a template version, a clause version, a document number, a negotiation round and a policy
+ * version are all computed by counting the rows that came before, so there is no revision zero — but a
+ * revision is a position in a sequence and a required-approval count is a quantity, and a schema that
+ * conflated them would read as if changing one should change the other.
+ *
+ * Distinct again from the persistence layer's `row_version`, which counts writes to a single row. A
+ * revision number is immutable: revision 3 does not become revision 4, a new revision is a new row.
+ */
+export const revisionNumber = z.number().int().min(1).max(Number.MAX_SAFE_INTEGER);
+
+/**
+ * A SHA-256 digest in lower-case hexadecimal.
+ *
+ * Stronger than `requiredText`, and provably so rather than aspirationally: every hash written by the
+ * agreement-creation engines comes from one `createHash('sha256').digest('hex')` helper, or is copied
+ * from a column that did. A digest is what makes a document citable as the document that was approved,
+ * so a value that is not a digest makes the citation unverifiable — and a 64-character bound is the
+ * difference between "some text" and "an artefact someone can recompute".
+ */
+export const sha256Hex = z
+  .string()
+  .length(64)
+  .regex(/^[0-9a-f]{64}$/, { message: 'not a lower-case hexadecimal SHA-256 digest' });
+
 /** Free text that must carry content — the engines' `if (!x.trim()) throw` rule, stated once. */
 export const requiredText = z
   .string()
