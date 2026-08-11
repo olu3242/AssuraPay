@@ -3,7 +3,7 @@
 > Append-only history of REOS executions. Generated index — the `*.json`
 > entries beside it are the records and are never rewritten.
 
-21 execution(s) recorded.
+22 execution(s) recorded.
 
 | Recorded at | Capability | Lifecycle | Branch | Commit | Validation | Certification | Manifest |
 |---|---|---|---|---|---|---|---|
@@ -28,3 +28,4 @@
 | 2026-08-06T09:10:59.519Z | `persistence.async-domain-repository-interface` | released | `feat/persistence-async-domain-repository` | `544011a` | pass | pass | `f501be5d3c17` |
 | 2026-08-06T09:35:33.593Z | `persistence.domain-store-environment-gate` | certified | `feat/persistence-domain-store-durable-environment-gate` | `cdffedc` | pass | pass | `042427d7c9c5` |
 | 2026-08-10T20:04:34.404Z | `persistence.domain-store-durability` | planned | `feat/b1-batch-b-settlement-authority` | `92860fe` | pass | pass | `9f072be98b1f` |
+| 2026-08-11T10:45:26.985Z | `persistence.domain-store-durability` | planned | `feat/c1-batch-c-settlement-ledger` | `ed9b053` | pass | pass | `736c9f3f7f1d` |

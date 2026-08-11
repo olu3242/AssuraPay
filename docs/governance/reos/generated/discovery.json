@@ -2841,6 +2841,7 @@
         "origin/feat/a1-batch-a-relational-repositories",
         "origin/feat/a1-domain-store-durability",
         "origin/feat/b1-batch-b-settlement-authority",
+        "origin/feat/c1-batch-c-settlement-ledger",
         "origin/feat/engines-01-05-trust-foundation",
         "origin/feat/engines-06-10-governance-core",
         "origin/feat/engines-61-70-agent-runtime",
@@ -2857,37 +2858,10 @@
         "wip/persistence-async-migration",
         "wip/persistence-async-repository-interface"
       ],
-      "clean": false,
-      "dirtyFiles": [
-        "apps/web/app/api/v1/ledger-entries/route.ts",
-        "docs/governance/reos/generated/CERTIFICATION_REPORT.md",
-        "docs/governance/reos/generated/EXECUTION_MANIFEST.md",
-        "docs/governance/reos/generated/certification.json",
-        "docs/governance/reos/generated/dependency-resolution.json",
-        "docs/governance/reos/generated/discovery.json",
-        "docs/governance/reos/generated/execution-manifest.json",
-        "docs/governance/reos/generated/forensics.json",
-        "docs/persistence/WAVE_5_BATCH_C_ACTIVATION.md",
-        "packages/database-testing/src/postgres-store.postgres.test.ts",
-        "packages/database-testing/src/wave5-batch-b-repository.postgres.test.ts",
-        "packages/database-testing/src/wave5-batch-c-repository.postgres.test.ts",
-        "packages/database/src/batch-c-repository.ts",
-        "packages/database/src/index.ts",
-        "packages/database/src/migrations.ts",
-        "packages/database/src/postgres-store.ts",
-        "packages/database/src/store-error.ts",
-        "packages/domain-contracts/src/batch-c.ts",
-        "packages/domain-contracts/src/index.ts",
-        "packages/settlement-assurance/src/persisted-contracts-batch-c.test.ts",
-        "packages/settlement-execution/src/index.ts",
-        "packages/settlement-execution/src/persisted-contracts-batch-c.test.ts",
-        "packages/settlement-execution/src/settlement-execution.e2e.test.ts",
-        "packages/settlement-execution/src/settlement-execution.non-custody.test.ts",
-        "packages/settlement-execution/src/settlement-execution.test.ts",
-        "supabase/migrations/202608110001_wave5_batch_c_settlement_ledger.sql"
-      ],
-      "head": "e16301a7f90b7fe7044a6f4e0884ff0f502b839f",
-      "headShort": "e16301a",
+      "clean": true,
+      "dirtyFiles": [],
+      "head": "ed9b0534ffdf0e060391a43df3b2bc3fe0466c71",
+      "headShort": "ed9b053",
       "reflogAvailable": true,
       "remotes": [
         "origin"
@@ -2896,7 +2870,7 @@
         "platform-trust-foundation",
         "rc-engine-60"
       ],
-      "upstream": null
+      "upstream": "origin/feat/c1-batch-c-settlement-ledger"
     },
     "name": "assurapay",
     "packageManager": "pnpm@11.3.0",

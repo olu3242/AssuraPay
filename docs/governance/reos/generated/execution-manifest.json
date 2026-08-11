@@ -3394,8 +3394,8 @@
   ],
   "identity": {
     "branch": "feat/c1-batch-c-settlement-ledger",
-    "clean": false,
-    "head": "e16301a7f90b7fe7044a6f4e0884ff0f502b839f",
+    "clean": true,
+    "head": "ed9b0534ffdf0e060391a43df3b2bc3fe0466c71",
     "repository": "assurapay",
     "version": "0.1.0"
   },
@@ -3486,7 +3486,7 @@
     "released": 75,
     "validated": 0
   },
-  "manifestDigest": "39fb2d5332e8",
+  "manifestDigest": "736c9f3f7f1d",
   "missingCapabilities": [
     "persistence.domain-store-durability"
   ],

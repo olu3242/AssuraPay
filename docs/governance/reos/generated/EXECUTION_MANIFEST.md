@@ -10,9 +10,9 @@
 | Repository | assurapay |
 | Version | 0.1.0 |
 | Branch | feat/c1-batch-c-settlement-ledger |
-| HEAD | e16301a7f90b7fe7044a6f4e0884ff0f502b839f |
-| Worktree clean | no |
-| Manifest digest | 39fb2d5332e8 |
+| HEAD | ed9b0534ffdf0e060391a43df3b2bc3fe0466c71 |
+| Worktree clean | yes |
+| Manifest digest | 736c9f3f7f1d |
 | REOS version | 1.0.0 |
 
 ## Architecture
