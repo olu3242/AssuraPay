@@ -9,10 +9,10 @@
 | --- | --- |
 | Repository | assurapay |
 | Version | 0.1.0 |
-| Branch | feat/f1-batch-e-performance-blueprint |
-| HEAD | 45e01fb06a40252dddc3cf5204d4bdf6bc0985d1 |
-| Worktree clean | yes |
-| Manifest digest | e303da907e21 |
+| Branch | feat/g1-batch-f-agreement-creation |
+| HEAD | 493e33681281e478ab144d703df6a906ca57efcb |
+| Worktree clean | no |
+| Manifest digest | 0412917dc1bd |
 | REOS version | 1.0.0 |
 
 ## Architecture
