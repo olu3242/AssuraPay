@@ -13,7 +13,8 @@ import { POSTGRES_TRUST_COLLECTIONS } from '@assurapay/database';
  * deployment could pass every gate in this repository and then be unable to create a contract.
  *
  * Measured when this file was written: engines write **129** collections, the store maps **64**, and
- * **67** are unmapped. `ContractAuthoringEngine.create` — the first step of the canonical chain — was
+ * **67** were unmapped. Batch E has since closed six of them, so the current figure is **61** — and it
+ * is the assertions below, not this sentence, that keep that true. `ContractAuthoringEngine.create` — the first step of the canonical chain — was
  * confirmed against a live PostgreSQL instance to fail with
  * `PERSISTENCE_COLLECTION_NOT_MAPPED: agreements has no mapping in the durable trust store`.
  *
@@ -55,10 +56,10 @@ const KNOWN_UNMAPPED: readonly string[] = Object.freeze([
   'certificationDecisions', 'certificationRequests', 'digitalCertifications', 'dodEvaluations',
   'dodVersions', 'executionHistory', 'governedExecutions', 'governedMilestones',
   'milestoneDependencies', 'paymentAuthorizationProposals', 'paymentTriggerDefinitions',
-  // performance-blueprint (6) — Engines 16-20. Contains `performanceBlueprints` and `dodPackages`,
-  // both canonical chain links.
-  'blueprintMilestones', 'deliverables', 'dodPackages', 'milestoneSequenceEdges',
-  'performanceBlueprints', 'scopeItems',
+  // performance-blueprint — CLOSED by Batch E (`202608110004`). Its six aggregates, three of them
+  // canonical chain links, are removed from this baseline rather than left in it: the third assertion
+  // below fails on a baseline entry the store now maps, which is what makes the list a ratchet instead
+  // of a record of good intentions.
   // performance-readiness (6) — Engines 21-25. `paymentTriggerRules` is referenced by Batch B's
   // `paymentEligibility.paymentTriggerRuleId`, so a durable eligibility already points at a rule that
   // cannot be stored.
@@ -186,13 +187,14 @@ describe('durability coverage: the store accepts what the engines write', () => 
     const durable = CANONICAL_CHAIN.filter((collection) => mapped.has(collection));
     const missing = CANONICAL_CHAIN.filter((collection) => !mapped.has(collection));
 
-    // Seven of eleven at the time of writing: the chain is durable from ExecutionWorkspace onward,
-    // and its first four links — contract, blueprint, milestone, definition of done — are not.
-    expect(durable.length).toBeGreaterThanOrEqual(7);
+    // Seven of eleven when this gate was written; **ten** since Batch E made the blueprint, its
+    // milestones and their definitions of done durable. Only `agreements` remains, and Batch F closes
+    // it. A floor and a ceiling, so mapping a link can only make this pass by more.
+    expect(durable.length).toBeGreaterThanOrEqual(10);
     expect(
       missing.length,
       `canonical chain links with no durable mapping: ${missing.join(', ')}`,
-    ).toBeLessThanOrEqual(4);
+    ).toBeLessThanOrEqual(1);
   });
 
   it('reports the gap as a ceiling, so it cannot grow', () => {

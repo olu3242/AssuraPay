@@ -6,6 +6,7 @@ import {
   BATCH_B_TABLES,
   BATCH_C_TABLES,
   BATCH_D_TABLES,
+  BATCH_E_TABLES,
 } from '@assurapay/domain-contracts';
 import type { SqlClient } from './postgres-client';
 
@@ -274,6 +275,11 @@ export const REQUIRED_TRUST_MIGRATIONS: readonly string[] = Object.freeze([
   // repositories now read and write: a host without it fails the first reconciliation and the first
   // payment instruction with an undefined-column error.
   '202608110003_wave5_close_batch_c_gaps',
+  // Batch E. The store routes six Engine 16-20 collections to tables `202608030004` created and
+  // `202608110004` converges and governs. `202608110004` also generalises the shared
+  // governed-transition function, so a host missing it would have triggers configured for a
+  // concurrency column the function does not know how to read.
+  '202608110004_wave6_batch_e_performance_blueprint',
 ]);
 
 export type SchemaCompatibility = {
@@ -328,7 +334,13 @@ export const REQUIRED_TRUST_TABLES = Object.freeze([
  * why the readiness report names which tables are absent rather than only that some are.
  */
 export const REQUIRED_DOMAIN_AGGREGATE_TABLES = Object.freeze(
-  [...BATCH_A_TABLES, ...BATCH_B_TABLES, ...BATCH_C_TABLES, ...BATCH_D_TABLES].sort(),
+  [
+    ...BATCH_A_TABLES,
+    ...BATCH_B_TABLES,
+    ...BATCH_C_TABLES,
+    ...BATCH_D_TABLES,
+    ...BATCH_E_TABLES,
+  ].sort(),
 );
 
 /**
