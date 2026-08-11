@@ -320,6 +320,7 @@
           "kind": "symbol",
           "matches": [
             "packages/audit-ledger/src/audit-ledger.postgres.test.ts",
+            "packages/database-testing/src/durability-coverage.test.ts",
             "packages/database-testing/src/postgres-store.postgres.test.ts",
             "packages/database-testing/src/rls-certification.postgres.test.ts",
             "packages/database-testing/src/schema-ownership.postgres.test.ts",
@@ -1620,7 +1621,7 @@
       "totalProbes": 5
     }
   ],
-  "head": "08cc2ce22675f9de703d1f43a70ca247223e41b7",
+  "head": "8ab7df34adc546f33429a7d80f7a279e70169cc0",
   "reosVersion": "1.0.0",
   "stage": "forensics",
   "summary": {

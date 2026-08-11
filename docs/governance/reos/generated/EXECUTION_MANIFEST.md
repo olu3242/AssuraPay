@@ -10,9 +10,9 @@
 | Repository | assurapay |
 | Version | 0.1.0 |
 | Branch | feat/e1-post-wave5-followups |
-| HEAD | 08cc2ce22675f9de703d1f43a70ca247223e41b7 |
-| Worktree clean | yes |
-| Manifest digest | 783a242a4536 |
+| HEAD | 8ab7df34adc546f33429a7d80f7a279e70169cc0 |
+| Worktree clean | no |
+| Manifest digest | c3a7d03b1f60 |
 | REOS version | 1.0.0 |
 
 ## Architecture

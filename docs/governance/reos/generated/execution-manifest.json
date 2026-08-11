@@ -3394,8 +3394,8 @@
   ],
   "identity": {
     "branch": "feat/e1-post-wave5-followups",
-    "clean": true,
-    "head": "08cc2ce22675f9de703d1f43a70ca247223e41b7",
+    "clean": false,
+    "head": "8ab7df34adc546f33429a7d80f7a279e70169cc0",
     "repository": "assurapay",
     "version": "0.1.0"
   },
@@ -3486,7 +3486,7 @@
     "released": 75,
     "validated": 0
   },
-  "manifestDigest": "783a242a4536",
+  "manifestDigest": "c3a7d03b1f60",
   "missingCapabilities": [
     "persistence.domain-store-durability"
   ],
@@ -3711,6 +3711,7 @@
       "sourceFiles": 1,
       "sourceLines": 419,
       "testFiles": [
+        "packages/database-testing/src/durability-coverage.test.ts",
         "packages/database-testing/src/migrations.postgres.test.ts",
         "packages/database-testing/src/postgres-store.postgres.test.ts",
         "packages/database-testing/src/rls-certification.postgres.test.ts",
@@ -3727,7 +3728,7 @@
         "integration": 0,
         "performance": 0,
         "security": 0,
-        "unit": 10
+        "unit": 11
       },
       "workspaceDependencies": [
         "@assurapay/database",
@@ -4652,6 +4653,7 @@
           "kind": "symbol",
           "matches": [
             "packages/audit-ledger/src/audit-ledger.postgres.test.ts",
+            "packages/database-testing/src/durability-coverage.test.ts",
             "packages/database-testing/src/postgres-store.postgres.test.ts",
             "packages/database-testing/src/rls-certification.postgres.test.ts",
             "packages/database-testing/src/schema-ownership.postgres.test.ts",
