@@ -6,11 +6,12 @@
     "failedSteps": [],
     "passed": true
   },
-  "commit": "ed9b0534ffdf0e060391a43df3b2bc3fe0466c71",
+  "commit": "ebeb159a85f8f46cb158c457b32821f32e2b327f",
   "filesModified": [
     "apps/web/app/api/v1/ledger-entries/route.ts",
     "docs/governance/execution-ledger/92860feff286-persistence.domain-store-durability.json",
     "docs/governance/execution-ledger/INDEX.md",
+    "docs/governance/execution-ledger/ebeb159a85f8-persistence.domain-store-durability.json",
     "docs/governance/execution-ledger/ed9b0534ffdf-persistence.domain-store-durability.json",
     "docs/governance/reos/generated/CERTIFICATION_REPORT.md",
     "docs/governance/reos/generated/EXECUTION_MANIFEST.md",
@@ -23,19 +24,23 @@
     "docs/governance/reos/generated/forensics.json",
     "docs/persistence/WAVE_5_BATCH_B_ACTIVATION.md",
     "docs/persistence/WAVE_5_BATCH_C_ACTIVATION.md",
+    "docs/persistence/WAVE_5_BATCH_D_ACTIVATION.md",
     "packages/database-testing/src/migrations.postgres.test.ts",
     "packages/database-testing/src/postgres-store.postgres.test.ts",
     "packages/database-testing/src/wave4-batch-a-repository.postgres.test.ts",
     "packages/database-testing/src/wave5-batch-b-repository.postgres.test.ts",
     "packages/database-testing/src/wave5-batch-c-repository.postgres.test.ts",
+    "packages/database-testing/src/wave5-batch-d-repository.postgres.test.ts",
     "packages/database/src/batch-b-repository.ts",
     "packages/database/src/batch-c-repository.ts",
+    "packages/database/src/batch-d-repository.ts",
     "packages/database/src/index.ts",
     "packages/database/src/migrations.ts",
     "packages/database/src/postgres-store.ts",
     "packages/database/src/store-error.ts",
     "packages/domain-contracts/src/batch-b.ts",
     "packages/domain-contracts/src/batch-c.ts",
+    "packages/domain-contracts/src/batch-d.ts",
     "packages/domain-contracts/src/index.ts",
     "packages/domain-contracts/src/primitives.ts",
     "packages/settlement-assurance/package.json",
@@ -44,15 +49,17 @@
     "packages/settlement-execution/package.json",
     "packages/settlement-execution/src/index.ts",
     "packages/settlement-execution/src/persisted-contracts-batch-c.test.ts",
+    "packages/settlement-execution/src/persisted-contracts-batch-d.test.ts",
     "packages/settlement-execution/src/persisted-contracts.test.ts",
     "packages/settlement-execution/src/settlement-execution.e2e.test.ts",
     "packages/settlement-execution/src/settlement-execution.non-custody.test.ts",
     "packages/settlement-execution/src/settlement-execution.test.ts",
     "pnpm-lock.yaml",
     "supabase/migrations/202608100002_wave5_batch_b_settlement_authority.sql",
-    "supabase/migrations/202608110001_wave5_batch_c_settlement_ledger.sql"
+    "supabase/migrations/202608110001_wave5_batch_c_settlement_ledger.sql",
+    "supabase/migrations/202608110002_wave5_batch_d_dispute_linkage.sql"
   ],
-  "generatedAt": "2026-08-11T10:45:27.060Z",
+  "generatedAt": "2026-08-11T11:13:26.623Z",
   "governance": {
     "baselined": 15,
     "findings": [
@@ -212,7 +219,7 @@
     "phase": 2,
     "resolved": []
   },
-  "ledgerEntryId": "ed9b0534ffdf-persistence.domain-store-durability",
+  "ledgerEntryId": "ebeb159a85f8-persistence.domain-store-durability",
   "recommendedNextCapability": {
     "blockedBy": [],
     "blocks": [],
@@ -255,15 +262,15 @@
   ],
   "reosVersion": "1.0.0",
   "repositoryState": {
-    "branch": "feat/c1-batch-c-settlement-ledger",
+    "branch": "feat/d1-batch-d-dispute-linkage",
     "clean": true,
     "dirtyFiles": [],
-    "head": "ed9b0534ffdf0e060391a43df3b2bc3fe0466c71"
+    "head": "ebeb159a85f8f46cb158c457b32821f32e2b327f"
   },
   "stage": "report",
   "validation": [
     {
-      "checked": 218,
+      "checked": 222,
       "findings": [],
       "passed": true,
       "validator": "architecture"
@@ -275,13 +282,13 @@
       "validator": "dependencies"
     },
     {
-      "checked": 285,
+      "checked": 287,
       "findings": [],
       "passed": true,
       "validator": "security"
     },
     {
-      "checked": 33,
+      "checked": 40,
       "findings": [
         {
           "location": "packages/database/src",
