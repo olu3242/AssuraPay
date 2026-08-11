@@ -360,7 +360,7 @@ const fundReservations = relation('fundReservations', 'fund_reservations', {
 const paymentInstructions = relation('paymentInstructions', 'payment_instructions', {
   async list(sql) {
     const rows = await sql<Row[]>`
-      SELECT id, workspace_id, release_request_id, provider_key, idempotency_key,
+      SELECT id, workspace_id, release_request_id, provider_key, idempotency_key, payload_digest,
              beneficiary_reference, amount_minor, currency, status, provider_reference,
              attempts, created_at, submitted_at, settled_at, schema_version
       FROM payment_instructions ORDER BY created_at ASC, id ASC
@@ -375,6 +375,7 @@ const paymentInstructions = relation('paymentInstructions', 'payment_instruction
           releaseRequestId: text('paymentInstructions', row, 'release_request_id'),
           providerKey: text('paymentInstructions', row, 'provider_key'),
           idempotencyKey: text('paymentInstructions', row, 'idempotency_key'),
+          payloadDigest: text('paymentInstructions', row, 'payload_digest'),
           beneficiaryReference: text('paymentInstructions', row, 'beneficiary_reference'),
           amountMinor: amount('paymentInstructions', row, 'amount_minor'),
           currency: text('paymentInstructions', row, 'currency'),
@@ -393,12 +394,13 @@ const paymentInstructions = relation('paymentInstructions', 'payment_instruction
     await sql`
       INSERT INTO payment_instructions
         (id, tenant_id, workspace_id, release_request_id, provider_key, idempotency_key,
-         beneficiary_reference, amount_minor, currency, status, provider_reference, attempts,
-         created_at, submitted_at, settled_at, version, schema_version, updated_at)
+         payload_digest, beneficiary_reference, amount_minor, currency, status, provider_reference,
+         attempts, created_at, submitted_at, settled_at, version, schema_version, updated_at)
       VALUES (
         ${record.id as string}, ${tenantId}, ${record.workspaceId as string},
         ${record.releaseRequestId as string}, ${record.providerKey as string},
-        ${record.idempotencyKey as string}, ${record.beneficiaryReference as string},
+        ${record.idempotencyKey as string}, ${record.payloadDigest as string},
+        ${record.beneficiaryReference as string},
         ${record.amountMinor as number}, ${record.currency as string}, ${record.status as string},
         ${(record.providerReference as string | undefined) ?? null}, ${record.attempts as number},
         ${record.createdAt as string}, ${(record.submittedAt as string | undefined) ?? null},
@@ -476,7 +478,7 @@ const ledgerEntries = relation('ledgerEntries', 'ledger_entries', {
 const reconciliationRecords = relation('reconciliationRecords', 'reconciliation_records', {
   async list(sql) {
     const rows = await sql<Row[]>`
-      SELECT id, workspace_id, payment_instruction_id, provider_statement_reference,
+      SELECT id, workspace_id, payment_instruction_id, provider_statement_reference, currency,
              provider_reported_amount_minor, recorded_amount_minor, matched, exception_reason,
              reconciled_at, schema_version
       FROM reconciliation_records ORDER BY reconciled_at ASC, id ASC
@@ -494,6 +496,7 @@ const reconciliationRecords = relation('reconciliationRecords', 'reconciliation_
             row,
             'provider_statement_reference',
           ),
+          currency: text('reconciliationRecords', row, 'currency'),
           providerReportedAmountMinor: amount(
             'reconciliationRecords',
             row,
@@ -512,12 +515,12 @@ const reconciliationRecords = relation('reconciliationRecords', 'reconciliation_
     await sql`
       INSERT INTO reconciliation_records
         (id, tenant_id, workspace_id, payment_instruction_id, provider_statement_reference,
-         provider_reported_amount_minor, recorded_amount_minor, matched, exception_reason,
+         currency, provider_reported_amount_minor, recorded_amount_minor, matched, exception_reason,
          reconciled_at, version, schema_version, updated_at)
       VALUES (
         ${record.id as string}, ${tenantId}, ${record.workspaceId as string},
         ${record.paymentInstructionId as string},
-        ${record.providerStatementReference as string},
+        ${record.providerStatementReference as string}, ${record.currency as string},
         ${record.providerReportedAmountMinor as number}, ${record.recordedAmountMinor as number},
         ${record.matched as boolean}, ${(record.exceptionReason as string | undefined) ?? null},
         ${record.reconciledAt as string}, 1, ${BATCH_C_SCHEMA_VERSION},

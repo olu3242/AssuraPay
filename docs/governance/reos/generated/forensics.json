@@ -351,6 +351,7 @@
             "packages/database-testing/src/index.ts",
             "packages/database-testing/src/migrations.postgres.test.ts",
             "packages/database-testing/src/schema-ownership.postgres.test.ts",
+            "packages/database-testing/src/store-boundary.postgres.test.ts",
             "packages/database-testing/src/wave4-batch-a-repository.postgres.test.ts",
             "packages/database-testing/src/wave4-trust-authority.postgres.test.ts",
             "packages/database-testing/src/wave5-batch-b-repository.postgres.test.ts",
@@ -1535,7 +1536,8 @@
             "apps/web/app/api/v1/contracts/route.ts",
             "apps/web/app/api/v1/organizations/route.ts",
             "apps/web/app/api/v1/workspaces/route.ts",
-            "apps/web/lib/trust-app.ts"
+            "apps/web/lib/trust-app.ts",
+            "packages/database-testing/src/store-boundary.postgres.test.ts"
           ],
           "query": "workspaceScoped",
           "satisfied": true
@@ -1618,7 +1620,7 @@
       "totalProbes": 5
     }
   ],
-  "head": "ebeb159a85f8f46cb158c457b32821f32e2b327f",
+  "head": "481c851bf077053452309452d2efbc691b6b1cad",
   "reosVersion": "1.0.0",
   "stage": "forensics",
   "summary": {
