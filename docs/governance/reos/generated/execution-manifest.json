@@ -3394,8 +3394,8 @@
   ],
   "identity": {
     "branch": "feat/f1-batch-e-performance-blueprint",
-    "clean": false,
-    "head": "dff41bc9edd2092355210fbe1ed22cfa3b3277a4",
+    "clean": true,
+    "head": "45e01fb06a40252dddc3cf5204d4bdf6bc0985d1",
     "repository": "assurapay",
     "version": "0.1.0"
   },
@@ -3486,7 +3486,7 @@
     "released": 75,
     "validated": 0
   },
-  "manifestDigest": "3a250abd66b3",
+  "manifestDigest": "e303da907e21",
   "missingCapabilities": [
     "persistence.domain-store-durability"
   ],
