@@ -12,6 +12,7 @@ import {
 import {
   BATCH_B_AGGREGATES,
   BATCH_B_CONVERGED_NOT_ACTIVATED,
+  BATCH_B_TABLES,
   SUPPORTED_CURRENCIES,
 } from '@assurapay/domain-contracts';
 import type { SqlClient } from '@assurapay/database';
@@ -218,18 +219,21 @@ describe('integration: Batch B is activated, and its closure is converged but no
     }
   });
 
-  it('requires the seven activated tables and not the two merely converged ones', async () => {
+  it('requires the seven activated tables, and claims neither of the two it merely converged', async () => {
     // The distinction is the whole reason the migration could proceed: Batch B's foreign-key
     // closure includes two Batch C tables, so all nine had to be converted together, and requiring
     // a table the store never reads would make readiness assert something it does not depend on.
     for (const table of BATCH_B_AGGREGATES.map((a) => a.table))
       expect(REQUIRED_DOMAIN_AGGREGATE_TABLES, table).toContain(table);
-    for (const table of BATCH_B_CONVERGED_NOT_ACTIVATED)
-      expect(REQUIRED_DOMAIN_AGGREGATE_TABLES, table).not.toContain(table);
     expect([...BATCH_B_CONVERGED_NOT_ACTIVATED].sort()).toEqual([
       'fund_reservations',
       'funding_commitments',
     ]);
+    // Asserted against `BATCH_B_TABLES`, not against the union. Batch C has since activated these
+    // two, so they *are* required now — by their own batch, which owns them. The durable claim is
+    // that Batch B never claimed them, and that stays true as later batches land.
+    for (const table of BATCH_B_CONVERGED_NOT_ACTIVATED)
+      expect(BATCH_B_TABLES, table).not.toContain(table);
 
     const database = await migratedDatabase();
     const compatible = await verifySchemaCompatibility(database.sql, migrationsDirectory());

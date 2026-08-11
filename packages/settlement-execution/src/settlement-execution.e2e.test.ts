@@ -64,13 +64,18 @@ describe('e2e Batch 10 dual-approved release to a certified financial closure', 
     expect(settled.status).toBe('SETTLED');
 
     const ledger = new ReconciliationLedgerEngine(s);
-    await ledger.record(requester, {
+    const journal = await ledger.post(requester, {
       paymentInstructionId: instruction.id,
-      entryType: 'DEBIT',
       amountMinor: instruction.amountMinor,
       currency: instruction.currency,
-      description: 'partner bank escrow release for milestone payout',
+      debitDescription: 'partner bank escrow release for milestone payout',
+      creditDescription: 'beneficiary settlement for milestone payout',
     });
+    // Both legs, same amount, same currency: the journal balances, which is what the database
+    // requires at commit.
+    expect(journal.debit.entryType).toBe('DEBIT');
+    expect(journal.credit.entryType).toBe('CREDIT');
+    expect(journal.debit.amountMinor).toBe(journal.credit.amountMinor);
     const reconciliation = await ledger.reconcile(requester, {
       paymentInstructionId: instruction.id,
       providerStatementReference: 'stmt-2026-08',

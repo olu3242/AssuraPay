@@ -2,7 +2,8 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { InMemoryTrustStore } from '@assurapay/database';
-import { PaymentExecutionEngine } from './index';
+import type { TrustPersistence } from '@assurapay/shared';
+import { PaymentExecutionEngine, ReconciliationLedgerEngine } from './index';
 
 // CLAUDE.md hard constraint 1: "No custody, ever." Every PR touching money-movement
 // logic must assert no code path calls a hold-funds primitive that isn't the
@@ -82,5 +83,58 @@ describe('non-custody constraint', () => {
     const second = await e.issue(c, input);
     expect(second.id).toBe(first.id);
     expect(await s.list('paymentInstructions')).toHaveLength(1);
+  });
+
+  it('records a journal without a provider gateway, because a posting moves nothing', async () => {
+    // Re-certifying the boundary for Batch C's new posting path. A balanced journal describes money
+    // the provider moved; it is a record, not an instruction. The proof is that the ledger engine
+    // takes no gateway at all — a record-keeping engine that could reach a provider would be a
+    // second money-movement path, and the one in `PaymentExecutionEngine` is the only sanctioned
+    // one.
+    const s = new InMemoryTrustStore();
+    const ledger = new ReconciliationLedgerEngine(s);
+    expect(ReconciliationLedgerEngine.length).toBe(1);
+
+    const journal = await ledger.post(c, {
+      paymentInstructionId: 'pi-1',
+      amountMinor: 425_000_000,
+      currency: 'NGN',
+      debitDescription: 'partner bank escrow release',
+      creditDescription: 'beneficiary settlement',
+    });
+
+    // Both legs, one amount. Neither leg is negative, so a reversal must be its own compensating
+    // journal rather than a negated original — the shortcut MONETARY_INVARIANTS prohibits.
+    expect(journal.debit.amountMinor).toBe(425_000_000);
+    expect(journal.credit.amountMinor).toBe(425_000_000);
+    expect(await s.list('ledgerEntries')).toHaveLength(2);
+  });
+
+  it('posts both legs of a journal in one transaction, so the commit is all or nothing', async () => {
+    // The balance rule is a deferred constraint trigger firing at COMMIT. If the legs reached the
+    // database in separate transactions the first would commit unbalanced and be refused, so the
+    // single transaction is load-bearing rather than an optimisation.
+    const s = new InMemoryTrustStore();
+    let transactions = 0;
+    const counting: TrustPersistence = {
+      list: s.list.bind(s),
+      append: s.append.bind(s),
+      replace: s.replace.bind(s),
+      audit: s.audit.bind(s),
+      emit: s.emit.bind(s),
+      async transaction(operation) {
+        transactions += 1;
+        return await operation(counting);
+      },
+    };
+    await new ReconciliationLedgerEngine(counting).post(c, {
+      paymentInstructionId: 'pi-2',
+      amountMinor: 1_000,
+      currency: 'NGN',
+      debitDescription: 'escrow release',
+      creditDescription: 'beneficiary settlement',
+    });
+    expect(transactions).toBe(1);
+    expect(await s.list('ledgerEntries')).toHaveLength(2);
   });
 });

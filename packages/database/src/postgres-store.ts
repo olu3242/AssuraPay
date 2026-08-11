@@ -11,6 +11,7 @@ import { currentTrustScope, isTenantScoped } from './trust-scope';
 import type { TrustScope } from './trust-scope';
 import { BATCH_A_RELATIONS, batchARelation, isBatchACollection } from './batch-a-repository';
 import { BATCH_B_RELATIONS, batchBRelation, isBatchBCollection } from './batch-b-repository';
+import { BATCH_C_RELATIONS, batchCRelation, isBatchCCollection } from './batch-c-repository';
 import { PostgresStoreError } from './store-error';
 
 export { PostgresStoreError } from './store-error';
@@ -64,6 +65,13 @@ function translate(error: unknown): PostgresStoreError {
   // The append-only trigger raises a bare exception with a recognizable prefix.
   if (detail.includes('TRUST_HISTORY_IS_APPEND_ONLY'))
     return new PostgresStoreError('PERSISTENCE_HISTORY_IMMUTABLE', detail);
+
+  // Double entry. Raised by the deferred constraint trigger at COMMIT, so it arrives through the
+  // transaction boundary rather than from the `append` that caused it — the unbalanced journal is
+  // only visible once the posting is complete. It must not read as an outage: retrying an
+  // unbalanced posting cannot succeed.
+  if (detail.includes('LEDGER_JOURNAL_DOES_NOT_BALANCE'))
+    return new PostgresStoreError('PERSISTENCE_LEDGER_UNBALANCED', detail);
 
   // The domain aggregates' mutation boundaries. `append-only table` is the message
   // `prevent_append_only_mutation()` has raised since `202608020006`; the three prefixed
@@ -216,6 +224,10 @@ export const POSTGRES_TRUST_COLLECTIONS: readonly string[] = Object.freeze(
     // Batch B. Seven more, refused the same way: Engines 41-46 could not persist an entitlement,
     // an invoice, a release request or an authorization to PostgreSQL at all.
     ...Object.keys(BATCH_B_RELATIONS),
+    // Batch C. Seven more, and the last of the settlement path: Engines 44 and 47-50 could not
+    // persist a funding commitment, a payment instruction, a ledger posting, a reconciliation or a
+    // closure certificate to PostgreSQL at all.
+    ...Object.keys(BATCH_C_RELATIONS),
   ].sort(),
 );
 
@@ -408,12 +420,14 @@ export class PostgresTrustStore implements TrustPersistence {
       // Table identifiers cannot be bound, so each dedicated table is read through
       // its own statement rather than through an interpolated name.
       if (dedicated) return await this.listDedicated<T>(collection);
-      // Batch A and Batch B each read their own table, rebuild the record from columns, and
+      // Batches A, B and C each read their own table, rebuild the record from columns, and
       // validate it against the aggregate's canonical schema before any engine sees it.
       if (isBatchACollection(collection))
         return (await batchARelation(collection).list(this.sql)) as unknown as T[];
       if (isBatchBCollection(collection))
         return (await batchBRelation(collection).list(this.sql)) as unknown as T[];
+      if (isBatchCCollection(collection))
+        return (await batchCRelation(collection).list(this.sql)) as unknown as T[];
       this.requireGoverned(collection);
       const rows = await this.sql<StoredRow[]>`
         SELECT payload, payload_digest FROM trust_records
@@ -466,6 +480,15 @@ export class PostgresTrustStore implements TrustPersistence {
 
       if (isBatchBCollection(collection)) {
         await batchBRelation(collection).insert(
+          this.sql,
+          record,
+          this.requireRelationalTenant(collection, record),
+        );
+        return;
+      }
+
+      if (isBatchCCollection(collection)) {
+        await batchCRelation(collection).insert(
           this.sql,
           record,
           this.requireRelationalTenant(collection, record),
@@ -578,14 +601,20 @@ export class PostgresTrustStore implements TrustPersistence {
     const updatedAt = this.now();
 
     try {
-      if (isBatchACollection(collection) || isBatchBCollection(collection)) {
+      if (
+        isBatchACollection(collection) ||
+        isBatchBCollection(collection) ||
+        isBatchCCollection(collection)
+      ) {
         // The tenant is re-derived and checked even though the UPDATE does not write it: a
         // caller replacing a record outside its scope must be refused for that reason, not
         // discover it as a row that mysteriously does not exist.
         this.requireRelationalTenant(collection, record);
         const relation = isBatchACollection(collection)
           ? batchARelation(collection)
-          : batchBRelation(collection);
+          : isBatchBCollection(collection)
+            ? batchBRelation(collection)
+            : batchCRelation(collection);
         const affected = await relation.update(this.sql, record);
         this.requireAffected(affected, collection, id);
         return;
@@ -805,6 +834,11 @@ export class PostgresTrustStore implements TrustPersistence {
       });
     } catch (error) {
       if (error instanceof PostgresStoreError) throw error;
+      // Deferred constraint triggers fire at COMMIT, which is inside `sql.begin` but outside every
+      // statement, so their failures arrive here raw. Translating rather than blanket-wrapping keeps
+      // the journal-balance refusal distinguishable from an actual transaction failure.
+      const translated = translate(error);
+      if (translated.code !== 'PERSISTENCE_UNAVAILABLE') throw translated;
       throw new PostgresStoreError('PERSISTENCE_TRANSACTION_FAILED', sanitizeDatabaseFailure(error));
     }
   }
