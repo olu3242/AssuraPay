@@ -64,10 +64,8 @@ const KNOWN_UNMAPPED: readonly string[] = Object.freeze([
   // performance-readiness (6) — Engines 26-30. `paymentTriggerRules` is referenced by Batch B's
   // `paymentEligibility.paymentTriggerRuleId`, so a durable eligibility already points at a rule that
   // cannot be stored.
-  'acceptanceCriteria', 'baselineVariances', 'dependencies', 'paymentTriggerRules',
-  'performanceBaselines', 'successMetrics',
   // agreement-intelligence (5) — Engines 16-20.
-  'agreementIntelligenceVersions', 'analysisReviews', 'contractAnalysisRuns',
+  'agreementIntelligenceVersions', 'analysisReviews', 'contractAnalysisRuns', 'contractVersionsV2',
   'contractRiskAssessments', 'repositoryDocuments',
   // enterprise-intelligence (6) — Engines 51-55, deferred by the accepted decision.
   'dashboardSnapshots', 'executionAssuranceIndices', 'executionForecasts', 'kpiDefinitions',
@@ -122,7 +120,7 @@ function collectionsEnginesWrite(): Map<string, string[]> {
       continue;
     }
     if (!source.includes('TrustPersistence')) continue;
-    for (const match of source.matchAll(/\.(?:append|replace)(?:<[^>]*>)?\(\s*'([a-zA-Z]+)'/g)) {
+    for (const match of source.matchAll(/\.(?:append|replace)(?:<[^>]*>)?\(\s*'([a-zA-Z][a-zA-Z0-9]*)'/g)) {
       const collection = match[1];
       const owners = byCollection.get(collection) ?? [];
       if (!owners.includes(pkg)) owners.push(pkg);

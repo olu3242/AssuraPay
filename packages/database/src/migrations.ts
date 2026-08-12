@@ -10,6 +10,7 @@ import {
   BATCH_F_TABLES,
 } from '@assurapay/domain-contracts';
 import type { SqlClient } from './postgres-client';
+import { P1_TABLES } from './performance-readiness-repository';
 
 /**
  * The governed migration runner.
@@ -293,6 +294,8 @@ export const REQUIRED_TRUST_MIGRATIONS: readonly string[] = Object.freeze([
   // then refuse the corrected resubmission that carries the same counterparty document reference,
   // leaving a confirmed entitlement with no route to an invoice.
   '202608110006_close_batch_b_invoice_number_gap',
+  // Production MVP completion activates the six Performance Readiness collections.
+  '202608120001_production_mvp_performance_readiness',
 ]);
 
 export type SchemaCompatibility = {
@@ -354,6 +357,7 @@ export const REQUIRED_DOMAIN_AGGREGATE_TABLES = Object.freeze(
     ...BATCH_D_TABLES,
     ...BATCH_E_TABLES,
     ...BATCH_F_TABLES,
+    ...P1_TABLES,
   ].sort(),
 );
 
