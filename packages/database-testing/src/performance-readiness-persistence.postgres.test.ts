@@ -93,7 +93,15 @@ describe('integration: Production MVP Performance Readiness persistence', () => 
     await withTrustScope(scope, async () => {
       for (const [collection, record] of records) {
         await store.append(collection, record);
-        expect(await store.list(collection)).toEqual([expect.objectContaining(record)]);
+        const [actual] = await store.list<Record<string, unknown>>(collection);
+        const expected = { ...record } as Record<string, unknown>;
+        for (const timestamp of ['createdAt', 'recordedAt']) {
+          if (typeof expected[timestamp] === 'string') {
+            expect(Date.parse(actual?.[timestamp] as string)).toBe(Date.parse(expected[timestamp]));
+            delete expected[timestamp];
+          }
+        }
+        expect(actual).toEqual(expect.objectContaining(expected));
       }
     });
   }, 300_000);

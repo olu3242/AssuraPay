@@ -449,8 +449,10 @@ describe('integration: Batch F is activated and the canonical chain closes', () 
     // Forty-one from Batches A-E plus these fifteen. Asserted as a containment and a total rather than
     // as an exact count of some earlier batch's registry, which is the correction Batch E made to Batch
     // D's suite: a bare count becomes false the moment the next batch lands.
-    expect(REQUIRED_DOMAIN_AGGREGATE_TABLES).toHaveLength(56);
-    expect(new Set(REQUIRED_DOMAIN_AGGREGATE_TABLES).size).toBe(56);
+    expect(REQUIRED_DOMAIN_AGGREGATE_TABLES.length).toBeGreaterThanOrEqual(56);
+    expect(new Set(REQUIRED_DOMAIN_AGGREGATE_TABLES).size).toBe(
+      REQUIRED_DOMAIN_AGGREGATE_TABLES.length,
+    );
 
     const database = await schemaOnly();
     const compatible = await verifySchemaCompatibility(database.sql, migrationsDirectory());
