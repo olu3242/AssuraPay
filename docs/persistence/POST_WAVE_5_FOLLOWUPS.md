@@ -209,3 +209,53 @@ copied into five artefacts and the durability register's other four package attr
 All corrected, and `packages/database-testing/src/engine-identity.test.ts` now parses
 `docs/ENGINE_CATALOG.md` and asserts every registry against it by engine *name* — a number that exists is
 not the same as a number that is right.
+
+---
+
+## Two defects found in review of the merged Batch B
+
+Both raised on PR #23 after it merged, both confirmed against the code rather than taken on the
+reviewer's word, and both fixed.
+
+### The invoice-number key was stricter than the engine
+
+`202608100002` added `UNIQUE (tenant_id, workspace_id, invoice_number)` on `invoices`. Correct in making
+the key tenant-scoped — the constraint it replaced predated tenancy — and wrong in being unconditional.
+
+`InvoiceClaimEngine.submit` excludes `REJECTED` rows when checking for a duplicate, and that clause is
+load-bearing: rejecting an invoice is how a claim is sent back for correction, and the corrected claim
+carries the **same invoice number**, because that number is the counterparty's document reference rather
+than a surrogate key. The unconditional constraint refused the resubmission, so the durable path could
+reject an invoice and then refuse to accept its correction — leaving a confirmed entitlement with no
+route to an invoice at all.
+
+`202608110006` replaces the constraint with a partial unique index on `status <> 'REJECTED'`, which is
+the engine's rule exactly. Forward-only; `202608100002` is untouched. Two live-PostgreSQL tests: the
+narrowed key is in place and the unconditional one is gone, a rejected number can be reused, and a
+*second* live invoice on that number is still refused — the predicate narrows the key rather than
+removing it.
+
+Batch B's own suite submitted and rejected invoices separately and never resubmitted after a rejection,
+which is why every gate passed.
+
+### Batch B activated a release path that could not run
+
+Batch B routed `releaseRequests` (canonical Engine 45) and deliberately left `fundReservations`
+unmapped, on the reasoning that converging a table is not activating it. That reasoning is right and it
+missed the consequence: `ConditionalReleaseOrchestrationEngine.draft` and `evaluate` both *read*
+`fundReservations`, so on Batch B alone the durable release path fails at its first statement with
+`PERSISTENCE_COLLECTION_NOT_MAPPED`. Confirmed by inspecting the merged tip — `fundReservations` appears
+nowhere in `postgres-store.ts` at that commit.
+
+Batch C closes the instance by mapping `fundReservations` and `fundingCommitments`, so the branch this is
+recorded on is not affected; `main` is, until Batch C lands.
+
+The general property had no gate, which is the part worth fixing:
+
+> A collection is only usefully mapped if everything its own engine package reads is mapped too.
+
+Half a package is a package whose routed collections are unreachable through the engine that owns them,
+and the failure surfaces at the first request rather than in a test. `durability-coverage.test.ts` now
+asserts that no engine package has some collections routed and others refused. It holds today across all
+nineteen packages that compose with `TrustPersistence`, and it was checked against the Batch B state
+before being relied on: four routed, two refused, gate fails.

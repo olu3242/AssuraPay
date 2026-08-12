@@ -199,6 +199,44 @@ describe('durability coverage: the store accepts what the engines write', () => 
     ).toEqual([]);
   });
 
+  it('never leaves an engine package half mapped', () => {
+    // The defect this catches was found in review of the merged Batch B, not by any gate here.
+    //
+    // Batch B activated `releaseRequests` — canonical Engine 45 — while deliberately leaving
+    // `fundReservations` unmapped, on the reasoning that converging a table is not activating it. True,
+    // and it missed the consequence: `ConditionalReleaseOrchestrationEngine.draft` and `evaluate` both
+    // *read* `fundReservations`, so the durable release path failed at its first statement with
+    // PERSISTENCE_COLLECTION_NOT_MAPPED. The batch's own suite seeded that table directly and never
+    // exercised the engine, which is why every gate passed.
+    //
+    // The general property: a collection is only usefully mapped if everything its own engine package
+    // reads is mapped too. Half a package is a package whose routed collections are unreachable through
+    // the engine that owns them, and the failure surfaces at the first request rather than here.
+    //
+    // Batch C closed that instance by mapping `fundReservations`. This assertion is what stops the next
+    // one, and it holds today: no package is partially mapped.
+    const mapped = new Set(POSTGRES_TRUST_COLLECTIONS);
+    const written = collectionsEnginesWrite();
+
+    const byPackage = new Map<string, string[]>();
+    for (const [collection, owners] of written)
+      for (const owner of owners) byPackage.set(owner, [...(byPackage.get(owner) ?? []), collection]);
+
+    const half: string[] = [];
+    for (const [owner, collections] of [...byPackage].sort()) {
+      const routed = collections.filter((collection) => mapped.has(collection));
+      const refused = collections.filter((collection) => !mapped.has(collection));
+      if (routed.length > 0 && refused.length > 0)
+        half.push(`${owner}: routed ${routed.length}, refused [${refused.sort().join(', ')}]`);
+    }
+
+    expect(
+      half,
+      'engine packages with some collections mapped and some refused — the mapped ones are reachable ' +
+        'only by a caller that avoids the engine',
+    ).toEqual([]);
+  });
+
   it('reports the gap as a ceiling, so it cannot grow', () => {
     const mapped = new Set(POSTGRES_TRUST_COLLECTIONS);
     const written = collectionsEnginesWrite();

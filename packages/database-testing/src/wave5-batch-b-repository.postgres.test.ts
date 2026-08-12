@@ -533,17 +533,63 @@ describe('integration: the database enforces the monetary invariants', () => {
   }, 300_000);
 
   it('scopes invoice numbers per tenant and workspace rather than globally', async () => {
-    // Was UNIQUE (workspace_id, invoice_number), which predates tenancy.
+    // Was UNIQUE (workspace_id, invoice_number), which predates tenancy. Now a *partial* unique index
+    // rather than a constraint, because the rule carries a predicate — see the next test.
     const [def] = await database.sql<{ d: string }[]>`
-      SELECT pg_get_constraintdef(oid) AS d FROM pg_constraint
+      SELECT indexdef AS d FROM pg_indexes WHERE indexname = 'invoices_live_number_unique'
+    `;
+    expect(def.d).toContain('(tenant_id, workspace_id, invoice_number)');
+    expect(def.d).toContain("WHERE (status <> 'REJECTED'::text)");
+    // And the unconditional constraint it replaced is gone rather than sitting alongside it, which
+    // would make the predicate unreachable.
+    const [old] = await database.sql<{ n: bigint }[]>`
+      SELECT count(*) AS n FROM pg_constraint
       WHERE conname = 'invoices_workspace_number_unique'
     `;
-    expect(def.d).toBe('UNIQUE (tenant_id, workspace_id, invoice_number)');
+    expect(Number(old.n)).toBe(0);
 
     const error = await as(database, (store) =>
       store.append('invoices', invoice({ id: 'inv-dup' })).catch((caught: unknown) => caught),
     );
     expect((error as PostgresStoreError).code).toBe('PERSISTENCE_DUPLICATE_RECORD');
+  }, 300_000);
+
+  it('lets a rejected invoice number be reused, because that is how a claim is corrected', async () => {
+    // The defect `202608110006` closes, found in review of the merged Batch B. `InvoiceClaimEngine.submit`
+    // excludes REJECTED rows when checking for a duplicate, deliberately: rejecting an invoice is how a
+    // claim is sent back for correction, and the corrected claim carries the *same* number, because that
+    // number is the counterparty's document reference and not a surrogate key.
+    //
+    // The unconditional constraint refused that resubmission, so the durable path could reject an
+    // invoice and then refuse to accept its correction — leaving a confirmed entitlement with no route
+    // to an invoice at all. Batch B's own suite submitted and rejected separately and never resubmitted,
+    // which is why every gate passed.
+    await as(database, async (store) => {
+      await store.append('invoices', invoice({ id: 'inv-reject', invoiceNumber: 'INV-000009' }));
+      await store.replace(
+        'invoices',
+        invoice({ id: 'inv-reject', invoiceNumber: 'INV-000009', status: 'REJECTED' }),
+      );
+      // The correction, under the same counterparty reference.
+      await store.append('invoices', invoice({ id: 'inv-corrected', invoiceNumber: 'INV-000009' }));
+    });
+
+    const live = await raw(database, (tx) =>
+      tx<{ id: string; status: string }[]>`
+        SELECT id, status FROM invoices WHERE invoice_number = 'INV-000009' ORDER BY id`,
+    );
+    expect(live).toEqual([
+      { id: 'inv-corrected', status: 'SUBMITTED' },
+      { id: 'inv-reject', status: 'REJECTED' },
+    ]);
+
+    // Still one *live* invoice per number: the predicate narrows the key, it does not remove it.
+    const second = await as(database, (store) =>
+      store
+        .append('invoices', invoice({ id: 'inv-third', invoiceNumber: 'INV-000009' }))
+        .catch((caught: unknown) => caught),
+    );
+    expect((second as PostgresStoreError).code).toBe('PERSISTENCE_DUPLICATE_RECORD');
   }, 300_000);
 });
 
