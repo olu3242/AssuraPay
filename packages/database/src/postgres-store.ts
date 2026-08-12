@@ -13,6 +13,7 @@ import { BATCH_A_RELATIONS, batchARelation, isBatchACollection } from './batch-a
 import { BATCH_B_RELATIONS, batchBRelation, isBatchBCollection } from './batch-b-repository';
 import { BATCH_C_RELATIONS, batchCRelation, isBatchCCollection } from './batch-c-repository';
 import { BATCH_D_RELATIONS, batchDRelation, isBatchDCollection } from './batch-d-repository';
+import { BATCH_E_RELATIONS, batchERelation, isBatchECollection } from './batch-e-repository';
 import { PostgresStoreError } from './store-error';
 
 export { PostgresStoreError } from './store-error';
@@ -239,6 +240,10 @@ export const POSTGRES_TRUST_COLLECTIONS: readonly string[] = Object.freeze(
     // dispute *hold* — the record CLAUDE.md's second hard constraint requires to block a release had
     // no durable home at all.
     ...Object.keys(BATCH_D_RELATIONS),
+    // Batch E. The first six of the sixty-seven the durability gap analysis registers, and the batch
+    // that repairs three canonical chain links: a blueprint, its milestones and their definitions of
+    // done had no durable home, so the durable half of the chain referenced a half that did not exist.
+    ...Object.keys(BATCH_E_RELATIONS),
   ].sort(),
 );
 
@@ -441,6 +446,8 @@ export class PostgresTrustStore implements TrustPersistence {
         return (await batchCRelation(collection).list(this.sql)) as unknown as T[];
       if (isBatchDCollection(collection))
         return (await batchDRelation(collection).list(this.sql)) as unknown as T[];
+      if (isBatchECollection(collection))
+        return (await batchERelation(collection).list(this.sql)) as unknown as T[];
       this.requireGoverned(collection);
       const rows = await this.sql<StoredRow[]>`
         SELECT payload, payload_digest FROM trust_records
@@ -511,6 +518,15 @@ export class PostgresTrustStore implements TrustPersistence {
 
       if (isBatchDCollection(collection)) {
         await batchDRelation(collection).insert(
+          this.sql,
+          record,
+          this.requireRelationalTenant(collection, record),
+        );
+        return;
+      }
+
+      if (isBatchECollection(collection)) {
+        await batchERelation(collection).insert(
           this.sql,
           record,
           this.requireRelationalTenant(collection, record),
@@ -627,7 +643,8 @@ export class PostgresTrustStore implements TrustPersistence {
         isBatchACollection(collection) ||
         isBatchBCollection(collection) ||
         isBatchCCollection(collection) ||
-        isBatchDCollection(collection)
+        isBatchDCollection(collection) ||
+        isBatchECollection(collection)
       ) {
         // The tenant is re-derived and checked even though the UPDATE does not write it: a
         // caller replacing a record outside its scope must be refused for that reason, not
@@ -639,7 +656,9 @@ export class PostgresTrustStore implements TrustPersistence {
             ? batchBRelation(collection)
             : isBatchCCollection(collection)
               ? batchCRelation(collection)
-              : batchDRelation(collection);
+              : isBatchDCollection(collection)
+                ? batchDRelation(collection)
+                : batchERelation(collection);
         const affected = await relation.update(this.sql, record);
         this.requireAffected(affected, collection, id);
         return;

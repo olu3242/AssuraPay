@@ -15,3 +15,4 @@ export * from './batch-a';
 export * from './batch-b';
 export * from './batch-c';
 export * from './batch-d';
+export * from './batch-e';

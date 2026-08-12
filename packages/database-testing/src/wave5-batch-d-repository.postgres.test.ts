@@ -9,7 +9,14 @@ import {
   verifySchemaCompatibility,
   withTrustScope,
 } from '@assurapay/database';
-import { BATCH_D_AGGREGATES, BATCH_D_APPEND_ONLY_COLLECTIONS } from '@assurapay/domain-contracts';
+import {
+  BATCH_A_TABLES,
+  BATCH_B_TABLES,
+  BATCH_C_TABLES,
+  BATCH_D_AGGREGATES,
+  BATCH_D_APPEND_ONLY_COLLECTIONS,
+  BATCH_D_TABLES,
+} from '@assurapay/domain-contracts';
 import type { SqlClient } from '@assurapay/database';
 import type { TrustPersistence } from '@assurapay/shared';
 import { createTestDatabaseInstance, migrationsDirectory, requireTestDatabaseUrl } from './index';
@@ -274,8 +281,15 @@ describe('integration: Batch D is activated, and it is the last batch', () => {
   it('requires all five tables and reports compatible', async () => {
     for (const aggregate of BATCH_D_AGGREGATES)
       expect(REQUIRED_DOMAIN_AGGREGATE_TABLES, aggregate.table).toContain(aggregate.table);
-    // All thirty-five aggregates of the wave 4-5 plan, across the four batches.
-    expect(REQUIRED_DOMAIN_AGGREGATE_TABLES).toHaveLength(35);
+    // The wave 4-5 plan's thirty-five, asserted from the batch registries rather than as the length of
+    // the union. Batch E has since added six more, and later batches will add the rest of the
+    // sixty-seven the durability gap analysis registers — this suite owns Batch D's five and the claim
+    // that the wave 4-5 plan is complete, not the size of everything that came after it.
+    expect(
+      [...BATCH_A_TABLES, ...BATCH_B_TABLES, ...BATCH_C_TABLES, ...BATCH_D_TABLES],
+    ).toHaveLength(35);
+    for (const table of [...BATCH_A_TABLES, ...BATCH_B_TABLES, ...BATCH_C_TABLES, ...BATCH_D_TABLES])
+      expect(REQUIRED_DOMAIN_AGGREGATE_TABLES, table).toContain(table);
 
     const database = await migratedDatabase();
     const compatible = await verifySchemaCompatibility(database.sql, migrationsDirectory());

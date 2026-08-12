@@ -4,9 +4,9 @@
 
 | Field | Value |
 | --- | --- |
-| Branch | feat/e1-post-wave5-followups |
-| HEAD | 8ab7df34adc546f33429a7d80f7a279e70169cc0 |
-| Generated at | 2026-08-11T12:47:08.818Z |
+| Branch | feat/f1-batch-e-performance-blueprint |
+| HEAD | dff41bc9edd2092355210fbe1ed22cfa3b3277a4 |
+| Generated at | 2026-08-11T18:51:47.748Z |
 | Result | **PASSED** |
 | Steps | 11 passed, 0 failed, 0 skipped |
 
@@ -14,14 +14,14 @@
 
 | Step | Description | Result | Duration | Findings |
 | --- | --- | --- | --- | --- |
-| lint | ESLint across the workspace | pass | 7227 ms | — |
-| typecheck | TypeScript project typecheck | pass | 2354 ms | — |
-| test:unit | Unit tests | pass | 26795 ms | — |
-| test:integration | Integration tests | pass | 14021 ms | — |
-| test:e2e | End-to-end tests | pass | 25998 ms | — |
-| architecture | Architecture validation | pass | 433 ms | — |
-| dependencies | Dependency validation | pass | 17 ms | — |
-| security | Security validation | pass | 37 ms | — |
-| contract | Execution contract validation | pass | 26 ms | 1 |
-| governance | Reconciliation governance policy | pass | 79 ms | 15 |
-| build | Production build | pass | 31968 ms | — |
+| lint | ESLint across the workspace | pass | 10329 ms | — |
+| typecheck | TypeScript project typecheck | pass | 3306 ms | — |
+| test:unit | Unit tests | pass | 39139 ms | — |
+| test:integration | Integration tests | pass | 20148 ms | — |
+| test:e2e | End-to-end tests | pass | 39631 ms | — |
+| architecture | Architecture validation | pass | 674 ms | — |
+| dependencies | Dependency validation | pass | 24 ms | — |
+| security | Security validation | pass | 48 ms | — |
+| contract | Execution contract validation | pass | 47 ms | 1 |
+| governance | Reconciliation governance policy | pass | 1 ms | 15 |
+| build | Production build | pass | 48045 ms | — |

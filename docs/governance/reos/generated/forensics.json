@@ -328,10 +328,12 @@
             "packages/database-testing/src/wave5-batch-b-repository.postgres.test.ts",
             "packages/database-testing/src/wave5-batch-c-repository.postgres.test.ts",
             "packages/database-testing/src/wave5-batch-d-repository.postgres.test.ts",
+            "packages/database-testing/src/wave6-batch-e-repository.postgres.test.ts",
             "packages/database/src/batch-a-repository.ts",
             "packages/database/src/batch-b-repository.ts",
             "packages/database/src/batch-c-repository.ts",
             "packages/database/src/batch-d-repository.ts",
+            "packages/database/src/batch-e-repository.ts",
             "packages/database/src/conformance.ts",
             "packages/database/src/migrations.ts",
             "packages/database/src/postgres-store.ts",
@@ -341,7 +343,8 @@
             "packages/runtime/src/config.ts",
             "packages/runtime/src/persistence-runtime.postgres.test.ts",
             "packages/runtime/src/persistence-runtime.ts",
-            "supabase/migrations/202608080001_trust_schema_ownership_reconciliation.sql"
+            "supabase/migrations/202608080001_trust_schema_ownership_reconciliation.sql",
+            "supabase/migrations/202608110004_wave6_batch_e_performance_blueprint.sql"
           ],
           "query": "PostgresTrustStore",
           "satisfied": true
@@ -358,6 +361,7 @@
             "packages/database-testing/src/wave5-batch-b-repository.postgres.test.ts",
             "packages/database-testing/src/wave5-batch-c-repository.postgres.test.ts",
             "packages/database-testing/src/wave5-batch-d-repository.postgres.test.ts",
+            "packages/database-testing/src/wave6-batch-e-repository.postgres.test.ts",
             "packages/database/src/migrations.ts",
             "packages/database/src/schema-ownership.ts",
             "packages/runtime/src/persistence-runtime.postgres.test.ts",
@@ -375,6 +379,7 @@
             "packages/database-testing/src/wave5-batch-b-repository.postgres.test.ts",
             "packages/database-testing/src/wave5-batch-c-repository.postgres.test.ts",
             "packages/database-testing/src/wave5-batch-d-repository.postgres.test.ts",
+            "packages/database-testing/src/wave6-batch-e-repository.postgres.test.ts",
             "packages/database/src/migrations.ts",
             "packages/runtime/src/persistence-runtime.ts"
           ],
@@ -641,6 +646,7 @@
             "packages/database-testing/src/wave5-batch-b-repository.postgres.test.ts",
             "packages/database-testing/src/wave5-batch-c-repository.postgres.test.ts",
             "packages/database-testing/src/wave5-batch-d-repository.postgres.test.ts",
+            "packages/database-testing/src/wave6-batch-e-repository.postgres.test.ts",
             "packages/database/src/trust-scope.ts",
             "packages/runtime/src/persistence-runtime.postgres.test.ts",
             "packages/runtime/src/rls-runtime.postgres.test.ts"
@@ -1621,7 +1627,7 @@
       "totalProbes": 5
     }
   ],
-  "head": "8ab7df34adc546f33429a7d80f7a279e70169cc0",
+  "head": "45e01fb06a40252dddc3cf5204d4bdf6bc0985d1",
   "reosVersion": "1.0.0",
   "stage": "forensics",
   "summary": {
