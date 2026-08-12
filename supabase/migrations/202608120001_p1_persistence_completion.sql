@@ -73,6 +73,14 @@ WHERE con.contype = 'f'
   AND child.relname IN (SELECT table_name FROM assurapay_p1_tables)
   AND array_length(con.conkey, 1) = 1;
 
+CREATE TEMP TABLE assurapay_p1_checks ON COMMIT DROP AS
+SELECT child.relname AS table_name, con.conname, pg_get_constraintdef(con.oid) AS definition
+FROM pg_constraint con
+JOIN pg_class child ON child.oid = con.conrelid
+JOIN pg_namespace child_ns ON child_ns.oid = child.relnamespace
+WHERE con.contype = 'c' AND child_ns.nspname = 'public'
+  AND child.relname IN (SELECT table_name FROM assurapay_p1_tables);
+
 -- Drop the entire captured edge set before converting either side. Doing this table-by-table would
 -- leave an incoming UUID foreign key attached while its parent id is converted to TEXT.
 DO $$
@@ -84,6 +92,12 @@ BEGIN
     EXECUTE format(
       'ALTER TABLE public.%I DROP CONSTRAINT %I',
       constraint_entry.child_table, constraint_entry.conname
+    );
+  END LOOP;
+  FOR constraint_entry IN SELECT table_name, conname FROM assurapay_p1_checks LOOP
+    EXECUTE format(
+      'ALTER TABLE public.%I DROP CONSTRAINT %I',
+      constraint_entry.table_name, constraint_entry.conname
     );
   END LOOP;
 END $$;
@@ -132,6 +146,17 @@ BEGIN
     EXECUTE format(
       'ALTER TABLE public.%I ADD CONSTRAINT %I FOREIGN KEY (tenant_id, workspace_id) REFERENCES trust_workspaces(tenant_id, workspace_id)',
       entry.table_name, entry.table_name || '_trust_workspace_fkey'
+    );
+  END LOOP;
+END $$;
+
+DO $$
+DECLARE constraint_entry RECORD;
+BEGIN
+  FOR constraint_entry IN SELECT * FROM assurapay_p1_checks LOOP
+    EXECUTE format(
+      'ALTER TABLE public.%I ADD CONSTRAINT %I %s',
+      constraint_entry.table_name, constraint_entry.conname, constraint_entry.definition
     );
   END LOOP;
 END $$;
