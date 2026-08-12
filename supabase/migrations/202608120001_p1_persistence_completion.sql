@@ -73,17 +73,26 @@ WHERE con.contype = 'f'
   AND child.relname IN (SELECT table_name FROM assurapay_p1_tables)
   AND array_length(con.conkey, 1) = 1;
 
+-- Drop the entire captured edge set before converting either side. Doing this table-by-table would
+-- leave an incoming UUID foreign key attached while its parent id is converted to TEXT.
+DO $$
+DECLARE constraint_entry RECORD;
+BEGIN
+  FOR constraint_entry IN
+    SELECT child_table, conname FROM assurapay_p1_foreign_keys
+  LOOP
+    EXECUTE format(
+      'ALTER TABLE public.%I DROP CONSTRAINT %I',
+      constraint_entry.child_table, constraint_entry.conname
+    );
+  END LOOP;
+END $$;
+
 DO $$
 DECLARE entry RECORD; constraint_entry RECORD; column_entry RECORD;
 BEGIN
   FOR entry IN SELECT table_name FROM assurapay_p1_tables LOOP
     -- Policies and historical triggers predicate on the retired workspace UUID authority.
-    FOR constraint_entry IN
-      SELECT conname FROM pg_constraint
-      WHERE conrelid = format('public.%I', entry.table_name)::regclass AND contype = 'f'
-    LOOP
-      EXECUTE format('ALTER TABLE public.%I DROP CONSTRAINT %I', entry.table_name, constraint_entry.conname);
-    END LOOP;
     FOR constraint_entry IN
       SELECT policyname FROM pg_policies WHERE schemaname = 'public' AND tablename = entry.table_name
     LOOP
