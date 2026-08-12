@@ -119,9 +119,12 @@ jobs:
           ASSURAPAY_TEST_DATABASE_URL: postgres://assurapay_ci:assurapay_ci@127.0.0.1:5432/assurapay_test
 
       - name: Prepare PostgreSQL for browser certification
-        run: pnpm db:browser:prepare
+        run: |
+          psql "$ADMIN_URL" -v ON_ERROR_STOP=1 -c "ALTER SCHEMA public OWNER TO assurapay_ci"
+          pnpm db:browser:prepare
         env:
-          ASSURAPAY_TEST_DATABASE_URL: postgres://assurapay_ci:assurapay_ci@127.0.0.1:5432/assurapay_test
+          ADMIN_URL: postgres://assurapay:assurapay@127.0.0.1:5432/assurapay_test
+          ASSURAPAY_MIGRATION_DATABASE_URL: postgres://assurapay_ci:assurapay_ci@127.0.0.1:5432/assurapay_test
 
       - name: Install the certified browser
         run: pnpm exec playwright install --with-deps chromium
