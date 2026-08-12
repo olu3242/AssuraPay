@@ -2036,6 +2036,20 @@
       "id": "202608110006",
       "name": "close_batch_b_invoice_number_gap",
       "path": "supabase/migrations/202608110006_close_batch_b_invoice_number_gap.sql"
+    },
+    {
+      "declaresPolicies": 1,
+      "declaresRowLevelSecurity": true,
+      "id": "202608120001",
+      "name": "production_mvp_performance_readiness",
+      "path": "supabase/migrations/202608120001_production_mvp_performance_readiness.sql"
+    },
+    {
+      "declaresPolicies": 1,
+      "declaresRowLevelSecurity": true,
+      "id": "202608120002",
+      "name": "domain_store_durability",
+      "path": "supabase/migrations/202608120002_domain_store_durability.sql"
     }
   ],
   "packages": [
@@ -2213,10 +2227,12 @@
       "directory": "packages/database",
       "exportedClasses": [
         "DomainStoreNotDurableError",
+        "DomainStoreScopeError",
         "FileAssuraStore",
         "InMemoryTrustStore",
         "MigrationError",
         "PostgresConfigError",
+        "PostgresDomainStore",
         "PostgresStoreError",
         "PostgresTrustStore"
       ],
@@ -2226,8 +2242,8 @@
       "main": "src/index.ts",
       "moduleType": null,
       "name": "@assurapay/database",
-      "sourceFiles": 17,
-      "sourceLines": 8324,
+      "sourceFiles": 19,
+      "sourceLines": 8585,
       "testFiles": [
         "packages/database/src/async-conformance.test.ts",
         "packages/database/src/domain-repository.test.ts",
@@ -2261,9 +2277,11 @@
       "sourceFiles": 1,
       "sourceLines": 454,
       "testFiles": [
+        "packages/database-testing/src/domain-store.postgres.test.ts",
         "packages/database-testing/src/durability-coverage.test.ts",
         "packages/database-testing/src/engine-identity.test.ts",
         "packages/database-testing/src/migrations.postgres.test.ts",
+        "packages/database-testing/src/performance-readiness-persistence.postgres.test.ts",
         "packages/database-testing/src/postgres-store.postgres.test.ts",
         "packages/database-testing/src/rls-certification.postgres.test.ts",
         "packages/database-testing/src/schema-ownership.postgres.test.ts",
@@ -2281,7 +2299,7 @@
         "integration": 0,
         "performance": 0,
         "security": 0,
-        "unit": 14
+        "unit": 16
       },
       "workspaceDependencies": [
         "@assurapay/database",
@@ -2730,7 +2748,7 @@
       "moduleType": null,
       "name": "@assurapay/runtime",
       "sourceFiles": 3,
-      "sourceLines": 701,
+      "sourceLines": 707,
       "testFiles": [
         "packages/runtime/src/config.test.ts",
         "packages/runtime/src/persistence-runtime.postgres.test.ts",
@@ -2890,27 +2908,29 @@
   "reosVersion": "1.0.0",
   "repository": {
     "git": {
-      "branch": "feat/g1-batch-f-agreement-creation",
+      "branch": "feat/production-mvp-completion",
       "branches": [
-        "assess/engines-31-50-certification-gap-matrix",
-        "chore/post-merge-governance-artifacts-batch-a",
-        "claude/git-pull-cqc04u",
-        "feat/a1-batch-a-relational-repositories",
-        "feat/a1-domain-store-durability",
+        "archive/wave-15-divergent-main",
+        "claude/implementation-02q40a",
+        "docs/eeap-constitution-engine-catalog",
         "feat/b1-batch-b-settlement-authority",
         "feat/c1-batch-c-settlement-ledger",
         "feat/d1-batch-d-dispute-linkage",
         "feat/e1-post-wave5-followups",
+        "feat/engines-06-10-governance-core",
+        "feat/engines-16-20-execution-assurance",
+        "feat/engines-26-30-execution-planning",
+        "feat/engines-61-70-agent-runtime",
+        "feat/engines-81-90-enterprise-decision-intelligence",
         "feat/f1-batch-e-performance-blueprint",
         "feat/g1-batch-f-agreement-creation",
-        "feat/persistence-async-domain-repository",
-        "feat/persistence-async-repository-interface",
-        "feat/persistence-domain-store-durable-environment-gate",
-        "feat/persistence-postgres-trust-store",
-        "feat/persistence-production-runtime-wiring",
-        "feat/persistence-rls-certification",
-        "feat/persistence-schema-ownership-reconciliation",
+        "feat/p1-persistence-completion",
+        "feat/production-mvp-completion",
+        "feat/wave-15-cdr-001-durable-trust-persistence",
+        "feat/wave-15a-platform-kernel",
+        "fix/windows-domain-store-path-certification",
         "main",
+        "origin",
         "origin/assess/engines-31-50-certification-gap-matrix",
         "origin/chore/post-merge-governance-artifacts-batch-a",
         "origin/claude/git-pull-cqc04u",
@@ -2926,6 +2946,7 @@
         "origin/feat/engines-61-70-agent-runtime",
         "origin/feat/f1-batch-e-performance-blueprint",
         "origin/feat/g1-batch-f-agreement-creation",
+        "origin/feat/p1-persistence-completion",
         "origin/feat/persistence-async-domain-repository",
         "origin/feat/persistence-async-repository-interface",
         "origin/feat/persistence-domain-store-durable-environment-gate",
@@ -2933,33 +2954,48 @@
         "origin/feat/persistence-production-runtime-wiring",
         "origin/feat/persistence-rls-certification",
         "origin/feat/persistence-schema-ownership-reconciliation",
+        "origin/feat/production-mvp-completion",
+        "origin/fix/windows-domain-store-path-certification",
         "origin/main",
         "origin/wip/persistence-async-migration",
-        "origin/wip/persistence-async-repository-interface",
-        "wip/persistence-async-migration",
-        "wip/persistence-async-repository-interface"
+        "origin/wip/persistence-async-repository-interface"
       ],
       "clean": false,
       "dirtyFiles": [
+        "apps/web/app/api/v1/dashboard/route.ts",
+        "apps/web/app/components/domain-dashboard.tsx",
+        "apps/web/app/execution/milestones/[id]/page.tsx",
+        "apps/web/app/execution/page.tsx",
+        "apps/web/app/page.tsx",
+        "apps/web/app/settlements/page.tsx",
+        "apps/web/lib/assurapay-app.ts",
+        "apps/web/lib/route-permissions.ts",
         "docs/governance/reos/generated/CERTIFICATION_REPORT.md",
+        "docs/governance/reos/generated/DEPENDENCY_RESOLUTION.md",
         "docs/governance/reos/generated/EXECUTION_MANIFEST.md",
         "docs/governance/reos/generated/certification.json",
         "docs/governance/reos/generated/dependency-resolution.json",
         "docs/governance/reos/generated/discovery.json",
         "docs/governance/reos/generated/execution-manifest.json",
-        "docs/governance/reos/generated/forensics.json"
+        "docs/governance/reos/generated/forensics.json",
+        "packages/database-testing/src/domain-store.postgres.test.ts",
+        "packages/database/src/domain-store.ts",
+        "packages/database/src/index.ts",
+        "packages/database/src/migrations.ts",
+        "packages/domain/src/services/assurapay-service.ts",
+        "packages/runtime/src/persistence-runtime.ts",
+        "supabase/migrations/202608120002_domain_store_durability.sql"
       ],
-      "head": "ed254b831ec1bc86ce67c62efeb5656799757d60",
-      "headShort": "ed254b8",
+      "head": "19cd6e8ca906338c75a28c06c0d7a877f7baa7cd",
+      "headShort": "19cd6e8",
       "reflogAvailable": true,
       "remotes": [
         "origin"
       ],
       "tags": [
-        "platform-trust-foundation",
         "rc-engine-60"
       ],
-      "upstream": "origin/feat/g1-batch-f-agreement-creation"
+      "upstream": "origin/feat/production-mvp-completion"
     },
     "name": "assurapay",
     "packageManager": "pnpm@11.3.0",
@@ -3141,17 +3177,17 @@
       "integration": 15,
       "performance": 2,
       "security": 3,
-      "unit": 74
+      "unit": 76
     },
-    "files": 109
+    "files": 111
   },
   "totals": {
     "applications": 1,
     "documents": 154,
     "engines": 60,
-    "migrations": 33,
+    "migrations": 35,
     "packages": 26,
-    "testFiles": 109
+    "testFiles": 111
   },
   "workflows": [
     {

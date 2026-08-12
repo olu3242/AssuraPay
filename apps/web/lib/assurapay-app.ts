@@ -1,5 +1,6 @@
-import { FileAssuraStore, mayFabricateDemoData } from '@assurapay/database';
+import { mayFabricateDemoData } from '@assurapay/database';
 import { AssuraPayService, createSeedScenario } from '@assurapay/domain';
+import { getPersistenceRuntime } from './persistence';
 
 /**
  * The Engine 06-60 domain service.
@@ -15,7 +16,7 @@ import { AssuraPayService, createSeedScenario } from '@assurapay/domain';
  * checked rather than assumed: `mayFabricateDemoData` is false for every durable class.
  */
 export async function getAssuraService() {
-  const store = await FileAssuraStore.load();
+  const store = (await getPersistenceRuntime()).domainStore;
   const snapshot = await store.getSnapshot();
 
   if (snapshot.contracts.length === 0 && mayFabricateDemoData()) {

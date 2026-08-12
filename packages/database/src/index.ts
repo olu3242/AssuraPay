@@ -419,3 +419,4 @@ export * from './batch-e-repository';
 export * from './batch-f-repository';
 export * from './performance-readiness-repository';
 export * from './domain-store-environment';
+export * from './domain-store';

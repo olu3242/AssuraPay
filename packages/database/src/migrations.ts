@@ -296,6 +296,9 @@ export const REQUIRED_TRUST_MIGRATIONS: readonly string[] = Object.freeze([
   '202608110006_close_batch_b_invoice_number_gap',
   // Production MVP completion activates the six Performance Readiness collections.
   '202608120001_production_mvp_performance_readiness',
+  // The browser-visible Engine 06-60 snapshot repository. Without it the runtime would report
+  // ready while the dashboard and its eight legacy routes have no durable relation to use.
+  '202608120002_domain_store_durability',
 ]);
 
 export type SchemaCompatibility = {
@@ -369,7 +372,7 @@ export const REQUIRED_DOMAIN_AGGREGATE_TABLES = Object.freeze(
  * write, having already told the caller the host was ready.
  */
 export const REQUIRED_STORE_TABLES = Object.freeze(
-  [...REQUIRED_TRUST_TABLES, ...REQUIRED_DOMAIN_AGGREGATE_TABLES].sort(),
+  [...REQUIRED_TRUST_TABLES, ...REQUIRED_DOMAIN_AGGREGATE_TABLES, 'domain_records'].sort(),
 );
 
 /**

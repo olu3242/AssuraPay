@@ -31,11 +31,11 @@ import type {
   SettlementCase,
   ValidationResult,
 } from '@assurapay/shared';
-import type { FileAssuraStore } from '@assurapay/database';
+import type { AssuraRepository } from '@assurapay/database';
 import { validateKpiFormula } from './kpi-formula-validator';
 
 export class AssuraPayService {
-  constructor(private readonly store: FileAssuraStore) {}
+  constructor(private readonly store: AssuraRepository) {}
 
   async createWorkspace(input: { name: string; tenantId: string; type?: 'personal' | 'organization' }) {
     const workspace = {

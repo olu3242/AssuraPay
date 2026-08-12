@@ -6,114 +6,64 @@
 
 | Field | Value |
 | --- | --- |
-| Branch | feat/g1-batch-f-agreement-creation |
-| HEAD | ed254b831ec1bc86ce67c62efeb5656799757d60 |
+| Branch | feat/production-mvp-completion |
+| HEAD | 19cd6e8ca906338c75a28c06c0d7a877f7baa7cd |
 | Worktree clean | no |
-| Uncommitted files | 7 |
-| Generated at | 2026-08-12T00:42:19.844Z |
+| Uncommitted files | 23 |
+| Generated at | 2026-08-12T12:04:35.144Z |
 
 ## Capability implemented
 
-`persistence.domain-store-durability` — lifecycle **planned**
+`persistence.domain-store-durability` — lifecycle **certified**
 
-## Files modified (83)
+## Files modified (31)
 
-- `apps/web/app/api/v1/ledger-entries/route.ts`
-- `docs/governance/execution-ledger/08cc2ce22675-persistence.domain-store-durability.json`
-- `docs/governance/execution-ledger/45e01fb06a40-persistence.domain-store-durability.json`
-- `docs/governance/execution-ledger/493e33681281-persistence.domain-store-durability.json`
-- `docs/governance/execution-ledger/92860feff286-persistence.domain-store-durability.json`
+- `apps/web/app/api/v1/dashboard/route.ts`
+- `apps/web/app/components/domain-dashboard.tsx`
+- `apps/web/app/execution/milestones/[id]/page.tsx`
+- `apps/web/app/execution/page.tsx`
+- `apps/web/app/page.tsx`
+- `apps/web/app/settlements/page.tsx`
+- `apps/web/lib/assurapay-app.ts`
+- `apps/web/lib/route-permissions.ts`
+- `docs/governance/execution-ledger/19cd6e8ca906-persistence.domain-store-durability.json`
 - `docs/governance/execution-ledger/INDEX.md`
-- `docs/governance/execution-ledger/ebeb159a85f8-persistence.domain-store-durability.json`
-- `docs/governance/execution-ledger/ed254b831ec1-persistence.domain-store-durability.json`
-- `docs/governance/execution-ledger/ed9b0534ffdf-persistence.domain-store-durability.json`
-- `docs/governance/reos/capability-registry.json`
 - `docs/governance/reos/generated/CERTIFICATION_REPORT.md`
+- `docs/governance/reos/generated/DEPENDENCY_RESOLUTION.md`
 - `docs/governance/reos/generated/EXECUTION_MANIFEST.md`
-- `docs/governance/reos/generated/EXECUTION_REPORT.md`
 - `docs/governance/reos/generated/certification.json`
 - `docs/governance/reos/generated/dependency-resolution.json`
 - `docs/governance/reos/generated/discovery.json`
 - `docs/governance/reos/generated/execution-manifest.json`
-- `docs/governance/reos/generated/execution-report.json`
 - `docs/governance/reos/generated/forensics.json`
-- `docs/persistence/DURABILITY_GAP_ANALYSIS.md`
-- `docs/persistence/POST_WAVE_5_FOLLOWUPS.md`
-- `docs/persistence/WAVE_5_BATCH_B_ACTIVATION.md`
-- `docs/persistence/WAVE_5_BATCH_C_ACTIVATION.md`
-- `docs/persistence/WAVE_5_BATCH_D_ACTIVATION.md`
-- `docs/persistence/WAVE_6_BATCH_E_ACTIVATION.md`
-- `docs/persistence/WAVE_6_BATCH_F_ACTIVATION.md`
-- `packages/agreement-creation/package.json`
-- `packages/agreement-creation/src/agreement-creation.test.ts`
-- `packages/agreement-creation/src/index.ts`
-- `packages/agreement-creation/src/persisted-contracts.test.ts`
+- `packages/database-testing/src/domain-store.postgres.test.ts`
 - `packages/database-testing/src/durability-coverage.test.ts`
-- `packages/database-testing/src/engine-identity.test.ts`
-- `packages/database-testing/src/index.ts`
-- `packages/database-testing/src/migrations.postgres.test.ts`
-- `packages/database-testing/src/postgres-store.postgres.test.ts`
-- `packages/database-testing/src/store-boundary.postgres.test.ts`
-- `packages/database-testing/src/wave4-batch-a-repository.postgres.test.ts`
-- `packages/database-testing/src/wave5-batch-b-repository.postgres.test.ts`
-- `packages/database-testing/src/wave5-batch-c-repository.postgres.test.ts`
-- `packages/database-testing/src/wave5-batch-d-repository.postgres.test.ts`
-- `packages/database-testing/src/wave6-batch-e-repository.postgres.test.ts`
+- `packages/database-testing/src/performance-readiness-persistence.postgres.test.ts`
 - `packages/database-testing/src/wave6-batch-f-repository.postgres.test.ts`
-- `packages/database/src/batch-b-repository.ts`
-- `packages/database/src/batch-c-repository.ts`
-- `packages/database/src/batch-d-repository.ts`
-- `packages/database/src/batch-e-repository.ts`
-- `packages/database/src/batch-f-repository.ts`
+- `packages/database/src/domain-store.ts`
 - `packages/database/src/index.ts`
 - `packages/database/src/migrations.ts`
+- `packages/database/src/performance-readiness-repository.ts`
 - `packages/database/src/postgres-store.ts`
-- `packages/database/src/store-error.ts`
-- `packages/domain-contracts/src/batch-b.ts`
-- `packages/domain-contracts/src/batch-c.test.ts`
-- `packages/domain-contracts/src/batch-c.ts`
-- `packages/domain-contracts/src/batch-d.ts`
-- `packages/domain-contracts/src/batch-e.ts`
-- `packages/domain-contracts/src/batch-f.ts`
-- `packages/domain-contracts/src/index.ts`
-- `packages/domain-contracts/src/primitives.ts`
-- `packages/performance-blueprint/package.json`
-- `packages/performance-blueprint/src/persisted-contracts.test.ts`
-- `packages/runtime/src/persistence-runtime.postgres.test.ts`
-- `packages/settlement-assurance/package.json`
-- `packages/settlement-assurance/src/index.ts`
-- `packages/settlement-assurance/src/persisted-contracts-batch-c.test.ts`
-- `packages/settlement-assurance/src/persisted-contracts.test.ts`
-- `packages/settlement-assurance/src/release-hold.test.ts`
-- `packages/settlement-execution/package.json`
-- `packages/settlement-execution/src/index.ts`
-- `packages/settlement-execution/src/persisted-contracts-batch-c.test.ts`
-- `packages/settlement-execution/src/persisted-contracts-batch-d.test.ts`
-- `packages/settlement-execution/src/persisted-contracts.test.ts`
-- `packages/settlement-execution/src/settlement-execution.e2e.test.ts`
-- `packages/settlement-execution/src/settlement-execution.non-custody.test.ts`
-- `packages/settlement-execution/src/settlement-execution.test.ts`
-- `pnpm-lock.yaml`
-- `supabase/migrations/202608100002_wave5_batch_b_settlement_authority.sql`
-- `supabase/migrations/202608110001_wave5_batch_c_settlement_ledger.sql`
-- `supabase/migrations/202608110002_wave5_batch_d_dispute_linkage.sql`
-- `supabase/migrations/202608110003_wave5_close_batch_c_gaps.sql`
-- `supabase/migrations/202608110004_wave6_batch_e_performance_blueprint.sql`
-- `supabase/migrations/202608110005_wave6_batch_f_agreement_creation.sql`
-- `supabase/migrations/202608110006_close_batch_b_invoice_number_gap.sql`
+- `packages/domain/src/services/assurapay-service.ts`
+- `packages/runtime/src/persistence-runtime.ts`
+- `supabase/migrations/202608120001_production_mvp_performance_readiness.sql`
+- `supabase/migrations/202608120002_domain_store_durability.sql`
 
 ## Validation
 
 | Validator | Result | Checked | Errors | Warnings |
 | --- | --- | --- | --- | --- |
-| architecture | pass | 235 | 0 | 0 |
+| architecture | pass | 239 | 0 | 0 |
 | dependencies | pass | 27 | 0 | 0 |
-| security | pass | 291 | 0 | 0 |
-| execution-contract | pass | 73 | 0 | 1 |
+| security | pass | 295 | 0 | 0 |
+| execution-contract | pass | 21 | 0 | 3 |
 
 ### Findings
 
 - **warning** `contract/tests-not-updated` (packages/database/src) — packages/database has modified source but no modified tests in this change.
+- **warning** `contract/tests-not-updated` (packages/domain/src) — packages/domain has modified source but no modified tests in this change.
+- **warning** `contract/tests-not-updated` (packages/runtime/src) — packages/runtime has modified source but no modified tests in this change.
 
 ## Governance
 
@@ -125,20 +75,18 @@ No newly introduced violations.
 
 **PASSED** — every certification gate is green.
 
-## Remaining backlog (1)
+## Remaining backlog (0)
 
-| Capability | Status | Executable | Blocked by |
-| --- | --- | --- | --- |
-| persistence.domain-store-durability | missing | yes |  |
+Backlog empty.
 
 ## Recommended next capability
 
-`persistence.domain-store-durability` — Domain store durability for Engines 06-60
+None available.
 
 ## Ledger
 
-Recorded as `ed254b831ec1-persistence.domain-store-durability` in `docs/governance/execution-ledger/`.
+Recorded as `19cd6e8ca906-persistence.domain-store-durability` in `docs/governance/execution-ledger/`.
 
 ## Commit
 
-`ed254b831ec1bc86ce67c62efeb5656799757d60`
+`19cd6e8ca906338c75a28c06c0d7a877f7baa7cd`

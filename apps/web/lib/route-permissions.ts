@@ -123,6 +123,7 @@ export const ROUTE_PERMISSION_REQUIREMENTS: Readonly<Record<string, RouteAccess>
   '/api/v1/corrective-action-plans/[id]/verify|POST': { access: 'permission', permissionKey: 'corrective-action-plans:verify' },
   '/api/v1/corrective-action-plans|POST': { access: 'permission', permissionKey: 'corrective-action-plans:create' },
   '/api/v1/dashboard-snapshots|POST': { access: 'permission', permissionKey: 'dashboard-snapshots:create' },
+  '/api/v1/dashboard|GET': { access: 'permission', permissionKey: 'contracts:read' },
   '/api/v1/defects/[id]/close|POST': { access: 'permission', permissionKey: 'defects:close' },
   '/api/v1/defects/[id]/resolve|POST': { access: 'permission', permissionKey: 'defects:resolve' },
   '/api/v1/defects/[id]/root-cause|POST': { access: 'permission', permissionKey: 'defects:record-root-cause' },

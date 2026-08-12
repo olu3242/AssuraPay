@@ -2,7 +2,9 @@ import { randomUUID } from 'node:crypto';
 import path from 'node:path';
 import type { TrustPersistence } from '@assurapay/shared';
 import {
+  FileAssuraStore,
   InMemoryTrustStore,
+  PostgresDomainStore,
   PostgresTrustStore,
   checkConnectivity,
   createPostgresPool,
@@ -10,7 +12,7 @@ import {
   certifySchemaOwnership,
   verifySchemaCompatibility,
 } from '@assurapay/database';
-import type { PostgresPool } from '@assurapay/database';
+import type { AssuraRepository, PostgresPool } from '@assurapay/database';
 import { describePersistenceConfig, isDurableDeployment, loadPersistenceConfig } from './config';
 import type { PersistenceRuntimeConfig } from './config';
 
@@ -74,6 +76,7 @@ export type PersistenceRuntime = {
   /** Identifies this runtime in evidence, so two hosts are distinguishable in a log. */
   readonly runtimeId: string;
   readonly store: TrustPersistence;
+  readonly domainStore: AssuraRepository;
   readonly adapter: 'postgres' | 'memory';
   readonly config: PersistenceRuntimeConfig;
 
@@ -276,6 +279,7 @@ function memoryRuntime(
   return {
     runtimeId,
     store,
+    domainStore: new FileAssuraStore(),
     adapter: 'memory',
     config,
     getState: () => state,
@@ -303,11 +307,13 @@ function postgresRuntime(
   emit: (event: string, detail?: Record<string, unknown>) => void,
 ): PersistenceRuntime {
   const store = new PostgresTrustStore(pool.sql);
+  const domainStore = new PostgresDomainStore(pool.sql);
   let state: PersistenceRuntimeState = 'ready';
 
   return {
     runtimeId,
     store,
+    domainStore,
     adapter: 'postgres',
     config,
     getState: () => state,
