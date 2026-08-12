@@ -299,6 +299,7 @@ export const REQUIRED_TRUST_MIGRATIONS: readonly string[] = Object.freeze([
   // The browser-visible Engine 06-60 snapshot repository. Without it the runtime would report
   // ready while the dashboard and its eight legacy routes have no durable relation to use.
   '202608120002_domain_store_durability',
+  '202608120003_domain_store_policy_convergence',
 ]);
 
 export type SchemaCompatibility = {
