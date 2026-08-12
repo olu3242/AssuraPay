@@ -300,6 +300,7 @@ export const REQUIRED_TRUST_MIGRATIONS: readonly string[] = Object.freeze([
   // ready while the dashboard and its eight legacy routes have no durable relation to use.
   '202608120002_domain_store_durability',
   '202608120003_domain_store_policy_convergence',
+  '202608120004_release_instruction_exactly_once',
 ]);
 
 export type SchemaCompatibility = {

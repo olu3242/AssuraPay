@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { InMemoryTrustStore } from '@assurapay/database';
-import { ConditionalReleaseOrchestrationEngine } from './index';
+import { ConditionalReleaseOrchestrationEngine, type PaymentEligibility } from './index';
 
 /**
  * The caller `DisputeResolutionEngine.isHeld` never had.
@@ -30,6 +30,10 @@ const stamp = '2026-08-11T09:00:00.000Z';
 
 async function seeded() {
   const store = new InMemoryTrustStore();
+  await store.append('paymentEligibilities', {
+    id: 'pe-1', workspaceId: 'w', milestoneId: 'ms-1', completionCertificateId: 'cc-1',
+    paymentTriggerRuleId: 'ptr-1', eligible: true, blockers: [], evaluatedBy: 'reviewer', evaluatedAt: stamp,
+  });
   await store.append('financialEntitlements', {
     id: 'fe-1',
     workspaceId: 'w',
@@ -93,7 +97,7 @@ function hold(releaseRequestId: string, overrides: Record<string, unknown> = {})
 describe('release evaluation names an active dispute hold as a blocker', () => {
   it('reaches CONDITIONS_MET when nothing holds it', async () => {
     const { engine, request } = await seeded();
-    const evaluated = await engine.evaluate(context, { id: request.id, paymentEligible: true });
+    const evaluated = await engine.evaluate(context, { id: request.id });
     expect(evaluated.status).toBe('CONDITIONS_MET');
     expect(evaluated.blockers).toEqual([]);
   });
@@ -101,7 +105,7 @@ describe('release evaluation names an active dispute hold as a blocker', () => {
   it('blocks with DISPUTE_HOLD_ACTIVE when a hold is active', async () => {
     const { store, engine, request } = await seeded();
     await store.append('disputeHolds', hold(request.id));
-    const evaluated = await engine.evaluate(context, { id: request.id, paymentEligible: true });
+    const evaluated = await engine.evaluate(context, { id: request.id });
     expect(evaluated.status).toBe('BLOCKED');
     expect(evaluated.blockers).toEqual(['DISPUTE_HOLD_ACTIVE']);
   });
@@ -111,14 +115,17 @@ describe('release evaluation names an active dispute hold as a blocker', () => {
     // fix the other one. A check that short-circuited would send the caller round the loop twice.
     const { store, engine, request } = await seeded();
     await store.append('disputeHolds', hold(request.id));
-    const evaluated = await engine.evaluate(context, { id: request.id, paymentEligible: false });
+    await store.replace('paymentEligibilities', {
+      ...(await store.list<PaymentEligibility>('paymentEligibilities'))[0], eligible: false,
+    });
+    const evaluated = await engine.evaluate(context, { id: request.id });
     expect(evaluated.blockers).toEqual(['PAYMENT_NOT_ELIGIBLE', 'DISPUTE_HOLD_ACTIVE']);
   });
 
   it('ignores a released hold, so resolving the dispute unblocks the release', async () => {
     const { store, engine, request } = await seeded();
     await store.append('disputeHolds', hold(request.id, { active: false, releasedAt: stamp }));
-    const evaluated = await engine.evaluate(context, { id: request.id, paymentEligible: true });
+    const evaluated = await engine.evaluate(context, { id: request.id });
     expect(evaluated.status).toBe('CONDITIONS_MET');
   });
 
@@ -126,7 +133,7 @@ describe('release evaluation names an active dispute hold as a blocker', () => {
     const { store, engine, request } = await seeded();
     await store.append('disputeHolds', hold('rr-someone-else', { id: 'dh-other' }));
     await store.append('disputeHolds', hold(request.id, { id: 'dh-elsewhere', workspaceId: 'w-other' }));
-    const evaluated = await engine.evaluate(context, { id: request.id, paymentEligible: true });
+    const evaluated = await engine.evaluate(context, { id: request.id });
     expect(evaluated.status).toBe('CONDITIONS_MET');
   });
 });

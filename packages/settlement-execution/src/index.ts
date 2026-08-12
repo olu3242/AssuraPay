@@ -89,6 +89,14 @@ export type AuthorizationDecision = {
   authorizedAt?: string;
 };
 
+type AuthorizedRelease = {
+  id: string;
+  workspaceId: string;
+  requestedAmountMinor: number;
+  currency: string;
+  status: 'DRAFT' | 'CONDITIONS_MET' | 'BLOCKED' | 'CANCELLED';
+};
+
 export class FinancialApprovalAuthorityEngine {
   constructor(private readonly store: TrustPersistence) {}
 
@@ -116,6 +124,10 @@ export class FinancialApprovalAuthorityEngine {
   ) {
     requireIntegerMinorUnits(input.amountMinor, 'AMOUNT');
     const workspaceId = ws(context);
+    const release = await get<AuthorizedRelease>(this.store, 'releaseRequests', context, input.releaseRequestId);
+    if (release.status !== 'CONDITIONS_MET') throw new Error('RELEASE_CONDITIONS_NOT_MET');
+    if (release.requestedAmountMinor !== input.amountMinor || release.currency !== input.currency)
+      throw new Error('AUTHORIZATION_RELEASE_MISMATCH');
     const threshold = (await this.store
       .list<ApprovalThreshold>('approvalThresholds'))
       .find(
@@ -260,12 +272,25 @@ export class PaymentExecutionEngine {
       beneficiaryReference: string;
       amountMinor: number;
       currency: string;
-      authorized: boolean;
+      authorizationDecisionId: string;
     },
   ) {
-    if (!input.authorized) throw new Error('AUTHORIZATION_REQUIRED');
     requireIntegerMinorUnits(input.amountMinor, 'AMOUNT');
     const workspaceId = ws(context);
+    const authorization = await get<AuthorizationDecision>(
+      this.store,
+      'authorizationDecisions',
+      context,
+      input.authorizationDecisionId,
+    );
+    if (authorization.status !== 'AUTHORIZED') throw new Error('AUTHORIZATION_REQUIRED');
+    if (
+      authorization.releaseRequestId !== input.releaseRequestId ||
+      authorization.amountMinor !== input.amountMinor ||
+      authorization.currency !== input.currency
+    ) throw new Error('AUTHORIZATION_INSTRUCTION_MISMATCH');
+    const release = await get<AuthorizedRelease>(this.store, 'releaseRequests', context, input.releaseRequestId);
+    if (release.status !== 'CONDITIONS_MET') throw new Error('RELEASE_CONDITIONS_NOT_MET');
     // The semantic payload: everything that determines what money moves and to whom. `providerKey`
     // is included because the same key against a different provider is a different instruction, and
     // the id and timestamps are excluded because they differ on every call by construction.
@@ -287,7 +312,11 @@ export class PaymentExecutionEngine {
         throw new Error('IDEMPOTENCY_KEY_PAYLOAD_MISMATCH');
       return existing;
     }
-    const { authorized: _authorized, ...record } = input;
+    const instructionForRelease = (await this.store
+      .list<PaymentInstruction>('paymentInstructions'))
+      .find((x) => x.workspaceId === workspaceId && x.releaseRequestId === input.releaseRequestId);
+    if (instructionForRelease) throw new Error('RELEASE_ALREADY_INSTRUCTED');
+    const { authorizationDecisionId: _authorizationDecisionId, ...record } = input;
     const instruction: PaymentInstruction = {
       id: randomUUID(),
       workspaceId,

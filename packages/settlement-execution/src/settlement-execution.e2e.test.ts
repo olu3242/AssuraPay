@@ -23,6 +23,11 @@ describe('e2e Batch 10 dual-approved release to a certified financial closure', 
     const approver1 = { ...requester, actorUserId: 'treasury-lead' };
     const approver2 = { ...requester, actorUserId: 'finance-director' };
 
+    await s.append('releaseRequests', {
+      id: 'release-request', workspaceId: 'w', requestedAmountMinor: 425_000_000,
+      currency: 'NGN', status: 'CONDITIONS_MET',
+    });
+
     const approvals = new FinancialApprovalAuthorityEngine(s);
     await approvals.defineThreshold(requester, {
       minAmountMinor: 0,
@@ -57,7 +62,7 @@ describe('e2e Batch 10 dual-approved release to a certified financial closure', 
       beneficiaryReference: 'lagos-steel-supply-acct',
       amountMinor: authorization.amountMinor,
       currency: authorization.currency,
-      authorized: authorized.status === 'AUTHORIZED',
+      authorizationDecisionId: authorized.id,
     });
     await payments.submit(requester, instruction.id);
     const settled = await payments.refreshStatus(requester, instruction.id);

@@ -537,6 +537,22 @@ describe('integration: Batch C money and settlement invariants', () => {
     expect((error as PostgresStoreError).code).toBe('PERSISTENCE_DUPLICATE_RECORD');
   }, 300_000);
 
+  it('permits exactly one payment instruction for an exact release request', async () => {
+    const [def] = await database.sql<{ d: string }[]>`
+      SELECT pg_get_constraintdef(oid) AS d FROM pg_constraint
+      WHERE conname = 'payment_instructions_release_exactly_once'
+    `;
+    expect(def.d).toBe('UNIQUE (tenant_id, workspace_id, release_request_id)');
+
+    const error = await as(database, (store) =>
+      store.append('paymentInstructions', instruction({
+        id: 'pi-second-release-attempt',
+        idempotencyKey: 'different-key-same-release',
+      })).catch((caught: unknown) => caught),
+    );
+    expect((error as PostgresStoreError).code).toBe('PERSISTENCE_DUPLICATE_RECORD');
+  }, 300_000);
+
   it('refuses a reconciliation whose outcome its own amounts contradict', async () => {
     const error = await raw(database, (tx) => tx`
       INSERT INTO reconciliation_records

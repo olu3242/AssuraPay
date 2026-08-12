@@ -496,13 +496,25 @@ export class ConditionalReleaseOrchestrationEngine {
     return request;
   }
 
-  async evaluate(context: RequestContext, input: { id: string; paymentEligible: boolean }) {
+  async evaluate(context: RequestContext, input: { id: string }) {
     const request = await get<ReleaseRequest>(this.store, 'releaseRequests', context, input.id);
     if (request.status === 'CANCELLED') throw new Error('RELEASE_REQUEST_CANCELLED');
     const invoice = await get<Invoice>(this.store, 'invoices', context, request.invoiceId);
     const reservation = await get<FundReservation>(this.store, 'fundReservations', context, request.fundReservationId);
+    const entitlement = await get<FinancialEntitlement>(
+      this.store,
+      'financialEntitlements',
+      context,
+      request.financialEntitlementId,
+    );
+    const eligibility = await get<PaymentEligibility>(
+      this.store,
+      'paymentEligibilities',
+      context,
+      entitlement.paymentEligibilityId,
+    );
     const blockers: string[] = [];
-    if (!input.paymentEligible) blockers.push('PAYMENT_NOT_ELIGIBLE');
+    if (!eligibility.eligible) blockers.push('PAYMENT_NOT_ELIGIBLE');
     if (invoice.status !== 'APPROVED') blockers.push('INVOICE_NOT_APPROVED');
     if (reservation.status !== 'RESERVED') blockers.push('FUNDS_NOT_RESERVED');
     if (await this.heldByDispute(context, request.id)) blockers.push('DISPUTE_HOLD_ACTIVE');

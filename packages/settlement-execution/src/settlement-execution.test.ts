@@ -19,6 +19,20 @@ const requester = {
 };
 const approver1 = { ...requester, actorUserId: 'approver-1' };
 const approver2 = { ...requester, actorUserId: 'approver-2' };
+const stamp = '2026-08-12T12:00:00.000Z';
+
+async function seedRelease(store: InMemoryTrustStore, id: string, amountMinor: number, currency = 'NGN') {
+  await store.append('releaseRequests', {
+    id, workspaceId: 'w', requestedAmountMinor: amountMinor, currency, status: 'CONDITIONS_MET',
+  });
+}
+
+async function seedAuthorization(store: InMemoryTrustStore, id: string, releaseRequestId: string, amountMinor: number, status: 'PENDING' | 'AUTHORIZED' = 'AUTHORIZED') {
+  await store.append('authorizationDecisions', {
+    id, workspaceId: 'w', releaseRequestId, requestedBy: 'requester', amountMinor, currency: 'NGN',
+    requiredApprovals: 1, status, createdAt: stamp, authorizedAt: status === 'AUTHORIZED' ? stamp : undefined,
+  });
+}
 
 describe('Engine 46 Financial Approval & Authority', () => {
   it('enforces segregation of duties, rejects duplicate approvers and requires every configured approval', async () => {
@@ -31,7 +45,9 @@ describe('Engine 46 Financial Approval & Authority', () => {
       currency: 'NGN',
       requiredApprovals: 2,
     });
-    await expect(e.requestAuthorization(requester, { releaseRequestId: 'r', amountMinor: 425_000_000, currency: 'USD' })).rejects.toThrow('NO_APPROVAL_THRESHOLD_CONFIGURED');
+    await seedRelease(s, 'r', 425_000_000);
+    await seedRelease(s, 'r-usd', 425_000_000, 'USD');
+    await expect(e.requestAuthorization(requester, { releaseRequestId: 'r-usd', amountMinor: 425_000_000, currency: 'USD' })).rejects.toThrow('NO_APPROVAL_THRESHOLD_CONFIGURED');
     const authorization = await e.requestAuthorization(requester, {
       releaseRequestId: 'r',
       amountMinor: 425_000_000,
@@ -60,6 +76,8 @@ describe('Engine 47 Payment Execution & Treasury Integration', () => {
         return { status: 'SETTLED' };
       },
     });
+    await seedRelease(s, 'r', 425_000_000);
+    await seedAuthorization(s, 'auth-pending', 'r', 425_000_000, 'PENDING');
     await expect(e.issue(requester, {
         releaseRequestId: 'r',
         providerKey: 'paystack',
@@ -67,8 +85,9 @@ describe('Engine 47 Payment Execution & Treasury Integration', () => {
         beneficiaryReference: 'acct-1',
         amountMinor: 425_000_000,
         currency: 'NGN',
-        authorized: false,
+        authorizationDecisionId: 'auth-pending',
       })).rejects.toThrow('AUTHORIZATION_REQUIRED');
+    await seedAuthorization(s, 'auth-1', 'r', 425_000_000);
     const first = await e.issue(requester, {
       releaseRequestId: 'r',
       providerKey: 'paystack',
@@ -76,7 +95,7 @@ describe('Engine 47 Payment Execution & Treasury Integration', () => {
       beneficiaryReference: 'acct-1',
       amountMinor: 425_000_000,
       currency: 'NGN',
-      authorized: true,
+      authorizationDecisionId: 'auth-1',
     });
     const duplicate = await e.issue(requester, {
       releaseRequestId: 'r',
@@ -85,9 +104,14 @@ describe('Engine 47 Payment Execution & Treasury Integration', () => {
       beneficiaryReference: 'acct-1',
       amountMinor: 425_000_000,
       currency: 'NGN',
-      authorized: true,
+      authorizationDecisionId: 'auth-1',
     });
     expect(duplicate.id).toBe(first.id);
+    await expect(e.issue(requester, {
+      releaseRequestId: 'r', providerKey: 'paystack', idempotencyKey: 'different-key',
+      beneficiaryReference: 'acct-1', amountMinor: 425_000_000, currency: 'NGN',
+      authorizationDecisionId: 'auth-1',
+    })).rejects.toThrow('RELEASE_ALREADY_INSTRUCTED');
     const submitted = await e.submit(requester, first.id);
     expect(submitted).toMatchObject({ status: 'SUBMITTED', providerReference: 'prov-ref-1' });
     const settled = await e.refreshStatus(requester, first.id);
@@ -103,6 +127,8 @@ describe('Engine 47 Payment Execution & Treasury Integration', () => {
         return { status: 'PENDING' };
       },
     });
+    await seedRelease(s, 'r2', 100_000_00);
+    await seedAuthorization(s, 'auth-2', 'r2', 100_000_00);
     const toReject = await rejecting.issue(requester, {
       releaseRequestId: 'r2',
       providerKey: 'paystack',
@@ -110,7 +136,7 @@ describe('Engine 47 Payment Execution & Treasury Integration', () => {
       beneficiaryReference: 'acct-2',
       amountMinor: 100_000_00,
       currency: 'NGN',
-      authorized: true,
+      authorizationDecisionId: 'auth-2',
     });
     await expect(rejecting.submit(requester, toReject.id)).rejects.toThrow('PROVIDER_REJECTED_PAYMENT');
   });

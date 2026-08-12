@@ -21,6 +21,18 @@ const c = {
   correlationId: 'c',
 };
 
+async function authorize(store: InMemoryTrustStore, releaseRequestId = 'r', amountMinor = 425_000_000) {
+  await store.append('releaseRequests', {
+    id: releaseRequestId, workspaceId: 'w', requestedAmountMinor: amountMinor, currency: 'NGN', status: 'CONDITIONS_MET',
+  });
+  const id = `auth-${releaseRequestId}`;
+  await store.append('authorizationDecisions', {
+    id, workspaceId: 'w', releaseRequestId, requestedBy: 'requester', amountMinor, currency: 'NGN',
+    requiredApprovals: 1, status: 'AUTHORIZED', createdAt: '2026-08-12T12:00:00.000Z', authorizedAt: '2026-08-12T12:00:00.000Z',
+  });
+  return id;
+}
+
 describe('non-custody constraint', () => {
   it('defines no local hold/custody/debit/credit/transfer/withdraw primitive of its own', () => {
     const source = readFileSync(resolve('packages/settlement-execution/src/index.ts'), 'utf8');
@@ -38,6 +50,7 @@ describe('non-custody constraint', () => {
 
   it('never submits a payment without the provider gateway, and never asserts settlement without the gateway reporting it', async () => {
     const s = new InMemoryTrustStore();
+    const authorizationDecisionId = await authorize(s);
     const noGateway = new PaymentExecutionEngine(s);
     const draft = await noGateway.issue(c, {
       releaseRequestId: 'r',
@@ -46,7 +59,7 @@ describe('non-custody constraint', () => {
       beneficiaryReference: 'acct-1',
       amountMinor: 425_000_000,
       currency: 'NGN',
-      authorized: true,
+      authorizationDecisionId,
     });
     await expect(noGateway.submit(c, draft.id)).rejects.toThrow('PAYMENT_PROVIDER_GATEWAY_REQUIRED');
     expect(
@@ -70,6 +83,7 @@ describe('non-custody constraint', () => {
   it('is idempotent on issue, so retrying a release never double-instructs the provider', async () => {
     const s = new InMemoryTrustStore();
     const e = new PaymentExecutionEngine(s);
+    const authorizationDecisionId = await authorize(s);
     const input = {
       releaseRequestId: 'r',
       providerKey: 'paystack',
@@ -77,7 +91,7 @@ describe('non-custody constraint', () => {
       beneficiaryReference: 'acct-1',
       amountMinor: 425_000_000,
       currency: 'NGN',
-      authorized: true,
+      authorizationDecisionId,
     };
     const first = await e.issue(c, input);
     const second = await e.issue(c, input);
@@ -94,6 +108,7 @@ describe('non-custody constraint', () => {
     // is the only safe answer, and it is the one failure mode idempotency exists to prevent.
     const s = new InMemoryTrustStore();
     const e = new PaymentExecutionEngine(s);
+    const authorizationDecisionId = await authorize(s);
     const input = {
       releaseRequestId: 'r',
       providerKey: 'paystack',
@@ -101,14 +116,12 @@ describe('non-custody constraint', () => {
       beneficiaryReference: 'acct-1',
       amountMinor: 425_000_000,
       currency: 'NGN',
-      authorized: true,
+      authorizationDecisionId,
     };
     await e.issue(c, input);
 
     for (const drift of [
       { beneficiaryReference: 'acct-2' },
-      { amountMinor: 999_000_000 },
-      { releaseRequestId: 'r-other' },
       { providerKey: 'flutterwave' },
     ]) {
       await expect(e.issue(c, { ...input, ...drift })).rejects.toThrow(

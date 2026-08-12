@@ -84,7 +84,7 @@ describe('e2e Batch 9 certified milestone to a condition-met, non-custodial rele
       releaseType: 'FULL',
       requestedAmountMinor: entitlement.netPayableAmountMinor,
     });
-    const evaluated = await release.evaluate(c, { id: request.id, paymentEligible: eligibility.eligible });
+    const evaluated = await release.evaluate(c, { id: request.id });
     expect(evaluated).toMatchObject({ status: 'CONDITIONS_MET', blockers: [] });
   });
 });

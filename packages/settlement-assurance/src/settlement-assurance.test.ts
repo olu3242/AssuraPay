@@ -267,10 +267,10 @@ describe('Engine 45 Conditional Release Orchestration', () => {
       releaseType: 'FULL',
       requestedAmountMinor: 425_000_000,
     });
-    const blocked = await e.evaluate(c, { id: request.id, paymentEligible: true });
+    const blocked = await e.evaluate(c, { id: request.id });
     expect(blocked).toMatchObject({ status: 'BLOCKED', blockers: ['INVOICE_NOT_APPROVED'] });
     await invoices.approve(c, invoice.id);
-    const conditionsMet = await e.evaluate(c, { id: request.id, paymentEligible: true });
+    const conditionsMet = await e.evaluate(c, { id: request.id });
     expect(conditionsMet.status).toBe('CONDITIONS_MET');
     await expect(e.cancel(c, { id: request.id, reason: '' })).rejects.toThrow('CANCELLATION_REASON_REQUIRED');
     expect((await e.cancel(c, { id: request.id, reason: 'superseded by staged release' })).status).toBe('CANCELLED');
