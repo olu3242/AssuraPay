@@ -1,7 +1,7 @@
 -- Batch E repairs the front of the canonical chain.
 --
 -- Batch E is the first batch of the sixty-seven `docs/persistence/DURABILITY_GAP_ANALYSIS.md`
--- registers: the six performance-blueprint aggregates of canonical Engines 21-25 — performance
+-- registers: the six performance-blueprint aggregates of canonical Engines 16-20 — performance
 -- blueprint, scope item, deliverable, blueprint milestone, milestone sequence edge, definition-of-done
 -- package.
 --
