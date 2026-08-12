@@ -53,7 +53,16 @@ export type PostgresStoreErrorCode =
    * Raised at COMMIT, so it can surface from a `transaction` boundary rather than from the
    * individual `append` that caused it — the unbalanced set is only visible once complete.
    */
-  | 'PERSISTENCE_LEDGER_UNBALANCED';
+  | 'PERSISTENCE_LEDGER_UNBALANCED'
+  /**
+   * An active dispute hold refused a release-bearing write.
+   *
+   * CLAUDE.md's second hard constraint: release requires no active hold. Its own code because it is
+   * neither an outage nor a conflict nor corruption — it is the constraint working, and the caller
+   * needs to report "this release is held" rather than "something went wrong". A hold is lifted by
+   * resolving the dispute that placed it, so a retry is never the right response.
+   */
+  | 'PERSISTENCE_RELEASE_HELD';
 
 /** Stable codes so a caller branches on the reason, never on driver text. */
 export class PostgresStoreError extends Error {

@@ -1,7 +1,12 @@
 import { createHash } from 'node:crypto';
 import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
-import { BATCH_A_TABLES, BATCH_B_TABLES, BATCH_C_TABLES } from '@assurapay/domain-contracts';
+import {
+  BATCH_A_TABLES,
+  BATCH_B_TABLES,
+  BATCH_C_TABLES,
+  BATCH_D_TABLES,
+} from '@assurapay/domain-contracts';
 import type { SqlClient } from './postgres-client';
 
 /**
@@ -260,6 +265,11 @@ export const REQUIRED_TRUST_MIGRATIONS: readonly string[] = Object.freeze([
   // collections to tables `202608030008`, `202608030009` and `202608110001` create, converge and
   // govern. The first two are already required for Batch B, so `202608110001` is the only addition.
   '202608110001_wave5_batch_c_settlement_ledger',
+  // Batch D, and the last of the wave 4-5 plan: the store routes five Engine 49 collections to
+  // tables `202608030009` and `202608110002` create, converge and govern, and `202608110002` is also
+  // what makes an active dispute hold block a release. A host missing it would start with hold
+  // enforcement absent, which is the one gap that must never be silent.
+  '202608110002_wave5_batch_d_dispute_linkage',
 ]);
 
 export type SchemaCompatibility = {
@@ -297,8 +307,8 @@ export const REQUIRED_TRUST_TABLES = Object.freeze([
 /**
  * Domain aggregate tables the store owns outside the trust set.
  *
- * Batch A's sixteen, Batch B's seven and Batch C's seven, taken from the contract registries rather
- * than restated, so an aggregate cannot be given a repository without becoming a readiness
+ * Batch A's sixteen, Batch B's seven, Batch C's seven and Batch D's five, taken from the contract
+ * registries rather than restated, so an aggregate cannot be given a repository without becoming a readiness
  * requirement.
  *
  * `fund_reservations` and `funding_commitments` are now here, and were deliberately absent until
@@ -314,7 +324,7 @@ export const REQUIRED_TRUST_TABLES = Object.freeze([
  * why the readiness report names which tables are absent rather than only that some are.
  */
 export const REQUIRED_DOMAIN_AGGREGATE_TABLES = Object.freeze(
-  [...BATCH_A_TABLES, ...BATCH_B_TABLES, ...BATCH_C_TABLES].sort(),
+  [...BATCH_A_TABLES, ...BATCH_B_TABLES, ...BATCH_C_TABLES, ...BATCH_D_TABLES].sort(),
 );
 
 /**

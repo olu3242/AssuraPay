@@ -6,21 +6,22 @@
 
 | Field | Value |
 | --- | --- |
-| Branch | feat/c1-batch-c-settlement-ledger |
-| HEAD | ed9b0534ffdf0e060391a43df3b2bc3fe0466c71 |
+| Branch | feat/d1-batch-d-dispute-linkage |
+| HEAD | ebeb159a85f8f46cb158c457b32821f32e2b327f |
 | Worktree clean | yes |
 | Uncommitted files | 0 |
-| Generated at | 2026-08-11T10:45:27.060Z |
+| Generated at | 2026-08-11T11:13:26.623Z |
 
 ## Capability implemented
 
 `persistence.domain-store-durability` — lifecycle **planned**
 
-## Files modified (43)
+## Files modified (50)
 
 - `apps/web/app/api/v1/ledger-entries/route.ts`
 - `docs/governance/execution-ledger/92860feff286-persistence.domain-store-durability.json`
 - `docs/governance/execution-ledger/INDEX.md`
+- `docs/governance/execution-ledger/ebeb159a85f8-persistence.domain-store-durability.json`
 - `docs/governance/execution-ledger/ed9b0534ffdf-persistence.domain-store-durability.json`
 - `docs/governance/reos/generated/CERTIFICATION_REPORT.md`
 - `docs/governance/reos/generated/EXECUTION_MANIFEST.md`
@@ -33,19 +34,23 @@
 - `docs/governance/reos/generated/forensics.json`
 - `docs/persistence/WAVE_5_BATCH_B_ACTIVATION.md`
 - `docs/persistence/WAVE_5_BATCH_C_ACTIVATION.md`
+- `docs/persistence/WAVE_5_BATCH_D_ACTIVATION.md`
 - `packages/database-testing/src/migrations.postgres.test.ts`
 - `packages/database-testing/src/postgres-store.postgres.test.ts`
 - `packages/database-testing/src/wave4-batch-a-repository.postgres.test.ts`
 - `packages/database-testing/src/wave5-batch-b-repository.postgres.test.ts`
 - `packages/database-testing/src/wave5-batch-c-repository.postgres.test.ts`
+- `packages/database-testing/src/wave5-batch-d-repository.postgres.test.ts`
 - `packages/database/src/batch-b-repository.ts`
 - `packages/database/src/batch-c-repository.ts`
+- `packages/database/src/batch-d-repository.ts`
 - `packages/database/src/index.ts`
 - `packages/database/src/migrations.ts`
 - `packages/database/src/postgres-store.ts`
 - `packages/database/src/store-error.ts`
 - `packages/domain-contracts/src/batch-b.ts`
 - `packages/domain-contracts/src/batch-c.ts`
+- `packages/domain-contracts/src/batch-d.ts`
 - `packages/domain-contracts/src/index.ts`
 - `packages/domain-contracts/src/primitives.ts`
 - `packages/settlement-assurance/package.json`
@@ -54,6 +59,7 @@
 - `packages/settlement-execution/package.json`
 - `packages/settlement-execution/src/index.ts`
 - `packages/settlement-execution/src/persisted-contracts-batch-c.test.ts`
+- `packages/settlement-execution/src/persisted-contracts-batch-d.test.ts`
 - `packages/settlement-execution/src/persisted-contracts.test.ts`
 - `packages/settlement-execution/src/settlement-execution.e2e.test.ts`
 - `packages/settlement-execution/src/settlement-execution.non-custody.test.ts`
@@ -61,15 +67,16 @@
 - `pnpm-lock.yaml`
 - `supabase/migrations/202608100002_wave5_batch_b_settlement_authority.sql`
 - `supabase/migrations/202608110001_wave5_batch_c_settlement_ledger.sql`
+- `supabase/migrations/202608110002_wave5_batch_d_dispute_linkage.sql`
 
 ## Validation
 
 | Validator | Result | Checked | Errors | Warnings |
 | --- | --- | --- | --- | --- |
-| architecture | pass | 218 | 0 | 0 |
+| architecture | pass | 222 | 0 | 0 |
 | dependencies | pass | 27 | 0 | 0 |
-| security | pass | 285 | 0 | 0 |
-| execution-contract | pass | 33 | 0 | 2 |
+| security | pass | 287 | 0 | 0 |
+| execution-contract | pass | 40 | 0 | 2 |
 
 ### Findings
 
@@ -98,8 +105,8 @@ No newly introduced violations.
 
 ## Ledger
 
-Recorded as `ed9b0534ffdf-persistence.domain-store-durability` in `docs/governance/execution-ledger/`.
+Recorded as `ebeb159a85f8-persistence.domain-store-durability` in `docs/governance/execution-ledger/`.
 
 ## Commit
 
-`ed9b0534ffdf0e060391a43df3b2bc3fe0466c71`
+`ebeb159a85f8f46cb158c457b32821f32e2b327f`

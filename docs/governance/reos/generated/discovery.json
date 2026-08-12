@@ -1178,6 +1178,11 @@
       "title": "Wave 5 Batch C activation"
     },
     {
+      "category": "persistence",
+      "path": "docs/persistence/WAVE_5_BATCH_D_ACTIVATION.md",
+      "title": "Wave 5 Batch D activation"
+    },
+    {
       "category": "product",
       "path": "docs/product/EXECUTION_ASSURANCE_MATURITY_MODEL.md",
       "title": "AssuraPay Execution Assurance Maturity Model"
@@ -1976,6 +1981,13 @@
       "id": "202608110001",
       "name": "wave5_batch_c_settlement_ledger",
       "path": "supabase/migrations/202608110001_wave5_batch_c_settlement_ledger.sql"
+    },
+    {
+      "declaresPolicies": 1,
+      "declaresRowLevelSecurity": true,
+      "id": "202608110002",
+      "name": "wave5_batch_d_dispute_linkage",
+      "path": "supabase/migrations/202608110002_wave5_batch_d_dispute_linkage.sql"
     }
   ],
   "packages": [
@@ -2164,8 +2176,8 @@
       "main": "src/index.ts",
       "moduleType": null,
       "name": "@assurapay/database",
-      "sourceFiles": 14,
-      "sourceLines": 6101,
+      "sourceFiles": 15,
+      "sourceLines": 6591,
       "testFiles": [
         "packages/database/src/async-conformance.test.ts",
         "packages/database/src/domain-repository.test.ts",
@@ -2206,14 +2218,15 @@
         "packages/database-testing/src/wave4-batch-a-repository.postgres.test.ts",
         "packages/database-testing/src/wave4-trust-authority.postgres.test.ts",
         "packages/database-testing/src/wave5-batch-b-repository.postgres.test.ts",
-        "packages/database-testing/src/wave5-batch-c-repository.postgres.test.ts"
+        "packages/database-testing/src/wave5-batch-c-repository.postgres.test.ts",
+        "packages/database-testing/src/wave5-batch-d-repository.postgres.test.ts"
       ],
       "tests": {
         "e2e": 0,
         "integration": 0,
         "performance": 0,
         "security": 0,
-        "unit": 8
+        "unit": 9
       },
       "workspaceDependencies": [
         "@assurapay/database",
@@ -2267,8 +2280,8 @@
       "main": "src/index.ts",
       "moduleType": null,
       "name": "@assurapay/domain-contracts",
-      "sourceFiles": 5,
-      "sourceLines": 1145,
+      "sourceFiles": 6,
+      "sourceLines": 1293,
       "testFiles": [
         "packages/domain-contracts/src/batch-a.test.ts"
       ],
@@ -2734,6 +2747,7 @@
       "sourceLines": 700,
       "testFiles": [
         "packages/settlement-execution/src/persisted-contracts-batch-c.test.ts",
+        "packages/settlement-execution/src/persisted-contracts-batch-d.test.ts",
         "packages/settlement-execution/src/persisted-contracts.test.ts",
         "packages/settlement-execution/src/settlement-execution.e2e.test.ts",
         "packages/settlement-execution/src/settlement-execution.integration.test.ts",
@@ -2745,7 +2759,7 @@
         "integration": 1,
         "performance": 0,
         "security": 0,
-        "unit": 4
+        "unit": 5
       },
       "workspaceDependencies": [
         "@assurapay/database",
@@ -2817,7 +2831,7 @@
   "reosVersion": "1.0.0",
   "repository": {
     "git": {
-      "branch": "feat/c1-batch-c-settlement-ledger",
+      "branch": "feat/d1-batch-d-dispute-linkage",
       "branches": [
         "assess/engines-31-50-certification-gap-matrix",
         "chore/post-merge-governance-artifacts-batch-a",
@@ -2826,6 +2840,7 @@
         "feat/a1-domain-store-durability",
         "feat/b1-batch-b-settlement-authority",
         "feat/c1-batch-c-settlement-ledger",
+        "feat/d1-batch-d-dispute-linkage",
         "feat/persistence-async-domain-repository",
         "feat/persistence-async-repository-interface",
         "feat/persistence-domain-store-durable-environment-gate",
@@ -2842,6 +2857,7 @@
         "origin/feat/a1-domain-store-durability",
         "origin/feat/b1-batch-b-settlement-authority",
         "origin/feat/c1-batch-c-settlement-ledger",
+        "origin/feat/d1-batch-d-dispute-linkage",
         "origin/feat/engines-01-05-trust-foundation",
         "origin/feat/engines-06-10-governance-core",
         "origin/feat/engines-61-70-agent-runtime",
@@ -2860,8 +2876,8 @@
       ],
       "clean": true,
       "dirtyFiles": [],
-      "head": "ed9b0534ffdf0e060391a43df3b2bc3fe0466c71",
-      "headShort": "ed9b053",
+      "head": "ebeb159a85f8f46cb158c457b32821f32e2b327f",
+      "headShort": "ebeb159",
       "reflogAvailable": true,
       "remotes": [
         "origin"
@@ -2870,7 +2886,7 @@
         "platform-trust-foundation",
         "rc-engine-60"
       ],
-      "upstream": "origin/feat/c1-batch-c-settlement-ledger"
+      "upstream": "origin/feat/d1-batch-d-dispute-linkage"
     },
     "name": "assurapay",
     "packageManager": "pnpm@11.3.0",
@@ -3052,17 +3068,17 @@
       "integration": 15,
       "performance": 2,
       "security": 3,
-      "unit": 63
+      "unit": 65
     },
-    "files": 98
+    "files": 100
   },
   "totals": {
     "applications": 1,
-    "documents": 149,
+    "documents": 150,
     "engines": 60,
-    "migrations": 28,
+    "migrations": 29,
     "packages": 26,
-    "testFiles": 98
+    "testFiles": 100
   },
   "workflows": [
     {

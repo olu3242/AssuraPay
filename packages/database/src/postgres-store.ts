@@ -12,6 +12,7 @@ import type { TrustScope } from './trust-scope';
 import { BATCH_A_RELATIONS, batchARelation, isBatchACollection } from './batch-a-repository';
 import { BATCH_B_RELATIONS, batchBRelation, isBatchBCollection } from './batch-b-repository';
 import { BATCH_C_RELATIONS, batchCRelation, isBatchCCollection } from './batch-c-repository';
+import { BATCH_D_RELATIONS, batchDRelation, isBatchDCollection } from './batch-d-repository';
 import { PostgresStoreError } from './store-error';
 
 export { PostgresStoreError } from './store-error';
@@ -72,6 +73,12 @@ function translate(error: unknown): PostgresStoreError {
   // unbalanced posting cannot succeed.
   if (detail.includes('LEDGER_JOURNAL_DOES_NOT_BALANCE'))
     return new PostgresStoreError('PERSISTENCE_LEDGER_UNBALANCED', detail);
+
+  // An active dispute hold refused a release-bearing write. Its own code, because it is neither an
+  // outage nor a conflict nor corruption: it is the platform's second hard constraint holding, and a
+  // caller must be able to tell it apart from a failure in order to report "held" rather than "error".
+  if (detail.includes('ACTIVE_DISPUTE_HOLD'))
+    return new PostgresStoreError('PERSISTENCE_RELEASE_HELD', detail);
 
   // The domain aggregates' mutation boundaries. `append-only table` is the message
   // `prevent_append_only_mutation()` has raised since `202608020006`; the three prefixed
@@ -228,6 +235,10 @@ export const POSTGRES_TRUST_COLLECTIONS: readonly string[] = Object.freeze(
     // persist a funding commitment, a payment instruction, a ledger posting, a reconciliation or a
     // closure certificate to PostgreSQL at all.
     ...Object.keys(BATCH_C_RELATIONS),
+    // Batch D. The last five. Engine 49 could not persist a dispute or, more consequentially, a
+    // dispute *hold* — the record CLAUDE.md's second hard constraint requires to block a release had
+    // no durable home at all.
+    ...Object.keys(BATCH_D_RELATIONS),
   ].sort(),
 );
 
@@ -428,6 +439,8 @@ export class PostgresTrustStore implements TrustPersistence {
         return (await batchBRelation(collection).list(this.sql)) as unknown as T[];
       if (isBatchCCollection(collection))
         return (await batchCRelation(collection).list(this.sql)) as unknown as T[];
+      if (isBatchDCollection(collection))
+        return (await batchDRelation(collection).list(this.sql)) as unknown as T[];
       this.requireGoverned(collection);
       const rows = await this.sql<StoredRow[]>`
         SELECT payload, payload_digest FROM trust_records
@@ -489,6 +502,15 @@ export class PostgresTrustStore implements TrustPersistence {
 
       if (isBatchCCollection(collection)) {
         await batchCRelation(collection).insert(
+          this.sql,
+          record,
+          this.requireRelationalTenant(collection, record),
+        );
+        return;
+      }
+
+      if (isBatchDCollection(collection)) {
+        await batchDRelation(collection).insert(
           this.sql,
           record,
           this.requireRelationalTenant(collection, record),
@@ -604,7 +626,8 @@ export class PostgresTrustStore implements TrustPersistence {
       if (
         isBatchACollection(collection) ||
         isBatchBCollection(collection) ||
-        isBatchCCollection(collection)
+        isBatchCCollection(collection) ||
+        isBatchDCollection(collection)
       ) {
         // The tenant is re-derived and checked even though the UPDATE does not write it: a
         // caller replacing a record outside its scope must be refused for that reason, not
@@ -614,7 +637,9 @@ export class PostgresTrustStore implements TrustPersistence {
           ? batchARelation(collection)
           : isBatchBCollection(collection)
             ? batchBRelation(collection)
-            : batchCRelation(collection);
+            : isBatchCCollection(collection)
+              ? batchCRelation(collection)
+              : batchDRelation(collection);
         const affected = await relation.update(this.sql, record);
         this.requireAffected(affected, collection, id);
         return;

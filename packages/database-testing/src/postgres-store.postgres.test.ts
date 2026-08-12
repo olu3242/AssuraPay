@@ -517,7 +517,11 @@ describe('integration: failures are reported, never swallowed', () => {
     // subject is the refusal path, not any particular aggregate, so the candidate is chosen from
     // what the store actually claims — and if every candidate becomes mapped, this fails with a
     // reason instead of a puzzle.
-    const unmapped = ['disputes', 'disputeHolds', 'disputeDecisions'].find(
+    // Drawn from the intelligence collections of Engines 51-60, which
+    // `WAVE_4_5_DOMAIN_STORE_DURABILITY_DECISION.md` defers explicitly — "Engines 51-60 stay
+    // untouched until the persistence boundary is resolved". Every one of the thirty-five wave 4-5
+    // aggregates is mapped as of Batch D, so a candidate has to come from outside that plan.
+    const unmapped = ['assuranceScores', 'kpiResults', 'executionForecasts'].find(
       (candidate) => !POSTGRES_TRUST_COLLECTIONS.includes(candidate),
     );
     expect(unmapped, 'every candidate collection is now mapped; pick one a later batch has not activated').toBeDefined();

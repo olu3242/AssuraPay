@@ -326,9 +326,11 @@
             "packages/database-testing/src/wave4-batch-a-repository.postgres.test.ts",
             "packages/database-testing/src/wave5-batch-b-repository.postgres.test.ts",
             "packages/database-testing/src/wave5-batch-c-repository.postgres.test.ts",
+            "packages/database-testing/src/wave5-batch-d-repository.postgres.test.ts",
             "packages/database/src/batch-a-repository.ts",
             "packages/database/src/batch-b-repository.ts",
             "packages/database/src/batch-c-repository.ts",
+            "packages/database/src/batch-d-repository.ts",
             "packages/database/src/conformance.ts",
             "packages/database/src/migrations.ts",
             "packages/database/src/postgres-store.ts",
@@ -353,6 +355,7 @@
             "packages/database-testing/src/wave4-trust-authority.postgres.test.ts",
             "packages/database-testing/src/wave5-batch-b-repository.postgres.test.ts",
             "packages/database-testing/src/wave5-batch-c-repository.postgres.test.ts",
+            "packages/database-testing/src/wave5-batch-d-repository.postgres.test.ts",
             "packages/database/src/migrations.ts",
             "packages/database/src/schema-ownership.ts",
             "packages/runtime/src/persistence-runtime.postgres.test.ts",
@@ -369,6 +372,7 @@
             "packages/database-testing/src/wave4-batch-a-repository.postgres.test.ts",
             "packages/database-testing/src/wave5-batch-b-repository.postgres.test.ts",
             "packages/database-testing/src/wave5-batch-c-repository.postgres.test.ts",
+            "packages/database-testing/src/wave5-batch-d-repository.postgres.test.ts",
             "packages/database/src/migrations.ts",
             "packages/runtime/src/persistence-runtime.ts"
           ],
@@ -634,6 +638,7 @@
             "packages/database-testing/src/wave4-trust-authority.postgres.test.ts",
             "packages/database-testing/src/wave5-batch-b-repository.postgres.test.ts",
             "packages/database-testing/src/wave5-batch-c-repository.postgres.test.ts",
+            "packages/database-testing/src/wave5-batch-d-repository.postgres.test.ts",
             "packages/database/src/trust-scope.ts",
             "packages/runtime/src/persistence-runtime.postgres.test.ts",
             "packages/runtime/src/rls-runtime.postgres.test.ts"
@@ -1613,7 +1618,7 @@
       "totalProbes": 5
     }
   ],
-  "head": "ed9b0534ffdf0e060391a43df3b2bc3fe0466c71",
+  "head": "ebeb159a85f8f46cb158c457b32821f32e2b327f",
   "reosVersion": "1.0.0",
   "stage": "forensics",
   "summary": {
