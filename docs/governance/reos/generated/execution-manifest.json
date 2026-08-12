@@ -3375,7 +3375,7 @@
   "identity": {
     "branch": "feat/production-mvp-completion",
     "clean": false,
-    "head": "6442af3b6188ee0aa6a3d275539ca6a0268da494",
+    "head": "98ce526be93fe3cb6c2af3bf79ea346f6d175f79",
     "repository": "assurapay",
     "version": "0.1.0"
   },
@@ -3467,7 +3467,7 @@
     "released": 0,
     "validated": 0
   },
-  "manifestDigest": "6c45adaafb29",
+  "manifestDigest": "c652d000914d",
   "missingCapabilities": [],
   "packages": [
     {
@@ -3660,7 +3660,7 @@
       "moduleType": null,
       "name": "@assurapay/database",
       "sourceFiles": 19,
-      "sourceLines": 8586,
+      "sourceLines": 8589,
       "testFiles": [
         "packages/database/src/async-conformance.test.ts",
         "packages/database/src/domain-repository.test.ts",
@@ -4077,7 +4077,7 @@
       "moduleType": null,
       "name": "@assurapay/performance-readiness",
       "sourceFiles": 1,
-      "sourceLines": 431,
+      "sourceLines": 457,
       "testFiles": [
         "packages/performance-readiness/src/performance-readiness.e2e.test.ts",
         "packages/performance-readiness/src/performance-readiness.integration.test.ts",
@@ -4201,7 +4201,7 @@
       "moduleType": null,
       "name": "@assurapay/settlement-assurance",
       "sourceFiles": 1,
-      "sourceLines": 534,
+      "sourceLines": 565,
       "testFiles": [
         "packages/settlement-assurance/src/persisted-contracts-batch-c.test.ts",
         "packages/settlement-assurance/src/persisted-contracts.test.ts",
@@ -4238,7 +4238,7 @@
       "moduleType": null,
       "name": "@assurapay/settlement-execution",
       "sourceFiles": 1,
-      "sourceLines": 750,
+      "sourceLines": 778,
       "testFiles": [
         "packages/settlement-execution/src/persisted-contracts-batch-c.test.ts",
         "packages/settlement-execution/src/persisted-contracts-batch-d.test.ts",
