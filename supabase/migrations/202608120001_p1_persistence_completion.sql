@@ -66,11 +66,16 @@ FROM pg_constraint con
 JOIN pg_class child ON child.oid = con.conrelid
 JOIN pg_namespace child_ns ON child_ns.oid = child.relnamespace
 JOIN pg_class parent ON parent.oid = con.confrelid
+JOIN pg_namespace parent_ns ON parent_ns.oid = parent.relnamespace
 JOIN pg_attribute child_col ON child_col.attrelid = child.oid AND child_col.attnum = con.conkey[1]
 JOIN pg_attribute parent_col ON parent_col.attrelid = parent.oid AND parent_col.attnum = con.confkey[1]
 WHERE con.contype = 'f'
   AND child_ns.nspname = 'public'
-  AND child.relname IN (SELECT table_name FROM assurapay_p1_tables)
+  AND parent_ns.nspname = 'public'
+  AND (
+    child.relname IN (SELECT table_name FROM assurapay_p1_tables)
+    OR parent.relname IN (SELECT table_name FROM assurapay_p1_tables)
+  )
   AND array_length(con.conkey, 1) = 1;
 
 CREATE TEMP TABLE assurapay_p1_checks ON COMMIT DROP AS
