@@ -40,7 +40,20 @@ export type PostgresStoreErrorCode =
    * result, because a silently mis-parsed aggregate is worse than a refused one — a release
    * gate reading a mis-parsed acceptance decision would approve on a field it invented.
    */
-  | 'PERSISTENCE_UNSUPPORTED_SCHEMA_VERSION';
+  | 'PERSISTENCE_UNSUPPORTED_SCHEMA_VERSION'
+  /**
+   * A committed ledger journal's debits and credits disagree, per tenant, instruction and currency.
+   *
+   * Its own code rather than `PERSISTENCE_TRANSACTION_FAILED`, which is what the raw failure would
+   * otherwise become. The distinction is the whole point of the deferred constraint trigger
+   * `202608110001` adds: this is not an outage and not a conflict, it is a posting that would have
+   * left the journal unbalanced, and a caller that cannot tell the difference will retry a write
+   * that can never succeed.
+   *
+   * Raised at COMMIT, so it can surface from a `transaction` boundary rather than from the
+   * individual `append` that caused it — the unbalanced set is only visible once complete.
+   */
+  | 'PERSISTENCE_LEDGER_UNBALANCED';
 
 /** Stable codes so a caller branches on the reason, never on driver text. */
 export class PostgresStoreError extends Error {

@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
-import { BATCH_A_TABLES, BATCH_B_TABLES } from '@assurapay/domain-contracts';
+import { BATCH_A_TABLES, BATCH_B_TABLES, BATCH_C_TABLES } from '@assurapay/domain-contracts';
 import type { SqlClient } from './postgres-client';
 
 /**
@@ -256,6 +256,10 @@ export const REQUIRED_TRUST_MIGRATIONS: readonly string[] = Object.freeze([
   '202608030008_settlement_assurance',
   '202608030009_settlement_execution',
   '202608100002_wave5_batch_b_settlement_authority',
+  // Batch C, and the last of the settlement path: the store routes seven Engine 44 and 47-50
+  // collections to tables `202608030008`, `202608030009` and `202608110001` create, converge and
+  // govern. The first two are already required for Batch B, so `202608110001` is the only addition.
+  '202608110001_wave5_batch_c_settlement_ledger',
 ]);
 
 export type SchemaCompatibility = {
@@ -293,21 +297,24 @@ export const REQUIRED_TRUST_TABLES = Object.freeze([
 /**
  * Domain aggregate tables the store owns outside the trust set.
  *
- * Batch A's sixteen and Batch B's seven, taken from the contract registries rather than restated,
- * so an aggregate cannot be given a repository without becoming a readiness requirement.
+ * Batch A's sixteen, Batch B's seven and Batch C's seven, taken from the contract registries rather
+ * than restated, so an aggregate cannot be given a repository without becoming a readiness
+ * requirement.
  *
- * `fund_reservations` and `funding_commitments` are deliberately absent. `202608100002` converged
- * their schema — Batch B's foreign-key closure forced it, because the closure could not be converted
- * in parts — but they are Batch C aggregates, no repository routes to them, and requiring a table
- * the store never reads would make readiness assert something it does not depend on.
+ * `fund_reservations` and `funding_commitments` are now here, and were deliberately absent until
+ * Batch C. `202608100002` converged their schema — Batch B's foreign-key closure forced it, because
+ * the closure could not be converted in parts — but they had no repository and no route, and
+ * requiring a table the store never reads would have made readiness assert something it did not
+ * depend on. `202608110001` activates them, so the requirement follows the route rather than the
+ * conversion.
  *
  * Kept as its own constant because it answers a different question. The trust tables are what
  * authentication, authorization, membership and the audit chain need; these are what Engines
- * 31-46 need. A deployment could be missing the second set and still serve a login, which is
+ * 31-50 need. A deployment could be missing the second set and still serve a login, which is
  * why the readiness report names which tables are absent rather than only that some are.
  */
 export const REQUIRED_DOMAIN_AGGREGATE_TABLES = Object.freeze(
-  [...BATCH_A_TABLES, ...BATCH_B_TABLES].sort(),
+  [...BATCH_A_TABLES, ...BATCH_B_TABLES, ...BATCH_C_TABLES].sort(),
 );
 
 /**

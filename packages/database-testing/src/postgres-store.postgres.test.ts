@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { AuditRecord, TrustPersistence } from '@assurapay/shared';
 import { auditIntegrityHash } from '@assurapay/shared';
-import { PostgresTrustStore, PostgresStoreError } from '@assurapay/database';
+import { PostgresTrustStore, PostgresStoreError, POSTGRES_TRUST_COLLECTIONS } from '@assurapay/database';
 import { TRUST_PERSISTENCE_CONFORMANCE, runTrustPersistenceConformance } from '@assurapay/database';
 import type { ConformanceCollections } from '@assurapay/database';
 import { createTestDatabase, requireTestDatabaseUrl } from './index';
@@ -512,10 +512,16 @@ describe('integration: failures are reported, never swallowed', () => {
     // nothing reads, which is indistinguishable from losing it.
     const database = await freshDatabase();
     const store = new PostgresTrustStore(database.sql);
-    // `paymentInstructions`, not `releaseRequests`: Batch B routes release requests to their own
-    // table now, so the refusal has to be proved against a collection that genuinely has no
-    // mapping. A payment instruction keeps the point money-relevant.
-    await expect(store.append('paymentInstructions', { id: 'instruction-1' })).rejects.toThrow(
+    // The collection is *derived* rather than named, because naming one has now broken this test
+    // twice: `releaseRequests` was unmapped until Batch B, `paymentInstructions` until Batch C. The
+    // subject is the refusal path, not any particular aggregate, so the candidate is chosen from
+    // what the store actually claims — and if every candidate becomes mapped, this fails with a
+    // reason instead of a puzzle.
+    const unmapped = ['disputes', 'disputeHolds', 'disputeDecisions'].find(
+      (candidate) => !POSTGRES_TRUST_COLLECTIONS.includes(candidate),
+    );
+    expect(unmapped, 'every candidate collection is now mapped; pick one a later batch has not activated').toBeDefined();
+    await expect(store.append(unmapped as string, { id: 'unmapped-1' })).rejects.toThrow(
       'PERSISTENCE_COLLECTION_NOT_MAPPED',
     );
   });

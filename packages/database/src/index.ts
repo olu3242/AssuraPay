@@ -413,4 +413,5 @@ export * from './rls-certification';
 export * from './schema-ownership';
 export * from './batch-a-repository';
 export * from './batch-b-repository';
+export * from './batch-c-repository';
 export * from './domain-store-environment';

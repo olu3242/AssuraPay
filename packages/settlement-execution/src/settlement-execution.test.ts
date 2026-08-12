@@ -120,13 +120,15 @@ describe('Engine 48 Reconciliation & Financial Ledger', () => {
   it('appends ledger entries and flags amount mismatches as reconciliation exceptions', async () => {
     const s = new InMemoryTrustStore();
     const e = new ReconciliationLedgerEngine(s);
-    await e.record(requester, {
+    const journal = await e.post(requester, {
       paymentInstructionId: 'pi',
-      entryType: 'DEBIT',
       amountMinor: 425_000_000,
       currency: 'NGN',
-      description: 'escrow debit for milestone payout',
+      debitDescription: 'escrow debit for milestone payout',
+      creditDescription: 'beneficiary credit for milestone payout',
     });
+    expect(journal.debit.amountMinor).toBe(journal.credit.amountMinor);
+    expect([journal.debit.entryType, journal.credit.entryType]).toEqual(['DEBIT', 'CREDIT']);
     const matched = await e.reconcile(requester, {
       paymentInstructionId: 'pi',
       providerStatementReference: 'stmt-1',

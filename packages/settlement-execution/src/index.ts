@@ -367,24 +367,63 @@ export type ReconciliationRecord = {
 export class ReconciliationLedgerEngine {
   constructor(private readonly store: TrustPersistence) {}
 
-  async record(
+  /**
+   * Posts one balanced journal transaction: a debit and the credit that answers it.
+   *
+   * Replaces a single-leg `record`, which could not survive its own aggregate. `LedgerEntry` has
+   * always been typed `DEBIT | CREDIT`, but nothing ever wrote a matching pair — the ledger was
+   * single-entry with a double-entry vocabulary, and `docs/finance/MONETARY_INVARIANTS.md` requires
+   * a journal to balance per currency. A method that posts one leg makes the unbalanced state the
+   * default and balance an act of caller discipline.
+   *
+   * Both legs go through `store.transaction`, so they reach the database as one unit. That matters
+   * because the balance rule is enforced by a deferred constraint trigger that fires at COMMIT: the
+   * intermediate state after the first leg is unbalanced and permitted, and the committed state
+   * cannot be. Posting the legs in separate transactions would be refused by the database, which is
+   * the correct outcome and the reason this method exists.
+   */
+  async post(
     context: RequestContext,
     input: {
       paymentInstructionId: string;
-      entryType: LedgerEntry['entryType'];
       amountMinor: number;
       currency: string;
-      description: string;
+      debitDescription: string;
+      creditDescription: string;
     },
   ) {
     requireIntegerMinorUnits(input.amountMinor, 'AMOUNT');
-    const entry: LedgerEntry = { id: randomUUID(), workspaceId: ws(context), ...input, recordedAt: now() };
-    await this.store.append('ledgerEntries', entry);
-    await emit(this.store, context, 'LedgerEntryRecorded', 'LedgerEntry', entry.id, {
-      paymentInstructionId: entry.paymentInstructionId,
-      entryType: entry.entryType,
+    if (!input.debitDescription.trim() || !input.creditDescription.trim())
+      throw new Error('LEDGER_ENTRY_DESCRIPTION_REQUIRED');
+    const workspaceId = ws(context);
+    const recordedAt = now();
+    const leg = (entryType: LedgerEntry['entryType'], description: string): LedgerEntry => ({
+      id: randomUUID(),
+      workspaceId,
+      paymentInstructionId: input.paymentInstructionId,
+      entryType,
+      amountMinor: input.amountMinor,
+      currency: input.currency,
+      description,
+      recordedAt,
     });
-    return entry;
+    const debit = leg('DEBIT', input.debitDescription);
+    const credit = leg('CREDIT', input.creditDescription);
+
+    await this.store.transaction(async (tx) => {
+      await tx.append('ledgerEntries', debit);
+      await tx.append('ledgerEntries', credit);
+    });
+
+    // Emitted after the commit that proved the journal balances. An event announcing a posting the
+    // database went on to refuse would be an event for something that never happened.
+    await emit(this.store, context, 'LedgerJournalPosted', 'LedgerEntry', debit.id, {
+      paymentInstructionId: debit.paymentInstructionId,
+      creditEntryId: credit.id,
+      amountMinor: debit.amountMinor,
+      currency: debit.currency,
+    });
+    return { debit, credit };
   }
 
   async reconcile(
