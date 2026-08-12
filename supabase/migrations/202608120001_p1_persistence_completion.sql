@@ -175,11 +175,23 @@ BEGIN
     IF EXISTS (
       SELECT 1 FROM information_schema.columns
       WHERE table_schema = 'public' AND table_name = edge.parent_table AND column_name = 'tenant_id'
+    ) AND EXISTS (
+      SELECT 1 FROM information_schema.columns
+      WHERE table_schema = 'public' AND table_name = edge.child_table AND column_name = 'tenant_id'
     ) THEN
       BEGIN
         EXECUTE format(
           'ALTER TABLE public.%I ADD CONSTRAINT %I FOREIGN KEY (tenant_id, %I) REFERENCES public.%I(tenant_id, %I)',
           edge.child_table, edge.conname || '_tenant', edge.child_column,
+          edge.parent_table, edge.parent_column
+        );
+      EXCEPTION WHEN duplicate_object THEN NULL;
+      END;
+    ELSE
+      BEGIN
+        EXECUTE format(
+          'ALTER TABLE public.%I ADD CONSTRAINT %I FOREIGN KEY (%I) REFERENCES public.%I(%I)',
+          edge.child_table, edge.conname, edge.child_column,
           edge.parent_table, edge.parent_column
         );
       EXCEPTION WHEN duplicate_object THEN NULL;
