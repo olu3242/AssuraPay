@@ -1,4 +1,5 @@
 import { defineConfig, devices } from '@playwright/test';
+import path from 'node:path';
 
 const databaseUrl = process.env.ASSURAPAY_TEST_DATABASE_URL ?? process.env.ASSURAPAY_DATABASE_URL;
 if (!databaseUrl) throw new Error('Playwright requires PostgreSQL; set ASSURAPAY_TEST_DATABASE_URL. File-backed browser runs are forbidden.');
@@ -16,6 +17,7 @@ export default defineConfig({
     env: {
       ASSURAPAY_DEPLOYMENT: 'test', ASSURAPAY_PERSISTENCE_ADAPTER: 'postgres',
       ASSURAPAY_DATABASE_URL: databaseUrl, ASSURAPAY_DATABASE_SSL: 'disable',
+      ASSURAPAY_MIGRATIONS_DIRECTORY: path.resolve(process.cwd(), 'supabase/migrations'),
     },
     stdout: 'pipe', stderr: 'pipe', timeout: 120_000,
   },

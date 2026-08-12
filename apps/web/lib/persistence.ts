@@ -34,6 +34,10 @@ const globalRuntime = globalThis as typeof globalThis & {
  */
 export function getPersistenceRuntime(): Promise<PersistenceRuntime> {
   globalRuntime.assurapayPersistenceRuntime ??= createPersistenceRuntime({
+    // Hosts may launch Next from apps/web while migrations remain at the repository root.
+    // Keep migration verification enabled and make that deployment path explicit rather than
+    // deriving repository layout from process.cwd().
+    migrationsDirectory: process.env.ASSURAPAY_MIGRATIONS_DIRECTORY,
     // Sanitized lifecycle evidence. Structured rather than prose so a log processor can
     // read it; never carries a URL, credential or parameter value.
     onEvidence: (evidence) => {
