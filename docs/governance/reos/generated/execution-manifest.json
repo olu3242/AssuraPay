@@ -3393,9 +3393,9 @@
     }
   ],
   "identity": {
-    "branch": "feat/a1-batch-a-relational-repositories",
-    "clean": false,
-    "head": "c79ec6f78b9e9ebdb1f039466c8880ae207a4363",
+    "branch": "feat/b1-batch-b-settlement-authority",
+    "clean": true,
+    "head": "d065efb65b4a2b7471b089f9ff9554e1de4dece8",
     "repository": "assurapay",
     "version": "0.1.0"
   },
@@ -3486,7 +3486,7 @@
     "released": 75,
     "validated": 0
   },
-  "manifestDigest": "a79eec23d4ca",
+  "manifestDigest": "f80b9d2143c7",
   "missingCapabilities": [
     "persistence.domain-store-durability"
   ],
@@ -3676,8 +3676,8 @@
       "main": "src/index.ts",
       "moduleType": null,
       "name": "@assurapay/database",
-      "sourceFiles": 12,
-      "sourceLines": 4695,
+      "sourceFiles": 13,
+      "sourceLines": 5358,
       "testFiles": [
         "packages/database/src/async-conformance.test.ts",
         "packages/database/src/domain-repository.test.ts",
@@ -3716,14 +3716,15 @@
         "packages/database-testing/src/rls-certification.postgres.test.ts",
         "packages/database-testing/src/schema-ownership.postgres.test.ts",
         "packages/database-testing/src/wave4-batch-a-repository.postgres.test.ts",
-        "packages/database-testing/src/wave4-trust-authority.postgres.test.ts"
+        "packages/database-testing/src/wave4-trust-authority.postgres.test.ts",
+        "packages/database-testing/src/wave5-batch-b-repository.postgres.test.ts"
       ],
       "tests": {
         "e2e": 0,
         "integration": 0,
         "performance": 0,
         "security": 0,
-        "unit": 6
+        "unit": 7
       },
       "workspaceDependencies": [
         "@assurapay/database",
@@ -3777,8 +3778,8 @@
       "main": "src/index.ts",
       "moduleType": null,
       "name": "@assurapay/domain-contracts",
-      "sourceFiles": 3,
-      "sourceLines": 633,
+      "sourceFiles": 4,
+      "sourceLines": 908,
       "testFiles": [
         "packages/domain-contracts/src/batch-a.test.ts"
       ],
@@ -4207,6 +4208,7 @@
       "sourceFiles": 1,
       "sourceLines": 504,
       "testFiles": [
+        "packages/settlement-assurance/src/persisted-contracts.test.ts",
         "packages/settlement-assurance/src/settlement-assurance.e2e.test.ts",
         "packages/settlement-assurance/src/settlement-assurance.integration.test.ts",
         "packages/settlement-assurance/src/settlement-assurance.non-custody.test.ts",
@@ -4217,10 +4219,11 @@
         "integration": 1,
         "performance": 0,
         "security": 0,
-        "unit": 2
+        "unit": 3
       },
       "workspaceDependencies": [
         "@assurapay/database",
+        "@assurapay/domain-contracts",
         "@assurapay/shared"
       ]
     },
@@ -4240,6 +4243,7 @@
       "sourceFiles": 1,
       "sourceLines": 663,
       "testFiles": [
+        "packages/settlement-execution/src/persisted-contracts.test.ts",
         "packages/settlement-execution/src/settlement-execution.e2e.test.ts",
         "packages/settlement-execution/src/settlement-execution.integration.test.ts",
         "packages/settlement-execution/src/settlement-execution.non-custody.test.ts",
@@ -4250,10 +4254,11 @@
         "integration": 1,
         "performance": 0,
         "security": 0,
-        "unit": 2
+        "unit": 3
       },
       "workspaceDependencies": [
         "@assurapay/database",
+        "@assurapay/domain-contracts",
         "@assurapay/shared"
       ]
     },
@@ -4643,7 +4648,9 @@
             "packages/database-testing/src/rls-certification.postgres.test.ts",
             "packages/database-testing/src/schema-ownership.postgres.test.ts",
             "packages/database-testing/src/wave4-batch-a-repository.postgres.test.ts",
+            "packages/database-testing/src/wave5-batch-b-repository.postgres.test.ts",
             "packages/database/src/batch-a-repository.ts",
+            "packages/database/src/batch-b-repository.ts",
             "packages/database/src/conformance.ts",
             "packages/database/src/migrations.ts",
             "packages/database/src/postgres-store.ts",
@@ -4666,6 +4673,7 @@
             "packages/database-testing/src/schema-ownership.postgres.test.ts",
             "packages/database-testing/src/wave4-batch-a-repository.postgres.test.ts",
             "packages/database-testing/src/wave4-trust-authority.postgres.test.ts",
+            "packages/database-testing/src/wave5-batch-b-repository.postgres.test.ts",
             "packages/database/src/migrations.ts",
             "packages/database/src/schema-ownership.ts",
             "packages/runtime/src/persistence-runtime.postgres.test.ts",
@@ -4680,6 +4688,7 @@
             "packages/database-testing/src/migrations.postgres.test.ts",
             "packages/database-testing/src/schema-ownership.postgres.test.ts",
             "packages/database-testing/src/wave4-batch-a-repository.postgres.test.ts",
+            "packages/database-testing/src/wave5-batch-b-repository.postgres.test.ts",
             "packages/database/src/migrations.ts",
             "packages/runtime/src/persistence-runtime.ts"
           ],
@@ -4943,6 +4952,7 @@
             "packages/database-testing/src/schema-ownership.postgres.test.ts",
             "packages/database-testing/src/wave4-batch-a-repository.postgres.test.ts",
             "packages/database-testing/src/wave4-trust-authority.postgres.test.ts",
+            "packages/database-testing/src/wave5-batch-b-repository.postgres.test.ts",
             "packages/database/src/trust-scope.ts",
             "packages/runtime/src/persistence-runtime.postgres.test.ts",
             "packages/runtime/src/rls-runtime.postgres.test.ts"

@@ -128,9 +128,11 @@ describe('integration: every Batch A aggregate has a repository and a required t
   it('treats the sixteen tables as a readiness requirement', async () => {
     // A store that routes a collection to a table it does not require at startup discovers the
     // absence on the first write, having already reported the host ready.
-    expect([...REQUIRED_DOMAIN_AGGREGATE_TABLES]).toEqual(
-      [...BATCH_A_AGGREGATES.map((aggregate) => aggregate.table)].sort(),
-    );
+    // Containment, not equality: the requirement is the union across activated batches, and
+    // Batch B has since added its seven. This suite owns Batch A's sixteen; each batch's suite
+    // asserts its own, so neither has to be edited when the next one activates.
+    for (const aggregate of BATCH_A_AGGREGATES)
+      expect(REQUIRED_DOMAIN_AGGREGATE_TABLES, aggregate.table).toContain(aggregate.table);
 
     const database = await migratedDatabase();
     const compatible = await verifySchemaCompatibility(

@@ -6,44 +6,59 @@
 
 | Field | Value |
 | --- | --- |
-| Branch | feat/persistence-domain-store-durable-environment-gate |
-| HEAD | cdffedc19f1c740a44de008ff7f97cec816c99e3 |
+| Branch | feat/b1-batch-b-settlement-authority |
+| HEAD | 92860feff2861a4197dcc3b320e53b714e058931 |
 | Worktree clean | no |
-| Uncommitted files | 15 |
-| Generated at | 2026-08-06T09:35:33.597Z |
+| Uncommitted files | 25 |
+| Generated at | 2026-08-10T20:04:34.515Z |
 
 ## Capability implemented
 
-`persistence.domain-store-environment-gate` — lifecycle **certified**
+`persistence.domain-store-durability` — lifecycle **planned**
 
-## Files modified (17)
+## Files modified (27)
 
-- `apps/web/lib/assurapay-app.ts`
+- `docs/governance/execution-ledger/92860feff286-persistence.domain-store-durability.json`
 - `docs/governance/execution-ledger/INDEX.md`
-- `docs/governance/execution-ledger/cdffedc19f1c-persistence.domain-store-environment-gate.json`
-- `docs/governance/reos/capability-registry.json`
 - `docs/governance/reos/generated/CERTIFICATION_REPORT.md`
-- `docs/governance/reos/generated/DEPENDENCY_RESOLUTION.md`
 - `docs/governance/reos/generated/EXECUTION_MANIFEST.md`
 - `docs/governance/reos/generated/certification.json`
 - `docs/governance/reos/generated/dependency-resolution.json`
 - `docs/governance/reos/generated/discovery.json`
 - `docs/governance/reos/generated/execution-manifest.json`
 - `docs/governance/reos/generated/forensics.json`
-- `packages/database/src/domain-store-environment.test.ts`
-- `packages/database/src/domain-store-environment.ts`
+- `docs/persistence/WAVE_5_BATCH_B_ACTIVATION.md`
+- `packages/database-testing/src/migrations.postgres.test.ts`
+- `packages/database-testing/src/postgres-store.postgres.test.ts`
+- `packages/database-testing/src/wave4-batch-a-repository.postgres.test.ts`
+- `packages/database-testing/src/wave5-batch-b-repository.postgres.test.ts`
+- `packages/database/src/batch-b-repository.ts`
 - `packages/database/src/index.ts`
-- `packages/reos/src/reos.persistence.test.ts`
-- `packages/reos/src/validators/persistence.ts`
+- `packages/database/src/migrations.ts`
+- `packages/database/src/postgres-store.ts`
+- `packages/domain-contracts/src/batch-b.ts`
+- `packages/domain-contracts/src/index.ts`
+- `packages/domain-contracts/src/primitives.ts`
+- `packages/settlement-assurance/package.json`
+- `packages/settlement-assurance/src/persisted-contracts.test.ts`
+- `packages/settlement-execution/package.json`
+- `packages/settlement-execution/src/persisted-contracts.test.ts`
+- `pnpm-lock.yaml`
+- `supabase/migrations/202608100002_wave5_batch_b_settlement_authority.sql`
 
 ## Validation
 
 | Validator | Result | Checked | Errors | Warnings |
 | --- | --- | --- | --- | --- |
-| architecture | pass | 197 | 0 | 0 |
-| dependencies | pass | 26 | 0 | 0 |
-| security | pass | 272 | 0 | 0 |
-| execution-contract | pass | 7 | 0 | 0 |
+| architecture | pass | 213 | 0 | 0 |
+| dependencies | pass | 27 | 0 | 0 |
+| security | pass | 283 | 0 | 0 |
+| execution-contract | pass | 18 | 0 | 2 |
+
+### Findings
+
+- **warning** `contract/tests-not-updated` (packages/database/src) — packages/database has modified source but no modified tests in this change.
+- **warning** `contract/tests-not-updated` (packages/domain-contracts/src) — packages/domain-contracts has modified source but no modified tests in this change.
 
 ## Governance
 
@@ -67,8 +82,8 @@ No newly introduced violations.
 
 ## Ledger
 
-Recorded as `cdffedc19f1c-persistence.domain-store-environment-gate` in `docs/governance/execution-ledger/`.
+Recorded as `92860feff286-persistence.domain-store-durability` in `docs/governance/execution-ledger/`.
 
 ## Commit
 
-`cdffedc19f1c740a44de008ff7f97cec816c99e3`
+`92860feff2861a4197dcc3b320e53b714e058931`
