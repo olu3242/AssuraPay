@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@assurapay/database':
+        specifier: workspace:*
+        version: link:packages/database
       framer-motion:
         specifier: ^11.11.9
         version: 11.18.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -54,6 +57,9 @@ importers:
       typescript:
         specifier: ^5.5.4
         version: 5.9.3
+      vite-node:
+        specifier: ^2.1.9
+        version: 2.1.9(@types/node@20.19.43)
       vitest:
         specifier: ^2.1.4
         version: 2.1.9(@types/node@20.19.43)
