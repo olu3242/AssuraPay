@@ -10,6 +10,7 @@ import {
   BATCH_F_TABLES,
 } from '@assurapay/domain-contracts';
 import type { SqlClient } from './postgres-client';
+import { P1_TABLES } from './p1-repository';
 
 /**
  * The governed migration runner.
@@ -293,6 +294,9 @@ export const REQUIRED_TRUST_MIGRATIONS: readonly string[] = Object.freeze([
   // then refuse the corrected resubmission that carries the same counterparty document reference,
   // leaving a confirmed entitlement with no route to an invoice.
   '202608110006_close_batch_b_invoice_number_gap',
+  // P1 completion routes governance, agreement intelligence, enterprise intelligence and the
+  // governed agent runtime through their canonical relational owners.
+  '202608120001_p1_persistence_completion',
 ]);
 
 export type SchemaCompatibility = {
@@ -354,6 +358,7 @@ export const REQUIRED_DOMAIN_AGGREGATE_TABLES = Object.freeze(
     ...BATCH_D_TABLES,
     ...BATCH_E_TABLES,
     ...BATCH_F_TABLES,
+    ...P1_TABLES,
   ].sort(),
 );
 
@@ -406,11 +411,13 @@ export async function verifySchemaCompatibility(
     if (!migration || migration.checksum !== checksum) divergent.push(id);
   }
 
-  const present = await sql<{ table_name: string }[]>`
-    SELECT table_name FROM information_schema.tables
-    WHERE table_schema = current_schema()
+  const present = await sql<{ table_schema: string; table_name: string }[]>`
+    SELECT table_schema, table_name FROM information_schema.tables
+    WHERE table_schema = current_schema() OR table_schema = 'agent_runtime'
   `;
-  const names = new Set(present.map((row) => row.table_name));
+  const names = new Set(
+    present.flatMap((row) => [row.table_name, `${row.table_schema}.${row.table_name}`]),
+  );
   const missingTables = REQUIRED_STORE_TABLES.filter((table) => !names.has(table));
 
   const pendingRequired = REQUIRED_TRUST_MIGRATIONS.filter((id) => !ledger.has(id));

@@ -2435,8 +2435,8 @@
         "persistence.domain-store-environment-gate"
       ],
       "id": "persistence.domain-store-durability",
-      "lifecycle": "planned",
-      "status": "missing"
+      "lifecycle": "certified",
+      "status": "implemented"
     },
     {
       "blocks": [
@@ -3371,31 +3371,11 @@
       "wave": 6
     }
   ],
-  "executionBacklog": [
-    {
-      "blockedBy": [],
-      "blocks": [],
-      "dependsOn": [
-        "persistence.domain-store-environment-gate"
-      ],
-      "executable": true,
-      "id": "persistence.domain-store-durability",
-      "lifecycle": "planned",
-      "priority": 45,
-      "requiresLiveInfrastructure": true,
-      "scope": {
-        "estimated": false,
-        "files": 1,
-        "tests": 1
-      },
-      "status": "missing",
-      "title": "Domain store durability for Engines 06-60"
-    }
-  ],
+  "executionBacklog": [],
   "identity": {
-    "branch": "feat/g1-batch-f-agreement-creation",
+    "branch": "feat/p1-persistence-completion",
     "clean": false,
-    "head": "ed254b831ec1bc86ce67c62efeb5656799757d60",
+    "head": "ef0a7af01059b5851947d5b9b3911f9b133cee41",
     "repository": "assurapay",
     "version": "0.1.0"
   },
@@ -3458,6 +3438,7 @@
     "engine:60",
     "persistence.async-domain-repository-interface",
     "persistence.async-repository-interface",
+    "persistence.domain-store-durability",
     "persistence.domain-store-environment-gate",
     "persistence.postgres-repository",
     "persistence.production-runtime-wiring",
@@ -3477,19 +3458,17 @@
     "trust.session-assertion-issuance"
   ],
   "lifecycleSummary": {
-    "certified": 0,
+    "certified": 1,
     "deferred": 4,
     "implemented": 0,
     "implementing": 0,
     "missing": 0,
-    "planned": 1,
+    "planned": 0,
     "released": 75,
     "validated": 0
   },
-  "manifestDigest": "e032844d3126",
-  "missingCapabilities": [
-    "persistence.domain-store-durability"
-  ],
+  "manifestDigest": "d6908a0c5cc1",
+  "missingCapabilities": [],
   "packages": [
     {
       "directory": "packages/agent-runtime",
@@ -3678,8 +3657,8 @@
       "main": "src/index.ts",
       "moduleType": null,
       "name": "@assurapay/database",
-      "sourceFiles": 17,
-      "sourceLines": 8324,
+      "sourceFiles": 18,
+      "sourceLines": 8518,
       "testFiles": [
         "packages/database/src/async-conformance.test.ts",
         "packages/database/src/domain-repository.test.ts",
@@ -3716,6 +3695,7 @@
         "packages/database-testing/src/durability-coverage.test.ts",
         "packages/database-testing/src/engine-identity.test.ts",
         "packages/database-testing/src/migrations.postgres.test.ts",
+        "packages/database-testing/src/p1-persistence.postgres.test.ts",
         "packages/database-testing/src/postgres-store.postgres.test.ts",
         "packages/database-testing/src/rls-certification.postgres.test.ts",
         "packages/database-testing/src/schema-ownership.postgres.test.ts",
@@ -3733,7 +3713,7 @@
         "integration": 0,
         "performance": 0,
         "security": 0,
-        "unit": 14
+        "unit": 15
       },
       "workspaceDependencies": [
         "@assurapay/database",
@@ -4483,7 +4463,7 @@
     {
       "git": {
         "historicalCommits": [],
-        "reachableFromHead": false,
+        "reachableFromHead": true,
         "refsContaining": [],
         "removedFromHead": false
       },
@@ -4493,34 +4473,70 @@
       "probes": [
         {
           "kind": "path",
-          "matches": [],
-          "query": "packages/database/src/domain-store.ts",
-          "satisfied": false
+          "matches": [
+            "packages/database/src/p1-repository.ts"
+          ],
+          "query": "packages/database/src/p1-repository.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "path",
+          "matches": [
+            "supabase/migrations/202608120001_p1_persistence_completion.sql"
+          ],
+          "query": "supabase/migrations/202608120001_p1_persistence_completion.sql",
+          "satisfied": true
         },
         {
           "kind": "symbol",
-          "matches": [],
-          "query": "PostgresDomainStore",
-          "satisfied": false
+          "matches": [
+            "packages/database-testing/src/p1-persistence.postgres.test.ts",
+            "packages/database/src/p1-repository.ts",
+            "packages/database/src/postgres-store.ts"
+          ],
+          "query": "P1_RELATIONS",
+          "satisfied": true
         },
         {
           "kind": "symbol",
-          "matches": [],
-          "query": "DOMAIN_AGGREGATE_OWNERSHIP",
-          "satisfied": false
+          "matches": [
+            "packages/database/src/p1-repository.ts",
+            "supabase/migrations/202608120001_p1_persistence_completion.sql"
+          ],
+          "query": "assurapay_p1_append",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "packages/database/src/p1-repository.ts",
+            "supabase/migrations/202608120001_p1_persistence_completion.sql"
+          ],
+          "query": "assurapay_p1_replace",
+          "satisfied": true
         },
         {
           "kind": "test",
-          "matches": [],
-          "query": "packages/database-testing/src/domain-store.postgres.test.ts",
-          "satisfied": false
+          "matches": [
+            "packages/database-testing/src/p1-persistence.postgres.test.ts"
+          ],
+          "query": "packages/database-testing/src/p1-persistence.postgres.test.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "test",
+          "matches": [
+            "packages/database-testing/src/durability-coverage.test.ts"
+          ],
+          "query": "packages/database-testing/src/durability-coverage.test.ts",
+          "satisfied": true
         }
       ],
-      "rationale": "No evidence at HEAD, on any ref, or in history.",
-      "satisfiedProbes": 0,
-      "status": "missing",
+      "rationale": "All 7 evidence probes satisfied at HEAD.",
+      "satisfiedProbes": 7,
+      "status": "implemented",
       "title": "Domain store durability for Engines 06-60",
-      "totalProbes": 4
+      "totalProbes": 7
     },
     {
       "git": {
@@ -4661,6 +4677,7 @@
           "matches": [
             "packages/audit-ledger/src/audit-ledger.postgres.test.ts",
             "packages/database-testing/src/durability-coverage.test.ts",
+            "packages/database-testing/src/p1-persistence.postgres.test.ts",
             "packages/database-testing/src/postgres-store.postgres.test.ts",
             "packages/database-testing/src/rls-certification.postgres.test.ts",
             "packages/database-testing/src/schema-ownership.postgres.test.ts",
@@ -4697,6 +4714,7 @@
           "matches": [
             "packages/database-testing/src/index.ts",
             "packages/database-testing/src/migrations.postgres.test.ts",
+            "packages/database-testing/src/p1-persistence.postgres.test.ts",
             "packages/database-testing/src/schema-ownership.postgres.test.ts",
             "packages/database-testing/src/store-boundary.postgres.test.ts",
             "packages/database-testing/src/wave4-batch-a-repository.postgres.test.ts",
@@ -4984,6 +5002,7 @@
         {
           "kind": "symbol",
           "matches": [
+            "packages/database-testing/src/p1-persistence.postgres.test.ts",
             "packages/database-testing/src/rls-certification.postgres.test.ts",
             "packages/database-testing/src/schema-ownership.postgres.test.ts",
             "packages/database-testing/src/wave4-batch-a-repository.postgres.test.ts",

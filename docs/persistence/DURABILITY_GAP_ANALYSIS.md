@@ -1,5 +1,14 @@
 # Durability gap analysis
 
+## 2026-08-12 P1 convergence update
+
+Migration `202608120001_p1_persistence_completion.sql` activates 41 collections: Governance Core
+(11), Agreement Intelligence (6, including the digit-suffixed `contractVersionsV2` the original
+scanner missed), Enterprise Intelligence and Analytics (15), and Agent Runtime (9). Existing
+relations remain canonical; only `analysis_reviews`, which had no relation, is created. The durable
+store now maps every engine collection except the six Performance Readiness collections deliberately
+outside this P1 batch. The ratchet's scanner now accepts digits and its baseline is six.
+
 **Status: ANALYSIS + GATE.** Measures what the platform actually persists, states what it is meant to
 persist, registers the difference, and installs the mechanism that keeps the difference visible. It
 does **not** close the gap — closing it is sequenced below as named work.

@@ -4,25 +4,11 @@
 
 ## Selected capability
 
-| Field | Value |
-| --- | --- |
-| Capability | persistence.domain-store-durability |
-| Title | Domain store durability for Engines 06-60 |
-| Current status | missing |
-| Lifecycle | planned |
-| Priority | 45 |
-| Reason | Highest-priority executable capability (priority 45, lifecycle planned) — selected despite needing live infrastructure, nothing else is executable |
-| Depends on | persistence.domain-store-environment-gate |
-| Unmet dependencies | none |
-| Blocks (transitive) | — |
-| Declared scope | 1 file(s), 1 test suite(s) |
-| Requires live infrastructure | yes |
+No executable capability. Every backlog item is blocked, deferred or complete.
 
 ## Executable queue
 
-| Capability | Title | Lifecycle | Priority | Blocks | Live infra |
-| --- | --- | --- | --- | --- | --- |
-| persistence.domain-store-durability | Domain store durability for Engines 06-60 | planned | 45 | — | yes |
+Empty.
 
 ## Blocked
 
@@ -30,9 +16,9 @@ Nothing blocked.
 
 ## Awaiting live infrastructure
 
-- persistence.domain-store-durability
+None.
 
-## Completed (75)
+## Completed (76)
 
 - engine:01
 - engine:02
@@ -92,6 +78,7 @@ Nothing blocked.
 - engine:60
 - persistence.async-domain-repository-interface
 - persistence.async-repository-interface
+- persistence.domain-store-durability
 - persistence.domain-store-environment-gate
 - persistence.postgres-repository
 - persistence.production-runtime-wiring

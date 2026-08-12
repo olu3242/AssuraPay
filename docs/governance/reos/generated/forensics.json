@@ -143,7 +143,7 @@
     {
       "git": {
         "historicalCommits": [],
-        "reachableFromHead": false,
+        "reachableFromHead": true,
         "refsContaining": [],
         "removedFromHead": false
       },
@@ -153,34 +153,70 @@
       "probes": [
         {
           "kind": "path",
-          "matches": [],
-          "query": "packages/database/src/domain-store.ts",
-          "satisfied": false
+          "matches": [
+            "packages/database/src/p1-repository.ts"
+          ],
+          "query": "packages/database/src/p1-repository.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "path",
+          "matches": [
+            "supabase/migrations/202608120001_p1_persistence_completion.sql"
+          ],
+          "query": "supabase/migrations/202608120001_p1_persistence_completion.sql",
+          "satisfied": true
         },
         {
           "kind": "symbol",
-          "matches": [],
-          "query": "PostgresDomainStore",
-          "satisfied": false
+          "matches": [
+            "packages/database-testing/src/p1-persistence.postgres.test.ts",
+            "packages/database/src/p1-repository.ts",
+            "packages/database/src/postgres-store.ts"
+          ],
+          "query": "P1_RELATIONS",
+          "satisfied": true
         },
         {
           "kind": "symbol",
-          "matches": [],
-          "query": "DOMAIN_AGGREGATE_OWNERSHIP",
-          "satisfied": false
+          "matches": [
+            "packages/database/src/p1-repository.ts",
+            "supabase/migrations/202608120001_p1_persistence_completion.sql"
+          ],
+          "query": "assurapay_p1_append",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "packages/database/src/p1-repository.ts",
+            "supabase/migrations/202608120001_p1_persistence_completion.sql"
+          ],
+          "query": "assurapay_p1_replace",
+          "satisfied": true
         },
         {
           "kind": "test",
-          "matches": [],
-          "query": "packages/database-testing/src/domain-store.postgres.test.ts",
-          "satisfied": false
+          "matches": [
+            "packages/database-testing/src/p1-persistence.postgres.test.ts"
+          ],
+          "query": "packages/database-testing/src/p1-persistence.postgres.test.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "test",
+          "matches": [
+            "packages/database-testing/src/durability-coverage.test.ts"
+          ],
+          "query": "packages/database-testing/src/durability-coverage.test.ts",
+          "satisfied": true
         }
       ],
-      "rationale": "No evidence at HEAD, on any ref, or in history.",
-      "satisfiedProbes": 0,
-      "status": "missing",
+      "rationale": "All 7 evidence probes satisfied at HEAD.",
+      "satisfiedProbes": 7,
+      "status": "implemented",
       "title": "Domain store durability for Engines 06-60",
-      "totalProbes": 4
+      "totalProbes": 7
     },
     {
       "git": {
@@ -321,6 +357,7 @@
           "matches": [
             "packages/audit-ledger/src/audit-ledger.postgres.test.ts",
             "packages/database-testing/src/durability-coverage.test.ts",
+            "packages/database-testing/src/p1-persistence.postgres.test.ts",
             "packages/database-testing/src/postgres-store.postgres.test.ts",
             "packages/database-testing/src/rls-certification.postgres.test.ts",
             "packages/database-testing/src/schema-ownership.postgres.test.ts",
@@ -357,6 +394,7 @@
           "matches": [
             "packages/database-testing/src/index.ts",
             "packages/database-testing/src/migrations.postgres.test.ts",
+            "packages/database-testing/src/p1-persistence.postgres.test.ts",
             "packages/database-testing/src/schema-ownership.postgres.test.ts",
             "packages/database-testing/src/store-boundary.postgres.test.ts",
             "packages/database-testing/src/wave4-batch-a-repository.postgres.test.ts",
@@ -644,6 +682,7 @@
         {
           "kind": "symbol",
           "matches": [
+            "packages/database-testing/src/p1-persistence.postgres.test.ts",
             "packages/database-testing/src/rls-certification.postgres.test.ts",
             "packages/database-testing/src/schema-ownership.postgres.test.ts",
             "packages/database-testing/src/wave4-batch-a-repository.postgres.test.ts",
@@ -1633,14 +1672,14 @@
       "totalProbes": 5
     }
   ],
-  "head": "ed254b831ec1bc86ce67c62efeb5656799757d60",
+  "head": "ef0a7af01059b5851947d5b9b3911f9b133cee41",
   "reosVersion": "1.0.0",
   "stage": "forensics",
   "summary": {
     "deferred": 0,
-    "implemented": 19,
+    "implemented": 20,
     "lost": 0,
-    "missing": 1,
+    "missing": 0,
     "partial": 0,
     "unreachable": 0
   }

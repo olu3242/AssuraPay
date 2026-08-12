@@ -15,6 +15,13 @@ import { BATCH_C_RELATIONS, batchCRelation, isBatchCCollection } from './batch-c
 import { BATCH_D_RELATIONS, batchDRelation, isBatchDCollection } from './batch-d-repository';
 import { BATCH_E_RELATIONS, batchERelation, isBatchECollection } from './batch-e-repository';
 import { BATCH_F_RELATIONS, batchFRelation, isBatchFCollection } from './batch-f-repository';
+import {
+  P1_RELATIONS,
+  insertP1,
+  isP1Collection,
+  listP1,
+  updateP1,
+} from './p1-repository';
 import { PostgresStoreError } from './store-error';
 
 export { PostgresStoreError } from './store-error';
@@ -250,6 +257,9 @@ export const POSTGRES_TRUST_COLLECTIONS: readonly string[] = Object.freeze(
     // `signatureCallbacks` — had no table at all until `202608110005`, so a comment on a contract and a
     // consumed provider callback could not be stored anywhere.
     ...Object.keys(BATCH_F_RELATIONS),
+    // P1 persistence completion. These forty collections retain the relational tables their
+    // engines already declared; this only converges identity, tenancy, mutation and store routing.
+    ...Object.keys(P1_RELATIONS),
   ].sort(),
 );
 
@@ -456,6 +466,7 @@ export class PostgresTrustStore implements TrustPersistence {
         return (await batchERelation(collection).list(this.sql)) as unknown as T[];
       if (isBatchFCollection(collection))
         return (await batchFRelation(collection).list(this.sql)) as unknown as T[];
+      if (isP1Collection(collection)) return (await listP1(this.sql, collection)) as unknown as T[];
       this.requireGoverned(collection);
       const rows = await this.sql<StoredRow[]>`
         SELECT payload, payload_digest FROM trust_records
@@ -545,6 +556,16 @@ export class PostgresTrustStore implements TrustPersistence {
       if (isBatchFCollection(collection)) {
         await batchFRelation(collection).insert(
           this.sql,
+          record,
+          this.requireRelationalTenant(collection, record),
+        );
+        return;
+      }
+
+      if (isP1Collection(collection)) {
+        await insertP1(
+          this.sql,
+          collection,
           record,
           this.requireRelationalTenant(collection, record),
         );
@@ -662,12 +683,19 @@ export class PostgresTrustStore implements TrustPersistence {
         isBatchCCollection(collection) ||
         isBatchDCollection(collection) ||
         isBatchECollection(collection) ||
-        isBatchFCollection(collection)
+        isBatchFCollection(collection) ||
+        isP1Collection(collection)
       ) {
         // The tenant is re-derived and checked even though the UPDATE does not write it: a
         // caller replacing a record outside its scope must be refused for that reason, not
         // discover it as a row that mysteriously does not exist.
         this.requireRelationalTenant(collection, record);
+        if (isP1Collection(collection)) {
+          const tenantId = this.requireRelationalTenant(collection, record);
+          const affected = await updateP1(this.sql, collection, record, tenantId);
+          this.requireAffected(affected, collection, id);
+          return;
+        }
         const relation = isBatchACollection(collection)
           ? batchARelation(collection)
           : isBatchBCollection(collection)

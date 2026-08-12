@@ -58,6 +58,7 @@ afterAll(async () => {
 const UNSCOPED_BY_DESIGN: readonly string[] = Object.freeze(['trust_migration_ledger']);
 
 type BoundaryRow = {
+  schema_name: string;
   relname: string;
   enabled: boolean;
   forced: boolean;
@@ -65,9 +66,9 @@ type BoundaryRow = {
 
 async function boundaries(): Promise<BoundaryRow[]> {
   return await database.sql<BoundaryRow[]>`
-    SELECT c.relname, c.relrowsecurity AS enabled, c.relforcerowsecurity AS forced
+    SELECT n.nspname AS schema_name, c.relname, c.relrowsecurity AS enabled, c.relforcerowsecurity AS forced
     FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
-    WHERE n.nspname = 'public' AND c.relkind = 'r'
+    WHERE n.nspname IN ('public', 'agent_runtime') AND c.relkind = 'r'
     ORDER BY c.relname
   `;
 }
@@ -78,7 +79,9 @@ describe('integration: every store-routed table forces the trust boundary', () =
     // a console session, or a misconfigured deployment connects as — so ENABLE-only is a boundary
     // that holds for exactly the callers that were never the threat.
     const rows = await boundaries();
-    const state = new Map(rows.map((row) => [row.relname, row]));
+    const state = new Map(
+      rows.flatMap((row) => [[row.relname, row], [`${row.schema_name}.${row.relname}`, row]] as const),
+    );
     const unforced: string[] = [];
 
     for (const table of REQUIRED_STORE_TABLES) {
@@ -112,11 +115,12 @@ describe('integration: every store-routed table forces the trust boundary', () =
     for (const table of REQUIRED_STORE_TABLES) {
       if (UNSCOPED_BY_DESIGN.includes(table)) continue;
 
+      const [schemaName, tableName] = table.includes('.') ? table.split('.', 2) : ['public', table];
       const policies = await database.sql<
         { policyname: string; qual: string | null; with_check: string | null }[]
       >`
         SELECT policyname, qual, with_check FROM pg_policies
-        WHERE schemaname = 'public' AND tablename = ${table}
+        WHERE schemaname = ${schemaName} AND tablename = ${tableName}
       `;
       if (policies.length === 0) {
         offenders.push(`${table}: no policy`);

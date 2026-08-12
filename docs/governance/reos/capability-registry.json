@@ -592,14 +592,17 @@
       ],
       "evidence": {
         "paths": [
-          "packages/database/src/domain-store.ts"
+          "packages/database/src/p1-repository.ts",
+          "supabase/migrations/202608120001_p1_persistence_completion.sql"
         ],
         "symbols": [
-          "PostgresDomainStore",
-          "DOMAIN_AGGREGATE_OWNERSHIP"
+          "P1_RELATIONS",
+          "assurapay_p1_append",
+          "assurapay_p1_replace"
         ],
         "tests": [
-          "packages/database-testing/src/domain-store.postgres.test.ts"
+          "packages/database-testing/src/p1-persistence.postgres.test.ts",
+          "packages/database-testing/src/durability-coverage.test.ts"
         ]
       },
       "certify": "certify:postgres",

@@ -9,10 +9,10 @@
 | --- | --- |
 | Repository | assurapay |
 | Version | 0.1.0 |
-| Branch | feat/g1-batch-f-agreement-creation |
-| HEAD | ed254b831ec1bc86ce67c62efeb5656799757d60 |
+| Branch | feat/p1-persistence-completion |
+| HEAD | ef0a7af01059b5851947d5b9b3911f9b133cee41 |
 | Worktree clean | no |
-| Manifest digest | e032844d3126 |
+| Manifest digest | d6908a0c5cc1 |
 | REOS version | 1.0.0 |
 
 ## Architecture
@@ -26,7 +26,7 @@
 
 | Lifecycle | Count |
 | --- | --- |
-| planned | 1 |
+| certified | 1 |
 | released | 75 |
 | deferred | 4 |
 
@@ -104,7 +104,7 @@ from repository evidence: package presence, test files, and certification wiring
 | --- | --- | --- | --- | --- | --- |
 | persistence.async-domain-repository-interface | Asynchronous domain repository interface | implemented | released | 7/7 | All 7 evidence probes satisfied at HEAD. |
 | persistence.async-repository-interface | Asynchronous repository interface | implemented | released | 5/5 | All 5 evidence probes satisfied at HEAD. |
-| persistence.domain-store-durability | Domain store durability for Engines 06-60 | missing | planned | 0/4 | No evidence at HEAD, on any ref, or in history. |
+| persistence.domain-store-durability | Domain store durability for Engines 06-60 | implemented | certified | 7/7 | All 7 evidence probes satisfied at HEAD. |
 | persistence.domain-store-environment-gate | Domain store durable-environment gate | implemented | released | 8/8 | All 8 evidence probes satisfied at HEAD. |
 | persistence.postgres-repository | PostgreSQL repository implementation | implemented | released | 10/10 | All 10 evidence probes satisfied at HEAD. |
 | persistence.production-runtime-wiring | Production persistence runtime wiring | implemented | released | 10/10 | All 10 evidence probes satisfied at HEAD. |
@@ -145,11 +145,9 @@ from repository evidence: package presence, test files, and certification wiring
 
 ## Execution backlog
 
-1 open item(s). Highest-priority first.
+0 open item(s). Highest-priority first.
 
-| Capability | Title | Lifecycle | Priority | Executable | Blocked by | Blocks |
-| --- | --- | --- | --- | --- | --- | --- |
-| persistence.domain-store-durability | Domain store durability for Engines 06-60 | planned | 45 | yes | — | — |
+Backlog empty.
 
 ## Certification coverage
 

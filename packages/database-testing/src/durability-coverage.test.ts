@@ -54,9 +54,6 @@ const KNOWN_UNMAPPED: readonly string[] = Object.freeze([
   // it. Two of the fifteen, `contractComments` and `signatureCallbacks`, had no *table* either, so they
   // were unstorable rather than merely unrouted.
   // governance-core (11) — Engines 06-10.
-  'certificationDecisions', 'certificationRequests', 'digitalCertifications', 'dodEvaluations',
-  'dodVersions', 'executionHistory', 'governedExecutions', 'governedMilestones',
-  'milestoneDependencies', 'paymentAuthorizationProposals', 'paymentTriggerDefinitions',
   // performance-blueprint — CLOSED by Batch E (`202608110004`). Its six aggregates, three of them
   // canonical chain links, are removed from this baseline rather than left in it: the third assertion
   // below fails on a baseline entry the store now maps, which is what makes the list a ratchet instead
@@ -67,17 +64,9 @@ const KNOWN_UNMAPPED: readonly string[] = Object.freeze([
   'acceptanceCriteria', 'baselineVariances', 'dependencies', 'paymentTriggerRules',
   'performanceBaselines', 'successMetrics',
   // agreement-intelligence (5) — Engines 16-20.
-  'agreementIntelligenceVersions', 'analysisReviews', 'contractAnalysisRuns',
-  'contractRiskAssessments', 'repositoryDocuments',
   // enterprise-intelligence (6) — Engines 51-55, deferred by the accepted decision.
-  'dashboardSnapshots', 'executionAssuranceIndices', 'executionForecasts', 'kpiDefinitions',
-  'kpiValues', 'settlementAssuranceIndices',
   // enterprise-analytics (9) — Engines 56-60, deferred by the accepted decision.
-  'driftAlerts', 'evaluationRecords', 'financialForecasts', 'modelFeedback', 'modelRegistrations',
-  'performanceScorecards', 'portfolioSnapshots', 'recommendations', 'renewalAssessments',
   // agent-runtime (9) — the governed agent surface, deferred with the intelligence engines.
-  'agentApprovalRequests', 'agentCapabilities', 'agentContextSnapshots', 'agentExecutions',
-  'agentGovernancePolicies', 'agentMemory', 'agentTelemetry', 'promptVersions', 'registeredAgents',
 ]);
 
 /**
@@ -122,7 +111,7 @@ function collectionsEnginesWrite(): Map<string, string[]> {
       continue;
     }
     if (!source.includes('TrustPersistence')) continue;
-    for (const match of source.matchAll(/\.(?:append|replace)(?:<[^>]*>)?\(\s*'([a-zA-Z]+)'/g)) {
+    for (const match of source.matchAll(/\.(?:append|replace)(?:<[^>]*>)?\(\s*'([a-zA-Z][a-zA-Z0-9]*)'/g)) {
       const collection = match[1];
       const owners = byCollection.get(collection) ?? [];
       if (!owners.includes(pkg)) owners.push(pkg);
