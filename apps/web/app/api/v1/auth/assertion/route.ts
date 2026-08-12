@@ -1,4 +1,4 @@
-import { errorResponse, issueSessionAssertion } from '../../../../../lib/trust-app';
+import { enterIdentityBoundaryScope, errorResponse, issueSessionAssertion } from '../../../../../lib/trust-app';
 
 /**
  * Mints an identity assertion for the holder of a valid session cookie.
@@ -13,6 +13,7 @@ import { errorResponse, issueSessionAssertion } from '../../../../../lib/trust-a
  */
 export async function POST(request: Request) {
   try {
+    enterIdentityBoundaryScope();
     const token = request.headers
       .get('cookie')
       ?.match(/assurapay_session=([^;]+)/)?.[1];

@@ -1,7 +1,8 @@
-import { trust, errorResponse } from '../../../../../lib/trust-app';
+import { trust, enterIdentityBoundaryScope, errorResponse } from '../../../../../lib/trust-app';
 
 export async function POST(request: Request) {
   try {
+    enterIdentityBoundaryScope();
     const body = await request.json();
     const rawSessionToken = crypto.randomUUID();
     const { session } = await trust.identity.login({ email: body.email, rawSessionToken, deviceFingerprint: body.deviceFingerprint, ipContext: request.headers.get('x-forwarded-for') ?? undefined, userAgentContext: request.headers.get('user-agent') ?? undefined, correlationId: request.headers.get('x-correlation-id') ?? crypto.randomUUID() });

@@ -138,6 +138,19 @@ const globalTrust = globalThis as typeof globalThis & {
 };
 
 /**
+ * Establishes the minimum RLS scope needed to access global identity/session records.
+ *
+ * These records deliberately carry neither tenant nor workspace because they are what a
+ * caller uses to establish identity before selecting either. The trust-records policy still
+ * requires a non-empty tenant setting for that global branch. This sentinel unlocks only
+ * global rows: it is not a persisted tenant, supplies no workspace, and is replaced with the
+ * verified identity scope before any tenant-governed operation runs.
+ */
+export function enterIdentityBoundaryScope(): void {
+  enterTrustScope({ tenantId: 'assurapay:identity-boundary' });
+}
+
+/**
  * The repository, from the canonical runtime.
  *
  * This module used to construct an `InMemoryTrustStore` here and cache it on
@@ -349,6 +362,7 @@ export async function requestContext(request: Request): Promise<RequestContext> 
  * cannot authorise a second action.
  */
 export async function actingRequestContext(request: Request): Promise<RequestContext> {
+  enterIdentityBoundaryScope();
   const correlationId = correlationOf(request);
   const identity = await getIdentityGateway().consumeRequestContext(request, correlationId);
   return resolveMemberships(identity, membershipReader);
@@ -380,6 +394,7 @@ export async function authorizedContextForRoute(request: Request): Promise<Reque
   // audited must be refused, not served.
   await requireReadyPersistence();
 
+  enterIdentityBoundaryScope();
   const identity = await getIdentityGateway().authenticate(request, correlationId);
 
   // The tenancy scope Row Level Security reads, established here because this is the one
