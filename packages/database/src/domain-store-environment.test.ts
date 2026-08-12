@@ -107,7 +107,9 @@ describe('the data file does not depend on the working directory', () => {
     // The defect, stated as a test. `path.resolve(process.cwd(), 'apps/web/data/...')` gave
     // /repo/apps/web/data/... from the root and /repo/apps/web/apps/web/data/... from apps/web.
     const fromModule = resolveDomainStoreFile({}, '/repo/packages/database/src');
-    expect(fromModule).toBe(path.join('/repo', 'apps', 'web', 'data', 'assurapay.json'));
+    expect(fromModule).toBe(
+      path.join(path.resolve('/repo'), 'apps', 'web', 'data', 'assurapay.json'),
+    );
     // Independent of cwd by construction: the function never reads it.
     expect(resolveDomainStoreFile({}, '/repo/packages/database/src')).toBe(fromModule);
   });
@@ -118,9 +120,10 @@ describe('the data file does not depend on the working directory', () => {
   });
 
   it('lets a deployment name the file explicitly', () => {
-    expect(
-      resolveDomainStoreFile({ [DOMAIN_STORE_FILE_VARIABLE]: '/var/lib/assurapay/domain.json' }),
-    ).toBe('/var/lib/assurapay/domain.json');
+    const configuredPath = '/var/lib/assurapay/domain.json';
+    expect(resolveDomainStoreFile({ [DOMAIN_STORE_FILE_VARIABLE]: configuredPath })).toBe(
+      path.resolve(configuredPath),
+    );
   });
 
   it('resolves an explicit relative path against cwd rather than leaving it relative', () => {
