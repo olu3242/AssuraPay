@@ -129,6 +129,23 @@ describe('Engine 48 Reconciliation & Financial Ledger', () => {
     });
     expect(journal.debit.amountMinor).toBe(journal.credit.amountMinor);
     expect([journal.debit.entryType, journal.credit.entryType]).toEqual(['DEBIT', 'CREDIT']);
+    // `reconcile` now loads the instruction to take its currency, so one has to exist. That is the
+    // improvement, not an inconvenience: a reconciliation against a payment that does not exist used
+    // to be storable.
+    await s.append('paymentInstructions', {
+      id: 'pi',
+      workspaceId: 'w',
+      releaseRequestId: 'rr',
+      providerKey: 'paystack',
+      idempotencyKey: 'idem-pi',
+      payloadDigest: 'digest-pi',
+      beneficiaryReference: 'acct-1',
+      amountMinor: 425_000_000,
+      currency: 'NGN',
+      status: 'SETTLED',
+      attempts: 1,
+      createdAt: '2026-08-11T09:00:00.000Z',
+    });
     const matched = await e.reconcile(requester, {
       paymentInstructionId: 'pi',
       providerStatementReference: 'stmt-1',
@@ -136,6 +153,21 @@ describe('Engine 48 Reconciliation & Financial Ledger', () => {
       recordedAmountMinor: 425_000_000,
     });
     expect(matched.matched).toBe(true);
+    expect(matched.currency).toBe('NGN');
+    await s.append('paymentInstructions', {
+      id: 'pi2',
+      workspaceId: 'w',
+      releaseRequestId: 'rr',
+      providerKey: 'paystack',
+      idempotencyKey: 'idem-pi2',
+      payloadDigest: 'digest-pi2',
+      beneficiaryReference: 'acct-2',
+      amountMinor: 425_000_000,
+      currency: 'NGN',
+      status: 'SETTLED',
+      attempts: 1,
+      createdAt: '2026-08-11T09:00:00.000Z',
+    });
     const mismatched = await e.reconcile(requester, {
       paymentInstructionId: 'pi2',
       providerStatementReference: 'stmt-2',

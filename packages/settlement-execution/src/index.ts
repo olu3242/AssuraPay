@@ -224,6 +224,16 @@ export type PaymentInstruction = {
   releaseRequestId: string;
   providerKey: string;
   idempotencyKey: string;
+  /**
+   * Digest of the semantic payload this key was first used with.
+   *
+   * `docs/finance/MONETARY_INVARIANTS.md`: "Reusing a key with a different semantic payload
+   * **fails**. This needs a stored payload digest to compare against; a key alone cannot detect it."
+   * Without it, `issue` returned the existing instruction for any repeat of the key — so a retry that
+   * had drifted to a different beneficiary or amount was silently accepted as the original, which is
+   * the one failure mode idempotency is supposed to prevent.
+   */
+  payloadDigest: string;
   beneficiaryReference: string;
   amountMinor: number;
   currency: string;
@@ -256,15 +266,33 @@ export class PaymentExecutionEngine {
     if (!input.authorized) throw new Error('AUTHORIZATION_REQUIRED');
     requireIntegerMinorUnits(input.amountMinor, 'AMOUNT');
     const workspaceId = ws(context);
+    // The semantic payload: everything that determines what money moves and to whom. `providerKey`
+    // is included because the same key against a different provider is a different instruction, and
+    // the id and timestamps are excluded because they differ on every call by construction.
+    const payloadDigest = digest({
+      releaseRequestId: input.releaseRequestId,
+      providerKey: input.providerKey,
+      beneficiaryReference: input.beneficiaryReference,
+      amountMinor: input.amountMinor,
+      currency: input.currency,
+    });
     const existing = (await this.store
       .list<PaymentInstruction>('paymentInstructions'))
       .find((x) => x.workspaceId === workspaceId && x.idempotencyKey === input.idempotencyKey);
-    if (existing) return existing;
+    if (existing) {
+      // A repeat of the key with a different payload is not a retry, it is a different instruction
+      // wearing a retry's clothes. Returning the original would silently discard the new intent;
+      // storing a second row would double-instruct the provider. Refusing is the only safe answer.
+      if (existing.payloadDigest !== payloadDigest)
+        throw new Error('IDEMPOTENCY_KEY_PAYLOAD_MISMATCH');
+      return existing;
+    }
     const { authorized: _authorized, ...record } = input;
     const instruction: PaymentInstruction = {
       id: randomUUID(),
       workspaceId,
       ...record,
+      payloadDigest,
       status: 'DRAFT',
       attempts: 0,
       createdAt: now(),
@@ -357,6 +385,17 @@ export type ReconciliationRecord = {
   workspaceId: string;
   paymentInstructionId: string;
   providerStatementReference: string;
+  /**
+   * The currency both amounts are in.
+   *
+   * Absent until now, which meant a reconciliation held two money amounts and no unit. The amounts
+   * are only ever compared to each other, so nothing was *wrong* in practice — but MONETARY_INVARIANTS
+   * requires a currency to travel with every amount, and without the column the foreign key to the
+   * instruction could not carry currency the way `ledger_entries` does. It is taken from the
+   * instruction rather than the caller: a reconciliation in a different currency from the payment it
+   * reconciles is not a mismatch to record, it is a question nobody asked.
+   */
+  currency: string;
   providerReportedAmountMinor: number;
   recordedAmountMinor: number;
   matched: boolean;
@@ -439,11 +478,22 @@ export class ReconciliationLedgerEngine {
       throw new Error('PROVIDER_REPORTED_AMOUNT_MUST_BE_NON_NEGATIVE_INTEGER_MINOR_UNITS');
     if (!Number.isInteger(input.recordedAmountMinor) || input.recordedAmountMinor < 0)
       throw new Error('RECORDED_AMOUNT_MUST_BE_NON_NEGATIVE_INTEGER_MINOR_UNITS');
+    // Loaded rather than trusted from the caller. It supplies the currency, and it also means a
+    // reconciliation against an instruction that does not exist fails here instead of at the foreign
+    // key — which for a reconciliation report is the difference between "no such payment" and
+    // "database error".
+    const instruction = await get<PaymentInstruction>(
+      this.store,
+      'paymentInstructions',
+      context,
+      input.paymentInstructionId,
+    );
     const matched = input.providerReportedAmountMinor === input.recordedAmountMinor;
     const record: ReconciliationRecord = {
       id: randomUUID(),
       workspaceId: ws(context),
       ...input,
+      currency: instruction.currency,
       matched,
       exceptionReason: matched ? undefined : 'AMOUNT_MISMATCH',
       reconciledAt: now(),

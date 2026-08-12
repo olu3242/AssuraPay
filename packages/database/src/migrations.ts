@@ -270,6 +270,10 @@ export const REQUIRED_TRUST_MIGRATIONS: readonly string[] = Object.freeze([
   // what makes an active dispute hold block a release. A host missing it would start with hold
   // enforcement absent, which is the one gap that must never be silent.
   '202608110002_wave5_batch_d_dispute_linkage',
+  // Closes the two gaps Batch C recorded. Required rather than optional because both are columns the
+  // repositories now read and write: a host without it fails the first reconciliation and the first
+  // payment instruction with an undefined-column error.
+  '202608110003_wave5_close_batch_c_gaps',
 ]);
 
 export type SchemaCompatibility = {

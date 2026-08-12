@@ -505,6 +505,7 @@ export class ConditionalReleaseOrchestrationEngine {
     if (!input.paymentEligible) blockers.push('PAYMENT_NOT_ELIGIBLE');
     if (invoice.status !== 'APPROVED') blockers.push('INVOICE_NOT_APPROVED');
     if (reservation.status !== 'RESERVED') blockers.push('FUNDS_NOT_RESERVED');
+    if (await this.heldByDispute(context, request.id)) blockers.push('DISPUTE_HOLD_ACTIVE');
     const evaluated: ReleaseRequest = { ...request, status: blockers.length === 0 ? 'CONDITIONS_MET' : 'BLOCKED', blockers };
     await this.store.replace('releaseRequests', evaluated);
     await emit(this.store, context, 'ReleaseRequestEvaluated', 'ReleaseRequest', request.id, {
@@ -512,6 +513,36 @@ export class ConditionalReleaseOrchestrationEngine {
       blockers: evaluated.blockers,
     });
     return evaluated;
+  }
+
+  /**
+   * Whether an active dispute hold names this release request.
+   *
+   * CLAUDE.md hard constraint 2 requires that release happen only with no active hold, and until
+   * `202608110002` nothing enforced it: `DisputeResolutionEngine.isHeld` computed the right answer
+   * and had no callers, so the constraint existed as a function nobody invoked.
+   *
+   * This is the caller it was missing, and it is deliberately *not* the enforcement. The database
+   * refuses a release-bearing write while a hold is active, for every writer including one the
+   * application never mediated. What this adds is that a held request records **why** it is blocked,
+   * as a named blocker in the engine's own vocabulary, instead of the caller discovering the hold
+   * through a persistence failure. Enforcement and explanation are different jobs, and the trigger
+   * cannot do the second one.
+   *
+   * Read through the store rather than by calling Engine 49: `settlement-assurance` does not depend
+   * on `settlement-execution`, and adding that dependency to ask one question would couple the
+   * release path to the dispute package for no gain. The hold is a record, and reading a record is
+   * what the store is for.
+   */
+  private async heldByDispute(context: RequestContext, releaseRequestId: string) {
+    const workspaceId = ws(context);
+    type ActiveHold = { workspaceId: string; releaseRequestId: string; active: boolean };
+    return (await this.store.list<ActiveHold>('disputeHolds')).some(
+      (candidate) =>
+        candidate.workspaceId === workspaceId &&
+        candidate.releaseRequestId === releaseRequestId &&
+        candidate.active,
+    );
   }
 
   async cancel(context: RequestContext, input: { id: string; reason: string }) {

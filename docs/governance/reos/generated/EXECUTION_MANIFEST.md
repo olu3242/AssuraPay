@@ -9,10 +9,10 @@
 | --- | --- |
 | Repository | assurapay |
 | Version | 0.1.0 |
-| Branch | feat/d1-batch-d-dispute-linkage |
-| HEAD | ebeb159a85f8f46cb158c457b32821f32e2b327f |
-| Worktree clean | yes |
-| Manifest digest | db7ef02b58da |
+| Branch | feat/e1-post-wave5-followups |
+| HEAD | 8ab7df34adc546f33429a7d80f7a279e70169cc0 |
+| Worktree clean | no |
+| Manifest digest | c3a7d03b1f60 |
 | REOS version | 1.0.0 |
 
 ## Architecture

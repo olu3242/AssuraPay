@@ -223,6 +223,7 @@ function instruction(overrides: Record<string, unknown> = {}) {
     releaseRequestId: 'rr-1',
     providerKey: 'partner-bank',
     idempotencyKey: 'idem-0001',
+    payloadDigest: 'digest-pi-1',
     beneficiaryReference: 'BENEF-77',
     amountMinor: 925_000,
     currency: 'NGN',

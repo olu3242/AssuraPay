@@ -192,6 +192,7 @@ function instruction(overrides: Record<string, unknown> = {}) {
     releaseRequestId: 'rr-1',
     providerKey: 'partner-bank',
     idempotencyKey: 'idem-0001',
+    payloadDigest: 'digest-pi-1',
     beneficiaryReference: 'BENEF-77',
     amountMinor: 925_000,
     currency: 'NGN',
@@ -540,12 +541,22 @@ describe('integration: Batch C money and settlement invariants', () => {
     const error = await raw(database, (tx) => tx`
       INSERT INTO reconciliation_records
         (id, tenant_id, workspace_id, payment_instruction_id, provider_statement_reference,
-         provider_reported_amount_minor, recorded_amount_minor, matched, reconciled_at,
+         currency, provider_reported_amount_minor, recorded_amount_minor, matched, reconciled_at,
          version, schema_version, updated_at)
-      VALUES ('rec-lie', ${TENANT}, ${WORKSPACE}, 'pi-1', 'stmt-lie', 900000, 925000, true,
+      VALUES ('rec-lie', ${TENANT}, ${WORKSPACE}, 'pi-1', 'stmt-lie', 'NGN', 900000, 925000, true,
               ${stamp}, 1, 1, ${stamp})
     `).catch((caught: unknown) => caught);
     expect(String(error)).toContain('matched_follows_from_amounts');
+  }, 300_000);
+
+  it('carries currency in the reconciliation key, closing the gap Batch C recorded', async () => {
+    // `202608110003`. Two money amounts with no unit was the gap; the key can now express that a
+    // reconciliation and the payment it reconciles agree on currency.
+    const [def] = await database.sql<{ d: string }[]>`
+      SELECT pg_get_constraintdef(oid) AS d FROM pg_constraint
+      WHERE conname = 'reconciliation_records_instruction_currency_fk'
+    `;
+    expect(def.d).toContain('(tenant_id, payment_instruction_id, currency)');
   }, 300_000);
 
   it('reconciles a statement once per instruction and refuses the second', async () => {
@@ -554,6 +565,7 @@ describe('integration: Batch C money and settlement invariants', () => {
       workspaceId: WORKSPACE,
       paymentInstructionId: 'pi-1',
       providerStatementReference: 'stmt-2026-08',
+      currency: 'NGN',
       providerReportedAmountMinor: 925_000,
       recordedAmountMinor: 925_000,
       matched: true,
@@ -634,15 +646,15 @@ describe('integration: Batch C money and settlement invariants', () => {
       (tx) => tx`
         INSERT INTO reconciliation_records
           (id, tenant_id, workspace_id, payment_instruction_id, provider_statement_reference,
-           provider_reported_amount_minor, recorded_amount_minor, matched, reconciled_at,
+           currency, provider_reported_amount_minor, recorded_amount_minor, matched, reconciled_at,
            version, schema_version, updated_at)
-        VALUES ('rec-cross', ${OTHER_TENANT}, ${OTHER_WORKSPACE}, 'pi-1', 'stmt-cross', 1, 1, true,
-                ${stamp}, 1, 1, ${stamp})
+        VALUES ('rec-cross', ${OTHER_TENANT}, ${OTHER_WORKSPACE}, 'pi-1', 'stmt-cross', 'NGN', 1, 1,
+                true, ${stamp}, 1, 1, ${stamp})
       `,
       OTHER_TENANT,
       OTHER_WORKSPACE,
     ).catch((caught: unknown) => caught);
-    expect(String(error)).toMatch(/reconciliation_records_instruction_fk/);
+    expect(String(error)).toMatch(/reconciliation_records_instruction_currency_fk/);
   }, 300_000);
 
   it('shows another tenant nothing', async () => {

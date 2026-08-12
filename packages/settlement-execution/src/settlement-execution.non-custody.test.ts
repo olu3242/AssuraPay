@@ -85,6 +85,40 @@ describe('non-custody constraint', () => {
     expect(await s.list('paymentInstructions')).toHaveLength(1);
   });
 
+  it('refuses a repeated key whose payload has drifted, rather than returning the original', async () => {
+    // MONETARY_INVARIANTS: "Reusing a key with a different semantic payload fails. This needs a stored
+    // payload digest to compare against; a key alone cannot detect it." Before the digest existed,
+    // `issue` returned the original for any repeat of the key — so a retry pointing at a different
+    // beneficiary, or for a different amount, was silently accepted as the first one. Returning the
+    // original discards the new intent; storing a second row double-instructs the provider. Refusing
+    // is the only safe answer, and it is the one failure mode idempotency exists to prevent.
+    const s = new InMemoryTrustStore();
+    const e = new PaymentExecutionEngine(s);
+    const input = {
+      releaseRequestId: 'r',
+      providerKey: 'paystack',
+      idempotencyKey: 'idem-shared',
+      beneficiaryReference: 'acct-1',
+      amountMinor: 425_000_000,
+      currency: 'NGN',
+      authorized: true,
+    };
+    await e.issue(c, input);
+
+    for (const drift of [
+      { beneficiaryReference: 'acct-2' },
+      { amountMinor: 999_000_000 },
+      { releaseRequestId: 'r-other' },
+      { providerKey: 'flutterwave' },
+    ]) {
+      await expect(e.issue(c, { ...input, ...drift })).rejects.toThrow(
+        'IDEMPOTENCY_KEY_PAYLOAD_MISMATCH',
+      );
+    }
+    // And nothing was written on any of the refusals.
+    expect(await s.list('paymentInstructions')).toHaveLength(1);
+  });
+
   it('records a journal without a provider gateway, because a posting moves nothing', async () => {
     // Re-certifying the boundary for Batch C's new posting path. A balanced journal describes money
     // the provider moved; it is a record, not an instruction. The proof is that the ledger engine

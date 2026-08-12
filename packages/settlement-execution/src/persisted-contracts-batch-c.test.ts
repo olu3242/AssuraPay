@@ -62,6 +62,7 @@ describe('the payment-instruction schema holds its money and retry rules', () =>
     releaseRequestId: 'rr-1',
     providerKey: 'partner-bank',
     idempotencyKey: 'idem-0001',
+    payloadDigest: 'a3f1c9d2e4b6',
     beneficiaryReference: 'BENEF-77',
     amountMinor: 925_000,
     currency: 'NGN',
@@ -93,6 +94,16 @@ describe('the payment-instruction schema holds its money and retry rules', () =>
         String(attempts),
       ).toBe(false);
     }
+  });
+
+  it('requires a payload digest, so a drifted retry can be detected', () => {
+    // MONETARY_INVARIANTS: reusing a key with a different semantic payload must fail, and "a key
+    // alone cannot detect it". Without the digest stored there is nothing to compare a retry against.
+    expect(paymentInstructionSchema.safeParse({ ...instruction, payloadDigest: '' }).success).toBe(
+      false,
+    );
+    const { payloadDigest: _absent, ...withoutDigest } = instruction;
+    expect(paymentInstructionSchema.safeParse(withoutDigest).success).toBe(false);
   });
 
   it('refuses a zero amount, an unsupported currency and a blank idempotency key', () => {
@@ -149,6 +160,7 @@ describe('the reconciliation schema derives its outcome rather than accepting it
     workspaceId: 'ws-1',
     paymentInstructionId: 'pi-1',
     providerStatementReference: 'stmt-2026-08',
+    currency: 'NGN',
     providerReportedAmountMinor: 925_000,
     recordedAmountMinor: 925_000,
     matched: true,
@@ -165,6 +177,14 @@ describe('the reconciliation schema derives its outcome rather than accepting it
         exceptionReason: 'AMOUNT_MISMATCH',
       }).success,
     ).toBe(true);
+  });
+
+  it('requires the currency both amounts are in', () => {
+    // Two money amounts and no unit was the gap Batch C recorded. The currency is the instruction's,
+    // which is also why the composite key can now carry it.
+    const { currency: _absent, ...withoutCurrency } = matched;
+    expect(reconciliationRecordSchema.safeParse(withoutCurrency).success).toBe(false);
+    expect(reconciliationRecordSchema.safeParse({ ...matched, currency: 'GBP' }).success).toBe(false);
   });
 
   it('refuses a claimed match its own amounts contradict', () => {

@@ -25,16 +25,14 @@ import {
  *     and `reconciliationRecords` are append-only in both the store and the database, while the
  *     three aggregates their engines genuinely transition are not.
  *
- * Two gaps are recorded rather than papered over, because closing either needs a change to a
- * domain type and this capability is persistence:
+ * Two gaps that Batch C recorded rather than papered over are **closed** by `202608110003`, which
+ * changed the two domain types Batch C would not:
  *
- *   - `ReconciliationRecord` has two amounts and **no currency field**, so neither the schema nor
- *     the column can require one. The amounts are only ever compared to each other for a single
- *     instruction, so they inherit that instruction's currency in practice — but nothing enforces
- *     it, and a currency column would make the composite key carry it.
- *   - `PaymentInstruction` has an `idempotencyKey` and **no payload digest**, so reuse of a key
- *     with a different payload cannot be detected as MONETARY_INVARIANTS requires. Uniqueness is
- *     enforced; semantic-equality-on-retry is not.
+ *   - `ReconciliationRecord.currency` now exists, taken from the instruction it reconciles, so both
+ *     amounts have a unit and the composite key carries currency the way `ledger_entries` does.
+ *   - `PaymentInstruction.payloadDigest` now exists, so reusing an idempotency key with a different
+ *     semantic payload is refused rather than silently accepted as the original — which is what
+ *     MONETARY_INVARIANTS requires and what uniqueness alone could never detect.
  *
  * Derived from engine semantics, not from table introspection. Where the two disagreed the engine
  * won and the disagreement is recorded: `matched` on a reconciliation record is not an independent
@@ -83,6 +81,9 @@ export const paymentInstructionSchema = z
     releaseRequestId: identifier,
     providerKey: identifier,
     idempotencyKey: requiredText,
+    // The digest of the payload this key was first used with, so a retry that drifted is refused
+    // rather than silently accepted as the original.
+    payloadDigest: requiredText,
     beneficiaryReference: requiredText,
     amountMinor: positiveMinorUnits,
     currency: currencyCode,
@@ -121,6 +122,8 @@ export const reconciliationRecordSchema = z
     workspaceId: identifier,
     paymentInstructionId: identifier,
     providerStatementReference: requiredText,
+    // Taken from the instruction, so both amounts have a unit and the composite key can carry it.
+    currency: currencyCode,
     providerReportedAmountMinor: minorUnits,
     recordedAmountMinor: minorUnits,
     matched: z.boolean(),
