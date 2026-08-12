@@ -10,9 +10,9 @@
 | Repository | assurapay |
 | Version | 0.1.0 |
 | Branch | feat/g1-batch-f-agreement-creation |
-| HEAD | 493e33681281e478ab144d703df6a906ca57efcb |
+| HEAD | ed254b831ec1bc86ce67c62efeb5656799757d60 |
 | Worktree clean | no |
-| Manifest digest | 0412917dc1bd |
+| Manifest digest | e032844d3126 |
 | REOS version | 1.0.0 |
 
 ## Architecture

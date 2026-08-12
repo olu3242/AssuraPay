@@ -7,16 +7,16 @@
 | Field | Value |
 | --- | --- |
 | Branch | feat/g1-batch-f-agreement-creation |
-| HEAD | 493e33681281e478ab144d703df6a906ca57efcb |
+| HEAD | ed254b831ec1bc86ce67c62efeb5656799757d60 |
 | Worktree clean | no |
 | Uncommitted files | 7 |
-| Generated at | 2026-08-11T20:13:17.886Z |
+| Generated at | 2026-08-12T00:42:19.844Z |
 
 ## Capability implemented
 
 `persistence.domain-store-durability` — lifecycle **planned**
 
-## Files modified (80)
+## Files modified (83)
 
 - `apps/web/app/api/v1/ledger-entries/route.ts`
 - `docs/governance/execution-ledger/08cc2ce22675-persistence.domain-store-durability.json`
@@ -25,6 +25,7 @@
 - `docs/governance/execution-ledger/92860feff286-persistence.domain-store-durability.json`
 - `docs/governance/execution-ledger/INDEX.md`
 - `docs/governance/execution-ledger/ebeb159a85f8-persistence.domain-store-durability.json`
+- `docs/governance/execution-ledger/ed254b831ec1-persistence.domain-store-durability.json`
 - `docs/governance/execution-ledger/ed9b0534ffdf-persistence.domain-store-durability.json`
 - `docs/governance/reos/capability-registry.json`
 - `docs/governance/reos/generated/CERTIFICATION_REPORT.md`
@@ -78,6 +79,7 @@
 - `packages/domain-contracts/src/primitives.ts`
 - `packages/performance-blueprint/package.json`
 - `packages/performance-blueprint/src/persisted-contracts.test.ts`
+- `packages/runtime/src/persistence-runtime.postgres.test.ts`
 - `packages/settlement-assurance/package.json`
 - `packages/settlement-assurance/src/index.ts`
 - `packages/settlement-assurance/src/persisted-contracts-batch-c.test.ts`
@@ -98,6 +100,7 @@
 - `supabase/migrations/202608110003_wave5_close_batch_c_gaps.sql`
 - `supabase/migrations/202608110004_wave6_batch_e_performance_blueprint.sql`
 - `supabase/migrations/202608110005_wave6_batch_f_agreement_creation.sql`
+- `supabase/migrations/202608110006_close_batch_b_invoice_number_gap.sql`
 
 ## Validation
 
@@ -106,7 +109,7 @@
 | architecture | pass | 235 | 0 | 0 |
 | dependencies | pass | 27 | 0 | 0 |
 | security | pass | 291 | 0 | 0 |
-| execution-contract | pass | 70 | 0 | 1 |
+| execution-contract | pass | 73 | 0 | 1 |
 
 ### Findings
 
@@ -134,8 +137,8 @@ No newly introduced violations.
 
 ## Ledger
 
-Recorded as `493e33681281-persistence.domain-store-durability` in `docs/governance/execution-ledger/`.
+Recorded as `ed254b831ec1-persistence.domain-store-durability` in `docs/governance/execution-ledger/`.
 
 ## Commit
 
-`493e33681281e478ab144d703df6a906ca57efcb`
+`ed254b831ec1bc86ce67c62efeb5656799757d60`

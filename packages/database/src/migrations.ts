@@ -288,6 +288,11 @@ export const REQUIRED_TRUST_MIGRATIONS: readonly string[] = Object.freeze([
   // would carry no digest chain between an approved document, the package that signs it and the
   // certificate that attests it.
   '202608110005_wave6_batch_f_agreement_creation',
+  // Narrows the invoice-number key to live invoices. Required rather than optional because the
+  // constraint it replaces is *stricter* than the engine: a host without it can reject an invoice and
+  // then refuse the corrected resubmission that carries the same counterparty document reference,
+  // leaving a confirmed entitlement with no route to an invoice.
+  '202608110006_close_batch_b_invoice_number_gap',
 ]);
 
 export type SchemaCompatibility = {

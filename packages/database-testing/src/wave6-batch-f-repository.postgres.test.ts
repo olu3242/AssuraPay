@@ -73,6 +73,28 @@ async function migratedDatabase(): Promise<TestDatabase> {
   return database;
 }
 
+/**
+ * One migrated database per describe block, created on first use and shared by its tests.
+ *
+ * Not an optimisation. A database instance holds a connection pool of up to four, and every instance
+ * this file creates stays open until `afterAll` — so a database per test meant seventeen pools, up to
+ * sixty-eight connections, against a server whose `max_connections` is 100 and which the rest of the
+ * suite is also connecting to. That is what made this file fail in CI while passing locally: the same
+ * work, on a faster machine, opens more of those connections at once.
+ *
+ * The cost is that tests within a block share state and therefore run in order. That is the tradeoff
+ * Batch E's suite already makes, and where a test here depends on what the one before it did, it says so.
+ */
+function sharedDatabase(seed?: (database: TestDatabase) => Promise<void>): () => Promise<TestDatabase> {
+  let pending: Promise<TestDatabase> | undefined;
+  return () =>
+    (pending ??= (async () => {
+      const database = await migratedDatabase();
+      if (seed) await seed(database);
+      return database;
+    })());
+}
+
 const stamp = '2026-08-11T09:00:00.000Z';
 
 function as<T>(
@@ -393,6 +415,10 @@ async function executeAgreement(
 }
 
 describe('integration: Batch F is activated and the canonical chain closes', () => {
+  // Read-only against the migrated schema, so one database serves every test that needs one. The
+  // populated-table refusal below builds its own, because it applies a partial migration set.
+  const schemaOnly = sharedDatabase();
+
   it('pairs all fifteen contracts with a relational repository', () => {
     expect(Object.keys(BATCH_F_RELATIONS)).toHaveLength(15);
     expect(BATCH_F_AGGREGATES).toHaveLength(15);
@@ -426,7 +452,7 @@ describe('integration: Batch F is activated and the canonical chain closes', () 
     expect(REQUIRED_DOMAIN_AGGREGATE_TABLES).toHaveLength(56);
     expect(new Set(REQUIRED_DOMAIN_AGGREGATE_TABLES).size).toBe(56);
 
-    const database = await migratedDatabase();
+    const database = await schemaOnly();
     const compatible = await verifySchemaCompatibility(database.sql, migrationsDirectory());
     expect(compatible.missingTables).toEqual([]);
     expect(compatible.pendingRequired).toEqual([]);
@@ -434,7 +460,7 @@ describe('integration: Batch F is activated and the canonical chain closes', () 
   }, 300_000);
 
   it('keys every Batch F table as TEXT and forces row-level security', async () => {
-    const database = await migratedDatabase();
+    const database = await schemaOnly();
     const tables = BATCH_F_AGGREGATES.map((aggregate) => aggregate.table);
     const uuid = await database.sql<{ table_name: string; column_name: string }[]>`
       SELECT table_name, column_name FROM information_schema.columns
@@ -455,7 +481,7 @@ describe('integration: Batch F is activated and the canonical chain closes', () 
   }, 300_000);
 
   it('creates the two tables that had no relation anywhere', async () => {
-    const database = await migratedDatabase();
+    const database = await schemaOnly();
     expect([...BATCH_F_CREATED_TABLES].sort()).toEqual(['contract_comments', 'signature_callbacks']);
     for (const table of BATCH_F_CREATED_TABLES) {
       // Not present in any migration before `202608110005`, which is the difference between this batch
@@ -478,7 +504,7 @@ describe('integration: Batch F is activated and the canonical chain closes', () 
   }, 300_000);
 
   it('adds the constraint set the thirteen carried none of', async () => {
-    const database = await migratedDatabase();
+    const database = await schemaOnly();
     const tables = BATCH_F_AGGREGATES.map((aggregate) => aggregate.table);
     const [counted] = await database.sql<{ checks: bigint }[]>`
       SELECT count(*) AS checks FROM pg_constraint
@@ -562,9 +588,10 @@ describe('integration: Batch F is activated and the canonical chain closes', () 
 });
 
 describe('integration: Batch F round-trips the agreement, including the columns that are renamed', () => {
+  const seeded = sharedDatabase(executeAgreement);
+
   it('stores and reads back every one of the fifteen aggregates exactly', async () => {
-    const database = await migratedDatabase();
-    await executeAgreement(database);
+    const database = await seeded();
 
     const seen = await as(database, async (store) => ({
       agreements: await store.list('agreements'),
@@ -601,8 +628,7 @@ describe('integration: Batch F round-trips the agreement, including the columns 
   }, 300_000);
 
   it('maps the four fields whose column has a different name, in both directions', async () => {
-    const database = await migratedDatabase();
-    await executeAgreement(database);
+    const database = await seeded();
 
     const seen = await as(database, async (store) => ({
       documentVersions: (await store.list('documentVersions')) as Record<string, unknown>[],
@@ -654,8 +680,7 @@ describe('integration: Batch F round-trips the agreement, including the columns 
   }, 300_000);
 
   it('carries an optional reference as absent rather than as null', async () => {
-    const database = await migratedDatabase();
-    await executeAgreement(database);
+    const database = await seeded();
 
     // A first document version has no predecessor and a custom clause has no citation. Both columns are
     // nullable, and `compact` drops the key rather than reading it back as `null` — which the `.strict()`
@@ -691,9 +716,10 @@ describe('integration: Batch F round-trips the agreement, including the columns 
 });
 
 describe('integration: the digest chain is a foreign key, not a comparison someone remembers', () => {
+  const seeded = sharedDatabase(executeAgreement);
+
   it('refuses an approval request whose digest is not the cited document version’s', async () => {
-    const database = await migratedDatabase();
-    await executeAgreement(database);
+    const database = await seeded();
 
     // `DigitalExecutionEngine.create` refuses unless the approval's hash equals the document's. That
     // comparison is now structural: the request references `(tenant_id, document_version_id,
@@ -722,8 +748,7 @@ describe('integration: the digest chain is a foreign key, not a comparison someo
   }, 300_000);
 
   it('refuses a signature package that signs a different document than it names', async () => {
-    const database = await migratedDatabase();
-    await executeAgreement(database);
+    const database = await seeded();
     const direct = await raw(database, (tx) =>
       tx`
         INSERT INTO signature_packages_v2
@@ -738,8 +763,7 @@ describe('integration: the digest chain is a foreign key, not a comparison someo
   }, 300_000);
 
   it('refuses an execution certificate that attests a digest the package does not carry', async () => {
-    const database = await migratedDatabase();
-    await executeAgreement(database);
+    const database = await seeded();
 
     // A second document version and a second package, both legitimate, so the attempt below is isolated
     // to the digest. Reusing `sp-1` would collide with the pre-existing `UNIQUE (package_id)` — one
@@ -785,8 +809,7 @@ describe('integration: the digest chain is a foreign key, not a comparison someo
   }, 300_000);
 
   it('refuses a hash that is not a digest, in every column that holds one', async () => {
-    const database = await migratedDatabase();
-    await executeAgreement(database);
+    const database = await seeded();
 
     for (const contentHash of ['a3f1c9', DOC_HASH.toUpperCase(), `${DOC_HASH}a`]) {
       const failure = await as(database, (store) =>
@@ -813,9 +836,80 @@ describe('integration: the digest chain is a foreign key, not a comparison someo
 });
 
 describe('integration: Batch F concurrency, immutability and terminal states', () => {
+  // Ordered deliberately: every refusal runs first, while the seeded rows are still in the state
+  // `executeAgreement` left them, and the two tests that transition a row run last. Sharing one
+  // database across the block is what makes the order matter, and it is stated rather than implied —
+  // the alternative was six more connection pools than the server can spare.
+  const seeded = sharedDatabase(executeAgreement);
+
+  it('refuses a revision change, and a write that does not advance the row counter', async () => {
+    const database = await seeded();
+
+    const changed = await raw(database, (tx) =>
+      tx`UPDATE contract_template_versions SET version = 2, row_version = row_version + 1
+         WHERE id = 'tv-1'`,
+    ).catch((caught: unknown) => caught);
+    expect(String(changed)).toContain('AGGREGATE_FACT_IS_IMMUTABLE');
+    expect(String(changed)).toContain('version');
+
+    const stale = await raw(database, (tx) =>
+      tx`UPDATE contract_template_versions SET status = 'SUPERSEDED' WHERE id = 'tv-1'`,
+    ).catch((caught: unknown) => caught);
+    // Names `row_version`, not `version`, which is the whole point of Batch E's generalisation.
+    expect(String(stale)).toContain('AGGREGATE_VERSION_MUST_ADVANCE');
+    expect(String(stale)).toContain('row_version');
+  }, 300_000);
+
+  it('refuses a change to the digest an approval is an approval of', async () => {
+    const database = await seeded();
+    // The load-bearing immutable fact of this batch. `invalidateOnChange` compares this column against
+    // the document's current hash, so a rewritable digest is an invalidation that can be made to find
+    // no change.
+    const failure = await raw(database, (tx) =>
+      tx`UPDATE agreement_approval_requests
+         SET document_hash = ${REVISED_HASH}, row_version = row_version + 1
+         WHERE id = 'ar-1'`,
+    ).catch((caught: unknown) => caught);
+    expect(String(failure)).toContain('AGGREGATE_FACT_IS_IMMUTABLE');
+    expect(String(failure)).toContain('document_hash');
+  }, 300_000);
+
+  it('refuses a DELETE on a governed aggregate and on an append-only one', async () => {
+    const database = await seeded();
+    for (const table of ['agreements_v2', 'contract_comments'] as const) {
+      const failure = await raw(database, (tx) =>
+        tx.unsafe(`DELETE FROM ${table}`),
+      ).catch((caught: unknown) => caught);
+      // An agreement that can be deleted is a contract that can be made never to have existed.
+      expect(String(failure), table).toMatch(/NOT_DELETABLE|append-only/);
+    }
+  }, 300_000);
+
+  it('refuses an update to every append-only aggregate, in the store and in the database', async () => {
+    const database = await seeded();
+
+    for (const collection of BATCH_F_APPEND_ONLY_COLLECTIONS) {
+      const relation = BATCH_F_RELATIONS[collection];
+      // The workspace has to be the caller's, because `replaceScoped` re-derives the tenant before it
+      // reaches the relation: a record outside the caller's scope is refused for that reason, and the
+      // append-only refusal would never be exercised.
+      const failure = await as(database, (store) =>
+        store
+          .replace(collection, { id: 'irrelevant', workspaceId: WORKSPACE })
+          .catch((caught: unknown) => caught),
+      );
+      expect(failure, collection).toBeInstanceOf(PostgresStoreError);
+      expect((failure as PostgresStoreError).code, collection).toBe('PERSISTENCE_HISTORY_IMMUTABLE');
+
+      const direct = await raw(database, (tx) =>
+        tx.unsafe(`UPDATE ${relation.table} SET row_version = row_version + 1`),
+      ).catch((caught: unknown) => caught);
+      expect(String(direct), relation.table).toContain('append-only');
+    }
+  }, 300_000);
+
   it('advances the row counter without moving a revision, and moves the draft’s own version', async () => {
-    const database = await migratedDatabase();
-    await executeAgreement(database);
+    const database = await seeded();
 
     await as(database, async (store) => {
       await store.replace('templateVersions', record.templateVersion({ status: 'SUPERSEDED' }));
@@ -841,53 +935,18 @@ describe('integration: Batch F concurrency, immutability and terminal states', (
     expect(rows.draft[0].row_version).toBe(2);
   }, 300_000);
 
-  it('refuses a revision change, and a write that does not advance the row counter', async () => {
-    const database = await migratedDatabase();
-    await executeAgreement(database);
-
-    const changed = await raw(database, (tx) =>
-      tx`UPDATE contract_template_versions SET version = 2, row_version = row_version + 1
-         WHERE id = 'tv-1'`,
-    ).catch((caught: unknown) => caught);
-    expect(String(changed)).toContain('AGGREGATE_FACT_IS_IMMUTABLE');
-    expect(String(changed)).toContain('version');
-
-    const stale = await raw(database, (tx) =>
-      tx`UPDATE contract_template_versions SET status = 'SUPERSEDED' WHERE id = 'tv-1'`,
-    ).catch((caught: unknown) => caught);
-    // Names `row_version`, not `version`, which is the whole point of Batch E's generalisation.
-    expect(String(stale)).toContain('AGGREGATE_VERSION_MUST_ADVANCE');
-    expect(String(stale)).toContain('row_version');
-  }, 300_000);
-
-  it('refuses a change to the digest an approval is an approval of', async () => {
-    const database = await migratedDatabase();
-    await executeAgreement(database);
-    // The load-bearing immutable fact of this batch. `invalidateOnChange` compares this column against
-    // the document's current hash, so a rewritable digest is an invalidation that can be made to find
-    // no change.
-    const failure = await raw(database, (tx) =>
-      tx`UPDATE agreement_approval_requests
-         SET document_hash = ${REVISED_HASH}, row_version = row_version + 1
-         WHERE id = 'ar-1'`,
-    ).catch((caught: unknown) => caught);
-    expect(String(failure)).toContain('AGGREGATE_FACT_IS_IMMUTABLE');
-    expect(String(failure)).toContain('document_hash');
-  }, 300_000);
-
   it('refuses an update to a superseded template, a closed package and a closed round', async () => {
-    const database = await migratedDatabase();
-    await executeAgreement(database);
+    const database = await seeded();
 
     // The three tables whose terminal states are provable from the engines. The other seven governed
     // tables have none, because `retire`, `approve`, `invalidateOnChange` and `revoke` accept a row in
     // any state — recorded in POST_WAVE_5_FOLLOWUPS.md rather than approximated with a guess.
+    //
+    // `tv-1` was superseded by the test before this one, and is deliberately not superseded again:
+    // that second write would itself be the post-terminal write under test, and it would throw
+    // unguarded rather than being asserted on.
     await as(database, async (store) => {
-      await store.replace('templateVersions', record.templateVersion({ status: 'SUPERSEDED' }));
-      await store.replace(
-        'signaturePackages',
-        record.signaturePackage({ status: 'COMPLETED' }),
-      );
+      await store.replace('signaturePackages', record.signaturePackage({ status: 'COMPLETED' }));
       await store.replace('negotiationRounds', record.negotiationRound({ status: 'WITHDRAWN' }));
     });
 
@@ -897,57 +956,18 @@ describe('integration: Batch F concurrency, immutability and terminal states', (
       ['negotiation_rounds', 'nr-1'],
     ] as const) {
       const failure = await raw(database, (tx) =>
-        tx.unsafe(
-          `UPDATE ${table} SET row_version = row_version + 1 WHERE id = '${id}'`,
-        ),
+        tx.unsafe(`UPDATE ${table} SET row_version = row_version + 1 WHERE id = '${id}'`),
       ).catch((caught: unknown) => caught);
       expect(String(failure), table).toContain('AGGREGATE_STATE_IS_TERMINAL');
-    }
-  }, 300_000);
-
-  it('refuses a DELETE on a governed aggregate and on an append-only one', async () => {
-    const database = await migratedDatabase();
-    await executeAgreement(database);
-    for (const table of ['agreements_v2', 'contract_comments'] as const) {
-      const failure = await raw(database, (tx) =>
-        tx.unsafe(`DELETE FROM ${table}`),
-      ).catch((caught: unknown) => caught);
-      // An agreement that can be deleted is a contract that can be made never to have existed.
-      expect(String(failure), table).toMatch(/NOT_DELETABLE|append-only/);
-    }
-  }, 300_000);
-
-  it('refuses an update to every append-only aggregate, in the store and in the database', async () => {
-    const database = await migratedDatabase();
-    await executeAgreement(database);
-
-    for (const collection of BATCH_F_APPEND_ONLY_COLLECTIONS) {
-      const relation = BATCH_F_RELATIONS[collection];
-      // The workspace has to be the caller's, because `replaceScoped` re-derives the tenant before it
-      // reaches the relation: a record outside the caller's scope is refused for that reason, and the
-      // append-only refusal would never be exercised.
-      const failure = await as(database, (store) =>
-        store
-          .replace(collection, { id: 'irrelevant', workspaceId: WORKSPACE })
-          .catch((caught: unknown) => caught),
-      );
-      expect(failure, collection).toBeInstanceOf(PostgresStoreError);
-      expect((failure as PostgresStoreError).code, collection).toBe('PERSISTENCE_HISTORY_IMMUTABLE');
-
-      const direct = await raw(database, (tx) =>
-        tx
-          .unsafe(`UPDATE ${relation.table} SET row_version = row_version + 1`)
-          ,
-      ).catch((caught: unknown) => caught);
-      expect(String(direct), relation.table).toContain('append-only');
     }
   }, 300_000);
 });
 
 describe('integration: Batch F invariants the schema alone cannot carry', () => {
+  const seeded = sharedDatabase(executeAgreement);
+
   it('refuses a clause instance whose source and citation disagree', async () => {
-    const database = await migratedDatabase();
-    await executeAgreement(database);
+    const database = await seeded();
 
     for (const [source, clauseVersionId] of [
       ['LIBRARY', null],
@@ -968,8 +988,7 @@ describe('integration: Batch F invariants the schema alone cannot carry', () => 
   }, 300_000);
 
   it('refuses a locked draft with no locker, and permits a submitted one that keeps its locker', async () => {
-    const database = await migratedDatabase();
-    await executeAgreement(database);
+    const database = await seeded();
 
     const failure = await raw(database, (tx) =>
       tx`UPDATE agreement_drafts SET status = 'LOCKED', row_version = row_version + 1
@@ -994,8 +1013,7 @@ describe('integration: Batch F invariants the schema alone cannot carry', () => 
   }, 300_000);
 
   it('refuses a policy with no steps and a package with no signers', async () => {
-    const database = await migratedDatabase();
-    await executeAgreement(database);
+    const database = await seeded();
 
     const policy = await raw(database, (tx) =>
       tx`
@@ -1022,8 +1040,7 @@ describe('integration: Batch F invariants the schema alone cannot carry', () => 
   }, 300_000);
 
   it('refuses a document version that supersedes itself, and an unknown status', async () => {
-    const database = await migratedDatabase();
-    await executeAgreement(database);
+    const database = await seeded();
 
     const lineage = await raw(database, (tx) =>
       tx`
@@ -1049,8 +1066,7 @@ describe('integration: Batch F invariants the schema alone cannot carry', () => 
   }, 300_000);
 
   it('refuses a revision below one and a negative step count', async () => {
-    const database = await migratedDatabase();
-    await executeAgreement(database);
+    const database = await seeded();
 
     const revision = await raw(database, (tx) =>
       tx`
@@ -1078,8 +1094,7 @@ describe('integration: Batch F invariants the schema alone cannot carry', () => 
   }, 300_000);
 
   it('scopes provider callback replay to the workspace', async () => {
-    const database = await migratedDatabase();
-    await executeAgreement(database);
+    const database = await seeded();
     await executeAgreement(database, TENANT, OTHER_WORKSPACE, '-b');
 
     // Both seeds used the same provider event identifier in different workspaces of one tenant, and both
@@ -1114,10 +1129,15 @@ describe('integration: Batch F invariants the schema alone cannot carry', () => 
 });
 
 describe('integration: Batch F tenancy', () => {
-  it('refuses a child whose parent belongs to another tenant', async () => {
-    const database = await migratedDatabase();
+  // Both tenants, seeded once. Each test only reads or attempts a refused write, so sharing is safe —
+  // and seeding twice would collide on the identifiers.
+  const seeded = sharedDatabase(async (database) => {
     await executeAgreement(database);
     await executeAgreement(database, OTHER_TENANT, OTHER_WORKSPACE, '-x');
+  });
+
+  it('refuses a child whose parent belongs to another tenant', async () => {
+    const database = await seeded();
 
     // Foreign key checks run as the table owner and are not subject to row-level security, so only the
     // composite key stops this.
@@ -1137,9 +1157,7 @@ describe('integration: Batch F tenancy', () => {
   }, 300_000);
 
   it('shows a tenant only its own agreements', async () => {
-    const database = await migratedDatabase();
-    await executeAgreement(database);
-    await executeAgreement(database, OTHER_TENANT, OTHER_WORKSPACE, '-x');
+    const database = await seeded();
 
     const mine = await as(database, (store) => store.list('agreements'));
     const theirs = await as(

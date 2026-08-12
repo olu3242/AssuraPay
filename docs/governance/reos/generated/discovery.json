@@ -2029,6 +2029,13 @@
       "id": "202608110005",
       "name": "wave6_batch_f_agreement_creation",
       "path": "supabase/migrations/202608110005_wave6_batch_f_agreement_creation.sql"
+    },
+    {
+      "declaresPolicies": 0,
+      "declaresRowLevelSecurity": false,
+      "id": "202608110006",
+      "name": "close_batch_b_invoice_number_gap",
+      "path": "supabase/migrations/202608110006_close_batch_b_invoice_number_gap.sql"
     }
   ],
   "packages": [
@@ -2220,7 +2227,7 @@
       "moduleType": null,
       "name": "@assurapay/database",
       "sourceFiles": 17,
-      "sourceLines": 8319,
+      "sourceLines": 8324,
       "testFiles": [
         "packages/database/src/async-conformance.test.ts",
         "packages/database/src/domain-repository.test.ts",
@@ -2918,6 +2925,7 @@
         "origin/feat/engines-06-10-governance-core",
         "origin/feat/engines-61-70-agent-runtime",
         "origin/feat/f1-batch-e-performance-blueprint",
+        "origin/feat/g1-batch-f-agreement-creation",
         "origin/feat/persistence-async-domain-repository",
         "origin/feat/persistence-async-repository-interface",
         "origin/feat/persistence-domain-store-durable-environment-gate",
@@ -2941,8 +2949,8 @@
         "docs/governance/reos/generated/execution-manifest.json",
         "docs/governance/reos/generated/forensics.json"
       ],
-      "head": "493e33681281e478ab144d703df6a906ca57efcb",
-      "headShort": "493e336",
+      "head": "ed254b831ec1bc86ce67c62efeb5656799757d60",
+      "headShort": "ed254b8",
       "reflogAvailable": true,
       "remotes": [
         "origin"
@@ -2951,7 +2959,7 @@
         "platform-trust-foundation",
         "rc-engine-60"
       ],
-      "upstream": null
+      "upstream": "origin/feat/g1-batch-f-agreement-creation"
     },
     "name": "assurapay",
     "packageManager": "pnpm@11.3.0",
@@ -3141,7 +3149,7 @@
     "applications": 1,
     "documents": 154,
     "engines": 60,
-    "migrations": 32,
+    "migrations": 33,
     "packages": 26,
     "testFiles": 109
   },
