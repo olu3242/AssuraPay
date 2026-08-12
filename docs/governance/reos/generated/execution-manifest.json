@@ -3395,7 +3395,7 @@
   "identity": {
     "branch": "feat/g1-batch-f-agreement-creation",
     "clean": false,
-    "head": "493e33681281e478ab144d703df6a906ca57efcb",
+    "head": "ed254b831ec1bc86ce67c62efeb5656799757d60",
     "repository": "assurapay",
     "version": "0.1.0"
   },
@@ -3486,7 +3486,7 @@
     "released": 75,
     "validated": 0
   },
-  "manifestDigest": "0412917dc1bd",
+  "manifestDigest": "e032844d3126",
   "missingCapabilities": [
     "persistence.domain-store-durability"
   ],
@@ -3679,7 +3679,7 @@
       "moduleType": null,
       "name": "@assurapay/database",
       "sourceFiles": 17,
-      "sourceLines": 8319,
+      "sourceLines": 8324,
       "testFiles": [
         "packages/database/src/async-conformance.test.ts",
         "packages/database/src/domain-repository.test.ts",
