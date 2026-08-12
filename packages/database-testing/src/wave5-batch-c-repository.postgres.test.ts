@@ -498,11 +498,27 @@ describe('integration: Batch C money and settlement invariants', () => {
   }, 300_000);
 
   it('refuses an instruction whose currency disagrees with its release request', async () => {
-    const error = await as(database, (store) =>
-      store
-        .append('paymentInstructions', instruction({ id: 'pi-usd', idempotencyKey: 'idem-usd', currency: 'USD' }))
-        .catch((caught: unknown) => caught),
-    );
+    // Use a release request with no existing instruction. The exactly-once constraint is deliberately
+    // earlier than this assertion for rr-1, and correctly refuses a second instruction before the
+    // currency foreign key is considered. This fixture isolates the invariant this test names.
+    await as(database, (store) => store.append('releaseRequests', {
+      id: 'rr-currency',
+      workspaceId: WORKSPACE,
+      milestoneId: 'ms-1',
+      financialEntitlementId: 'fe-1',
+      invoiceId: 'inv-1',
+      fundReservationId: 'fr-1',
+      releaseType: 'FULL',
+      requestedAmountMinor: 925_000,
+      currency: 'NGN',
+      status: 'DRAFT',
+      blockers: [],
+      requestedBy: ACTOR,
+      createdAt: stamp,
+    }));
+    const error = await as(database, (store) => store.append('paymentInstructions', instruction({
+      id: 'pi-usd', idempotencyKey: 'idem-usd', releaseRequestId: 'rr-currency', currency: 'USD',
+    })).catch((caught: unknown) => caught));
     expect((error as PostgresStoreError).detail ?? '').toMatch(/release_request_currency_fk/);
   }, 300_000);
 
