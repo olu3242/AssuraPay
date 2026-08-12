@@ -14,7 +14,7 @@ export default defineConfig({
      * rather than skipping when the database is missing. Nothing is skipped: the suites
      * either run against PostgreSQL or the gate that owns them fails.
      */
-    exclude: ['**/node_modules/**', '**/*.postgres.test.ts'],
+    exclude: ['**/node_modules/**', '**/*.postgres.test.ts', 'tests/browser/**'],
   },
   resolve: {
     alias: {

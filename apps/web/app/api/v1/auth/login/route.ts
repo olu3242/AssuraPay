@@ -1,1 +1,16 @@
-import { trust, errorResponse } from '../../../../../lib/trust-app'; export async function POST(request: Request) { try { const body = await request.json(); const rawSessionToken = crypto.randomUUID(); const { session } = await trust.identity.login({ email: body.email, rawSessionToken, deviceFingerprint: body.deviceFingerprint, ipContext: request.headers.get('x-forwarded-for') ?? undefined, userAgentContext: request.headers.get('user-agent') ?? undefined, correlationId: request.headers.get('x-correlation-id') ?? crypto.randomUUID() }); const { sessionTokenHash: _hash, ...safeSession } = session; const response = Response.json(safeSession); response.headers.append('Set-Cookie', `assurapay_session=${rawSessionToken}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=28800`); return response; } catch (error) { return errorResponse(error); } }
+import { trust, errorResponse } from '../../../../../lib/trust-app';
+
+export async function POST(request: Request) {
+  try {
+    const body = await request.json();
+    const rawSessionToken = crypto.randomUUID();
+    const { session } = await trust.identity.login({ email: body.email, rawSessionToken, deviceFingerprint: body.deviceFingerprint, ipContext: request.headers.get('x-forwarded-for') ?? undefined, userAgentContext: request.headers.get('user-agent') ?? undefined, correlationId: request.headers.get('x-correlation-id') ?? crypto.randomUUID() });
+    const { sessionTokenHash: _hash, ...safeSession } = session;
+    const response = Response.json(safeSession);
+    const localTest = process.env.ASSURAPAY_DEPLOYMENT === 'test';
+    response.headers.append('Set-Cookie', `assurapay_session=${rawSessionToken}; HttpOnly;${localTest ? '' : ' Secure;'} SameSite=Lax; Path=/; Max-Age=28800`);
+    return response;
+  } catch (error) {
+    return errorResponse(error);
+  }
+}

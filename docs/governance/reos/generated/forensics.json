@@ -386,7 +386,8 @@
             "packages/database/src/migrations.ts",
             "packages/database/src/schema-ownership.ts",
             "packages/runtime/src/persistence-runtime.postgres.test.ts",
-            "packages/runtime/src/rls-runtime.postgres.test.ts"
+            "packages/runtime/src/rls-runtime.postgres.test.ts",
+            "scripts/prepare-browser-db.ts"
           ],
           "query": "applyMigrations",
           "satisfied": true
@@ -1654,7 +1655,7 @@
       "totalProbes": 5
     }
   ],
-  "head": "19cd6e8ca906338c75a28c06c0d7a877f7baa7cd",
+  "head": "6442af3b6188ee0aa6a3d275539ca6a0268da494",
   "reosVersion": "1.0.0",
   "stage": "forensics",
   "summary": {

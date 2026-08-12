@@ -118,6 +118,27 @@ jobs:
         env:
           ASSURAPAY_TEST_DATABASE_URL: postgres://assurapay_ci:assurapay_ci@127.0.0.1:5432/assurapay_test
 
+      - name: Prepare PostgreSQL for browser certification
+        run: pnpm db:browser:prepare
+        env:
+          ASSURAPAY_TEST_DATABASE_URL: postgres://assurapay_ci:assurapay_ci@127.0.0.1:5432/assurapay_test
+
+      - name: Install the certified browser
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Build and certify the real browser boundary
+        run: pnpm build && pnpm test:browser
+        env:
+          ASSURAPAY_TEST_DATABASE_URL: postgres://assurapay_ci:assurapay_ci@127.0.0.1:5432/assurapay_test
+
+      - name: Publish browser failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-artifacts
+          path: artifacts/playwright
+          if-no-files-found: ignore
+
       - name: Prove the gate fails with no database configured
         run: |
           if pnpm certify:postgres; then
