@@ -68,6 +68,22 @@ export type PaymentEligibility = {
   evaluatedAt: string;
 };
 
+type CompletionCertificateRecord = {
+  id: string;
+  workspaceId: string;
+  milestoneId: string;
+  status: 'CERTIFIED' | 'REVOKED';
+};
+
+type PaymentTriggerEvaluationRecord = {
+  id: string;
+  workspaceId: string;
+  milestoneId: string;
+  paymentTriggerRuleId: string;
+  eligible: boolean;
+  blockers: string[];
+};
+
 export class PaymentEligibilityEngine {
   constructor(private readonly store: TrustPersistence) {}
 
@@ -76,21 +92,26 @@ export class PaymentEligibilityEngine {
     input: {
       milestoneId: string;
       completionCertificateId: string;
-      certificateStatus: 'CERTIFIED' | 'REVOKED';
-      paymentTriggerRuleId: string;
-      triggerEligible: boolean;
-      triggerBlockers: string[];
+      paymentTriggerEvaluationId: string;
     },
   ) {
+    const certificate = await get<CompletionCertificateRecord>(
+      this.store, 'completionCertificates', context, input.completionCertificateId,
+    );
+    const trigger = await get<PaymentTriggerEvaluationRecord>(
+      this.store, 'paymentTriggerEvaluations', context, input.paymentTriggerEvaluationId,
+    );
+    if (certificate.milestoneId !== input.milestoneId || trigger.milestoneId !== input.milestoneId)
+      throw new Error('ELIGIBILITY_MILESTONE_MISMATCH');
     const blockers: string[] = [];
-    if (input.certificateStatus !== 'CERTIFIED') blockers.push('CERTIFICATE_NOT_CERTIFIED');
-    if (!input.triggerEligible) blockers.push(...input.triggerBlockers.map((b) => `TRIGGER:${b}`));
+    if (certificate.status !== 'CERTIFIED') blockers.push('CERTIFICATE_NOT_CERTIFIED');
+    if (!trigger.eligible) blockers.push(...trigger.blockers.map((b) => `TRIGGER:${b}`));
     const assessment: PaymentEligibility = {
       id: randomUUID(),
       workspaceId: ws(context),
       milestoneId: input.milestoneId,
       completionCertificateId: input.completionCertificateId,
-      paymentTriggerRuleId: input.paymentTriggerRuleId,
+      paymentTriggerRuleId: trigger.paymentTriggerRuleId,
       eligible: blockers.length === 0,
       blockers,
       evaluatedBy: context.actorUserId,

@@ -21,13 +21,16 @@ describe('e2e Batch 9 certified milestone to a condition-met, non-custodial rele
       correlationId: 'c',
     };
 
+    await s.append('completionCertificates', {
+      id: 'certificate', workspaceId: 'w', milestoneId: 'erection-milestone', status: 'CERTIFIED',
+    });
+    await s.append('paymentTriggerEvaluations', {
+      id: 'trigger-evaluation', workspaceId: 'w', milestoneId: 'erection-milestone',
+      paymentTriggerRuleId: 'trigger', eligible: true, blockers: [],
+    });
     const eligibility = await new PaymentEligibilityEngine(s).assess(c, {
-      milestoneId: 'erection-milestone',
-      completionCertificateId: 'certificate',
-      certificateStatus: 'CERTIFIED',
-      paymentTriggerRuleId: 'trigger',
-      triggerEligible: true,
-      triggerBlockers: [],
+      milestoneId: 'erection-milestone', completionCertificateId: 'certificate',
+      paymentTriggerEvaluationId: 'trigger-evaluation',
     });
     expect(eligibility.eligible).toBe(true);
 

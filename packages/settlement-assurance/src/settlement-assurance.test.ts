@@ -18,30 +18,36 @@ const c = {
   correlationId: 'c',
 };
 
+let eligibilitySequence = 0;
+async function assess(
+  store: InMemoryTrustStore,
+  input: { certificateStatus?: 'CERTIFIED' | 'REVOKED'; triggerEligible?: boolean; triggerBlockers?: string[] } = {},
+) {
+  const sequence = ++eligibilitySequence;
+  const certificateId = `cert-${sequence}`;
+  const evaluationId = `trigger-evaluation-${sequence}`;
+  await store.append('completionCertificates', {
+    id: certificateId, workspaceId: 'w', milestoneId: 'm', status: input.certificateStatus ?? 'CERTIFIED',
+  });
+  await store.append('paymentTriggerEvaluations', {
+    id: evaluationId, workspaceId: 'w', milestoneId: 'm', paymentTriggerRuleId: 'rule',
+    eligible: input.triggerEligible ?? true, blockers: input.triggerBlockers ?? [],
+  });
+  return await new PaymentEligibilityEngine(store).assess(c, {
+    milestoneId: 'm', completionCertificateId: certificateId, paymentTriggerEvaluationId: evaluationId,
+  });
+}
+
 describe('Engine 41 Payment Eligibility', () => {
   it('is only eligible when the certificate is certified and the trigger is eligible, and prefixes trigger blockers', async () => {
     const s = new InMemoryTrustStore();
     const e = new PaymentEligibilityEngine(s);
-    const revoked = await e.assess(c, {
-      milestoneId: 'm',
-      completionCertificateId: 'cert',
-      certificateStatus: 'REVOKED',
-      paymentTriggerRuleId: 'rule',
-      triggerEligible: false,
-      triggerBlockers: ['ACCEPTANCE_CRITERIA_NOT_MET'],
-    });
+    const revoked = await assess(s, { certificateStatus: 'REVOKED', triggerEligible: false, triggerBlockers: ['ACCEPTANCE_CRITERIA_NOT_MET'] });
     expect(revoked).toMatchObject({
       eligible: false,
       blockers: ['CERTIFICATE_NOT_CERTIFIED', 'TRIGGER:ACCEPTANCE_CRITERIA_NOT_MET'],
     });
-    const eligible = await e.assess(c, {
-      milestoneId: 'm',
-      completionCertificateId: 'cert',
-      certificateStatus: 'CERTIFIED',
-      paymentTriggerRuleId: 'rule',
-      triggerEligible: true,
-      triggerBlockers: [],
-    });
+    const eligible = await assess(s);
     expect(eligible).toMatchObject({ eligible: true, blockers: [] });
     expect((await e.latest(c, 'm'))?.id).toBe(eligible.id);
   });
@@ -50,14 +56,7 @@ describe('Engine 41 Payment Eligibility', () => {
 describe('Engine 42 Financial Entitlement', () => {
   it('requires an eligible assessment, rejects non-integer amounts and a negative net payable, and locks on confirm', async () => {
     const s = new InMemoryTrustStore();
-    const eligibility = await new PaymentEligibilityEngine(s).assess(c, {
-      milestoneId: 'm',
-      completionCertificateId: 'cert',
-      certificateStatus: 'CERTIFIED',
-      paymentTriggerRuleId: 'rule',
-      triggerEligible: true,
-      triggerBlockers: [],
-    });
+    const eligibility = await assess(s);
     const e = new FinancialEntitlementEngine(s);
     await expect(e.calculate(c, {
         milestoneId: 'm',
@@ -108,14 +107,7 @@ describe('Engine 42 Financial Entitlement', () => {
 describe('Engine 43 Invoice & Claim Management', () => {
   it('requires a confirmed entitlement, rejects duplicates, auto-matches on exact amount and gates approval on matching', async () => {
     const s = new InMemoryTrustStore();
-    const eligibility = await new PaymentEligibilityEngine(s).assess(c, {
-      milestoneId: 'm',
-      completionCertificateId: 'cert',
-      certificateStatus: 'CERTIFIED',
-      paymentTriggerRuleId: 'rule',
-      triggerEligible: true,
-      triggerBlockers: [],
-    });
+    const eligibility = await assess(s);
     const entitlementEngine = new FinancialEntitlementEngine(s);
     const entitlement = await entitlementEngine.calculate(c, {
       milestoneId: 'm',
@@ -202,14 +194,7 @@ describe('Engine 44 Escrow & Funding Assurance', () => {
 describe('Engine 45 Conditional Release Orchestration', () => {
   it('validates a full release matches the entitlement, caps the request at reserved funds and re-evaluates conditions', async () => {
     const s = new InMemoryTrustStore();
-    const eligibility = await new PaymentEligibilityEngine(s).assess(c, {
-      milestoneId: 'm',
-      completionCertificateId: 'cert',
-      certificateStatus: 'CERTIFIED',
-      paymentTriggerRuleId: 'rule',
-      triggerEligible: true,
-      triggerBlockers: [],
-    });
+    const eligibility = await assess(s);
     const entitlementEngine = new FinancialEntitlementEngine(s);
     const entitlement = await entitlementEngine.calculate(c, {
       milestoneId: 'm',

@@ -301,6 +301,7 @@ export const REQUIRED_TRUST_MIGRATIONS: readonly string[] = Object.freeze([
   '202608120002_domain_store_durability',
   '202608120003_domain_store_policy_convergence',
   '202608120004_release_instruction_exactly_once',
+  '202608120005_payment_trigger_evaluation_durability',
 ]);
 
 export type SchemaCompatibility = {

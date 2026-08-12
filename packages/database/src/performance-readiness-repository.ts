@@ -18,6 +18,7 @@ export const P1_RELATIONS = Object.freeze({
   successMetrics: { table: 'success_metrics', appendOnly: false },
   dependencies: { table: 'dependencies', appendOnly: false },
   paymentTriggerRules: { table: 'payment_trigger_rules', appendOnly: false },
+  paymentTriggerEvaluations: { table: 'payment_trigger_evaluations', appendOnly: true },
   performanceBaselines: { table: 'performance_baselines', appendOnly: true },
   baselineVariances: { table: 'baseline_variances', appendOnly: true },
 } as const satisfies Record<string, Omit<P1Relation, 'collection'>>);

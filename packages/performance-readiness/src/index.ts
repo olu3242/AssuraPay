@@ -274,6 +274,17 @@ export type PaymentTriggerRule = {
   createdAt: string;
 };
 
+export type PaymentTriggerEvaluation = {
+  id: string;
+  workspaceId: string;
+  milestoneId: string;
+  paymentTriggerRuleId: string;
+  eligible: boolean;
+  blockers: string[];
+  evaluatedBy: string;
+  evaluatedAt: string;
+};
+
 export class PaymentTriggerRuleEngine {
   constructor(private readonly store: TrustPersistence) {}
 
@@ -340,7 +351,23 @@ export class PaymentTriggerRuleEngine {
       !rule.requiredAcceptanceCriterionIds.every((x) => evidence.acceptedCriterionIds.includes(x))
     )
       blockers.push('ACCEPTANCE_CRITERIA_NOT_MET');
-    return { triggerId: id, eligible: blockers.length === 0, blockers };
+    const evaluation: PaymentTriggerEvaluation = {
+      id: randomUUID(),
+      workspaceId: ws(context),
+      milestoneId: rule.milestoneId,
+      paymentTriggerRuleId: id,
+      eligible: blockers.length === 0,
+      blockers,
+      evaluatedBy: context.actorUserId,
+      evaluatedAt: now(),
+    };
+    await this.store.append('paymentTriggerEvaluations', evaluation);
+    await emit(this.store, context, 'PaymentTriggerEvaluated', 'PaymentTriggerEvaluation', evaluation.id, {
+      paymentTriggerRuleId: id,
+      eligible: evaluation.eligible,
+      blockers,
+    });
+    return evaluation;
   }
 }
 

@@ -46,14 +46,14 @@ async function migratedStore(): Promise<PostgresTrustStore> {
 const scope = { tenantId: TENANT, workspaceId: WORKSPACE, actorId: ACTOR };
 
 describe('integration: Production MVP Performance Readiness persistence', () => {
-  it('routes exactly the six Production MVP Performance Readiness collections', () => {
+  it('routes every Production MVP Performance Readiness collection', () => {
     expect(Object.keys(P1_RELATIONS)).toEqual([
       'acceptanceCriteria', 'successMetrics', 'dependencies', 'paymentTriggerRules',
-      'performanceBaselines', 'baselineVariances',
+      'paymentTriggerEvaluations', 'performanceBaselines', 'baselineVariances',
     ]);
   });
 
-  it('round-trips all six Performance Readiness collections through PostgreSQL', async () => {
+  it('round-trips all Performance Readiness collections through PostgreSQL', async () => {
     const store = await migratedStore();
     const records = [
       ['acceptanceCriteria', {
@@ -77,6 +77,11 @@ describe('integration: Production MVP Performance Readiness persistence', () => 
         ruleType: 'MILESTONE_COMPLETION', requiredAcceptanceCriterionIds: [], amountMinor: 1000,
         currency: 'USD', status: 'DRAFT', createdAt: '2026-08-12T00:00:00.000Z',
       }],
+      ['paymentTriggerEvaluations', {
+        id: 'trigger-evaluation-p1', workspaceId: WORKSPACE, milestoneId: 'milestone-p1',
+        paymentTriggerRuleId: 'trigger-p1', eligible: true, blockers: [], evaluatedBy: ACTOR,
+        evaluatedAt: '2026-08-12T00:00:30.000Z',
+      }],
       ['performanceBaselines', {
         id: 'baseline-p1', workspaceId: WORKSPACE, blueprintId: 'blueprint-p1', milestoneId: 'milestone-p1',
         plannedStartDate: '2026-08-12', plannedDueDate: '2026-08-20', plannedBudgetAmountMinor: 1000,
@@ -95,7 +100,7 @@ describe('integration: Production MVP Performance Readiness persistence', () => 
         await store.append(collection, record);
         const [actual] = await store.list<Record<string, unknown>>(collection);
         const expected = { ...record } as Record<string, unknown>;
-        for (const timestamp of ['createdAt', 'recordedAt']) {
+        for (const timestamp of ['createdAt', 'recordedAt', 'evaluatedAt']) {
           if (typeof expected[timestamp] === 'string') {
             expect(Date.parse(actual?.[timestamp] as string)).toBe(Date.parse(expected[timestamp]));
             delete expected[timestamp];
