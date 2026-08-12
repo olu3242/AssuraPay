@@ -90,11 +90,11 @@ Sixty-seven collections, grouped by owning package and ordered by the sequence b
 
 | # | Package | Engines | Unmapped | Contains |
 |---|---|---|---|---|
-| 1 | `performance-blueprint` | 16–20 | 6 | `performanceBlueprints`, `blueprintMilestones`, `dodPackages` — **3 canonical chain links** |
-| 2 | `agreement-creation` | 06–10 | 15 | `agreements` — **the chain's first link** |
-| 3 | `performance-readiness` | 21–25 | 6 | `paymentTriggerRules` |
-| 4 | `governance-core` | 11–15 | 11 | certification, governed execution, payment authorisation proposals |
-| 5 | `agreement-intelligence` | 10 | 5 | analysis runs, risk assessments |
+| 1 | `performance-blueprint` | 21–25 | 6 | `performanceBlueprints`, `blueprintMilestones`, `dodPackages` — **3 canonical chain links** |
+| 2 | `agreement-creation` | 11–15 | 15 | `agreements` — **the chain's first link** |
+| 3 | `performance-readiness` | 26–30 | 6 | `paymentTriggerRules` |
+| 4 | `governance-core` | 06–10 | 11 | certification, governed execution, payment authorisation proposals |
+| 5 | `agreement-intelligence` | 16–20 | 5 | analysis runs, risk assessments |
 | 6 | `enterprise-intelligence` | 51–55 | 6 | KPIs, assurance indices, forecasts |
 | 7 | `enterprise-analytics` | 56–60 | 9 | scorecards, model registry, drift |
 | 8 | `agent-runtime` | governed agents | 9 | agent memory, telemetry, executions |

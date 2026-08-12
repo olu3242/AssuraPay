@@ -7,6 +7,7 @@ import {
   BATCH_C_TABLES,
   BATCH_D_TABLES,
   BATCH_E_TABLES,
+  BATCH_F_TABLES,
 } from '@assurapay/domain-contracts';
 import type { SqlClient } from './postgres-client';
 
@@ -275,11 +276,23 @@ export const REQUIRED_TRUST_MIGRATIONS: readonly string[] = Object.freeze([
   // repositories now read and write: a host without it fails the first reconciliation and the first
   // payment instruction with an undefined-column error.
   '202608110003_wave5_close_batch_c_gaps',
-  // Batch E. The store routes six Engine 16-20 collections to tables `202608030004` created and
+  // Batch E. The store routes six Engine 21-25 collections to tables `202608030004` created and
   // `202608110004` converges and governs. `202608110004` also generalises the shared
   // governed-transition function, so a host missing it would have triggers configured for a
   // concurrency column the function does not know how to read.
   '202608110004_wave6_batch_e_performance_blueprint',
+  // Batch F. The store routes fifteen Engine 11-15 collections to tables `202608030002` created and
+  // `202608110005` converges and governs — plus two tables `202608110005` *creates*, because
+  // `contract_comments` and `signature_callbacks` had no relation anywhere. A host missing it would
+  // fail the first contract comment and the first provider callback with an undefined-table error, and
+  // would carry no digest chain between an approved document, the package that signs it and the
+  // certificate that attests it.
+  '202608110005_wave6_batch_f_agreement_creation',
+  // Narrows the invoice-number key to live invoices. Required rather than optional because the
+  // constraint it replaces is *stricter* than the engine: a host without it can reject an invoice and
+  // then refuse the corrected resubmission that carries the same counterparty document reference,
+  // leaving a confirmed entitlement with no route to an invoice.
+  '202608110006_close_batch_b_invoice_number_gap',
 ]);
 
 export type SchemaCompatibility = {
@@ -317,9 +330,9 @@ export const REQUIRED_TRUST_TABLES = Object.freeze([
 /**
  * Domain aggregate tables the store owns outside the trust set.
  *
- * Batch A's sixteen, Batch B's seven, Batch C's seven and Batch D's five, taken from the contract
- * registries rather than restated, so an aggregate cannot be given a repository without becoming a readiness
- * requirement.
+ * Taken from the contract registries rather than restated, so an aggregate cannot be given a repository
+ * without becoming a readiness requirement. Batch A's sixteen, Batch B's seven, Batch C's seven, Batch
+ * D's five, Batch E's six and Batch F's fifteen.
  *
  * `fund_reservations` and `funding_commitments` are now here, and were deliberately absent until
  * Batch C. `202608100002` converged their schema — Batch B's foreign-key closure forced it, because
@@ -340,6 +353,7 @@ export const REQUIRED_DOMAIN_AGGREGATE_TABLES = Object.freeze(
     ...BATCH_C_TABLES,
     ...BATCH_D_TABLES,
     ...BATCH_E_TABLES,
+    ...BATCH_F_TABLES,
   ].sort(),
 );
 

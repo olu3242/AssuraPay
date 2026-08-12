@@ -247,8 +247,14 @@ describe('integration: Batch E is activated and repairs the chain', () => {
 
     for (const aggregate of BATCH_E_AGGREGATES)
       expect(REQUIRED_DOMAIN_AGGREGATE_TABLES, aggregate.table).toContain(aggregate.table);
-    // Thirty-five from Batches A-D plus these six.
-    expect(REQUIRED_DOMAIN_AGGREGATE_TABLES).toHaveLength(41);
+    // Every one of this batch's tables is required, and the required set holds no duplicates. Not a
+    // bare total: this suite asserted exactly 41 when it was written, which was the same brittleness it
+    // had just corrected in Batch D's suite — and Batch F made it false. A count of the whole registry
+    // is a fact about the *next* batch, so it belongs to whichever suite that batch brings with it.
+    expect(new Set(REQUIRED_DOMAIN_AGGREGATE_TABLES).size).toBe(
+      REQUIRED_DOMAIN_AGGREGATE_TABLES.length,
+    );
+    expect(REQUIRED_DOMAIN_AGGREGATE_TABLES.length).toBeGreaterThanOrEqual(41);
 
     const database = await migratedDatabase();
     const compatible = await verifySchemaCompatibility(database.sql, migrationsDirectory());

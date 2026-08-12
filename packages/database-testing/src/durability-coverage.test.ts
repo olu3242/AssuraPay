@@ -13,10 +13,12 @@ import { POSTGRES_TRUST_COLLECTIONS } from '@assurapay/database';
  * deployment could pass every gate in this repository and then be unable to create a contract.
  *
  * Measured when this file was written: engines write **129** collections, the store maps **64**, and
- * **67** were unmapped. Batch E has since closed six of them, so the current figure is **61** — and it
- * is the assertions below, not this sentence, that keep that true. `ContractAuthoringEngine.create` — the first step of the canonical chain — was
- * confirmed against a live PostgreSQL instance to fail with
- * `PERSISTENCE_COLLECTION_NOT_MAPPED: agreements has no mapping in the durable trust store`.
+ * **67** were unmapped. Batch E closed six and Batch F fifteen, so the current figure is **46** — and it
+ * is the assertions below, not this sentence, that keep that true.
+ * `ContractAuthoringEngine.create` — the first step of the canonical chain — was confirmed against a
+ * live PostgreSQL instance to fail with
+ * `PERSISTENCE_COLLECTION_NOT_MAPPED: agreements has no mapping in the durable trust store`. Batch F is
+ * why it no longer does.
  *
  * `docs/persistence/DURABILITY_GAP_ANALYSIS.md` has the full register and the sequenced plan. This
  * file is the mechanism that keeps it honest, and it does two jobs:
@@ -47,12 +49,11 @@ import { POSTGRES_TRUST_COLLECTIONS } from '@assurapay/database';
  * starts, not what is permitted.
  */
 const KNOWN_UNMAPPED: readonly string[] = Object.freeze([
-  // agreement-creation (15) — Engines 06-10. Contains `agreements`, the canonical chain's first link.
-  'agreementExecutionCertificates', 'agreements', 'approvalDecisions', 'approvalPolicies',
-  'approvalRequests', 'clauseDeviations', 'clauseInstances', 'clauseVersions', 'contractComments',
-  'contractDrafts', 'documentVersions', 'negotiationRounds', 'signatureCallbacks',
-  'signaturePackages', 'templateVersions',
-  // governance-core (11) — Engines 11-15.
+  // agreement-creation — CLOSED by Batch F (`202608110005`). Its fifteen aggregates, including
+  // `agreements` — the canonical chain's first link — are removed from this baseline rather than left in
+  // it. Two of the fifteen, `contractComments` and `signatureCallbacks`, had no *table* either, so they
+  // were unstorable rather than merely unrouted.
+  // governance-core (11) — Engines 06-10.
   'certificationDecisions', 'certificationRequests', 'digitalCertifications', 'dodEvaluations',
   'dodVersions', 'executionHistory', 'governedExecutions', 'governedMilestones',
   'milestoneDependencies', 'paymentAuthorizationProposals', 'paymentTriggerDefinitions',
@@ -60,12 +61,12 @@ const KNOWN_UNMAPPED: readonly string[] = Object.freeze([
   // canonical chain links, are removed from this baseline rather than left in it: the third assertion
   // below fails on a baseline entry the store now maps, which is what makes the list a ratchet instead
   // of a record of good intentions.
-  // performance-readiness (6) — Engines 21-25. `paymentTriggerRules` is referenced by Batch B's
+  // performance-readiness (6) — Engines 26-30. `paymentTriggerRules` is referenced by Batch B's
   // `paymentEligibility.paymentTriggerRuleId`, so a durable eligibility already points at a rule that
   // cannot be stored.
   'acceptanceCriteria', 'baselineVariances', 'dependencies', 'paymentTriggerRules',
   'performanceBaselines', 'successMetrics',
-  // agreement-intelligence (5) — Engine 10's analysis side.
+  // agreement-intelligence (5) — Engines 16-20.
   'agreementIntelligenceVersions', 'analysisReviews', 'contractAnalysisRuns',
   'contractRiskAssessments', 'repositoryDocuments',
   // enterprise-intelligence (6) — Engines 51-55, deferred by the accepted decision.
@@ -187,14 +188,53 @@ describe('durability coverage: the store accepts what the engines write', () => 
     const durable = CANONICAL_CHAIN.filter((collection) => mapped.has(collection));
     const missing = CANONICAL_CHAIN.filter((collection) => !mapped.has(collection));
 
-    // Seven of eleven when this gate was written; **ten** since Batch E made the blueprint, its
-    // milestones and their definitions of done durable. Only `agreements` remains, and Batch F closes
-    // it. A floor and a ceiling, so mapping a link can only make this pass by more.
-    expect(durable.length).toBeGreaterThanOrEqual(10);
+    // Seven of eleven when this gate was written; ten after Batch E made the blueprint, its milestones
+    // and their definitions of done durable; **eleven of eleven** since Batch F routed `agreements`.
+    // The chain is closed, so this is now an equality in the only direction that can regress: every
+    // link must be mapped, and `missing` must be empty rather than merely short.
+    expect(durable.length).toBe(CANONICAL_CHAIN.length);
     expect(
-      missing.length,
+      missing,
       `canonical chain links with no durable mapping: ${missing.join(', ')}`,
-    ).toBeLessThanOrEqual(1);
+    ).toEqual([]);
+  });
+
+  it('never leaves an engine package half mapped', () => {
+    // The defect this catches was found in review of the merged Batch B, not by any gate here.
+    //
+    // Batch B activated `releaseRequests` — canonical Engine 45 — while deliberately leaving
+    // `fundReservations` unmapped, on the reasoning that converging a table is not activating it. True,
+    // and it missed the consequence: `ConditionalReleaseOrchestrationEngine.draft` and `evaluate` both
+    // *read* `fundReservations`, so the durable release path failed at its first statement with
+    // PERSISTENCE_COLLECTION_NOT_MAPPED. The batch's own suite seeded that table directly and never
+    // exercised the engine, which is why every gate passed.
+    //
+    // The general property: a collection is only usefully mapped if everything its own engine package
+    // reads is mapped too. Half a package is a package whose routed collections are unreachable through
+    // the engine that owns them, and the failure surfaces at the first request rather than here.
+    //
+    // Batch C closed that instance by mapping `fundReservations`. This assertion is what stops the next
+    // one, and it holds today: no package is partially mapped.
+    const mapped = new Set(POSTGRES_TRUST_COLLECTIONS);
+    const written = collectionsEnginesWrite();
+
+    const byPackage = new Map<string, string[]>();
+    for (const [collection, owners] of written)
+      for (const owner of owners) byPackage.set(owner, [...(byPackage.get(owner) ?? []), collection]);
+
+    const half: string[] = [];
+    for (const [owner, collections] of [...byPackage].sort()) {
+      const routed = collections.filter((collection) => mapped.has(collection));
+      const refused = collections.filter((collection) => !mapped.has(collection));
+      if (routed.length > 0 && refused.length > 0)
+        half.push(`${owner}: routed ${routed.length}, refused [${refused.sort().join(', ')}]`);
+    }
+
+    expect(
+      half,
+      'engine packages with some collections mapped and some refused — the mapped ones are reachable ' +
+        'only by a caller that avoids the engine',
+    ).toEqual([]);
   });
 
   it('reports the gap as a ceiling, so it cannot grow', () => {

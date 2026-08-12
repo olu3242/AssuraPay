@@ -416,4 +416,5 @@ export * from './batch-b-repository';
 export * from './batch-c-repository';
 export * from './batch-d-repository';
 export * from './batch-e-repository';
+export * from './batch-f-repository';
 export * from './domain-store-environment';

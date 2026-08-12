@@ -169,3 +169,93 @@ without manufacturing a verdict.
   suite that the reconciliation key now carries currency.
 - Full gates on this branch: typecheck 0, lint clean, **766** default, **231** PostgreSQL, **78**
   runtime, `repo:certify` **11/11**, reconciliation findings **15** unchanged.
+
+---
+
+## Recorded by Batch F: the agreement-creation engines barely guard their transitions
+
+Added while certifying `202608110005`, because it is a domain change rather than a persistence one and
+approximating it inside a persistence batch is how a constraint nobody chose gets inherited.
+
+A terminal state is a claim that no transition leaves it. Across Batch F's ten governed tables that claim
+is provable for three, and the reason is uniform: **four transition methods check nothing about the row's
+current status**, so each can be re-applied to a row already in the state it writes.
+
+| engine method | accepts a row in | consequence |
+|---|---|---|
+| `ClauseIntelligenceEngine.retire` | any state | a retired clause version can be retired again |
+| `ClauseIntelligenceEngine.approve` | any state | an approved deviation can be approved again; a rejected one can be approved |
+| `ApprovalWorkflowEngine.invalidateOnChange` | any state | an invalidated request can be invalidated again |
+| `DigitalExecutionEngine.revoke` | any state | a revoked execution certificate can be revoked again |
+
+Three of the four are idempotent re-writes and harmless in themselves. The second is not: nothing rejects
+a clause deviation today, so `REJECTED` is unreachable — but if it is ever written, `approve` would
+currently accept it and overturn a rejection with no record that it had been one.
+
+Batch F fixed the three cases where the missing guard reversed a settled outcome rather than repeating
+one — a resurrected DECLINED signature package, a withdrawn ACCEPTED negotiation round, and a
+cross-workspace callback replay — and left these four alone deliberately. Tightening them means changing
+five engines' behaviour, which needs its own change with its own tests, and `AGGREGATE_STATE_IS_TERMINAL`
+would then become enforceable on seven more tables.
+
+`BATCH_F_UNREACHED_STATES` records which declared states no engine writes, so whoever does this work can
+tell "unreachable" from "reachable and unguarded" without re-deriving it.
+
+### And a correction Batch F made to Batch E
+
+`batch-e.ts` assigned the performance-blueprint aggregates to Engines 16–20. The canonical catalog and the
+package's own unit tests both say **21–25**; 16–20 belong to `agreement-intelligence`. The error was
+copied into five artefacts and the durability register's other four package attributions were wrong too.
+All corrected, and `packages/database-testing/src/engine-identity.test.ts` now parses
+`docs/ENGINE_CATALOG.md` and asserts every registry against it by engine *name* — a number that exists is
+not the same as a number that is right.
+
+---
+
+## Two defects found in review of the merged Batch B
+
+Both raised on PR #23 after it merged, both confirmed against the code rather than taken on the
+reviewer's word, and both fixed.
+
+### The invoice-number key was stricter than the engine
+
+`202608100002` added `UNIQUE (tenant_id, workspace_id, invoice_number)` on `invoices`. Correct in making
+the key tenant-scoped — the constraint it replaced predated tenancy — and wrong in being unconditional.
+
+`InvoiceClaimEngine.submit` excludes `REJECTED` rows when checking for a duplicate, and that clause is
+load-bearing: rejecting an invoice is how a claim is sent back for correction, and the corrected claim
+carries the **same invoice number**, because that number is the counterparty's document reference rather
+than a surrogate key. The unconditional constraint refused the resubmission, so the durable path could
+reject an invoice and then refuse to accept its correction — leaving a confirmed entitlement with no
+route to an invoice at all.
+
+`202608110006` replaces the constraint with a partial unique index on `status <> 'REJECTED'`, which is
+the engine's rule exactly. Forward-only; `202608100002` is untouched. Two live-PostgreSQL tests: the
+narrowed key is in place and the unconditional one is gone, a rejected number can be reused, and a
+*second* live invoice on that number is still refused — the predicate narrows the key rather than
+removing it.
+
+Batch B's own suite submitted and rejected invoices separately and never resubmitted after a rejection,
+which is why every gate passed.
+
+### Batch B activated a release path that could not run
+
+Batch B routed `releaseRequests` (canonical Engine 45) and deliberately left `fundReservations`
+unmapped, on the reasoning that converging a table is not activating it. That reasoning is right and it
+missed the consequence: `ConditionalReleaseOrchestrationEngine.draft` and `evaluate` both *read*
+`fundReservations`, so on Batch B alone the durable release path fails at its first statement with
+`PERSISTENCE_COLLECTION_NOT_MAPPED`. Confirmed by inspecting the merged tip — `fundReservations` appears
+nowhere in `postgres-store.ts` at that commit.
+
+Batch C closes the instance by mapping `fundReservations` and `fundingCommitments`, so the branch this is
+recorded on is not affected; `main` is, until Batch C lands.
+
+The general property had no gate, which is the part worth fixing:
+
+> A collection is only usefully mapped if everything its own engine package reads is mapped too.
+
+Half a package is a package whose routed collections are unreachable through the engine that owns them,
+and the failure surfaces at the first request rather than in a test. `durability-coverage.test.ts` now
+asserts that no engine package has some collections routed and others refused. It holds today across all
+nineteen packages that compose with `TrustPersistence`, and it was checked against the Batch B state
+before being relied on: four routed, two refused, gate fails.

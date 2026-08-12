@@ -10,7 +10,7 @@ import {
 
 /**
  * The canonical persisted-state schemas for Batch E — the six performance-blueprint aggregates of
- * canonical Engines 16-20.
+ * canonical Engines 21-25.
  *
  * The first batch of the sixty-seven `docs/persistence/DURABILITY_GAP_ANALYSIS.md` registers, and it
  * is first because three of these six are **canonical chain links**: `performanceBlueprints`,
@@ -38,7 +38,7 @@ import {
  * allows.
  */
 
-// Engine 16 — Performance Blueprint
+// Engine 21 — Performance Blueprint
 
 export const performanceBlueprintSchema = z
   .object({
@@ -60,7 +60,7 @@ export const performanceBlueprintSchema = z
   })
   .strict();
 
-// Engine 17 — Scope Definition
+// Engine 22 — Scope Definition
 
 export const scopeItemSchema = z
   .object({
@@ -79,7 +79,7 @@ export const scopeItemSchema = z
   })
   .strict();
 
-// Engine 18 — Deliverables
+// Engine 23 — Deliverables
 
 export const deliverableSchema = z
   .object({
@@ -104,7 +104,7 @@ export const deliverableSchema = z
   })
   .strict();
 
-// Engine 19 — Milestone Planning
+// Engine 24 — Milestone Planning
 
 export const blueprintMilestoneSchema = z
   .object({
@@ -151,7 +151,7 @@ export const milestoneSequenceEdgeSchema = z
     path: ['successorId'],
   });
 
-// Engine 20 — Definition of Done
+// Engine 25 — Definition of Done
 
 export const dodGateCriterionSchema = z
   .object({
@@ -210,12 +210,12 @@ export type BatchEAggregateContract = {
  * definition-of-done package references a milestone.
  */
 export const BATCH_E_AGGREGATES: readonly BatchEAggregateContract[] = Object.freeze([
-  { collection: 'performanceBlueprints', table: 'performance_blueprints', engine: '16', schema: performanceBlueprintSchema, schemaVersion: BATCH_E_SCHEMA_VERSION },
-  { collection: 'scopeItems', table: 'scope_items', engine: '17', schema: scopeItemSchema, schemaVersion: BATCH_E_SCHEMA_VERSION },
-  { collection: 'deliverables', table: 'deliverables', engine: '18', schema: deliverableSchema, schemaVersion: BATCH_E_SCHEMA_VERSION },
-  { collection: 'blueprintMilestones', table: 'blueprint_milestones', engine: '19', schema: blueprintMilestoneSchema, schemaVersion: BATCH_E_SCHEMA_VERSION },
-  { collection: 'milestoneSequenceEdges', table: 'milestone_sequence_edges', engine: '19', schema: milestoneSequenceEdgeSchema, schemaVersion: BATCH_E_SCHEMA_VERSION },
-  { collection: 'dodPackages', table: 'dod_packages', engine: '20', schema: dodPackageSchema, schemaVersion: BATCH_E_SCHEMA_VERSION },
+  { collection: 'performanceBlueprints', table: 'performance_blueprints', engine: '21', schema: performanceBlueprintSchema, schemaVersion: BATCH_E_SCHEMA_VERSION },
+  { collection: 'scopeItems', table: 'scope_items', engine: '22', schema: scopeItemSchema, schemaVersion: BATCH_E_SCHEMA_VERSION },
+  { collection: 'deliverables', table: 'deliverables', engine: '23', schema: deliverableSchema, schemaVersion: BATCH_E_SCHEMA_VERSION },
+  { collection: 'blueprintMilestones', table: 'blueprint_milestones', engine: '24', schema: blueprintMilestoneSchema, schemaVersion: BATCH_E_SCHEMA_VERSION },
+  { collection: 'milestoneSequenceEdges', table: 'milestone_sequence_edges', engine: '24', schema: milestoneSequenceEdgeSchema, schemaVersion: BATCH_E_SCHEMA_VERSION },
+  { collection: 'dodPackages', table: 'dod_packages', engine: '25', schema: dodPackageSchema, schemaVersion: BATCH_E_SCHEMA_VERSION },
 ]);
 
 /** Collection names, for a store deciding whether it owns a collection. */

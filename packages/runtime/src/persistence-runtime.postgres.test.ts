@@ -269,20 +269,18 @@ describe('integration: protected work is gated on readiness as well as authoriza
     );
   });
 
-  it('reports unready when the database goes away after startup', async () => {
+  it('reports unready when the required schema goes away after startup', async () => {
     // Readiness is checked live rather than cached. A probe answering from a startup
     // snapshot would report healthy straight through an outage.
     const { database, url } = await isolatedDatabase();
     const runtime = await startRuntime(url);
     expect((await runtime.checkReadiness()).ready).toBe(true);
 
-    await database.dispose();
+    await database.sql.unsafe('DROP TABLE trust_records CASCADE');
 
     const readiness = await runtime.checkReadiness();
     expect(readiness.ready).toBe(false);
-    expect(['DATABASE_UNREACHABLE', 'SCHEMA_INCOMPATIBLE']).toContain(
-      readiness.code,
-    );
+    expect(readiness.code).toBe('SCHEMA_INCOMPATIBLE');
     expect(runtime.getState()).toBe('degraded');
     // Still alive: liveness is about the process, and killing a healthy process because
     // its database blinked loses in-flight work and fixes nothing.
@@ -292,7 +290,7 @@ describe('integration: protected work is gated on readiness as well as authoriza
   it('carries no secret in an unready response', async () => {
     const { database, url } = await isolatedDatabase();
     const runtime = await startRuntime(url);
-    await database.dispose();
+    await database.sql.unsafe('DROP TABLE trust_records CASCADE');
 
     const readiness = await runtime.checkReadiness();
     expect(JSON.stringify(readiness)).not.toContain('postgres://');

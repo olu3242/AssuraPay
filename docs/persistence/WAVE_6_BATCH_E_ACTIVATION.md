@@ -1,7 +1,7 @@
 # Wave 6 Batch E activation
 
 **Status: IMPLEMENTED.** Records what the first batch of the durability gap did — the six
-performance-blueprint aggregates of canonical Engines 16–20 — and what it deliberately did not do.
+performance-blueprint aggregates of canonical Engines 21–25 — and what it deliberately did not do.
 
 Follows `docs/persistence/DURABILITY_GAP_ANALYSIS.md`, which registers sixty-seven unmapped
 collections and sequences them. Batch E is the first entry in that sequence.
