@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "id": "EXP-RC1-001",
+  "title": "Production MVP / RC1 workflow convergence",
+  "branchBaseline": "feat/production-mvp-completion",
+  "lifecycle": "validating",
+  "intent": {
+    "problemDefinition": "in_progress",
+    "workflowCompression": "pending",
+    "capabilityMap": "pending",
+    "repositoryImpact": "in_progress",
+    "implementationPlan": "in_progress"
+  },
+  "evidence": {
+    "repositoryCertification": "pending_reexecution",
+    "adversarialReview": "pending",
+    "e2eCertification": "blocked",
+    "impactMeasurement": "pending"
+  },
+  "knownBlockers": [
+    "Golden Path production browser certification is not yet complete.",
+    "Persona journey certification is not yet complete.",
+    "Operational readiness evidence is incomplete.",
+    "Representative business simulation evidence is incomplete."
+  ],
+  "promotion": {
+    "authorized": false,
+    "reason": "RC1 product exit gates are not yet fully evidenced."
+  },
+  "reosCapabilities": [],
+  "rules": {
+    "repositoryEvidenceOverridesProse": true,
+    "blockedCannotBePromotedToPass": true,
+    "certificationRequiresExecutedEvidence": true
+  }
+}
