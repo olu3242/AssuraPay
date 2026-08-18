@@ -20,6 +20,7 @@ import { BATCH_H_RELATIONS, batchHRelation, isBatchHCollection } from './batch-h
 import { BATCH_I_RELATIONS, batchIRelation, isBatchICollection } from './batch-i-repository';
 import { BATCH_K_RELATIONS, batchKRelation, isBatchKCollection } from './batch-k-repository';
 import { BATCH_L_RELATIONS, batchLRelation, isBatchLCollection } from './batch-l-repository';
+import { BATCH_M_RELATIONS, batchMRelation, isBatchMCollection } from './batch-m-repository';
 import { PostgresStoreError } from './store-error';
 
 export { PostgresStoreError } from './store-error';
@@ -294,6 +295,12 @@ export const POSTGRES_TRUST_COLLECTIONS: readonly string[] = Object.freeze(
     // recommendation could not be accepted or dismissed — while `drift_alerts`, the evidence that a model had
     // gone wrong, had no mutation boundary at all.
     ...Object.keys(BATCH_L_RELATIONS),
+    // Batch M. The last nine, the governed agent surface, and the only batch since Batch A that creates its
+    // tables rather than converging them — but not for want of prior art. `202608030012` had put all nine
+    // aggregates in one untyped envelope in a schema of its own, where no gate in the repository could see it:
+    // a capability record there could be edited into executing a protected-state change, and an execution
+    // record could not transition at all. `202608110017` creates the nine typed tables and retires it.
+    ...Object.keys(BATCH_M_RELATIONS),
   ].sort(),
 );
 
@@ -324,6 +331,7 @@ export const POSTGRES_ROUTED_TABLES: readonly string[] = Object.freeze(
       ...Object.values(BATCH_I_RELATIONS).map((relation) => relation.table),
       ...Object.values(BATCH_K_RELATIONS).map((relation) => relation.table),
       ...Object.values(BATCH_L_RELATIONS).map((relation) => relation.table),
+      ...Object.values(BATCH_M_RELATIONS).map((relation) => relation.table),
     ]),
   ].sort(),
 );
@@ -457,6 +465,7 @@ function relationalUpdateTarget(collection: string): RelationalUpdate | undefine
   if (isBatchICollection(collection)) return batchIRelation(collection);
   if (isBatchKCollection(collection)) return batchKRelation(collection);
   if (isBatchLCollection(collection)) return batchLRelation(collection);
+  if (isBatchMCollection(collection)) return batchMRelation(collection);
   return undefined;
 }
 
@@ -588,6 +597,8 @@ export class PostgresTrustStore implements TrustPersistence {
         return (await batchKRelation(collection).list(this.sql)) as unknown as T[];
       if (isBatchLCollection(collection))
         return (await batchLRelation(collection).list(this.sql)) as unknown as T[];
+      if (isBatchMCollection(collection))
+        return (await batchMRelation(collection).list(this.sql)) as unknown as T[];
       this.requireGoverned(collection);
       const rows = await this.sql<StoredRow[]>`
         SELECT payload, payload_digest FROM trust_records
@@ -721,6 +732,15 @@ export class PostgresTrustStore implements TrustPersistence {
 
       if (isBatchLCollection(collection)) {
         await batchLRelation(collection).insert(
+          this.sql,
+          record,
+          this.requireRelationalTenant(collection, record),
+        );
+        return;
+      }
+
+      if (isBatchMCollection(collection)) {
+        await batchMRelation(collection).insert(
           this.sql,
           record,
           this.requireRelationalTenant(collection, record),

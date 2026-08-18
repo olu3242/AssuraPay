@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
 import { InMemoryTrustStore } from '@assurapay/database';
 import {
@@ -95,21 +96,36 @@ describe('Engines 62–64 and 68 registries and approval', () => {
         humanApprovalRequired: true,
         protectedState: true,
       })).rejects.toThrow('AGENTS_MAY_ONLY_PROPOSE_PROTECTED_STATE_CHANGES');
+    // The digest of the proposal this approval authorises, and nothing else. Until Batch M this was `'abc'`:
+    // the engine accepted any string, so the hash that binds an approval to one proposal could be a value
+    // nobody could recompute from the proposal.
+    const proposalHash = createHash('sha256')
+      .update(JSON.stringify({ certificate: 'milestone-1' }))
+      .digest('hex');
+    const otherHash = createHash('sha256').update('another-proposal').digest('hex');
+    await expect(
+      approvals.request(c, {
+        executionId: 'run',
+        requestedByAgentId: 'atlas-agent',
+        action: 'CERTIFICATION',
+        proposalHash: 'abc',
+      }),
+    ).rejects.toThrow('PROPOSAL_HASH_MUST_BE_A_DIGEST');
     const request = await approvals.request(c, {
       executionId: 'run',
       requestedByAgentId: 'atlas-agent',
       action: 'CERTIFICATION',
-      proposalHash: 'abc',
+      proposalHash,
     });
-    await expect(approvals.consume(c, request.id, 'abc')).rejects.toThrow(
+    await expect(approvals.consume(c, request.id, proposalHash)).rejects.toThrow(
       'APPROVAL_REQUIRED',
     );
     await approvals.decide(c, request.id, 'APPROVED');
-    await expect(approvals.consume(c, request.id, 'wrong')).rejects.toThrow(
+    await expect(approvals.consume(c, request.id, otherHash)).rejects.toThrow(
       'APPROVAL_PROPOSAL_MISMATCH',
     );
-    await approvals.consume(c, request.id, 'abc');
-    await expect(approvals.consume(c, request.id, 'abc')).rejects.toThrow(
+    await approvals.consume(c, request.id, proposalHash);
+    await expect(approvals.consume(c, request.id, proposalHash)).rejects.toThrow(
       'APPROVAL_ALREADY_CONSUMED',
     );
   });

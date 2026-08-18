@@ -6,17 +6,17 @@
 
 | Field | Value |
 | --- | --- |
-| Branch | feat/l1-batch-l-enterprise-analytics |
-| HEAD | 60602ed2dee40a898d70baa5f2de66eee3d38e5a |
+| Branch | feat/m1-batch-m-agent-runtime |
+| HEAD | a0d6e74c5c051c09abca131853fc000fd72680fa |
 | Worktree clean | no |
-| Uncommitted files | 29 |
-| Generated at | 2026-08-18T21:26:39.193Z |
+| Uncommitted files | 22 |
+| Generated at | 2026-08-18T22:12:34.064Z |
 
 ## Capability implemented
 
 `persistence.domain-store-durability` — lifecycle **planned**
 
-## Files modified (111)
+## Files modified (120)
 
 - `apps/web/app/api/v1/completion-certificates/[id]/verify/route.ts`
 - `apps/web/app/api/v1/contracts/[id]/approve/route.ts`
@@ -39,6 +39,7 @@
 - `docs/governance/execution-ledger/60602ed2dee4-persistence.domain-store-durability.json`
 - `docs/governance/execution-ledger/812ccd443fc4-persistence.domain-store-durability.json`
 - `docs/governance/execution-ledger/INDEX.md`
+- `docs/governance/execution-ledger/a0d6e74c5c05-persistence.domain-store-durability.json`
 - `docs/governance/execution-ledger/ae0fa3da4470-persistence.domain-store-durability.json`
 - `docs/governance/execution-ledger/ba4c0e4f6936-persistence.domain-store-durability.json`
 - `docs/governance/execution-ledger/c0c9ef653189-persistence.domain-store-durability.json`
@@ -54,6 +55,10 @@
 - `docs/governance/reos/generated/forensics.json`
 - `docs/persistence/DOMAIN_STORE_RETIREMENT.md`
 - `docs/persistence/DURABILITY_GAP_ANALYSIS.md`
+- `packages/agent-runtime/package.json`
+- `packages/agent-runtime/src/agent-runtime.test.ts`
+- `packages/agent-runtime/src/index.ts`
+- `packages/agent-runtime/src/persisted-contracts.test.ts`
 - `packages/agreement-creation/src/index.ts`
 - `packages/agreement-intelligence/package.json`
 - `packages/agreement-intelligence/src/index.ts`
@@ -72,6 +77,7 @@
 - `packages/database-testing/src/wave6-batch-i-repository.postgres.test.ts`
 - `packages/database-testing/src/wave6-batch-k-repository.postgres.test.ts`
 - `packages/database-testing/src/wave6-batch-l-repository.postgres.test.ts`
+- `packages/database-testing/src/wave6-batch-m-repository.postgres.test.ts`
 - `packages/database-testing/src/wave6-workspace-bootstrap.postgres.test.ts`
 - `packages/database/src/batch-f-repository.ts`
 - `packages/database/src/batch-g-repository.ts`
@@ -79,6 +85,7 @@
 - `packages/database/src/batch-i-repository.ts`
 - `packages/database/src/batch-k-repository.ts`
 - `packages/database/src/batch-l-repository.ts`
+- `packages/database/src/batch-m-repository.ts`
 - `packages/database/src/domain-repository.test.ts`
 - `packages/database/src/domain-store-environment.test.ts`
 - `packages/database/src/domain-store-environment.ts`
@@ -93,6 +100,7 @@
 - `packages/domain-contracts/src/batch-i.ts`
 - `packages/domain-contracts/src/batch-k.ts`
 - `packages/domain-contracts/src/batch-l.ts`
+- `packages/domain-contracts/src/batch-m.ts`
 - `packages/domain-contracts/src/index.ts`
 - `packages/domain/src/index.ts`
 - `packages/domain/src/seed-data.ts`
@@ -129,15 +137,16 @@
 - `supabase/migrations/202608110014_wave6_batch_k_enterprise_intelligence.sql`
 - `supabase/migrations/202608110015_wave6_batch_l_enterprise_analytics.sql`
 - `supabase/migrations/202608110016_retire_trust_compatibility_tables.sql`
+- `supabase/migrations/202608110017_wave6_batch_m_agent_runtime.sql`
 
 ## Validation
 
 | Validator | Result | Checked | Errors | Warnings |
 | --- | --- | --- | --- | --- |
-| architecture | pass | 245 | 0 | 0 |
+| architecture | pass | 249 | 0 | 0 |
 | dependencies | pass | 27 | 0 | 2 |
-| security | pass | 296 | 0 | 0 |
-| execution-contract | pass | 102 | 0 | 2 |
+| security | pass | 298 | 0 | 0 |
+| execution-contract | pass | 110 | 0 | 2 |
 
 ### Findings
 
@@ -168,8 +177,8 @@ No newly introduced violations.
 
 ## Ledger
 
-Recorded as `60602ed2dee4-persistence.domain-store-durability` in `docs/governance/execution-ledger/`.
+Recorded as `a0d6e74c5c05-persistence.domain-store-durability` in `docs/governance/execution-ledger/`.
 
 ## Commit
 
-`60602ed2dee40a898d70baa5f2de66eee3d38e5a`
+`a0d6e74c5c051c09abca131853fc000fd72680fa`

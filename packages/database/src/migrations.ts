@@ -13,6 +13,7 @@ import {
   BATCH_I_TABLES,
   BATCH_K_TABLES,
   BATCH_L_TABLES,
+  BATCH_M_TABLES,
 } from '@assurapay/domain-contracts';
 import type { SqlClient } from './postgres-client';
 
@@ -392,6 +393,12 @@ export const REQUIRED_TRUST_MIGRATIONS: readonly string[] = Object.freeze([
   // optional: leaving three deprecated tables and a function that reads one of them is how the next policy
   // gets written against the superseded model. Refuses rather than discards if any holds rows.
   '202608110016_retire_trust_compatibility_tables',
+  // Batch M, and the last entry in the register. The store routes nine Engine 61-70 collections to tables this
+  // migration *creates* — the only batch since Batch A that does. Required rather than optional for two
+  // reasons: a host missing it fails the first agent write with an undefined-table error, and it is what
+  // retires `agent_runtime.records`, the untyped envelope in which a capability could be edited into executing
+  // a protected-state change and an execution could not transition at all.
+  '202608110017_wave6_batch_m_agent_runtime',
 ]);
 
 export type SchemaCompatibility = {
@@ -458,6 +465,7 @@ export const REQUIRED_DOMAIN_AGGREGATE_TABLES = Object.freeze(
     ...BATCH_I_TABLES,
     ...BATCH_K_TABLES,
     ...BATCH_L_TABLES,
+    ...BATCH_M_TABLES,
   ].sort(),
 );
 
