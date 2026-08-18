@@ -13,9 +13,9 @@ import { POSTGRES_TRUST_COLLECTIONS } from '@assurapay/database';
  * deployment could pass every gate in this repository and then be unable to create a contract.
  *
  * Measured when this file was written: engines write **129** collections, the store maps **64**, and
- * **67** were unmapped. Batches E through K closed fifty between them, so the current measurement
- * is **132** written, **114** mapped and **18** unmapped — and it is the assertions below, not this
- * sentence, that keep that true.
+ * **67** were unmapped. Batches E through L closed fifty-nine between them, so the current measurement
+ * is **132** written, **123** mapped and **9** unmapped — and it is the assertions below, not this
+ * sentence, that keep that true. The nine that remain are `agent-runtime`'s, which have no tables at all.
  *
  * The written total rose rather than held because this gate had two blind spots, both since corrected. It
  * read only `src/index.ts`, so a write in a sibling module was invisible; and its collection-name pattern
@@ -92,9 +92,12 @@ const KNOWN_UNMAPPED: readonly string[] = Object.freeze([
   // `workspaces` alive were theirs. Two of the six could not be transitioned at all before the migration: a
   // KPI definition could never be retired, and a forecast could never be reviewed, which made the
   // human-in-the-loop step that package's AI-governance contract is built on unperformable on PostgreSQL.
-  // enterprise-analytics (9) — Engines 56-60, deferred by the accepted decision.
-  'driftAlerts', 'evaluationRecords', 'financialForecasts', 'modelFeedback', 'modelRegistrations',
-  'performanceScorecards', 'portfolioSnapshots', 'recommendations', 'renewalAssessments',
+  // enterprise-analytics — CLOSED by Batch L (`202608110015`). Its nine aggregates are removed from this
+  // baseline rather than left in it, and with them the last tables referencing the deprecated `workspaces` —
+  // so `202608110016` retires `workspaces`, `workspace_memberships` and `user_identities`, the condition
+  // `202608080001` named and could not perform. Four of the nine were transitioned and every one was broken:
+  // three refused by a blanket append-only trigger, and `drift_alerts` — the evidence that a model had gone
+  // wrong — protected by nothing at all.
   // agent-runtime (9) — the governed agent surface, deferred with the intelligence engines.
   'agentApprovalRequests', 'agentCapabilities', 'agentContextSnapshots', 'agentExecutions',
   'agentGovernancePolicies', 'agentMemory', 'agentTelemetry', 'promptVersions', 'registeredAgents',

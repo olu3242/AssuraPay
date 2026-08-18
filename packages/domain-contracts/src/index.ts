@@ -21,3 +21,4 @@ export * from './batch-g';
 export * from './batch-h';
 export * from './batch-i';
 export * from './batch-k';
+export * from './batch-l';

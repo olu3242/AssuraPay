@@ -58,6 +58,7 @@
             "packages/database-testing/src/wave6-batch-h-repository.postgres.test.ts",
             "packages/database-testing/src/wave6-batch-i-repository.postgres.test.ts",
             "packages/database-testing/src/wave6-batch-k-repository.postgres.test.ts",
+            "packages/database-testing/src/wave6-batch-l-repository.postgres.test.ts",
             "packages/database/src/async-conformance.test.ts",
             "packages/database/src/batch-a-repository.ts",
             "packages/database/src/batch-b-repository.ts",
@@ -340,6 +341,7 @@
             "packages/database-testing/src/wave6-batch-h-repository.postgres.test.ts",
             "packages/database-testing/src/wave6-batch-i-repository.postgres.test.ts",
             "packages/database-testing/src/wave6-batch-k-repository.postgres.test.ts",
+            "packages/database-testing/src/wave6-batch-l-repository.postgres.test.ts",
             "packages/database-testing/src/wave6-workspace-bootstrap.postgres.test.ts",
             "packages/database/src/batch-a-repository.ts",
             "packages/database/src/batch-b-repository.ts",
@@ -351,6 +353,7 @@
             "packages/database/src/batch-h-repository.ts",
             "packages/database/src/batch-i-repository.ts",
             "packages/database/src/batch-k-repository.ts",
+            "packages/database/src/batch-l-repository.ts",
             "packages/database/src/conformance.ts",
             "packages/database/src/index.ts",
             "packages/database/src/migrations.ts",
@@ -389,6 +392,7 @@
             "packages/database-testing/src/wave6-batch-h-repository.postgres.test.ts",
             "packages/database-testing/src/wave6-batch-i-repository.postgres.test.ts",
             "packages/database-testing/src/wave6-batch-k-repository.postgres.test.ts",
+            "packages/database-testing/src/wave6-batch-l-repository.postgres.test.ts",
             "packages/database-testing/src/wave6-workspace-bootstrap.postgres.test.ts",
             "packages/database/src/migrations.ts",
             "packages/database/src/schema-ownership.ts",
@@ -681,6 +685,7 @@
             "packages/database-testing/src/wave6-batch-h-repository.postgres.test.ts",
             "packages/database-testing/src/wave6-batch-i-repository.postgres.test.ts",
             "packages/database-testing/src/wave6-batch-k-repository.postgres.test.ts",
+            "packages/database-testing/src/wave6-batch-l-repository.postgres.test.ts",
             "packages/database-testing/src/wave6-workspace-bootstrap.postgres.test.ts",
             "packages/database/src/trust-scope.ts",
             "packages/runtime/src/persistence-runtime.postgres.test.ts",
@@ -754,7 +759,8 @@
             "packages/database-testing/src/schema-ownership.postgres.test.ts",
             "packages/database-testing/src/wave6-workspace-bootstrap.postgres.test.ts",
             "packages/database/src/schema-ownership.ts",
-            "packages/runtime/src/persistence-runtime.ts"
+            "packages/runtime/src/persistence-runtime.ts",
+            "supabase/migrations/202608110016_retire_trust_compatibility_tables.sql"
           ],
           "query": "certifySchemaOwnership",
           "satisfied": true
@@ -1662,7 +1668,7 @@
       "totalProbes": 5
     }
   ],
-  "head": "ba4c0e4f6936369997b8a800e5b69828ca4ceb13",
+  "head": "60602ed2dee40a898d70baa5f2de66eee3d38e5a",
   "reosVersion": "1.0.0",
   "stage": "forensics",
   "summary": {

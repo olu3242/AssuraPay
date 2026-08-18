@@ -126,12 +126,14 @@ export const ASYNC_PERSISTENCE_RULES: readonly AsyncPersistenceRule[] = Object.f
 ]);
 
 /**
- * Trust-domain tables retired by `202608080001_trust_schema_ownership_reconciliation`.
+ * Trust-domain tables retired by `202608080001_trust_schema_ownership_reconciliation`, and the last three by
+ * `202608110016_retire_trust_compatibility_tables`.
  *
  * Restated here rather than imported from `@assurapay/database`: the validators must not
  * depend on the packages they validate, or a broken package takes the tool that would have
  * reported it down with it. `packages/database/src/schema-ownership.test.ts` pins the two
- * lists against each other, so drift fails a test rather than going unnoticed.
+ * lists against each other, so drift fails a test rather than going unnoticed — and it did, the moment the
+ * last three were retired.
  */
 const RETIRED_TRUST_TABLES = Object.freeze([
   'audit_records', 'authentication_methods', 'authority_rules', 'beneficiary_account_references',
@@ -141,6 +143,8 @@ const RETIRED_TRUST_TABLES = Object.freeze([
   'policy_assignments', 'role_definitions', 'segregation_rules', 'signature_policies',
   'step_up_challenges', 'trusted_devices', 'user_sessions', 'verification_requests',
   'verification_results', 'workspace_invitations',
+  // Retired by `202608110016`, twelve batches after `202608080001` had to retain them.
+  'user_identities', 'workspace_memberships', 'workspaces',
 ]);
 
 /**
@@ -189,6 +193,22 @@ const RETIRED_TABLE_VOCABULARY = Object.freeze([
   // notices — neither of which is possible without naming them. A rule that forbade its own
   // evidence would be a rule nothing could demonstrate.
   'packages/database-testing/src/schema-ownership.postgres.test.ts',
+  // The batch suites that seed the **pre-convergence** shape. Each one inserts into `workspaces` to build a
+  // row as it existed before its batch converged `workspace_id` onto `trust_workspaces` — which is how they
+  // prove the migration refuses a populated table rather than silently converting it, and how the bootstrap
+  // suite reproduces the scope failure it exists to document. They run against a database migrated only
+  // through a baseline, so the table is present for them; after the full set it is gone.
+  //
+  // These were not exemptions before `202608110016`, because `workspaces` was retained rather than retired and
+  // the rule did not name it. Adding it to the retired list is what surfaced them, which is the rule working:
+  // it asked whether each reference was still justified, and for these seven it is.
+  'packages/database-testing/src/wave4-trust-authority.postgres.test.ts',
+  'packages/database-testing/src/wave5-batch-b-repository.postgres.test.ts',
+  'packages/database-testing/src/wave5-batch-c-repository.postgres.test.ts',
+  'packages/database-testing/src/wave5-batch-d-repository.postgres.test.ts',
+  'packages/database-testing/src/wave6-batch-e-repository.postgres.test.ts',
+  'packages/database-testing/src/wave6-batch-f-repository.postgres.test.ts',
+  'packages/database-testing/src/wave6-workspace-bootstrap.postgres.test.ts',
 ]);
 
 /**

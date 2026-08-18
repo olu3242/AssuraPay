@@ -3393,9 +3393,9 @@
     }
   ],
   "identity": {
-    "branch": "feat/k1-batch-k-enterprise-intelligence",
+    "branch": "feat/l1-batch-l-enterprise-analytics",
     "clean": false,
-    "head": "ba4c0e4f6936369997b8a800e5b69828ca4ceb13",
+    "head": "60602ed2dee40a898d70baa5f2de66eee3d38e5a",
     "repository": "assurapay",
     "version": "0.1.0"
   },
@@ -3486,7 +3486,7 @@
     "released": 75,
     "validated": 0
   },
-  "manifestDigest": "dd0b62512dfd",
+  "manifestDigest": "01a11ef66ae9",
   "missingCapabilities": [
     "persistence.domain-store-durability"
   ],
@@ -3678,8 +3678,8 @@
       "main": "src/index.ts",
       "moduleType": null,
       "name": "@assurapay/database",
-      "sourceFiles": 20,
-      "sourceLines": 10695,
+      "sourceFiles": 21,
+      "sourceLines": 11443,
       "testFiles": [
         "packages/database/src/async-conformance.test.ts",
         "packages/database/src/rls-certification.test.ts",
@@ -3729,6 +3729,7 @@
         "packages/database-testing/src/wave6-batch-h-repository.postgres.test.ts",
         "packages/database-testing/src/wave6-batch-i-repository.postgres.test.ts",
         "packages/database-testing/src/wave6-batch-k-repository.postgres.test.ts",
+        "packages/database-testing/src/wave6-batch-l-repository.postgres.test.ts",
         "packages/database-testing/src/wave6-workspace-bootstrap.postgres.test.ts"
       ],
       "tests": {
@@ -3736,7 +3737,7 @@
         "integration": 0,
         "performance": 0,
         "security": 0,
-        "unit": 19
+        "unit": 20
       },
       "workspaceDependencies": [
         "@assurapay/agreement-creation",
@@ -3785,8 +3786,8 @@
       "main": "src/index.ts",
       "moduleType": null,
       "name": "@assurapay/domain-contracts",
-      "sourceFiles": 12,
-      "sourceLines": 3444,
+      "sourceFiles": 13,
+      "sourceLines": 3757,
       "testFiles": [
         "packages/domain-contracts/src/batch-a.test.ts",
         "packages/domain-contracts/src/batch-c.test.ts"
@@ -3818,17 +3819,19 @@
       "testFiles": [
         "packages/enterprise-analytics/src/enterprise-analytics.e2e.test.ts",
         "packages/enterprise-analytics/src/enterprise-analytics.integration.test.ts",
-        "packages/enterprise-analytics/src/enterprise-analytics.test.ts"
+        "packages/enterprise-analytics/src/enterprise-analytics.test.ts",
+        "packages/enterprise-analytics/src/persisted-contracts.test.ts"
       ],
       "tests": {
         "e2e": 1,
         "integration": 1,
         "performance": 0,
         "security": 0,
-        "unit": 1
+        "unit": 2
       },
       "workspaceDependencies": [
         "@assurapay/database",
+        "@assurapay/domain-contracts",
         "@assurapay/shared"
       ]
     },
@@ -4155,7 +4158,7 @@
       "moduleType": "module",
       "name": "@assurapay/reos",
       "sourceFiles": 25,
-      "sourceLines": 4835,
+      "sourceLines": 4855,
       "testFiles": [
         "packages/reos/src/reos.e2e.test.ts",
         "packages/reos/src/reos.governance.test.ts",
@@ -4402,6 +4405,7 @@
             "packages/database-testing/src/wave6-batch-h-repository.postgres.test.ts",
             "packages/database-testing/src/wave6-batch-i-repository.postgres.test.ts",
             "packages/database-testing/src/wave6-batch-k-repository.postgres.test.ts",
+            "packages/database-testing/src/wave6-batch-l-repository.postgres.test.ts",
             "packages/database/src/async-conformance.test.ts",
             "packages/database/src/batch-a-repository.ts",
             "packages/database/src/batch-b-repository.ts",
@@ -4684,6 +4688,7 @@
             "packages/database-testing/src/wave6-batch-h-repository.postgres.test.ts",
             "packages/database-testing/src/wave6-batch-i-repository.postgres.test.ts",
             "packages/database-testing/src/wave6-batch-k-repository.postgres.test.ts",
+            "packages/database-testing/src/wave6-batch-l-repository.postgres.test.ts",
             "packages/database-testing/src/wave6-workspace-bootstrap.postgres.test.ts",
             "packages/database/src/batch-a-repository.ts",
             "packages/database/src/batch-b-repository.ts",
@@ -4695,6 +4700,7 @@
             "packages/database/src/batch-h-repository.ts",
             "packages/database/src/batch-i-repository.ts",
             "packages/database/src/batch-k-repository.ts",
+            "packages/database/src/batch-l-repository.ts",
             "packages/database/src/conformance.ts",
             "packages/database/src/index.ts",
             "packages/database/src/migrations.ts",
@@ -4733,6 +4739,7 @@
             "packages/database-testing/src/wave6-batch-h-repository.postgres.test.ts",
             "packages/database-testing/src/wave6-batch-i-repository.postgres.test.ts",
             "packages/database-testing/src/wave6-batch-k-repository.postgres.test.ts",
+            "packages/database-testing/src/wave6-batch-l-repository.postgres.test.ts",
             "packages/database-testing/src/wave6-workspace-bootstrap.postgres.test.ts",
             "packages/database/src/migrations.ts",
             "packages/database/src/schema-ownership.ts",
@@ -5025,6 +5032,7 @@
             "packages/database-testing/src/wave6-batch-h-repository.postgres.test.ts",
             "packages/database-testing/src/wave6-batch-i-repository.postgres.test.ts",
             "packages/database-testing/src/wave6-batch-k-repository.postgres.test.ts",
+            "packages/database-testing/src/wave6-batch-l-repository.postgres.test.ts",
             "packages/database-testing/src/wave6-workspace-bootstrap.postgres.test.ts",
             "packages/database/src/trust-scope.ts",
             "packages/runtime/src/persistence-runtime.postgres.test.ts",
@@ -5098,7 +5106,8 @@
             "packages/database-testing/src/schema-ownership.postgres.test.ts",
             "packages/database-testing/src/wave6-workspace-bootstrap.postgres.test.ts",
             "packages/database/src/schema-ownership.ts",
-            "packages/runtime/src/persistence-runtime.ts"
+            "packages/runtime/src/persistence-runtime.ts",
+            "supabase/migrations/202608110016_retire_trust_compatibility_tables.sql"
           ],
           "query": "certifySchemaOwnership",
           "satisfied": true

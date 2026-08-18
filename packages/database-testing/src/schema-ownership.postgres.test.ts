@@ -55,9 +55,18 @@ async function freshDatabase(): Promise<TestDatabase> {
 }
 
 /** Applies every migration up to but excluding reconciliation — the pre-reconciliation state. */
+/**
+ * An existing database as it stood *before* reconciliation.
+ *
+ * Both retirement migrations are excluded, not just the first. `202608080001` retired twenty-eight
+ * trust-domain duplicates and had to retain three; `202608110016` retired those three once Batch L removed
+ * their last dependants. A rehearsal of "upgrading an existing database" has to start from before both, or it
+ * starts from a database that has already been reconciled and proves nothing about the upgrade.
+ */
 async function applyThroughRlsBaseline(sql: SqlClient): Promise<void> {
   const migrations = readMigrations(migrationsDirectory()).filter(
-    (migration) => !migration.id.startsWith('202608080001'),
+    (migration) =>
+      !migration.id.startsWith('202608080001') && !migration.id.startsWith('202608110016'),
   );
   await sql.begin(async (tx) => {
     await tx`
@@ -134,7 +143,13 @@ describe('integration: a fresh database reaches canonical ownership', () => {
     const present = new Set(rows.map((row) => row.table_name));
 
     expect(RETIRED_TRUST_HISTORICAL_TABLES.filter((table) => present.has(table))).toEqual([]);
-    for (const entry of COMPATIBILITY_OBJECTS) expect(present.has(entry.table)).toBe(true);
+    // Stated rather than looped over. `COMPATIBILITY_OBJECTS` is empty since `202608110016` retired the last
+    // three, so `for (const entry of COMPATIBILITY_OBJECTS) expect(...)` now asserts nothing at all — and a
+    // vacuously passing assertion is worse than none, because it reads as coverage. The retained set being
+    // empty is the claim worth making, and the three former entries are covered by the retired check above.
+    expect(COMPATIBILITY_OBJECTS).toEqual([]);
+    for (const table of ['workspaces', 'workspace_memberships', 'user_identities'])
+      expect(present.has(table), table).toBe(false);
   }, 240_000);
 
   it('records the reconciliation as a required migration, so a host cannot start without it', async () => {
@@ -149,6 +164,12 @@ describe('integration: a fresh database reaches canonical ownership', () => {
   it('marks every retained object as deprecated in the database itself', async () => {
     // A reader with a psql prompt and no access to this repository is the audience. A table
     // that looks canonical and is not is how the duplicate model got used in the first place.
+    //
+    // The loop below is empty today, because there is nothing retained. It is kept rather than deleted: the
+    // next duplicate that has to survive for a stated reason will need exactly this check, and deleting the
+    // assertion because the set is momentarily empty is how it would fail to exist when it mattered. The
+    // assertion that the set *is* empty lives in `leaves no retired table behind, and keeps every retained
+    // one` above, so this is not the only thing standing between an empty list and silence.
     const database = await freshDatabase();
     await applyMigrations(database.sql, migrationsDirectory(), { appliedBy: 'integration-test' });
 
@@ -176,9 +197,12 @@ describe('integration: an existing database upgrades safely', () => {
     const outcomes = await applyMigrations(database.sql, migrationsDirectory(), {
       appliedBy: 'integration-test',
     });
-    // Only reconciliation is new; everything else is already in the ledger.
+    // Only the two retirements are new; everything else is already in the ledger. `202608110016` joins the
+    // list because it is the second half of the same reconciliation — it retires the three tables
+    // `202608080001` had to keep, once Batch L removed their last dependants.
     expect(outcomes.filter((outcome) => outcome.applied).map((outcome) => outcome.id)).toEqual([
       '202608080001_trust_schema_ownership_reconciliation',
+      '202608110016_retire_trust_compatibility_tables',
     ]);
 
     const certification = await certifySchemaOwnership(database.sql, { schema: 'public' });
@@ -315,8 +339,14 @@ describe('integration: reconciliation does not weaken the certified boundary', (
   it('reports a deprecated table the runtime role can write', async () => {
     // The dual-write path this capability exists to close. Granting it is how it would
     // reappear, so the certification has to notice.
+    //
+    // The table is created here rather than taken from the schema, because after `202608110016` there is no
+    // deprecated table left present to grant on — `COMPATIBILITY_OBJECTS` is empty and every retired table is
+    // gone. Recreating one is the realistic regression anyway, and the same shape the sibling test above uses:
+    // a future migration or an operator restoring an old dump brings it back, and then somebody grants on it.
     const database = await freshDatabase();
     await applyMigrations(database.sql, migrationsDirectory(), { appliedBy: 'integration-test' });
+    await database.sql.unsafe('CREATE TABLE workspaces (id UUID PRIMARY KEY)');
 
     const role = `probe_owner_${Date.now().toString(36)}`;
     await database.sql.unsafe(`CREATE ROLE "${role}" NOLOGIN`);

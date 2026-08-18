@@ -4,7 +4,8 @@
   "private": true,
   "main": "src/index.ts",
   "dependencies": {
-      "@assurapay/database": "workspace:*",
-      "@assurapay/shared": "workspace:*"
-    }
+    "@assurapay/database": "workspace:*",
+    "@assurapay/domain-contracts": "workspace:*",
+    "@assurapay/shared": "workspace:*"
+  }
 }

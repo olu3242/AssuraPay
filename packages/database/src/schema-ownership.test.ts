@@ -75,15 +75,15 @@ describe('the ownership registry is internally consistent', () => {
   });
 
   it('retires exactly the set the database proved retirable', () => {
-    // Twenty-eight, not thirty-one. `workspaces`, `workspace_memberships` and
-    // `user_identities` are load-bearing for the out-of-scope model, which PostgreSQL
-    // established by refusing the drop — see the migration's header.
-    expect(RETIRED_TRUST_HISTORICAL_TABLES).toHaveLength(28);
-    expect(COMPATIBILITY_OBJECTS.map((entry) => entry.table).sort()).toEqual([
-      'user_identities',
-      'workspace_memberships',
-      'workspaces',
-    ]);
+    // Thirty-one, and finally all of them. This was twenty-eight for twelve batches, because `workspaces`,
+    // `workspace_memberships` and `user_identities` were load-bearing for the out-of-scope model — which
+    // PostgreSQL established by refusing the drop. `202608110016` retires the last three, once Batch L
+    // removed their final dependants, so the retained set is empty and the retired set is the whole
+    // historical model.
+    expect(RETIRED_TRUST_HISTORICAL_TABLES).toHaveLength(31);
+    for (const table of ['workspaces', 'workspace_memberships', 'user_identities'])
+      expect(RETIRED_TRUST_HISTORICAL_TABLES, table).toContain(table);
+    expect(COMPATIBILITY_OBJECTS).toEqual([]);
     for (const table of RETIRED_TRUST_HISTORICAL_TABLES) expect(table).not.toMatch(/^trust_/);
   });
 

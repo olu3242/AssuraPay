@@ -2097,6 +2097,20 @@
       "id": "202608110014",
       "name": "wave6_batch_k_enterprise_intelligence",
       "path": "supabase/migrations/202608110014_wave6_batch_k_enterprise_intelligence.sql"
+    },
+    {
+      "declaresPolicies": 1,
+      "declaresRowLevelSecurity": true,
+      "id": "202608110015",
+      "name": "wave6_batch_l_enterprise_analytics",
+      "path": "supabase/migrations/202608110015_wave6_batch_l_enterprise_analytics.sql"
+    },
+    {
+      "declaresPolicies": 0,
+      "declaresRowLevelSecurity": false,
+      "id": "202608110016",
+      "name": "retire_trust_compatibility_tables",
+      "path": "supabase/migrations/202608110016_retire_trust_compatibility_tables.sql"
     }
   ],
   "packages": [
@@ -2287,8 +2301,8 @@
       "main": "src/index.ts",
       "moduleType": null,
       "name": "@assurapay/database",
-      "sourceFiles": 20,
-      "sourceLines": 10695,
+      "sourceFiles": 21,
+      "sourceLines": 11443,
       "testFiles": [
         "packages/database/src/async-conformance.test.ts",
         "packages/database/src/rls-certification.test.ts",
@@ -2338,6 +2352,7 @@
         "packages/database-testing/src/wave6-batch-h-repository.postgres.test.ts",
         "packages/database-testing/src/wave6-batch-i-repository.postgres.test.ts",
         "packages/database-testing/src/wave6-batch-k-repository.postgres.test.ts",
+        "packages/database-testing/src/wave6-batch-l-repository.postgres.test.ts",
         "packages/database-testing/src/wave6-workspace-bootstrap.postgres.test.ts"
       ],
       "tests": {
@@ -2345,7 +2360,7 @@
         "integration": 0,
         "performance": 0,
         "security": 0,
-        "unit": 19
+        "unit": 20
       },
       "workspaceDependencies": [
         "@assurapay/agreement-creation",
@@ -2394,8 +2409,8 @@
       "main": "src/index.ts",
       "moduleType": null,
       "name": "@assurapay/domain-contracts",
-      "sourceFiles": 12,
-      "sourceLines": 3444,
+      "sourceFiles": 13,
+      "sourceLines": 3757,
       "testFiles": [
         "packages/domain-contracts/src/batch-a.test.ts",
         "packages/domain-contracts/src/batch-c.test.ts"
@@ -2427,17 +2442,19 @@
       "testFiles": [
         "packages/enterprise-analytics/src/enterprise-analytics.e2e.test.ts",
         "packages/enterprise-analytics/src/enterprise-analytics.integration.test.ts",
-        "packages/enterprise-analytics/src/enterprise-analytics.test.ts"
+        "packages/enterprise-analytics/src/enterprise-analytics.test.ts",
+        "packages/enterprise-analytics/src/persisted-contracts.test.ts"
       ],
       "tests": {
         "e2e": 1,
         "integration": 1,
         "performance": 0,
         "security": 0,
-        "unit": 1
+        "unit": 2
       },
       "workspaceDependencies": [
         "@assurapay/database",
+        "@assurapay/domain-contracts",
         "@assurapay/shared"
       ]
     },
@@ -2764,7 +2781,7 @@
       "moduleType": "module",
       "name": "@assurapay/reos",
       "sourceFiles": 25,
-      "sourceLines": 4835,
+      "sourceLines": 4855,
       "testFiles": [
         "packages/reos/src/reos.e2e.test.ts",
         "packages/reos/src/reos.governance.test.ts",
@@ -2955,7 +2972,7 @@
   "reosVersion": "1.0.0",
   "repository": {
     "git": {
-      "branch": "feat/k1-batch-k-enterprise-intelligence",
+      "branch": "feat/l1-batch-l-enterprise-analytics",
       "branches": [
         "assess/engines-31-50-certification-gap-matrix",
         "chore/post-merge-governance-artifacts-batch-a",
@@ -2972,6 +2989,7 @@
         "feat/i1-batch-i-agreement-intelligence",
         "feat/j1-retire-file-domain-store",
         "feat/k1-batch-k-enterprise-intelligence",
+        "feat/l1-batch-l-enterprise-analytics",
         "feat/persistence-async-domain-repository",
         "feat/persistence-async-repository-interface",
         "feat/persistence-domain-store-durable-environment-gate",
@@ -2999,6 +3017,7 @@
         "origin/feat/h1-batch-h-governance-core",
         "origin/feat/i1-batch-i-agreement-intelligence",
         "origin/feat/j1-retire-file-domain-store",
+        "origin/feat/k1-batch-k-enterprise-intelligence",
         "origin/feat/persistence-async-domain-repository",
         "origin/feat/persistence-async-repository-interface",
         "origin/feat/persistence-domain-store-durable-environment-gate",
@@ -3015,33 +3034,38 @@
       ],
       "clean": false,
       "dirtyFiles": [
-        "docs/governance/reos/capability-registry.json",
+        "docs/governance/execution-ledger/60602ed2dee4-persistence.domain-store-durability.json",
+        "docs/governance/execution-ledger/INDEX.md",
         "docs/governance/reos/generated/CERTIFICATION_REPORT.md",
-        "docs/governance/reos/generated/DEPENDENCY_RESOLUTION.md",
         "docs/governance/reos/generated/EXECUTION_MANIFEST.md",
+        "docs/governance/reos/generated/EXECUTION_REPORT.md",
         "docs/governance/reos/generated/certification.json",
         "docs/governance/reos/generated/dependency-resolution.json",
         "docs/governance/reos/generated/discovery.json",
         "docs/governance/reos/generated/execution-manifest.json",
+        "docs/governance/reos/generated/execution-report.json",
         "docs/governance/reos/generated/forensics.json",
         "docs/persistence/DURABILITY_GAP_ANALYSIS.md",
         "packages/database-testing/src/durability-coverage.test.ts",
-        "packages/database-testing/src/wave6-batch-k-repository.postgres.test.ts",
-        "packages/database/src/batch-k-repository.ts",
+        "packages/database-testing/src/schema-ownership.postgres.test.ts",
+        "packages/database-testing/src/wave6-batch-l-repository.postgres.test.ts",
+        "packages/database/src/batch-l-repository.ts",
         "packages/database/src/index.ts",
         "packages/database/src/migrations.ts",
         "packages/database/src/postgres-store.ts",
-        "packages/domain-contracts/src/batch-k.ts",
+        "packages/database/src/schema-ownership.test.ts",
+        "packages/database/src/schema-ownership.ts",
+        "packages/domain-contracts/src/batch-l.ts",
         "packages/domain-contracts/src/index.ts",
-        "packages/enterprise-intelligence/package.json",
-        "packages/enterprise-intelligence/src/persisted-contracts.test.ts",
-        "packages/reos/src/reos.persistence.test.ts",
+        "packages/enterprise-analytics/package.json",
+        "packages/enterprise-analytics/src/persisted-contracts.test.ts",
         "packages/reos/src/validators/persistence.ts",
         "pnpm-lock.yaml",
-        "supabase/migrations/202608110014_wave6_batch_k_enterprise_intelligence.sql"
+        "supabase/migrations/202608110015_wave6_batch_l_enterprise_analytics.sql",
+        "supabase/migrations/202608110016_retire_trust_compatibility_tables.sql"
       ],
-      "head": "ba4c0e4f6936369997b8a800e5b69828ca4ceb13",
-      "headShort": "ba4c0e4",
+      "head": "60602ed2dee40a898d70baa5f2de66eee3d38e5a",
+      "headShort": "60602ed",
       "reflogAvailable": true,
       "remotes": [
         "origin"
@@ -3226,17 +3250,17 @@
       "integration": 15,
       "performance": 2,
       "security": 3,
-      "unit": 75
+      "unit": 77
     },
-    "files": 110
+    "files": 112
   },
   "totals": {
     "applications": 1,
     "documents": 155,
     "engines": 60,
-    "migrations": 41,
+    "migrations": 43,
     "packages": 26,
-    "testFiles": 110
+    "testFiles": 112
   },
   "workflows": [
     {

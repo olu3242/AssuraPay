@@ -36,3 +36,4 @@ export * from './batch-g-repository';
 export * from './batch-h-repository';
 export * from './batch-i-repository';
 export * from './batch-k-repository';
+export * from './batch-l-repository';

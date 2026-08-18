@@ -6,17 +6,17 @@
 
 | Field | Value |
 | --- | --- |
-| Branch | feat/k1-batch-k-enterprise-intelligence |
-| HEAD | ba4c0e4f6936369997b8a800e5b69828ca4ceb13 |
+| Branch | feat/l1-batch-l-enterprise-analytics |
+| HEAD | 60602ed2dee40a898d70baa5f2de66eee3d38e5a |
 | Worktree clean | no |
-| Uncommitted files | 24 |
-| Generated at | 2026-08-18T14:27:44.266Z |
+| Uncommitted files | 29 |
+| Generated at | 2026-08-18T21:26:39.193Z |
 
 ## Capability implemented
 
 `persistence.domain-store-durability` — lifecycle **planned**
 
-## Files modified (102)
+## Files modified (111)
 
 - `apps/web/app/api/v1/completion-certificates/[id]/verify/route.ts`
 - `apps/web/app/api/v1/contracts/[id]/approve/route.ts`
@@ -36,6 +36,7 @@
 - `apps/web/lib/route-permissions.test.ts`
 - `apps/web/lib/route-permissions.ts`
 - `docs/governance/execution-ledger/34fb3610d9d1-persistence.domain-store-durability.json`
+- `docs/governance/execution-ledger/60602ed2dee4-persistence.domain-store-durability.json`
 - `docs/governance/execution-ledger/812ccd443fc4-persistence.domain-store-durability.json`
 - `docs/governance/execution-ledger/INDEX.md`
 - `docs/governance/execution-ledger/ae0fa3da4470-persistence.domain-store-durability.json`
@@ -43,7 +44,6 @@
 - `docs/governance/execution-ledger/c0c9ef653189-persistence.domain-store-durability.json`
 - `docs/governance/reos/capability-registry.json`
 - `docs/governance/reos/generated/CERTIFICATION_REPORT.md`
-- `docs/governance/reos/generated/DEPENDENCY_RESOLUTION.md`
 - `docs/governance/reos/generated/EXECUTION_MANIFEST.md`
 - `docs/governance/reos/generated/EXECUTION_REPORT.md`
 - `docs/governance/reos/generated/certification.json`
@@ -61,6 +61,7 @@
 - `packages/database-testing/package.json`
 - `packages/database-testing/src/durability-coverage.test.ts`
 - `packages/database-testing/src/migrations.postgres.test.ts`
+- `packages/database-testing/src/schema-ownership.postgres.test.ts`
 - `packages/database-testing/src/store-boundary.postgres.test.ts`
 - `packages/database-testing/src/wave5-batch-b-repository.postgres.test.ts`
 - `packages/database-testing/src/wave5-batch-c-repository.postgres.test.ts`
@@ -70,24 +71,28 @@
 - `packages/database-testing/src/wave6-batch-h-repository.postgres.test.ts`
 - `packages/database-testing/src/wave6-batch-i-repository.postgres.test.ts`
 - `packages/database-testing/src/wave6-batch-k-repository.postgres.test.ts`
+- `packages/database-testing/src/wave6-batch-l-repository.postgres.test.ts`
 - `packages/database-testing/src/wave6-workspace-bootstrap.postgres.test.ts`
 - `packages/database/src/batch-f-repository.ts`
 - `packages/database/src/batch-g-repository.ts`
 - `packages/database/src/batch-h-repository.ts`
 - `packages/database/src/batch-i-repository.ts`
 - `packages/database/src/batch-k-repository.ts`
+- `packages/database/src/batch-l-repository.ts`
 - `packages/database/src/domain-repository.test.ts`
 - `packages/database/src/domain-store-environment.test.ts`
 - `packages/database/src/domain-store-environment.ts`
 - `packages/database/src/index.ts`
 - `packages/database/src/migrations.ts`
 - `packages/database/src/postgres-store.ts`
+- `packages/database/src/schema-ownership.test.ts`
 - `packages/database/src/schema-ownership.ts`
 - `packages/domain-contracts/src/batch-c.ts`
 - `packages/domain-contracts/src/batch-g.ts`
 - `packages/domain-contracts/src/batch-h.ts`
 - `packages/domain-contracts/src/batch-i.ts`
 - `packages/domain-contracts/src/batch-k.ts`
+- `packages/domain-contracts/src/batch-l.ts`
 - `packages/domain-contracts/src/index.ts`
 - `packages/domain/src/index.ts`
 - `packages/domain/src/seed-data.ts`
@@ -100,6 +105,8 @@
 - `packages/domain/src/services/kpi-formula-validator.ts`
 - `packages/domain/src/services/settlement-assurance.test.ts`
 - `packages/domain/src/trust-foundation.e2e.test.ts`
+- `packages/enterprise-analytics/package.json`
+- `packages/enterprise-analytics/src/persisted-contracts.test.ts`
 - `packages/enterprise-intelligence/package.json`
 - `packages/enterprise-intelligence/src/persisted-contracts.test.ts`
 - `packages/governance-core/package.json`
@@ -120,15 +127,17 @@
 - `supabase/migrations/202608110012_wave6_batch_i_agreement_intelligence.sql`
 - `supabase/migrations/202608110013_workspace_slug_is_tenant_scoped.sql`
 - `supabase/migrations/202608110014_wave6_batch_k_enterprise_intelligence.sql`
+- `supabase/migrations/202608110015_wave6_batch_l_enterprise_analytics.sql`
+- `supabase/migrations/202608110016_retire_trust_compatibility_tables.sql`
 
 ## Validation
 
 | Validator | Result | Checked | Errors | Warnings |
 | --- | --- | --- | --- | --- |
-| architecture | pass | 241 | 0 | 0 |
+| architecture | pass | 245 | 0 | 0 |
 | dependencies | pass | 27 | 0 | 2 |
-| security | pass | 294 | 0 | 0 |
-| execution-contract | pass | 91 | 0 | 2 |
+| security | pass | 296 | 0 | 0 |
+| execution-contract | pass | 102 | 0 | 2 |
 
 ### Findings
 
@@ -159,8 +168,8 @@ No newly introduced violations.
 
 ## Ledger
 
-Recorded as `ba4c0e4f6936-persistence.domain-store-durability` in `docs/governance/execution-ledger/`.
+Recorded as `60602ed2dee4-persistence.domain-store-durability` in `docs/governance/execution-ledger/`.
 
 ## Commit
 
-`ba4c0e4f6936369997b8a800e5b69828ca4ceb13`
+`60602ed2dee40a898d70baa5f2de66eee3d38e5a`
