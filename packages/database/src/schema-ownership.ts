@@ -29,6 +29,18 @@ import type { SqlClient } from './postgres-client';
  * PostgreSQL itself was the oracle for that closure: dropping the candidate set is refused
  * naming those dependencies, and dropping the set minus them succeeds.
  *
+ * > **Re-measured at Batch J.** The ninety-three is now **sixteen**: Batches A–I converged seventy-seven of
+ * > those tables onto `trust_workspaces` as they activated them. Fifteen of the remaining sixteen are the
+ * > tables of `enterprise-intelligence` and `enterprise-analytics`, which the accepted decision defers, and
+ * > the sixteenth is `workspace_memberships` itself. Nothing has a foreign key to `workspace_memberships` any
+ * > more; what holds it is fifteen policies calling `has_active_workspace_membership()`, on those same
+ * > fifteen tables.
+ * >
+ * > So the retirement condition is now sharper than "`persistence.domain-store-durability`". The code half of
+ * > that capability — retiring `FileAssuraStore` — is done, and it did **not** free these three tables. What
+ * > frees them is activating the two deferred batches, after which all sixteen dependants are gone and the
+ * > three drop together. See `docs/persistence/DOMAIN_STORE_RETIREMENT.md`.
+ *
  * So the real risk the duplicate model posed was never corruption. It was that one hundred
  * and two of its tables carry `ENABLE ROW LEVEL SECURITY` with no `FORCE` — the exact defect
  * `persistence.rls-certification` corrected for the trust tables — so anything that *started*
@@ -261,14 +273,21 @@ export type CompatibilityObject = {
 export const COMPATIBILITY_OBJECTS: readonly CompatibilityObject[] = Object.freeze([
   {
     table: 'workspaces',
+    // Was 93 when this list was written. Measured against a fully migrated instance after Batch J: **16**,
+    // because Batches A-I converged the other 77 onto `trust_workspaces`. Fifteen of the sixteen are the
+    // tables of the two deferred batches — `enterprise-intelligence` (6) and `enterprise-analytics` (9) — and
+    // the sixteenth is `workspace_memberships` below. So this table is now blocked on activating those two
+    // batches, not on the file-backed store, which Batch J removed.
     reason:
-      'foreign-key parent of 93 Engine 06-60 tables; dropping it requires CASCADE, which would take that entire model with it',
+      'foreign-key parent of 16 remaining tables — 15 belong to the deferred enterprise-intelligence and enterprise-analytics batches, and workspace_memberships is the sixteenth; dropping it requires CASCADE',
     retirementCondition: 'persistence.domain-store-durability',
   },
   {
     table: 'workspace_memberships',
+    // Nothing has a foreign key to this table any more — measured as 0 children. What holds it is the 15
+    // policies that call `has_active_workspace_membership()`, all on those same deferred-batch tables.
     reason:
-      'read by has_active_workspace_membership(), which the RLS policies on the Engine 06-60 tables call; dropping it breaks those policies',
+      'read by has_active_workspace_membership(), which the RLS policies on the 15 deferred-batch tables call; dropping it breaks those policies',
     retirementCondition: 'persistence.domain-store-durability',
   },
   {

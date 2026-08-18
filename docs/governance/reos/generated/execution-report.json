@@ -1,18 +1,37 @@
 {
   "capability": "persistence.domain-store-durability",
-  "capabilityLifecycle": "planned",
+  "capabilityLifecycle": "missing",
   "certification": {
     "available": true,
     "failedSteps": [],
     "passed": true
   },
-  "commit": "812ccd443fc45c749839e1e228ed25be1e4c2282",
+  "commit": "ae0fa3da4470bd11efee822b8db3eda40dceda9a",
   "filesModified": [
+    "apps/web/app/api/v1/completion-certificates/[id]/verify/route.ts",
+    "apps/web/app/api/v1/contracts/[id]/approve/route.ts",
+    "apps/web/app/api/v1/contracts/route.ts",
+    "apps/web/app/api/v1/me/workspaces/route.ts",
+    "apps/web/app/api/v1/milestones/[id]/assurance/route.ts",
+    "apps/web/app/api/v1/organizations/route.ts",
+    "apps/web/app/api/v1/payment-eligibility/[id]/blockers/route.ts",
+    "apps/web/app/api/v1/tenants/route.ts",
+    "apps/web/app/api/v1/workspaces/route.ts",
+    "apps/web/app/execution/milestones/[id]/page.tsx",
+    "apps/web/app/execution/page.tsx",
+    "apps/web/app/page.tsx",
+    "apps/web/app/settlements/page.tsx",
+    "apps/web/lib/assurance-read-model.ts",
+    "apps/web/lib/assurapay-app.ts",
+    "apps/web/lib/route-permissions.test.ts",
+    "apps/web/lib/route-permissions.ts",
     "docs/governance/execution-ledger/34fb3610d9d1-persistence.domain-store-durability.json",
     "docs/governance/execution-ledger/812ccd443fc4-persistence.domain-store-durability.json",
     "docs/governance/execution-ledger/INDEX.md",
+    "docs/governance/execution-ledger/ae0fa3da4470-persistence.domain-store-durability.json",
     "docs/governance/execution-ledger/c0c9ef653189-persistence.domain-store-durability.json",
     "docs/governance/reos/generated/CERTIFICATION_REPORT.md",
+    "docs/governance/reos/generated/DEPENDENCY_RESOLUTION.md",
     "docs/governance/reos/generated/EXECUTION_MANIFEST.md",
     "docs/governance/reos/generated/EXECUTION_REPORT.md",
     "docs/governance/reos/generated/certification.json",
@@ -21,6 +40,7 @@
     "docs/governance/reos/generated/execution-manifest.json",
     "docs/governance/reos/generated/execution-report.json",
     "docs/governance/reos/generated/forensics.json",
+    "docs/persistence/DOMAIN_STORE_RETIREMENT.md",
     "docs/persistence/DURABILITY_GAP_ANALYSIS.md",
     "packages/agreement-creation/src/index.ts",
     "packages/agreement-intelligence/package.json",
@@ -37,22 +57,41 @@
     "packages/database-testing/src/wave6-batch-g-repository.postgres.test.ts",
     "packages/database-testing/src/wave6-batch-h-repository.postgres.test.ts",
     "packages/database-testing/src/wave6-batch-i-repository.postgres.test.ts",
+    "packages/database-testing/src/wave6-workspace-bootstrap.postgres.test.ts",
     "packages/database/src/batch-f-repository.ts",
     "packages/database/src/batch-g-repository.ts",
     "packages/database/src/batch-h-repository.ts",
     "packages/database/src/batch-i-repository.ts",
+    "packages/database/src/domain-repository.test.ts",
+    "packages/database/src/domain-store-environment.test.ts",
+    "packages/database/src/domain-store-environment.ts",
     "packages/database/src/index.ts",
     "packages/database/src/migrations.ts",
     "packages/database/src/postgres-store.ts",
+    "packages/database/src/schema-ownership.ts",
     "packages/domain-contracts/src/batch-c.ts",
     "packages/domain-contracts/src/batch-g.ts",
     "packages/domain-contracts/src/batch-h.ts",
     "packages/domain-contracts/src/batch-i.ts",
     "packages/domain-contracts/src/index.ts",
+    "packages/domain/src/index.ts",
+    "packages/domain/src/seed-data.ts",
+    "packages/domain/src/services/assurapay-service.test.ts",
+    "packages/domain/src/services/assurapay-service.ts",
+    "packages/domain/src/services/batch2-remediation.test.ts",
+    "packages/domain/src/services/batch4-extensions.test.ts",
+    "packages/domain/src/services/batch4-intelligence.test.ts",
+    "packages/domain/src/services/intelligence-foundation.test.ts",
+    "packages/domain/src/services/kpi-formula-validator.ts",
+    "packages/domain/src/services/settlement-assurance.test.ts",
+    "packages/domain/src/trust-foundation.e2e.test.ts",
     "packages/governance-core/package.json",
     "packages/governance-core/src/persisted-contracts.test.ts",
+    "packages/organizations/src/index.ts",
+    "packages/organizations/src/organizations.test.ts",
     "packages/performance-readiness/package.json",
     "packages/performance-readiness/src/persisted-contracts.test.ts",
+    "packages/reos/src/validators/persistence.ts",
     "pnpm-lock.yaml",
     "supabase/migrations/202608110003_wave5_close_batch_c_gaps.sql",
     "supabase/migrations/202608110007_close_settlement_closure_gaps.sql",
@@ -60,9 +99,10 @@
     "supabase/migrations/202608110009_wave6_batch_g_performance_readiness.sql",
     "supabase/migrations/202608110010_tenant_scoped_unique_keys.sql",
     "supabase/migrations/202608110011_wave6_batch_h_governance_core.sql",
-    "supabase/migrations/202608110012_wave6_batch_i_agreement_intelligence.sql"
+    "supabase/migrations/202608110012_wave6_batch_i_agreement_intelligence.sql",
+    "supabase/migrations/202608110013_workspace_slug_is_tenant_scoped.sql"
   ],
-  "generatedAt": "2026-08-18T08:26:37.777Z",
+  "generatedAt": "2026-08-18T13:25:31.746Z",
   "governance": {
     "baselined": 15,
     "findings": [
@@ -222,36 +262,86 @@
     "phase": 2,
     "resolved": []
   },
-  "ledgerEntryId": "812ccd443fc4-persistence.domain-store-durability",
+  "ledgerEntryId": "ae0fa3da4470-persistence.domain-store-durability",
   "recommendedNextCapability": {
     "blockedBy": [],
-    "blocks": [],
-    "dependsOn": [
+    "blocks": [
+      "persistence.domain-store-durability",
       "persistence.domain-store-environment-gate"
     ],
+    "dependsOn": [
+      "persistence.schema-ownership-reconciliation"
+    ],
     "executable": true,
-    "id": "persistence.domain-store-durability",
-    "lifecycle": "planned",
-    "priority": 45,
-    "requiresLiveInfrastructure": true,
+    "id": "persistence.async-domain-repository-interface",
+    "lifecycle": "implementing",
+    "priority": 43,
+    "requiresLiveInfrastructure": false,
     "scope": {
       "estimated": false,
-      "files": 1,
-      "tests": 1
+      "files": 2,
+      "tests": 2
     },
-    "status": "missing",
-    "title": "Domain store durability for Engines 06-60"
+    "status": "partial",
+    "title": "Asynchronous domain repository interface"
   },
   "remainingBacklog": [
     {
       "blockedBy": [],
+      "blocks": [
+        "persistence.domain-store-durability",
+        "persistence.domain-store-environment-gate"
+      ],
+      "dependsOn": [
+        "persistence.schema-ownership-reconciliation"
+      ],
+      "executable": true,
+      "id": "persistence.async-domain-repository-interface",
+      "lifecycle": "implementing",
+      "priority": 43,
+      "requiresLiveInfrastructure": false,
+      "scope": {
+        "estimated": false,
+        "files": 2,
+        "tests": 2
+      },
+      "status": "partial",
+      "title": "Asynchronous domain repository interface"
+    },
+    {
+      "blockedBy": [
+        "persistence.async-domain-repository-interface"
+      ],
+      "blocks": [
+        "persistence.domain-store-durability"
+      ],
+      "dependsOn": [
+        "persistence.async-domain-repository-interface"
+      ],
+      "executable": false,
+      "id": "persistence.domain-store-environment-gate",
+      "lifecycle": "implementing",
+      "priority": 44,
+      "requiresLiveInfrastructure": false,
+      "scope": {
+        "estimated": false,
+        "files": 2,
+        "tests": 2
+      },
+      "status": "partial",
+      "title": "Domain store durable-environment gate"
+    },
+    {
+      "blockedBy": [
+        "persistence.domain-store-environment-gate"
+      ],
       "blocks": [],
       "dependsOn": [
         "persistence.domain-store-environment-gate"
       ],
-      "executable": true,
+      "executable": false,
       "id": "persistence.domain-store-durability",
-      "lifecycle": "planned",
+      "lifecycle": "missing",
       "priority": 45,
       "requiresLiveInfrastructure": true,
       "scope": {
@@ -265,55 +355,99 @@
   ],
   "reosVersion": "1.0.0",
   "repositoryState": {
-    "branch": "feat/i1-batch-i-agreement-intelligence",
+    "branch": "feat/j1-retire-file-domain-store",
     "clean": false,
     "dirtyFiles": [
+      "apps/web/app/api/v1/completion-certificates/[id]/verify/route.ts",
+      "apps/web/app/api/v1/contracts/[id]/approve/route.ts",
+      "apps/web/app/api/v1/contracts/route.ts",
+      "apps/web/app/api/v1/me/workspaces/route.ts",
+      "apps/web/app/api/v1/milestones/[id]/assurance/route.ts",
+      "apps/web/app/api/v1/organizations/route.ts",
+      "apps/web/app/api/v1/payment-eligibility/[id]/blockers/route.ts",
+      "apps/web/app/api/v1/tenants/route.ts",
+      "apps/web/app/api/v1/workspaces/route.ts",
+      "apps/web/app/execution/milestones/[id]/page.tsx",
+      "apps/web/app/execution/page.tsx",
+      "apps/web/app/page.tsx",
+      "apps/web/app/settlements/page.tsx",
+      "apps/web/lib/assurance-read-model.ts",
+      "apps/web/lib/assurapay-app.ts",
+      "apps/web/lib/route-permissions.test.ts",
+      "apps/web/lib/route-permissions.ts",
       "docs/governance/reos/generated/CERTIFICATION_REPORT.md",
+      "docs/governance/reos/generated/DEPENDENCY_RESOLUTION.md",
       "docs/governance/reos/generated/EXECUTION_MANIFEST.md",
       "docs/governance/reos/generated/certification.json",
       "docs/governance/reos/generated/dependency-resolution.json",
       "docs/governance/reos/generated/discovery.json",
       "docs/governance/reos/generated/execution-manifest.json",
       "docs/governance/reos/generated/forensics.json",
+      "docs/persistence/DOMAIN_STORE_RETIREMENT.md",
       "docs/persistence/DURABILITY_GAP_ANALYSIS.md",
-      "packages/agreement-intelligence/package.json",
-      "packages/agreement-intelligence/src/index.ts",
-      "packages/agreement-intelligence/src/persisted-contracts.test.ts",
-      "packages/database-testing/src/durability-coverage.test.ts",
-      "packages/database-testing/src/wave6-batch-i-repository.postgres.test.ts",
-      "packages/database/src/batch-i-repository.ts",
+      "packages/database-testing/package.json",
+      "packages/database-testing/src/wave6-workspace-bootstrap.postgres.test.ts",
+      "packages/database/src/domain-repository.test.ts",
+      "packages/database/src/domain-store-environment.test.ts",
+      "packages/database/src/domain-store-environment.ts",
       "packages/database/src/index.ts",
       "packages/database/src/migrations.ts",
       "packages/database/src/postgres-store.ts",
-      "packages/domain-contracts/src/batch-i.ts",
-      "packages/domain-contracts/src/index.ts",
+      "packages/database/src/schema-ownership.ts",
+      "packages/domain/src/index.ts",
+      "packages/domain/src/seed-data.ts",
+      "packages/domain/src/services/assurapay-service.test.ts",
+      "packages/domain/src/services/assurapay-service.ts",
+      "packages/domain/src/services/batch2-remediation.test.ts",
+      "packages/domain/src/services/batch4-extensions.test.ts",
+      "packages/domain/src/services/batch4-intelligence.test.ts",
+      "packages/domain/src/services/intelligence-foundation.test.ts",
+      "packages/domain/src/services/kpi-formula-validator.ts",
+      "packages/domain/src/services/settlement-assurance.test.ts",
+      "packages/domain/src/trust-foundation.e2e.test.ts",
+      "packages/organizations/src/index.ts",
+      "packages/organizations/src/organizations.test.ts",
+      "packages/reos/src/validators/persistence.ts",
       "pnpm-lock.yaml",
-      "supabase/migrations/202608110012_wave6_batch_i_agreement_intelligence.sql"
+      "supabase/migrations/202608110013_workspace_slug_is_tenant_scoped.sql"
     ],
-    "head": "812ccd443fc45c749839e1e228ed25be1e4c2282"
+    "head": "ae0fa3da4470bd11efee822b8db3eda40dceda9a"
   },
   "stage": "report",
   "validation": [
     {
-      "checked": 247,
+      "checked": 236,
       "findings": [],
       "passed": true,
       "validator": "architecture"
     },
     {
       "checked": 27,
-      "findings": [],
+      "findings": [
+        {
+          "location": "apps/web/package.json",
+          "message": "apps/web declares @assurapay/domain but never imports it.",
+          "rule": "dependency/unused-declaration",
+          "severity": "warning"
+        },
+        {
+          "location": "packages/domain/package.json",
+          "message": "packages/domain declares @assurapay/shared but never imports it.",
+          "rule": "dependency/unused-declaration",
+          "severity": "warning"
+        }
+      ],
       "passed": true,
       "validator": "dependencies"
     },
     {
-      "checked": 297,
+      "checked": 292,
       "findings": [],
       "passed": true,
       "validator": "security"
     },
     {
-      "checked": 43,
+      "checked": 82,
       "findings": [
         {
           "location": "packages/agreement-creation/src",
@@ -322,14 +456,14 @@
           "severity": "warning"
         },
         {
-          "location": "packages/database/src",
-          "message": "packages/database has modified source but no modified tests in this change.",
+          "location": "packages/domain-contracts/src",
+          "message": "packages/domain-contracts has modified source but no modified tests in this change.",
           "rule": "contract/tests-not-updated",
           "severity": "warning"
         },
         {
-          "location": "packages/domain-contracts/src",
-          "message": "packages/domain-contracts has modified source but no modified tests in this change.",
+          "location": "packages/reos/src",
+          "message": "packages/reos has modified source but no modified tests in this change.",
           "rule": "contract/tests-not-updated",
           "severity": "warning"
         }

@@ -216,6 +216,9 @@ importers:
       '@assurapay/domain-contracts':
         specifier: workspace:*
         version: link:../domain-contracts
+      '@assurapay/organizations':
+        specifier: workspace:*
+        version: link:../organizations
       '@assurapay/performance-readiness':
         specifier: workspace:*
         version: link:../performance-readiness

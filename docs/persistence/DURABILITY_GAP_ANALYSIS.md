@@ -230,9 +230,33 @@ of the register above. The order is not arbitrary:
   (contract_id, version)` — revision keys the engines compute by counting what exists, so two concurrent
   calls both write the same revision. Trading a cross-tenant collision for a duplicate revision is the worse
   of the two, and it was caught by reading the original `CREATE TABLE` statements rather than by any gate.
+- **Batch J: retire the file-backed domain store — DONE (`202608110013`).** Not one of the 67, and future
+  state 4 rather than an entry in the register — but the item future state 5 names as the condition holding
+  the deferred group, so it comes before them. It found the worst defect of the programme, and this register
+  is where the wrong claim was written: the eight `FileAssuraStore` routes were recorded here as "a separate
+  question from the 67 — they work". They do not. `FileAssuraStore.load()` refuses in every durable
+  deployment class, and one of the eight is `POST /v1/workspaces`. Nothing else created a workspace, every
+  protected route resolves its trust scope from the caller's workspace, and a caller without one carries no
+  tenant — so forced row-level security matched no row and **161 durable routes were individually correct and
+  collectively unreachable**. A durable deployment could not be started at all.
+
+  Two further defects sat behind it. `OrganizationService.createWorkspace` — the durable path, with zero
+  callers — minted a fresh tenant per workspace, so its own insert fell outside the caller's scope and was
+  refused by `trust_tenants_self`; reproduced live before it was fixed. That also made tenant and workspace
+  1:1, contradicting the composite `(tenant_id, workspace_id)` keys every batch from A to I carries. And an
+  out-of-scope write reported itself as `PERSISTENCE_UNAVAILABLE`, so the one defect that stopped a deployment
+  starting arrived looking like an outage — the mistake `postgres-store.ts` already forbids two blocks earlier
+  for the immutability triggers.
+
+  Batch J also re-measured a claim this register propagated. `workspaces` was recorded as the foreign-key
+  parent of 93 Engine 06-60 tables; it is **16**, because Batches A-I converged 77 of them. Fifteen of the
+  sixteen are the deferred batches' own tables, so the three compatibility tables are blocked on activating
+  those — not on the file store. See `docs/persistence/DOMAIN_STORE_RETIREMENT.md`.
 - **Last: `enterprise-intelligence` (6), `enterprise-analytics` (9), `agent-runtime` (9).** Deferred by
   the accepted decision until the persistence boundary is resolved, and the register keeps them in that
-  position rather than reordering by convenience.
+  position rather than reordering by convenience. Batch J resolved that boundary, so they are now executable
+  — and they are on the critical path rather than at the end of it, because retiring `workspaces`,
+  `workspace_memberships` and `user_identities` waits on the first two of them.
 
 Each batch should follow the shape Batches A–D settled into, because it produced four consecutive
 clean activations and found a real defect every time:
@@ -252,6 +276,12 @@ clean activations and found a real defect every time:
   shrink it.
 - **It does not change the 8 `FileAssuraStore` routes.** They work, and they are a separate question
   from the 67 — which are not file-backed at all.
+
+  > **Wrong, and corrected by Batch J.** They do not work: `FileAssuraStore.load()` refuses in every durable
+  > deployment class. And they are not a separate question, because one of them is the only route that creates
+  > a workspace — so their failure was what made all 161 durable routes unreachable. This was the most
+  > consequential error in this document, and it survived because "they work" was inferred from the routes
+  > existing rather than checked against the gate that refuses them.
 - **It does not force row-level security on the 59 unforced tables.** They have no reader and no
   writer, their policies predicate on the superseded `current_workspace_id()`, and forcing a boundary
   on a dead table is work that looks like security and delivers none.

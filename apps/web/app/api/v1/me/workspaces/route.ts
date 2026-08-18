@@ -1,22 +1,22 @@
-import { NextResponse } from 'next/server';
-import { getAssuraService } from '../../../../../lib/assurapay-app';
-import { authorizedContextForRoute, errorResponse } from '../../../../../lib/trust-app';
+import { authorizedContextForRoute, errorResponse, trust } from '../../../../../lib/trust-app';
 
+/**
+ * The workspaces the caller may enter.
+ *
+ * Identity-class: authenticated, no permission required, because this is how a caller discovers the
+ * memberships that permission evaluation itself depends on.
+ *
+ * Re-pointed from the `FileAssuraStore` snapshot to `OrganizationService.listAuthorizedWorkspaces`, which
+ * reads durable `memberships` and `trustWorkspaces`. The change is not only in the source: the engine
+ * filters on an **ACTIVE** membership and an **ACTIVE** workspace, so a suspended membership or an archived
+ * workspace no longer appears. The file-backed version intersected the resolved membership ids with the
+ * snapshot's workspaces and applied neither status, which listed workspaces the caller could not actually
+ * enter — `activateContext` refuses them with `WORKSPACE_ACCESS_DENIED`.
+ */
 export async function GET(request: Request) {
   try {
-    // Identity-class: authenticated, no permission required, because this is how a
-    // caller discovers the memberships permission evaluation depends on.
-    //
-    // The previous implementation returned every workspace in the store to an
-    // unauthenticated caller. Scoping to resolved memberships is the point of the
-    // route — "my workspaces", not "all workspaces".
     const context = await authorizedContextForRoute(request);
-    const { store } = await getAssuraService();
-    const snapshot = await store.getSnapshot();
-    const mine = new Set(context.memberships);
-    return NextResponse.json(
-      (snapshot.workspaces ?? []).filter((workspace: { id: string }) => mine.has(workspace.id)),
-    );
+    return Response.json(await trust.organizations.listAuthorizedWorkspaces(context.actorUserId));
   } catch (error) {
     return errorResponse(error);
   }

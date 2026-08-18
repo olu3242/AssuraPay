@@ -101,6 +101,19 @@ function translate(error: unknown): PostgresStoreError {
   )
     return new PostgresStoreError('PERSISTENCE_HISTORY_IMMUTABLE', detail);
 
+  // A write a row-level security policy refused. `42501` covers two different faults and they must not
+  // share a code. A policy refusal means the caller named a scope it does not hold: no retry will ever
+  // succeed, and the operator's problem is the scope, not the database. `permission denied for table` is
+  // a missing grant on the runtime role, which *is* an operational fault and stays where it was.
+  // PostgreSQL separates them in the message, the same signal the trigger translations above key on.
+  //
+  // This mattered: founding a workspace failed with
+  // `PERSISTENCE_UNAVAILABLE: 42501: new row violates row-level security policy for table
+  // "trust_tenants"`, so the one defect that made a durable deployment unbootstrappable reported itself
+  // as an outage. See `docs/persistence/DOMAIN_STORE_RETIREMENT.md`.
+  if (code === SQLSTATE.insufficientPrivilege && detail.includes('row-level security policy'))
+    return new PostgresStoreError('PERSISTENCE_SCOPE_INVALID', detail);
+
   switch (code) {
     case SQLSTATE.uniqueViolation:
       return new PostgresStoreError('PERSISTENCE_DUPLICATE_RECORD', detail);
