@@ -116,7 +116,12 @@ export const ROUTE_PERMISSION_REQUIREMENTS: Readonly<Record<string, RouteAccess>
   '/api/v1/contract-risks|POST': { access: 'permission', permissionKey: 'contract-risks:create' },
   '/api/v1/contract-templates/versions|POST': { access: 'permission', permissionKey: 'contract-templates:create-version' },
   '/api/v1/contract-versions|POST': { access: 'permission', permissionKey: 'contract-versions:create' },
-  '/api/v1/contracts/[id]/approve|POST': { access: 'permission', permissionKey: 'contracts:approve' },
+  // `/api/v1/contracts/[id]/approve` is retired rather than re-pointed. It set `status = 'APPROVED'` with an
+  // actor and a timestamp and nothing else, while the durable path — `/api/v1/approval-requests` then
+  // `/api/v1/approval-requests/[id]/decisions` — requires an approval policy and a document version, records
+  // an `ApprovalRequest`, and holds a decision immutable once made. Approving a contract with no policy, no
+  // required roles and no decision record is an approval trail that cannot be relied on, so the shortcut is
+  // removed instead of given a durable home. See `docs/persistence/DOMAIN_STORE_RETIREMENT.md`.
   '/api/v1/contracts|GET': { access: 'permission', permissionKey: 'contracts:read' },
   '/api/v1/contracts|POST': { access: 'permission', permissionKey: 'contracts:create' },
   '/api/v1/corrective-action-plans/[id]/complete|POST': { access: 'permission', permissionKey: 'corrective-action-plans:complete' },
@@ -204,6 +209,13 @@ export const ROUTE_PERMISSION_REQUIREMENTS: Readonly<Record<string, RouteAccess>
   '/api/v1/organizations|POST': { access: 'permission', permissionKey: 'organizations:create' },
   '/api/v1/parties/[id]/verification-requests|POST': { access: 'permission', permissionKey: 'parties:request-verification' },
   '/api/v1/parties|POST': { access: 'permission', permissionKey: 'parties:create' },
+  // Founding a tenant creates the first workspace, which is what a grant is scoped to and what membership is
+  // resolved against — so requiring `workspaces:create` here would be a requirement no caller could ever
+  // satisfy, and a durable deployment could not be started at all. What makes it safe is that the tenant is
+  // minted server-side and cannot be named by the caller, so the scope the route enters is empty by
+  // construction and the caller becomes its owner. See the route and
+  // `docs/persistence/DOMAIN_STORE_RETIREMENT.md`.
+  '/api/v1/tenants|POST': { access: 'identity' },
   '/api/v1/payment-eligibilities|POST': { access: 'permission', permissionKey: 'payment-eligibilities:create' },
   '/api/v1/payment-eligibility/[id]/blockers|GET': { access: 'permission', permissionKey: 'payment-eligibility:blockers' },
   '/api/v1/payment-instructions/[id]/refresh-status|POST': { access: 'permission', permissionKey: 'payment-instructions:refresh-status' },

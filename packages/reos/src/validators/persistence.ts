@@ -156,11 +156,15 @@ const DATA_PATH_VOCABULARY = Object.freeze([
   'packages/reos/src/validators/persistence.ts',
 ]);
 
-/** Modules allowed to name a demo seed: the gate's own definition, and this validator. */
-const DEMO_SEED_VOCABULARY = Object.freeze([
-  'packages/database/src/domain-store-environment.ts',
-  'packages/reos/src/validators/persistence.ts',
-]);
+/**
+ * Modules allowed to name a demo seed.
+ *
+ * `domain-store-environment.ts` was the gate that defined the rule — `mayFabricateDemoData` — and Batch J
+ * removed it along with the file-backed store it guarded and the `createSeedScenario` it kept out of durable
+ * deployments. There is no longer a seeding path to permit, so the only entry is this validator, which has to
+ * name the thing it forbids.
+ */
+const DEMO_SEED_VOCABULARY = Object.freeze(['packages/reos/src/validators/persistence.ts']);
 
 const RETIRED_TABLE_VOCABULARY = Object.freeze([
   'packages/database/src/schema-ownership.ts',
@@ -287,17 +291,20 @@ function sourceFiles(repoRoot: string, roots: readonly string[]): string[] {
 /**
  * Persistence contracts that must be asynchronous in every method.
  *
- * Both of them, not just the trust one. `AssuraRepository` is the Engine 06-60 contract, and it
- * carried exactly the defect `TrustPersistence` was fixed for: `getSnapshot(): Snapshot` and
- * `setSnapshot(...): void`, synchronous, across 115 call sites. A relational adapter cannot
- * implement either — JavaScript cannot block on I/O — so the only way to satisfy the old
- * signature was to hold the whole database in memory and return the cache, which is arrays
- * behind a PostgreSQL adapter rather than durability. Checking one contract and not the other
- * is how the second one stayed synchronous while the first was certified.
+ * One of them now. `AssuraRepository` was the second — the Engine 06-60 contract, which carried exactly the
+ * defect `TrustPersistence` was fixed for: `getSnapshot(): Snapshot` and `setSnapshot(...): void`,
+ * synchronous, across 115 call sites. A relational adapter cannot implement either, because JavaScript cannot
+ * block on I/O, so the only way to satisfy the old signature was to hold the whole database in memory and
+ * return the cache — arrays behind a PostgreSQL adapter rather than durability.
+ *
+ * Batch J removed the contract along with `FileAssuraStore`, so the rule has nothing left to check on that
+ * side. The entry is deleted rather than left pointing at a name that no longer exists: a rule whose subject
+ * is absent reports an error about the absence, which is what it did, and it would have kept the retirement
+ * from certifying. `docs/persistence/DOMAIN_STORE_RETIREMENT.md` records where the Engine 06-60 collections
+ * went — to `PostgresTrustStore`, whose contract is the one still listed here.
  */
 const ASYNCHRONOUS_PERSISTENCE_CONTRACTS = Object.freeze([
   { name: 'TrustPersistence', location: 'packages/shared/src/trust.ts' },
-  { name: 'AssuraRepository', location: 'packages/database/src/index.ts' },
 ]);
 
 function checkInterfaceIsAsynchronous(repoRoot: string): Finding[] {

@@ -6,23 +6,42 @@
 
 | Field | Value |
 | --- | --- |
-| Branch | feat/i1-batch-i-agreement-intelligence |
-| HEAD | 812ccd443fc45c749839e1e228ed25be1e4c2282 |
+| Branch | feat/j1-retire-file-domain-store |
+| HEAD | ae0fa3da4470bd11efee822b8db3eda40dceda9a |
 | Worktree clean | no |
-| Uncommitted files | 21 |
-| Generated at | 2026-08-18T08:26:37.777Z |
+| Uncommitted files | 52 |
+| Generated at | 2026-08-18T13:25:31.746Z |
 
 ## Capability implemented
 
-`persistence.domain-store-durability` — lifecycle **planned**
+`persistence.domain-store-durability` — lifecycle **missing**
 
-## Files modified (53)
+## Files modified (93)
 
+- `apps/web/app/api/v1/completion-certificates/[id]/verify/route.ts`
+- `apps/web/app/api/v1/contracts/[id]/approve/route.ts`
+- `apps/web/app/api/v1/contracts/route.ts`
+- `apps/web/app/api/v1/me/workspaces/route.ts`
+- `apps/web/app/api/v1/milestones/[id]/assurance/route.ts`
+- `apps/web/app/api/v1/organizations/route.ts`
+- `apps/web/app/api/v1/payment-eligibility/[id]/blockers/route.ts`
+- `apps/web/app/api/v1/tenants/route.ts`
+- `apps/web/app/api/v1/workspaces/route.ts`
+- `apps/web/app/execution/milestones/[id]/page.tsx`
+- `apps/web/app/execution/page.tsx`
+- `apps/web/app/page.tsx`
+- `apps/web/app/settlements/page.tsx`
+- `apps/web/lib/assurance-read-model.ts`
+- `apps/web/lib/assurapay-app.ts`
+- `apps/web/lib/route-permissions.test.ts`
+- `apps/web/lib/route-permissions.ts`
 - `docs/governance/execution-ledger/34fb3610d9d1-persistence.domain-store-durability.json`
 - `docs/governance/execution-ledger/812ccd443fc4-persistence.domain-store-durability.json`
 - `docs/governance/execution-ledger/INDEX.md`
+- `docs/governance/execution-ledger/ae0fa3da4470-persistence.domain-store-durability.json`
 - `docs/governance/execution-ledger/c0c9ef653189-persistence.domain-store-durability.json`
 - `docs/governance/reos/generated/CERTIFICATION_REPORT.md`
+- `docs/governance/reos/generated/DEPENDENCY_RESOLUTION.md`
 - `docs/governance/reos/generated/EXECUTION_MANIFEST.md`
 - `docs/governance/reos/generated/EXECUTION_REPORT.md`
 - `docs/governance/reos/generated/certification.json`
@@ -31,6 +50,7 @@
 - `docs/governance/reos/generated/execution-manifest.json`
 - `docs/governance/reos/generated/execution-report.json`
 - `docs/governance/reos/generated/forensics.json`
+- `docs/persistence/DOMAIN_STORE_RETIREMENT.md`
 - `docs/persistence/DURABILITY_GAP_ANALYSIS.md`
 - `packages/agreement-creation/src/index.ts`
 - `packages/agreement-intelligence/package.json`
@@ -47,22 +67,41 @@
 - `packages/database-testing/src/wave6-batch-g-repository.postgres.test.ts`
 - `packages/database-testing/src/wave6-batch-h-repository.postgres.test.ts`
 - `packages/database-testing/src/wave6-batch-i-repository.postgres.test.ts`
+- `packages/database-testing/src/wave6-workspace-bootstrap.postgres.test.ts`
 - `packages/database/src/batch-f-repository.ts`
 - `packages/database/src/batch-g-repository.ts`
 - `packages/database/src/batch-h-repository.ts`
 - `packages/database/src/batch-i-repository.ts`
+- `packages/database/src/domain-repository.test.ts`
+- `packages/database/src/domain-store-environment.test.ts`
+- `packages/database/src/domain-store-environment.ts`
 - `packages/database/src/index.ts`
 - `packages/database/src/migrations.ts`
 - `packages/database/src/postgres-store.ts`
+- `packages/database/src/schema-ownership.ts`
 - `packages/domain-contracts/src/batch-c.ts`
 - `packages/domain-contracts/src/batch-g.ts`
 - `packages/domain-contracts/src/batch-h.ts`
 - `packages/domain-contracts/src/batch-i.ts`
 - `packages/domain-contracts/src/index.ts`
+- `packages/domain/src/index.ts`
+- `packages/domain/src/seed-data.ts`
+- `packages/domain/src/services/assurapay-service.test.ts`
+- `packages/domain/src/services/assurapay-service.ts`
+- `packages/domain/src/services/batch2-remediation.test.ts`
+- `packages/domain/src/services/batch4-extensions.test.ts`
+- `packages/domain/src/services/batch4-intelligence.test.ts`
+- `packages/domain/src/services/intelligence-foundation.test.ts`
+- `packages/domain/src/services/kpi-formula-validator.ts`
+- `packages/domain/src/services/settlement-assurance.test.ts`
+- `packages/domain/src/trust-foundation.e2e.test.ts`
 - `packages/governance-core/package.json`
 - `packages/governance-core/src/persisted-contracts.test.ts`
+- `packages/organizations/src/index.ts`
+- `packages/organizations/src/organizations.test.ts`
 - `packages/performance-readiness/package.json`
 - `packages/performance-readiness/src/persisted-contracts.test.ts`
+- `packages/reos/src/validators/persistence.ts`
 - `pnpm-lock.yaml`
 - `supabase/migrations/202608110003_wave5_close_batch_c_gaps.sql`
 - `supabase/migrations/202608110007_close_settlement_closure_gaps.sql`
@@ -71,21 +110,24 @@
 - `supabase/migrations/202608110010_tenant_scoped_unique_keys.sql`
 - `supabase/migrations/202608110011_wave6_batch_h_governance_core.sql`
 - `supabase/migrations/202608110012_wave6_batch_i_agreement_intelligence.sql`
+- `supabase/migrations/202608110013_workspace_slug_is_tenant_scoped.sql`
 
 ## Validation
 
 | Validator | Result | Checked | Errors | Warnings |
 | --- | --- | --- | --- | --- |
-| architecture | pass | 247 | 0 | 0 |
-| dependencies | pass | 27 | 0 | 0 |
-| security | pass | 297 | 0 | 0 |
-| execution-contract | pass | 43 | 0 | 3 |
+| architecture | pass | 236 | 0 | 0 |
+| dependencies | pass | 27 | 0 | 2 |
+| security | pass | 292 | 0 | 0 |
+| execution-contract | pass | 82 | 0 | 3 |
 
 ### Findings
 
+- **warning** `dependency/unused-declaration` (apps/web/package.json) — apps/web declares @assurapay/domain but never imports it.
+- **warning** `dependency/unused-declaration` (packages/domain/package.json) — packages/domain declares @assurapay/shared but never imports it.
 - **warning** `contract/tests-not-updated` (packages/agreement-creation/src) — packages/agreement-creation has modified source but no modified tests in this change.
-- **warning** `contract/tests-not-updated` (packages/database/src) — packages/database has modified source but no modified tests in this change.
 - **warning** `contract/tests-not-updated` (packages/domain-contracts/src) — packages/domain-contracts has modified source but no modified tests in this change.
+- **warning** `contract/tests-not-updated` (packages/reos/src) — packages/reos has modified source but no modified tests in this change.
 
 ## Governance
 
@@ -97,20 +139,22 @@ No newly introduced violations.
 
 **PASSED** — every certification gate is green.
 
-## Remaining backlog (1)
+## Remaining backlog (3)
 
 | Capability | Status | Executable | Blocked by |
 | --- | --- | --- | --- |
-| persistence.domain-store-durability | missing | yes |  |
+| persistence.async-domain-repository-interface | partial | yes |  |
+| persistence.domain-store-environment-gate | partial | no | persistence.async-domain-repository-interface |
+| persistence.domain-store-durability | missing | no | persistence.domain-store-environment-gate |
 
 ## Recommended next capability
 
-`persistence.domain-store-durability` — Domain store durability for Engines 06-60
+`persistence.async-domain-repository-interface` — Asynchronous domain repository interface
 
 ## Ledger
 
-Recorded as `812ccd443fc4-persistence.domain-store-durability` in `docs/governance/execution-ledger/`.
+Recorded as `ae0fa3da4470-persistence.domain-store-durability` in `docs/governance/execution-ledger/`.
 
 ## Commit
 
-`812ccd443fc45c749839e1e228ed25be1e4c2282`
+`ae0fa3da4470bd11efee822b8db3eda40dceda9a`

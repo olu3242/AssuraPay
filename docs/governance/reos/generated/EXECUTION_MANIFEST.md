@@ -9,10 +9,10 @@
 | --- | --- |
 | Repository | assurapay |
 | Version | 0.1.0 |
-| Branch | feat/i1-batch-i-agreement-intelligence |
-| HEAD | 812ccd443fc45c749839e1e228ed25be1e4c2282 |
+| Branch | feat/j1-retire-file-domain-store |
+| HEAD | ae0fa3da4470bd11efee822b8db3eda40dceda9a |
 | Worktree clean | no |
-| Manifest digest | b0eda9e7cf7e |
+| Manifest digest | f193976f91e5 |
 | REOS version | 1.0.0 |
 
 ## Architecture
@@ -26,8 +26,9 @@
 
 | Lifecycle | Count |
 | --- | --- |
-| planned | 1 |
-| released | 75 |
+| missing | 1 |
+| implementing | 2 |
+| released | 73 |
 | deferred | 4 |
 
 ## Engine reconciliation
@@ -102,10 +103,10 @@ from repository evidence: package presence, test files, and certification wiring
 
 | Capability | Title | Status | Lifecycle | Probes | Rationale |
 | --- | --- | --- | --- | --- | --- |
-| persistence.async-domain-repository-interface | Asynchronous domain repository interface | implemented | released | 7/7 | All 7 evidence probes satisfied at HEAD. |
+| persistence.async-domain-repository-interface | Asynchronous domain repository interface | partial | implementing | 5/7 | 5 of 7 evidence probes satisfied at HEAD. |
 | persistence.async-repository-interface | Asynchronous repository interface | implemented | released | 5/5 | All 5 evidence probes satisfied at HEAD. |
-| persistence.domain-store-durability | Domain store durability for Engines 06-60 | missing | planned | 0/4 | No evidence at HEAD, on any ref, or in history. |
-| persistence.domain-store-environment-gate | Domain store durable-environment gate | implemented | released | 8/8 | All 8 evidence probes satisfied at HEAD. |
+| persistence.domain-store-durability | Domain store durability for Engines 06-60 | missing | missing | 0/4 | No evidence at HEAD, on any ref, or in history. |
+| persistence.domain-store-environment-gate | Domain store durable-environment gate | partial | implementing | 2/8 | 2 of 8 evidence probes satisfied at HEAD. |
 | persistence.postgres-repository | PostgreSQL repository implementation | implemented | released | 10/10 | All 10 evidence probes satisfied at HEAD. |
 | persistence.production-runtime-wiring | Production persistence runtime wiring | implemented | released | 10/10 | All 10 evidence probes satisfied at HEAD. |
 | persistence.repository-conformance | TrustPersistence conformance specification | implemented | released | 4/4 | All 4 evidence probes satisfied at HEAD. |
@@ -145,11 +146,13 @@ from repository evidence: package presence, test files, and certification wiring
 
 ## Execution backlog
 
-1 open item(s). Highest-priority first.
+3 open item(s). Highest-priority first.
 
 | Capability | Title | Lifecycle | Priority | Executable | Blocked by | Blocks |
 | --- | --- | --- | --- | --- | --- | --- |
-| persistence.domain-store-durability | Domain store durability for Engines 06-60 | planned | 45 | yes | — | — |
+| persistence.async-domain-repository-interface | Asynchronous domain repository interface | implementing | 43 | yes | — | 2 |
+| persistence.domain-store-environment-gate | Domain store durable-environment gate | implementing | 44 | no | persistence.async-domain-repository-interface | 1 |
+| persistence.domain-store-durability | Domain store durability for Engines 06-60 | missing | 45 | no | persistence.domain-store-environment-gate | — |
 
 ## Certification coverage
 

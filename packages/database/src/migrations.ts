@@ -366,6 +366,12 @@ export const REQUIRED_TRUST_MIGRATIONS: readonly string[] = Object.freeze([
   // table at all. Required rather than optional: without it a published intelligence version can contain
   // unreviewed items, which is the human-in-the-loop rule for machine-extracted contract terms.
   '202608110012_wave6_batch_i_agreement_intelligence',
+  // Batch J. A workspace slug had no unique index on the table that has a reader — the only one was on the
+  // deprecated `workspaces` this batch retires. Required rather than optional: without it two concurrent
+  // registrations claiming the same slug both succeed, and the engine's read-then-write check cannot see
+  // the other transaction. Safe on an existing database because until this batch every workspace carried a
+  // tenant of its own, so no `(tenant_id, slug)` pair can already be duplicated.
+  '202608110013_workspace_slug_is_tenant_scoped',
 ]);
 
 export type SchemaCompatibility = {

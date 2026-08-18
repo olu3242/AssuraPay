@@ -9,7 +9,45 @@ export type Invitation = { id: string; workspaceId: string; email: string; invit
 const tokenHash = (value: string) => createHash('sha256').update(value).digest('hex');
 export class OrganizationService {
   constructor(private readonly store: TrustPersistence) {}
-  async createWorkspace(input: { workspaceType: Workspace['workspaceType']; name: string; slug: string; ownerUserId: string; defaultCurrency: string; timezone: string; countryCode: string; correlationId: string }) { if ((await this.store.list<Workspace>('trustWorkspaces')).some((entry) => entry.slug === input.slug)) throw new Error('WORKSPACE_SLUG_EXISTS'); const now = new Date().toISOString(); const workspace: Workspace = { id: randomUUID(), ...input, tenantId: randomUUID(), status: 'ACTIVE', createdAt: now, updatedAt: now, version: 1 }; await this.store.append('trustWorkspaces', workspace); const membership: Membership = { id: randomUUID(), workspaceId: workspace.id, userId: input.ownerUserId, membershipType: 'OWNER', status: 'ACTIVE', invitedBy: input.ownerUserId, invitedAt: now, acceptedAt: now, createdAt: now, updatedAt: now, version: 1 }; await this.store.append('memberships', membership); await this.store.audit({ tenantId: workspace.tenantId, workspaceId: workspace.id, actorId: input.ownerUserId, eventType: 'WorkspaceCreated', aggregateType: 'Workspace', aggregateId: workspace.id, correlationId: input.correlationId, metadata: { workspaceType: input.workspaceType } }); await this.store.emit({ tenantId: workspace.tenantId, workspaceId: workspace.id, aggregateType: 'Workspace', aggregateId: workspace.id, eventType: input.workspaceType === 'PERSONAL' ? 'PersonalWorkspaceCreated' : 'OrganizationWorkspaceCreated', eventVersion: 1, payload: { ownerUserId: input.ownerUserId }, correlationId: input.correlationId }); return workspace; }
+  /**
+   * Founds a workspace in a tenant the caller names.
+   *
+   * `tenantId` is an input rather than a fresh `randomUUID()`, and that is the fix for the defect that
+   * made a durable deployment unbootstrappable. Minting a tenant here produced a workspace whose tenant
+   * was not the caller's scope, so the store's on-demand `trust_tenants` insert was refused by
+   * `trust_tenants_self` and the workspace would have been refused by `trust_workspaces_tenant_scope`.
+   * Reproduced in `wave6-workspace-bootstrap.postgres.test.ts` as `42501: new row violates row-level
+   * security policy for table "trust_tenants"` — see `docs/persistence/DOMAIN_STORE_RETIREMENT.md`.
+   *
+   * It was wrong independently of the boundary too. A tenant minted per workspace makes the two 1:1,
+   * while every table Batches A-I converged carries a composite `(tenant_id, workspace_id)` key and a
+   * `(tenant_id, workspace_id, id)` unique key — which are only meaningful when a tenant holds more than
+   * one workspace. The identity model and the persistence model disagreed, and 108 tables were on the
+   * other side.
+   *
+   * Which tenant is the composition root's decision, not this engine's: the caller's own when they have
+   * one, a newly minted one when they are founding their first. It is the only layer that knows, because
+   * it is the only layer that has entered the trust scope this insert is checked against, and the only
+   * one that can refuse a caller-supplied tenant.
+   *
+   * The slug is unique **per tenant**. Under row-level security this read cannot see another tenant's
+   * workspaces, so a global check is not something the application is able to perform — and a globally
+   * unique slug would both leak that another tenant holds a name and let the first tenant to claim one
+   * hold it against every other tenant on the deployment, which is the denial of service `202608110010`
+   * removed six of. `202608110013` is the index that makes the rule real; this check exists so the caller
+   * gets `WORKSPACE_SLUG_EXISTS` rather than a constraint name.
+   */
+  async createWorkspace(input: { tenantId: string; workspaceType: Workspace['workspaceType']; name: string; slug: string; ownerUserId: string; defaultCurrency: string; timezone: string; countryCode: string; correlationId: string }) {
+    // The tenant is named in the predicate rather than left to the store. `PostgresTrustStore` returns only
+    // the caller's tenant under row-level security while `InMemoryTrustStore` returns everything, so a bare
+    // `entry.slug === input.slug` made the engine enforce a per-tenant rule against one store and a global
+    // rule against the other. An engine whose invariant depends on which store it was handed has no
+    // invariant, and the version the tests exercised was not the version production would run.
+    if ((await this.store.list<Workspace>('trustWorkspaces')).some((entry) => entry.tenantId === input.tenantId && entry.slug === input.slug)) throw new Error('WORKSPACE_SLUG_EXISTS'); const now = new Date().toISOString();
+    // `correlationId` is destructured out rather than spread in. It identifies the request, not the
+    // workspace, and `...input` had been persisting it onto the aggregate.
+    const { correlationId: _correlationId, ...persisted } = input;
+    const workspace: Workspace = { id: randomUUID(), ...persisted, status: 'ACTIVE', createdAt: now, updatedAt: now, version: 1 }; await this.store.append('trustWorkspaces', workspace); const membership: Membership = { id: randomUUID(), workspaceId: workspace.id, userId: input.ownerUserId, membershipType: 'OWNER', status: 'ACTIVE', invitedBy: input.ownerUserId, invitedAt: now, acceptedAt: now, createdAt: now, updatedAt: now, version: 1 }; await this.store.append('memberships', membership); await this.store.audit({ tenantId: workspace.tenantId, workspaceId: workspace.id, actorId: input.ownerUserId, eventType: 'WorkspaceCreated', aggregateType: 'Workspace', aggregateId: workspace.id, correlationId: input.correlationId, metadata: { workspaceType: input.workspaceType } }); await this.store.emit({ tenantId: workspace.tenantId, workspaceId: workspace.id, aggregateType: 'Workspace', aggregateId: workspace.id, eventType: input.workspaceType === 'PERSONAL' ? 'PersonalWorkspaceCreated' : 'OrganizationWorkspaceCreated', eventVersion: 1, payload: { ownerUserId: input.ownerUserId }, correlationId: input.correlationId }); return workspace; }
   async createOrganization(context: RequestContext, input: Omit<Organization, 'id' | 'workspaceId' | 'taxIdentifierToken' | 'verificationStatus' | 'status' | 'createdAt' | 'updatedAt' | 'version'> & { taxIdentifier?: string }) { requireActiveWorkspace(context); const workspace = await this.requireWorkspace(context.activeWorkspaceId); if (workspace.workspaceType !== 'ORGANIZATION') throw new Error('ORGANIZATION_WORKSPACE_REQUIRED'); await this.requireMembership(context.actorUserId, workspace.id); const now = new Date().toISOString(); const organization: Organization = { id: randomUUID(), ...input, workspaceId: workspace.id, taxIdentifierToken: input.taxIdentifier ? tokenHash(input.taxIdentifier) : undefined, verificationStatus: 'NOT_STARTED', status: 'ACTIVE', createdAt: now, updatedAt: now, version: 1 }; await this.store.append('trustOrganizations', organization); await this.store.audit({ tenantId: workspace.tenantId, workspaceId: workspace.id, actorId: context.actorUserId, eventType: 'OrganizationCreated', aggregateType: 'Organization', aggregateId: organization.id, correlationId: context.correlationId, metadata: {} }); return organization; }
   async invite(context: RequestContext, input: { email: string; roleReference: string; rawToken: string; expiresAt: string }) { requireActiveWorkspace(context); await this.requireMembership(context.actorUserId, context.activeWorkspaceId); const invitation: Invitation = { id: randomUUID(), workspaceId: context.activeWorkspaceId, email: input.email.toLowerCase(), invitedRoleReference: input.roleReference, invitationTokenHash: tokenHash(input.rawToken), status: 'PENDING', invitedBy: context.actorUserId, expiresAt: input.expiresAt, createdAt: new Date().toISOString() }; await this.store.append('invitations', invitation); return invitation; }
   async acceptInvitation(rawToken: string, userId: string) { const invitation = (await this.store.list<Invitation>('invitations')).find((entry) => entry.invitationTokenHash === tokenHash(rawToken)); if (!invitation || invitation.status !== 'PENDING' || Date.parse(invitation.expiresAt) <= Date.now()) throw new Error('INVITATION_INVALID'); const now = new Date().toISOString(); await this.store.replace('invitations', { ...invitation, status: 'ACCEPTED', acceptedBy: userId, acceptedAt: now }); const membership: Membership = { id: randomUUID(), workspaceId: invitation.workspaceId, userId, membershipType: 'MEMBER', status: 'ACTIVE', invitedBy: invitation.invitedBy, invitedAt: invitation.createdAt, acceptedAt: now, createdAt: now, updatedAt: now, version: 1 }; await this.store.append('memberships', membership); return membership; }

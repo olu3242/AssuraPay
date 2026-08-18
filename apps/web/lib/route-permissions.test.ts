@@ -139,12 +139,15 @@ describe('route permission policy — resolution', () => {
   });
 
   it('binds a dynamic segment to exactly one path segment', () => {
-    expect(requirementForRoute('/api/v1/contracts/abc-123/approve', 'POST')).toMatchObject({
-      permissionKey: 'contracts:approve',
+    // Was `/api/v1/contracts/[id]/approve` until Batch J retired that route — it approved a contract with no
+    // policy and no decision record, and the durable path is `/api/v1/approval-requests`. Any single-segment
+    // template proves the same rule; this one is a real entry, so the fixture cannot outlive the route again.
+    expect(requirementForRoute('/api/v1/completion-certificates/abc-123/verify', 'GET')).toMatchObject({
+      permissionKey: 'completion-certificates:verify',
     });
     // Two segments where the template has one must not match.
     expect(() =>
-      requirementForRoute('/api/v1/contracts/abc/123/approve', 'POST'),
+      requirementForRoute('/api/v1/completion-certificates/abc/123/verify', 'GET'),
     ).toThrow('ROUTE_NOT_MAPPED');
   });
 
