@@ -2,82 +2,15 @@
   "capabilities": [
     {
       "git": {
-        "historicalCommits": [
-          "fcea6c9 feat(persistence): make the domain repository interface asynchronous",
-          "314c90b feat: establish AssuraPay execution and intelligence foundation"
-        ],
+        "historicalCommits": [],
         "reachableFromHead": true,
-        "refsContaining": [
-          "assess/engines-31-50-certification-gap-matrix",
-          "chore/post-merge-governance-artifacts-batch-a",
-          "claude/git-pull-cqc04u",
-          "feat/a1-batch-a-relational-repositories",
-          "feat/a1-domain-store-durability",
-          "feat/b1-batch-b-settlement-authority",
-          "feat/c1-batch-c-settlement-ledger",
-          "feat/d1-batch-d-dispute-linkage",
-          "feat/e1-post-wave5-followups",
-          "feat/f1-batch-e-performance-blueprint",
-          "feat/g1-batch-f-agreement-creation",
-          "feat/h1-batch-h-governance-core",
-          "feat/i1-batch-i-agreement-intelligence",
-          "feat/j1-retire-file-domain-store",
-          "feat/persistence-async-domain-repository",
-          "feat/persistence-async-repository-interface",
-          "feat/persistence-domain-store-durable-environment-gate",
-          "feat/persistence-postgres-trust-store",
-          "feat/persistence-production-runtime-wiring",
-          "feat/persistence-rls-certification",
-          "feat/persistence-schema-ownership-reconciliation",
-          "fix/wave5-codex-followups",
-          "main",
-          "origin/assess/engines-31-50-certification-gap-matrix",
-          "origin/chore/post-merge-governance-artifacts-batch-a",
-          "origin/claude/git-pull-cqc04u",
-          "origin/claude/implementation-02q40a",
-          "origin/feat/a1-batch-a-relational-repositories",
-          "origin/feat/a1-domain-store-durability",
-          "origin/feat/b1-batch-b-settlement-authority",
-          "origin/feat/c1-batch-c-settlement-ledger",
-          "origin/feat/d1-batch-d-dispute-linkage",
-          "origin/feat/e1-post-wave5-followups",
-          "origin/feat/engines-01-05-trust-foundation",
-          "origin/feat/engines-06-10-governance-core",
-          "origin/feat/engines-61-70-agent-runtime",
-          "origin/feat/f1-batch-e-performance-blueprint",
-          "origin/feat/g1-batch-f-agreement-creation",
-          "origin/feat/h1-batch-h-governance-core",
-          "origin/feat/i1-batch-i-agreement-intelligence",
-          "origin/feat/persistence-async-domain-repository",
-          "origin/feat/persistence-async-repository-interface",
-          "origin/feat/persistence-domain-store-durable-environment-gate",
-          "origin/feat/persistence-postgres-trust-store",
-          "origin/feat/persistence-production-runtime-wiring",
-          "origin/feat/persistence-rls-certification",
-          "origin/feat/persistence-schema-ownership-reconciliation",
-          "origin/fix/wave5-codex-followups",
-          "origin/main",
-          "origin/wip/persistence-async-migration",
-          "origin/wip/persistence-async-repository-interface",
-          "platform-trust-foundation",
-          "rc-engine-60",
-          "wip/persistence-async-migration",
-          "wip/persistence-async-repository-interface"
-        ],
-        "removedFromHead": true
+        "refsContaining": [],
+        "removedFromHead": false
       },
       "id": "persistence.async-domain-repository-interface",
       "kind": "platform",
-      "onDefaultBranch": false,
+      "onDefaultBranch": true,
       "probes": [
-        {
-          "kind": "path",
-          "matches": [
-            "packages/database/src/index.ts"
-          ],
-          "query": "packages/database/src/index.ts",
-          "satisfied": true
-        },
         {
           "kind": "path",
           "matches": [
@@ -87,12 +20,11 @@
           "satisfied": true
         },
         {
-          "kind": "symbol",
+          "kind": "path",
           "matches": [
-            "packages/database/src/index.ts",
-            "packages/reos/src/validators/persistence.ts"
+            "packages/shared/src/trust.ts"
           ],
-          "query": "AssuraRepository",
+          "query": "packages/shared/src/trust.ts",
           "satisfied": true
         },
         {
@@ -105,15 +37,68 @@
         },
         {
           "kind": "symbol",
-          "matches": [],
-          "query": "detachSnapshot",
-          "satisfied": false
-        },
-        {
-          "kind": "test",
-          "matches": [],
-          "query": "packages/database/src/domain-repository.test.ts",
-          "satisfied": false
+          "matches": [
+            "apps/web/lib/assurance-read-model.ts",
+            "apps/web/lib/persistence.ts",
+            "packages/agent-runtime/src/index.ts",
+            "packages/agent-runtime/src/registration.ts",
+            "packages/agreement-creation/src/index.ts",
+            "packages/agreement-intelligence/src/index.ts",
+            "packages/audit-ledger/src/index.ts",
+            "packages/completion-assurance/src/index.ts",
+            "packages/database-testing/src/durability-coverage.test.ts",
+            "packages/database-testing/src/postgres-store.postgres.test.ts",
+            "packages/database-testing/src/wave4-batch-a-repository.postgres.test.ts",
+            "packages/database-testing/src/wave5-batch-b-repository.postgres.test.ts",
+            "packages/database-testing/src/wave5-batch-c-repository.postgres.test.ts",
+            "packages/database-testing/src/wave5-batch-d-repository.postgres.test.ts",
+            "packages/database-testing/src/wave6-batch-e-repository.postgres.test.ts",
+            "packages/database-testing/src/wave6-batch-f-repository.postgres.test.ts",
+            "packages/database-testing/src/wave6-batch-g-repository.postgres.test.ts",
+            "packages/database-testing/src/wave6-batch-h-repository.postgres.test.ts",
+            "packages/database-testing/src/wave6-batch-i-repository.postgres.test.ts",
+            "packages/database-testing/src/wave6-batch-k-repository.postgres.test.ts",
+            "packages/database/src/async-conformance.test.ts",
+            "packages/database/src/batch-a-repository.ts",
+            "packages/database/src/batch-b-repository.ts",
+            "packages/database/src/batch-c-repository.ts",
+            "packages/database/src/conformance.ts",
+            "packages/database/src/migrations.ts",
+            "packages/database/src/postgres-store.ts",
+            "packages/database/src/schema-ownership.ts",
+            "packages/database/src/trust-scope.ts",
+            "packages/database/src/trust-store.test.ts",
+            "packages/database/src/trust-store.ts",
+            "packages/enterprise-analytics/src/index.ts",
+            "packages/enterprise-intelligence/src/index.ts",
+            "packages/execution-orchestration/src/index.ts",
+            "packages/governance-core/src/index.ts",
+            "packages/identity/src/assertions.ts",
+            "packages/identity/src/gateway.ts",
+            "packages/identity/src/index.ts",
+            "packages/identity/src/issuance.ts",
+            "packages/legal/src/index.ts",
+            "packages/organizations/src/index.ts",
+            "packages/parties/src/index.ts",
+            "packages/performance-blueprint/src/index.ts",
+            "packages/performance-readiness/src/index.ts",
+            "packages/permissions/src/catalogue.ts",
+            "packages/permissions/src/enforcement.ts",
+            "packages/permissions/src/index.ts",
+            "packages/reos/src/reos.persistence.test.ts",
+            "packages/reos/src/validators/architecture.ts",
+            "packages/reos/src/validators/persistence.ts",
+            "packages/runtime/src/persistence-runtime.ts",
+            "packages/settlement-assurance/src/index.ts",
+            "packages/settlement-execution/src/index.ts",
+            "packages/settlement-execution/src/settlement-execution.non-custody.test.ts",
+            "packages/shared/src/trust.test.ts",
+            "packages/shared/src/trust.ts",
+            "packages/workflow-intelligence/src/index.ts",
+            "supabase/migrations/202608060001_trust_repository_store.sql"
+          ],
+          "query": "TrustPersistence",
+          "satisfied": true
         },
         {
           "kind": "test",
@@ -124,11 +109,11 @@
           "satisfied": true
         }
       ],
-      "rationale": "5 of 7 evidence probes satisfied at HEAD.",
+      "rationale": "All 5 evidence probes satisfied at HEAD.",
       "satisfiedProbes": 5,
-      "status": "partial",
-      "title": "Asynchronous domain repository interface",
-      "totalProbes": 7
+      "status": "implemented",
+      "title": "Asynchronous domain repository interface (satisfied by removal)",
+      "totalProbes": 5
     },
     {
       "git": {
@@ -238,94 +223,46 @@
     },
     {
       "git": {
-        "historicalCommits": [
-          "a757f94 feat(persistence): stop the file domain store serving durable deployments"
-        ],
+        "historicalCommits": [],
         "reachableFromHead": true,
-        "refsContaining": [
-          "assess/engines-31-50-certification-gap-matrix",
-          "chore/post-merge-governance-artifacts-batch-a",
-          "feat/a1-batch-a-relational-repositories",
-          "feat/a1-domain-store-durability",
-          "feat/b1-batch-b-settlement-authority",
-          "feat/c1-batch-c-settlement-ledger",
-          "feat/d1-batch-d-dispute-linkage",
-          "feat/e1-post-wave5-followups",
-          "feat/f1-batch-e-performance-blueprint",
-          "feat/g1-batch-f-agreement-creation",
-          "feat/h1-batch-h-governance-core",
-          "feat/i1-batch-i-agreement-intelligence",
-          "feat/j1-retire-file-domain-store",
-          "feat/persistence-domain-store-durable-environment-gate",
-          "fix/wave5-codex-followups",
-          "main",
-          "origin/assess/engines-31-50-certification-gap-matrix",
-          "origin/chore/post-merge-governance-artifacts-batch-a",
-          "origin/claude/git-pull-cqc04u",
-          "origin/feat/a1-batch-a-relational-repositories",
-          "origin/feat/a1-domain-store-durability",
-          "origin/feat/b1-batch-b-settlement-authority",
-          "origin/feat/c1-batch-c-settlement-ledger",
-          "origin/feat/d1-batch-d-dispute-linkage",
-          "origin/feat/e1-post-wave5-followups",
-          "origin/feat/f1-batch-e-performance-blueprint",
-          "origin/feat/g1-batch-f-agreement-creation",
-          "origin/feat/h1-batch-h-governance-core",
-          "origin/feat/i1-batch-i-agreement-intelligence",
-          "origin/feat/persistence-domain-store-durable-environment-gate",
-          "origin/fix/wave5-codex-followups",
-          "origin/main"
-        ],
-        "removedFromHead": true
+        "refsContaining": [],
+        "removedFromHead": false
       },
       "id": "persistence.domain-store-environment-gate",
       "kind": "platform",
-      "onDefaultBranch": false,
+      "onDefaultBranch": true,
       "probes": [
         {
           "kind": "path",
-          "matches": [],
-          "query": "packages/database/src/domain-store-environment.ts",
-          "satisfied": false
-        },
-        {
-          "kind": "path",
-          "matches": [],
-          "query": "apps/web/lib/assurapay-app.ts",
-          "satisfied": false
-        },
-        {
-          "kind": "symbol",
-          "matches": [],
-          "query": "assertDomainStoreAllowed",
-          "satisfied": false
-        },
-        {
-          "kind": "symbol",
           "matches": [
-            "packages/reos/src/reos.persistence.test.ts",
             "packages/reos/src/validators/persistence.ts"
           ],
-          "query": "mayFabricateDemoData",
+          "query": "packages/reos/src/validators/persistence.ts",
           "satisfied": true
         },
         {
           "kind": "symbol",
-          "matches": [],
-          "query": "resolveDomainStoreFile",
-          "satisfied": false
+          "matches": [
+            "packages/reos/src/validators/persistence.ts"
+          ],
+          "query": "DEMO_SEED_VOCABULARY",
+          "satisfied": true
         },
         {
           "kind": "symbol",
-          "matches": [],
-          "query": "DomainStoreNotDurableError",
-          "satisfied": false
+          "matches": [
+            "packages/reos/src/validators/persistence.ts"
+          ],
+          "query": "FILE_BACKED_STORE_VOCABULARY",
+          "satisfied": true
         },
         {
-          "kind": "test",
-          "matches": [],
-          "query": "packages/database/src/domain-store-environment.test.ts",
-          "satisfied": false
+          "kind": "symbol",
+          "matches": [
+            "packages/reos/src/validators/persistence.ts"
+          ],
+          "query": "DATA_PATH_VOCABULARY",
+          "satisfied": true
         },
         {
           "kind": "test",
@@ -336,11 +273,11 @@
           "satisfied": true
         }
       ],
-      "rationale": "2 of 8 evidence probes satisfied at HEAD.",
-      "satisfiedProbes": 2,
-      "status": "partial",
-      "title": "Domain store durable-environment gate",
-      "totalProbes": 8
+      "rationale": "All 5 evidence probes satisfied at HEAD.",
+      "satisfiedProbes": 5,
+      "status": "implemented",
+      "title": "Domain store durable-environment gate (satisfied by removal)",
+      "totalProbes": 5
     },
     {
       "git": {
@@ -402,6 +339,7 @@
             "packages/database-testing/src/wave6-batch-g-repository.postgres.test.ts",
             "packages/database-testing/src/wave6-batch-h-repository.postgres.test.ts",
             "packages/database-testing/src/wave6-batch-i-repository.postgres.test.ts",
+            "packages/database-testing/src/wave6-batch-k-repository.postgres.test.ts",
             "packages/database-testing/src/wave6-workspace-bootstrap.postgres.test.ts",
             "packages/database/src/batch-a-repository.ts",
             "packages/database/src/batch-b-repository.ts",
@@ -412,6 +350,7 @@
             "packages/database/src/batch-g-repository.ts",
             "packages/database/src/batch-h-repository.ts",
             "packages/database/src/batch-i-repository.ts",
+            "packages/database/src/batch-k-repository.ts",
             "packages/database/src/conformance.ts",
             "packages/database/src/index.ts",
             "packages/database/src/migrations.ts",
@@ -449,6 +388,7 @@
             "packages/database-testing/src/wave6-batch-g-repository.postgres.test.ts",
             "packages/database-testing/src/wave6-batch-h-repository.postgres.test.ts",
             "packages/database-testing/src/wave6-batch-i-repository.postgres.test.ts",
+            "packages/database-testing/src/wave6-batch-k-repository.postgres.test.ts",
             "packages/database-testing/src/wave6-workspace-bootstrap.postgres.test.ts",
             "packages/database/src/migrations.ts",
             "packages/database/src/schema-ownership.ts",
@@ -740,6 +680,7 @@
             "packages/database-testing/src/wave6-batch-g-repository.postgres.test.ts",
             "packages/database-testing/src/wave6-batch-h-repository.postgres.test.ts",
             "packages/database-testing/src/wave6-batch-i-repository.postgres.test.ts",
+            "packages/database-testing/src/wave6-batch-k-repository.postgres.test.ts",
             "packages/database-testing/src/wave6-workspace-bootstrap.postgres.test.ts",
             "packages/database/src/trust-scope.ts",
             "packages/runtime/src/persistence-runtime.postgres.test.ts",
@@ -1721,15 +1662,15 @@
       "totalProbes": 5
     }
   ],
-  "head": "ae0fa3da4470bd11efee822b8db3eda40dceda9a",
+  "head": "ba4c0e4f6936369997b8a800e5b69828ca4ceb13",
   "reosVersion": "1.0.0",
   "stage": "forensics",
   "summary": {
     "deferred": 0,
-    "implemented": 17,
+    "implemented": 19,
     "lost": 0,
     "missing": 1,
-    "partial": 2,
+    "partial": 0,
     "unreachable": 0
   }
 }

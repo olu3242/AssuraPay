@@ -531,7 +531,7 @@
     },
     {
       "id": "persistence.async-domain-repository-interface",
-      "title": "Asynchronous domain repository interface",
+      "title": "Asynchronous domain repository interface (satisfied by removal)",
       "kind": "platform",
       "priority": 43,
       "dependsOn": [
@@ -539,25 +539,23 @@
       ],
       "evidence": {
         "paths": [
-          "packages/database/src/index.ts",
-          "packages/reos/src/validators/persistence.ts"
+          "packages/reos/src/validators/persistence.ts",
+          "packages/shared/src/trust.ts"
         ],
         "symbols": [
-          "AssuraRepository",
           "ASYNCHRONOUS_PERSISTENCE_CONTRACTS",
-          "detachSnapshot"
+          "TrustPersistence"
         ],
         "tests": [
-          "packages/database/src/domain-repository.test.ts",
           "packages/reos/src/reos.persistence.test.ts"
         ]
       },
       "certify": "certify:persistence",
-      "notes": "The real blocker on the Engine 06-60 Postgres adapter, and the exact defect persistence.async-repository-interface fixed for the trust domain one year of capabilities earlier. AssuraRepository declared getSnapshot(): Snapshot and setSnapshot(...): void - synchronous, across 115 production and test call sites, none awaited. No network-backed store can implement either, because JavaScript cannot block on I/O: the only way to satisfy the old signature was to hold the whole database in memory and return the cache, which is arrays behind a PostgreSQL adapter rather than durability and is explicitly forbidden. So persistence.domain-store-durability was unimplementable rather than merely unstarted, and this is its prerequisite. The interface itself was made asynchronous rather than adding a parallel async variant, for the same reasons recorded against the trust capability: two interfaces let call sites keep the synchronous one, and a MaybePromise union lets a caller forget to await and still compile. A second defect surfaced while fixing the first - getSnapshot returned this.snapshot, so every caller held a live handle to the store's interior and could mutate persisted state with no write method, no validation and nothing in the audit trail to attribute it to. normalizeSnapshot was not sufficient as a defence because it builds a new outer object while reusing the same arrays; the store now detaches on both read and write. Enforcement was generalised: the sync-interface-method rule checked TrustPersistence only, which is how the second contract stayed synchronous while the first was certified. Not claimed: no PostgreSQL domain store, no domain schema, no JSON migration, no domain RLS, no cutover. getSnapshot remains snapshot-shaped, so a relational implementation would read every collection per call - implementable and durable, but an efficiency problem persistence.domain-store-durability must address by moving to per-collection reads."
+      "notes": "SATISFIED BY REMOVAL, Batch J. This capability existed because AssuraRepository declared getSnapshot(): Snapshot and setSnapshot(...): void - synchronous, across 115 call sites, none awaited. No network-backed store can implement either, because JavaScript cannot block on I/O, so the only way to satisfy the old signature was to hold the whole database in memory and return the cache. It was made asynchronous, and then persistence.domain-store-durability removed the contract entirely along with FileAssuraStore: every Engine 06-60 collection is routed through TrustPersistence to PostgresTrustStore, and there is no second persistence API left to keep asynchronous. The evidence is repointed rather than left naming deleted symbols. What now holds the property is the sync-interface-method rule in the persistence validator, which still checks the one contract that exists - so a future synchronous method on TrustPersistence fails certification for the same reason this capability was opened. Its own note records why the entry was not simply deleted: a capability satisfied by deletion still needs something that fails if the deletion is undone, and a registry that forgets why a rule exists is how the rule gets removed as unused. Not claimed: this is not an efficiency statement. The old note flagged that a snapshot-shaped read would fetch every collection per call; that concern died with the snapshot, and the batch repositories read per collection."
     },
     {
       "id": "persistence.domain-store-environment-gate",
-      "title": "Domain store durable-environment gate",
+      "title": "Domain store durable-environment gate (satisfied by removal)",
       "kind": "platform",
       "priority": 44,
       "dependsOn": [
@@ -565,22 +563,19 @@
       ],
       "evidence": {
         "paths": [
-          "packages/database/src/domain-store-environment.ts",
-          "apps/web/lib/assurapay-app.ts"
+          "packages/reos/src/validators/persistence.ts"
         ],
         "symbols": [
-          "assertDomainStoreAllowed",
-          "mayFabricateDemoData",
-          "resolveDomainStoreFile",
-          "DomainStoreNotDurableError"
+          "DEMO_SEED_VOCABULARY",
+          "FILE_BACKED_STORE_VOCABULARY",
+          "DATA_PATH_VOCABULARY"
         ],
         "tests": [
-          "packages/database/src/domain-store-environment.test.ts",
           "packages/reos/src/reos.persistence.test.ts"
         ]
       },
       "certify": "certify:persistence",
-      "notes": "Two live defects in the file-backed domain store, found by inspecting the composition root rather than by reading the plan, and both forbidden by the persistence invariants while persistence.domain-store-durability remains unimplemented. First, the data file's path was path.resolve(process.cwd(), 'apps/web/data/assurapay.json'), so a process started from the repository root and one started from apps/web read and wrote different files - not hypothetical, the nested copy existed on disk holding thirteen records the canonical file did not have. A store whose identity depends on how the process was launched silently forks its own state and neither copy is discoverably real. The path is now derived from the module's own location, or taken from an explicit variable, and never from the working directory. Second, the composition root fabricated a tenant-demo workspace and a full contract-to-payment scenario whenever contracts was empty, with no environment condition at all, so an empty production dataset acquired invented tenants, milestones and payment-eligibility records indistinguishable from real ones. Seeding is now gated on the deployment class, and a durable deployment refuses to construct the store at all - the same answer the trust runtime already gives to volatile storage, because refusing is safer than serving fabricated data. The refusal precedes any filesystem access, so a deployment cannot acquire a JSON file as a side effect of learning it may not have one, and it is re-checked on every write because a directly constructed store would otherwise walk around a factory-only gate. NODE_ENV is deliberately not consulted: it is production for any optimized build, so gating on it would refuse development and permit a real deployment that never set it. Not claimed: this is not persistence.domain-store-durability. There is no PostgreSQL domain store, no domain schema, no JSON migration, no domain RLS and no cutover; Engines 06-60 remain file-backed in non-durable environments and unavailable in durable ones."
+      "notes": "SATISFIED BY REMOVAL, Batch J. This capability gated a file-backed domain store out of durable deployments and stopped the composition root fabricating demo tenants into an empty dataset. Both defects were real: the data file's path came from process.cwd(), so a process started from the repository root and one started from apps/web read different files - the nested copy existed, holding thirteen records the canonical file did not - and seeding ran with no environment condition at all. The gate was correct while there was something to gate. Batch J removed FileAssuraStore, AssuraRepository, Snapshot, AssuraPayService, createSeedScenario and domain-store-environment itself, so assertDomainStoreAllowed, mayFabricateDemoData, resolveDomainStoreFile and DomainStoreNotDurableError no longer exist. Keeping ASSURAPAY_DEPLOYMENT as a persistence switch would have left a variable that reads as though it still decides whether persistence is durable, when the only store that exists is. The evidence is repointed at the three rules that make the removal a ratchet rather than a moment: cwd-relative-data-path, ungated-demo-seeding - which now has no way to be satisfied, since the helper that could guard a seed is gone, so any seeding call at all is a finding - and file-backed-store, added by this change, which fails any write to disk from a persistence package. Batch J is the reason a durable deployment can be started at all; these are what stop it being undone."
     },
     {
       "id": "persistence.domain-store-durability",

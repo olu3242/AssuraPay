@@ -11,6 +11,7 @@ import {
   BATCH_G_TABLES,
   BATCH_H_TABLES,
   BATCH_I_TABLES,
+  BATCH_K_TABLES,
 } from '@assurapay/domain-contracts';
 import type { SqlClient } from './postgres-client';
 
@@ -372,6 +373,13 @@ export const REQUIRED_TRUST_MIGRATIONS: readonly string[] = Object.freeze([
   // the other transaction. Safe on an existing database because until this batch every workspace carried a
   // tenant of its own, so no `(tenant_id, slug)` pair can already be duplicated.
   '202608110013_workspace_slug_is_tenant_scoped',
+  // Batch K. The store routes six Engine 51-55 collections to tables `202608030008` created and this
+  // migration converges and governs. Required rather than optional, and consequential for two engines: a
+  // blanket append-only trigger refused `EnterpriseKpiEngine.retire` and
+  // `PredictiveExecutionIntelligenceEngine.review`, so a KPI definition could never leave ACTIVE and a
+  // forecast could never be reviewed — the human-in-the-loop step that package's AI-governance contract is
+  // built on was unperformable on the durable store.
+  '202608110014_wave6_batch_k_enterprise_intelligence',
 ]);
 
 export type SchemaCompatibility = {
@@ -436,6 +444,7 @@ export const REQUIRED_DOMAIN_AGGREGATE_TABLES = Object.freeze(
     ...BATCH_G_TABLES,
     ...BATCH_H_TABLES,
     ...BATCH_I_TABLES,
+    ...BATCH_K_TABLES,
   ].sort(),
 );
 

@@ -41,7 +41,7 @@ The table below is the measurement taken when this register was written, kept as
 rather than edited on each batch. **The live figure is asserted by
 `packages/database-testing/src/durability-coverage.test.ts`, which is the authority** — a prose number
 here would go stale between one batch and the next, and a stale number in a document called a register is
-worse than none. As of Batch I: **132** collections written, **108** mapped, **24** unmapped. The written
+worse than none. As of Batch K: **132** collections written, **114** mapped, **18** unmapped. The written
 total is above 129 because the gate itself had two blind spots, both since corrected — it read only
 `src/index.ts`, and its collection-name pattern dropped every name containing a digit.
 
@@ -252,11 +252,40 @@ of the register above. The order is not arbitrary:
   parent of 93 Engine 06-60 tables; it is **16**, because Batches A-I converged 77 of them. Fifteen of the
   sixteen are the deferred batches' own tables, so the three compatibility tables are blocked on activating
   those — not on the file store. See `docs/persistence/DOMAIN_STORE_RETIREMENT.md`.
-- **Last: `enterprise-intelligence` (6), `enterprise-analytics` (9), `agent-runtime` (9).** Deferred by
-  the accepted decision until the persistence boundary is resolved, and the register keeps them in that
-  position rather than reordering by convenience. Batch J resolved that boundary, so they are now executable
-  — and they are on the critical path rather than at the end of it, because retiring `workspaces`,
-  `workspace_memberships` and `user_identities` waits on the first two of them.
+- **Batch K: `enterprise-intelligence` (6) — DONE (`202608110014`).** The first of the deferred group, and
+  the cleanest closure in the register: nothing outside the batch references it, nothing inside references
+  anything outside except the deprecated workspace table, and the single intra-set key is
+  `kpi_values.kpi_definition_id`.
+
+  Its discovery repeated Batch G's, twice, and the second instance is worse. `202608030008` put blanket
+  append-only triggers on all six tables, and two of the six are aggregates their engines transition:
+  `EnterpriseKpiEngine.retire` and `PredictiveExecutionIntelligenceEngine.review`. So a KPI definition could
+  never leave ACTIVE, and **a forecast could never be reviewed** — while that package's own header states its
+  AI-governance contract as "a forecast can never auto-decide anything; it starts NOT_REVIEWED and a human
+  must explicitly accept or reject it". On PostgreSQL the human-in-the-loop step the aggregate exists for was
+  unperformable, and every forecast stayed NOT_REVIEWED forever. It is the mirror image of the defect Batch I
+  fixed for Engine 20: there the database permitted publishing without review, here it forbade recording one.
+
+  All six also carried `ENABLE ROW LEVEL SECURITY` without `FORCE`, predicated their policies on the
+  superseded `current_workspace_id()` and `has_active_workspace_membership()`, and had no unique key beyond
+  their primary key — so two concurrent `define` calls could produce two ACTIVE definitions of one KPI with
+  different targets, and nothing to say which a dashboard meant.
+
+  Three derived fields become constraints, all of the same class: a field the engine computes from others in
+  the same row, which the row can contradict while reading as authoritative. An execution index is
+  `overridden` with score 0 exactly when a mandatory gate failed and `failed_gates` matches its own gate list;
+  a settlement index is the same shape driven by the dispute hold, so an index cannot read healthy while
+  CLAUDE.md's second hard constraint is holding; and a dashboard snapshot holds only widgets its own role may
+  see, because `compose` filters them and a stored widget outside the allow-list is a figure the viewer was
+  never entitled to — the fixture's own widget is a payable amount.
+
+  Measured after the batch: `workspaces` is down from 16 dependants to **10**, and the policies calling
+  `has_active_workspace_membership()` from 16 to **10**. What remains is the nine `enterprise-analytics`
+  tables and `workspace_memberships` itself.
+- **Last: `enterprise-analytics` (9), `agent-runtime` (9).** Deferred by the accepted decision until the
+  persistence boundary is resolved. Batch J resolved it, so they are executable — and `enterprise-analytics` is
+  now the only thing standing between the repository and retiring `workspaces`, `workspace_memberships` and
+  `user_identities`. `agent-runtime`'s nine collections have no tables at all, so they hold nothing.
 
 Each batch should follow the shape Batches A–D settled into, because it produced four consecutive
 clean activations and found a real defect every time:

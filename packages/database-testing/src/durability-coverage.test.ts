@@ -13,8 +13,8 @@ import { POSTGRES_TRUST_COLLECTIONS } from '@assurapay/database';
  * deployment could pass every gate in this repository and then be unable to create a contract.
  *
  * Measured when this file was written: engines write **129** collections, the store maps **64**, and
- * **67** were unmapped. Batches E through I closed forty-four between them, so the current measurement
- * is **132** written, **108** mapped and **24** unmapped — and it is the assertions below, not this
+ * **67** were unmapped. Batches E through K closed fifty between them, so the current measurement
+ * is **132** written, **114** mapped and **18** unmapped — and it is the assertions below, not this
  * sentence, that keep that true.
  *
  * The written total rose rather than held because this gate had two blind spots, both since corrected. It
@@ -85,9 +85,13 @@ const KNOWN_UNMAPPED: readonly string[] = Object.freeze([
   // durable along with the other five. `analysis_reviews` had no table at all, so a reviewer's decision on
   // a machine-extracted finding could not be recorded anywhere, which made the human-in-the-loop rule for
   // published intelligence unprovable after the fact.
-  // enterprise-intelligence (6) — Engines 51-55, deferred by the accepted decision.
-  'dashboardSnapshots', 'executionAssuranceIndices', 'executionForecasts', 'kpiDefinitions',
-  'kpiValues', 'settlementAssuranceIndices',
+  // enterprise-intelligence — CLOSED by Batch K (`202608110014`). Its six aggregates are removed from this
+  // baseline rather than left in it. The first of the group the accepted decision deferred "until the
+  // persistence boundary is resolved" — Batch J resolved it, and these six turned out to be on the critical
+  // path rather than at the end of it, because six of the sixteen tables still holding the deprecated
+  // `workspaces` alive were theirs. Two of the six could not be transitioned at all before the migration: a
+  // KPI definition could never be retired, and a forecast could never be reviewed, which made the
+  // human-in-the-loop step that package's AI-governance contract is built on unperformable on PostgreSQL.
   // enterprise-analytics (9) — Engines 56-60, deferred by the accepted decision.
   'driftAlerts', 'evaluationRecords', 'financialForecasts', 'modelFeedback', 'modelRegistrations',
   'performanceScorecards', 'portfolioSnapshots', 'recommendations', 'renewalAssessments',

@@ -6,17 +6,17 @@
 
 | Field | Value |
 | --- | --- |
-| Branch | feat/j1-retire-file-domain-store |
-| HEAD | ae0fa3da4470bd11efee822b8db3eda40dceda9a |
+| Branch | feat/k1-batch-k-enterprise-intelligence |
+| HEAD | ba4c0e4f6936369997b8a800e5b69828ca4ceb13 |
 | Worktree clean | no |
-| Uncommitted files | 52 |
-| Generated at | 2026-08-18T13:25:31.746Z |
+| Uncommitted files | 24 |
+| Generated at | 2026-08-18T14:27:44.266Z |
 
 ## Capability implemented
 
-`persistence.domain-store-durability` — lifecycle **missing**
+`persistence.domain-store-durability` — lifecycle **planned**
 
-## Files modified (93)
+## Files modified (102)
 
 - `apps/web/app/api/v1/completion-certificates/[id]/verify/route.ts`
 - `apps/web/app/api/v1/contracts/[id]/approve/route.ts`
@@ -39,7 +39,9 @@
 - `docs/governance/execution-ledger/812ccd443fc4-persistence.domain-store-durability.json`
 - `docs/governance/execution-ledger/INDEX.md`
 - `docs/governance/execution-ledger/ae0fa3da4470-persistence.domain-store-durability.json`
+- `docs/governance/execution-ledger/ba4c0e4f6936-persistence.domain-store-durability.json`
 - `docs/governance/execution-ledger/c0c9ef653189-persistence.domain-store-durability.json`
+- `docs/governance/reos/capability-registry.json`
 - `docs/governance/reos/generated/CERTIFICATION_REPORT.md`
 - `docs/governance/reos/generated/DEPENDENCY_RESOLUTION.md`
 - `docs/governance/reos/generated/EXECUTION_MANIFEST.md`
@@ -67,11 +69,13 @@
 - `packages/database-testing/src/wave6-batch-g-repository.postgres.test.ts`
 - `packages/database-testing/src/wave6-batch-h-repository.postgres.test.ts`
 - `packages/database-testing/src/wave6-batch-i-repository.postgres.test.ts`
+- `packages/database-testing/src/wave6-batch-k-repository.postgres.test.ts`
 - `packages/database-testing/src/wave6-workspace-bootstrap.postgres.test.ts`
 - `packages/database/src/batch-f-repository.ts`
 - `packages/database/src/batch-g-repository.ts`
 - `packages/database/src/batch-h-repository.ts`
 - `packages/database/src/batch-i-repository.ts`
+- `packages/database/src/batch-k-repository.ts`
 - `packages/database/src/domain-repository.test.ts`
 - `packages/database/src/domain-store-environment.test.ts`
 - `packages/database/src/domain-store-environment.ts`
@@ -83,6 +87,7 @@
 - `packages/domain-contracts/src/batch-g.ts`
 - `packages/domain-contracts/src/batch-h.ts`
 - `packages/domain-contracts/src/batch-i.ts`
+- `packages/domain-contracts/src/batch-k.ts`
 - `packages/domain-contracts/src/index.ts`
 - `packages/domain/src/index.ts`
 - `packages/domain/src/seed-data.ts`
@@ -95,12 +100,15 @@
 - `packages/domain/src/services/kpi-formula-validator.ts`
 - `packages/domain/src/services/settlement-assurance.test.ts`
 - `packages/domain/src/trust-foundation.e2e.test.ts`
+- `packages/enterprise-intelligence/package.json`
+- `packages/enterprise-intelligence/src/persisted-contracts.test.ts`
 - `packages/governance-core/package.json`
 - `packages/governance-core/src/persisted-contracts.test.ts`
 - `packages/organizations/src/index.ts`
 - `packages/organizations/src/organizations.test.ts`
 - `packages/performance-readiness/package.json`
 - `packages/performance-readiness/src/persisted-contracts.test.ts`
+- `packages/reos/src/reos.persistence.test.ts`
 - `packages/reos/src/validators/persistence.ts`
 - `pnpm-lock.yaml`
 - `supabase/migrations/202608110003_wave5_close_batch_c_gaps.sql`
@@ -111,15 +119,16 @@
 - `supabase/migrations/202608110011_wave6_batch_h_governance_core.sql`
 - `supabase/migrations/202608110012_wave6_batch_i_agreement_intelligence.sql`
 - `supabase/migrations/202608110013_workspace_slug_is_tenant_scoped.sql`
+- `supabase/migrations/202608110014_wave6_batch_k_enterprise_intelligence.sql`
 
 ## Validation
 
 | Validator | Result | Checked | Errors | Warnings |
 | --- | --- | --- | --- | --- |
-| architecture | pass | 236 | 0 | 0 |
+| architecture | pass | 241 | 0 | 0 |
 | dependencies | pass | 27 | 0 | 2 |
-| security | pass | 292 | 0 | 0 |
-| execution-contract | pass | 82 | 0 | 3 |
+| security | pass | 294 | 0 | 0 |
+| execution-contract | pass | 91 | 0 | 2 |
 
 ### Findings
 
@@ -127,7 +136,6 @@
 - **warning** `dependency/unused-declaration` (packages/domain/package.json) — packages/domain declares @assurapay/shared but never imports it.
 - **warning** `contract/tests-not-updated` (packages/agreement-creation/src) — packages/agreement-creation has modified source but no modified tests in this change.
 - **warning** `contract/tests-not-updated` (packages/domain-contracts/src) — packages/domain-contracts has modified source but no modified tests in this change.
-- **warning** `contract/tests-not-updated` (packages/reos/src) — packages/reos has modified source but no modified tests in this change.
 
 ## Governance
 
@@ -139,22 +147,20 @@ No newly introduced violations.
 
 **PASSED** — every certification gate is green.
 
-## Remaining backlog (3)
+## Remaining backlog (1)
 
 | Capability | Status | Executable | Blocked by |
 | --- | --- | --- | --- |
-| persistence.async-domain-repository-interface | partial | yes |  |
-| persistence.domain-store-environment-gate | partial | no | persistence.async-domain-repository-interface |
-| persistence.domain-store-durability | missing | no | persistence.domain-store-environment-gate |
+| persistence.domain-store-durability | missing | yes |  |
 
 ## Recommended next capability
 
-`persistence.async-domain-repository-interface` — Asynchronous domain repository interface
+`persistence.domain-store-durability` — Domain store durability for Engines 06-60
 
 ## Ledger
 
-Recorded as `ae0fa3da4470-persistence.domain-store-durability` in `docs/governance/execution-ledger/`.
+Recorded as `ba4c0e4f6936-persistence.domain-store-durability` in `docs/governance/execution-ledger/`.
 
 ## Commit
 
-`ae0fa3da4470bd11efee822b8db3eda40dceda9a`
+`ba4c0e4f6936369997b8a800e5b69828ca4ceb13`

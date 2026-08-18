@@ -443,6 +443,63 @@ describe('persistence/cwd-relative-data-path and ungated-demo-seeding', () => {
   });
 });
 
+describe('persistence/file-backed-store', () => {
+  const withInterface = (files: Record<string, string>) => ({
+    'packages/shared/src/trust.ts': ASYNC_INTERFACE,
+    ...files,
+  });
+
+  it('reports a persistence module writing a file', () => {
+    // `FileAssuraStore` was exactly this: a store whose state lived in `apps/web/data/assurapay.json`. It
+    // had no tenancy at all, so it served one tenant's records to any caller, and it refused to run in
+    // every durable deployment class \u2014 which is what left 161 durable routes unreachable, because the only
+    // route that could create a workspace was one of its own.
+    const root = fakeRepo(
+      withInterface({
+        'packages/database/src/store.ts':
+          "async save() {\n  await fs.writeFile(this.file, JSON.stringify(this.snapshot));\n}\n",
+      }),
+    );
+    expect(rulesFired(collectAsyncPersistenceFindings(root))).toEqual([
+      'persistence/file-backed-store',
+    ]);
+  });
+
+  it('reports the synchronous and streaming forms too', () => {
+    for (const call of ['writeFileSync(f, s)', 'appendFile(f, s)', 'createWriteStream(f)']) {
+      const root = fakeRepo(
+        withInterface({ 'packages/shared/src/store.ts': `export function persist() {\n  ${call};\n}\n` }),
+      );
+      expect(rulesFired(collectAsyncPersistenceFindings(root)), call).toEqual([
+        'persistence/file-backed-store',
+      ]);
+    }
+  });
+
+  it('accepts reading from disk, which the migration runner does', () => {
+    // Reads are fine and necessary: `migrations.ts` reads the migration SQL. Writing is the shape that must
+    // not come back, so the rule is on writes alone.
+    const root = fakeRepo(
+      withInterface({
+        'packages/database/src/migrations.ts':
+          "const sql = readFileSync(absolute, 'utf8');\nconst names = readdirSync(directory);\n",
+      }),
+    );
+    expect(collectAsyncPersistenceFindings(root)).toEqual([]);
+  });
+
+  it('does not reach outside the persistence packages', () => {
+    // Writing a file is ordinary work almost everywhere else \u2014 a report, a generated document, a build
+    // artefact. The rule is about a *store*, so it is scoped to where stores live.
+    const root = fakeRepo(
+      withInterface({
+        'packages/reos/src/ledger.ts': "writeFileSync(target, JSON.stringify(entry));\n",
+      }),
+    );
+    expect(collectAsyncPersistenceFindings(root)).toEqual([]);
+  });
+});
+
 describe('persistence/retired-table-reference', () => {
   const withInterface = (files: Record<string, string>) => ({
     'packages/shared/src/trust.ts': ASYNC_INTERFACE,
@@ -517,6 +574,7 @@ describe('persistence rules: the vocabulary itself', () => {
       'persistence/retired-table-reference',
       'persistence/cwd-relative-data-path',
       'persistence/ungated-demo-seeding',
+      'persistence/file-backed-store',
     ]);
     expect(ASYNC_PERSISTENCE_RULES.map((rule) => rule.rule).filter((rule) => !fired.has(rule))).toEqual(
       [],
