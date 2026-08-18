@@ -118,6 +118,11 @@ export const ASYNC_PERSISTENCE_RULES: readonly AsyncPersistenceRule[] = Object.f
     rationale:
       'A retired trust table is not the canonical owner of anything and no longer exists after reconciliation. SQL naming one either targets a model with no rows or resurrects a second writable model for an aggregate that already has an owner.',
   },
+  {
+    rule: 'persistence/file-backed-store',
+    rationale:
+      'A persistence module that writes a file is a second store. FileAssuraStore was one, and because it had no tenancy at all it served one tenant’s records to any caller and refused to run in any durable deployment — which is what left 161 durable routes unreachable. Reading is fine and the migration runner does it; writing is how the shape comes back.',
+  },
 ]);
 
 /**
@@ -165,6 +170,16 @@ const DATA_PATH_VOCABULARY = Object.freeze([
  * name the thing it forbids.
  */
 const DEMO_SEED_VOCABULARY = Object.freeze(['packages/reos/src/validators/persistence.ts']);
+
+/**
+ * Modules allowed to write a file from a persistence package.
+ *
+ * Only this validator, which has to name the calls in order to reject them. There is no legitimate case:
+ * the durable store is PostgreSQL, and `migrations.ts` reads from disk without writing to it.
+ */
+const FILE_BACKED_STORE_VOCABULARY = Object.freeze([
+  'packages/reos/src/validators/persistence.ts',
+]);
 
 const RETIRED_TABLE_VOCABULARY = Object.freeze([
   'packages/database/src/schema-ownership.ts',
@@ -577,6 +592,28 @@ function checkAdapterBoundaries(repoRoot: string, files: readonly string[]): Fin
           rule: 'persistence/cwd-relative-data-path',
           severity: 'error',
           message: `${at} resolves a persistence path from process.cwd(), so the file it names depends on the directory the process was started from. Derive it from the module's own location, or take it from an explicit variable.`,
+          location: at,
+          subject: file,
+        });
+
+      // A persistence module writing a file. This is the ratchet on Batch J: `FileAssuraStore` wrote
+      // `apps/web/data/assurapay.json`, and because that file had no tenancy it served one tenant's records
+      // to any caller and refused to run in every durable deployment class — which is what left 161 durable
+      // routes unreachable, since the only route that created a workspace was one of its own.
+      //
+      // Writes only. `migrations.ts` reads migration SQL from disk and that is legitimate; a store that
+      // *writes* is the shape that must not come back. Scoped to the persistence packages rather than the
+      // repository, because writing a file is ordinary work almost everywhere else.
+      if (
+        /^packages\/(database|shared)\/src\//.test(file) &&
+        /\b(writeFile|writeFileSync|appendFile|appendFileSync|createWriteStream)\s*\(/.test(line) &&
+        !isTestFile(file) &&
+        !FILE_BACKED_STORE_VOCABULARY.includes(file)
+      )
+        findings.push({
+          rule: 'persistence/file-backed-store',
+          severity: 'error',
+          message: `${at} writes a file from a persistence package. The durable store is PostgreSQL; a module here that writes to disk is a second store, which is what FileAssuraStore was. See docs/persistence/DOMAIN_STORE_RETIREMENT.md.`,
           location: at,
           subject: file,
         });

@@ -6,36 +6,33 @@
 
 | Field | Value |
 | --- | --- |
-| Capability | persistence.async-domain-repository-interface |
-| Title | Asynchronous domain repository interface |
-| Current status | partial |
-| Lifecycle | implementing |
-| Priority | 43 |
-| Reason | Highest-priority executable capability (priority 43, lifecycle implementing) — unblocks 2 downstream capability/-ies |
-| Depends on | persistence.schema-ownership-reconciliation |
+| Capability | persistence.domain-store-durability |
+| Title | Domain store durability for Engines 06-60 |
+| Current status | missing |
+| Lifecycle | planned |
+| Priority | 45 |
+| Reason | Highest-priority executable capability (priority 45, lifecycle planned) — selected despite needing live infrastructure, nothing else is executable |
+| Depends on | persistence.domain-store-environment-gate |
 | Unmet dependencies | none |
-| Blocks (transitive) | persistence.domain-store-durability, persistence.domain-store-environment-gate |
-| Declared scope | 2 file(s), 2 test suite(s) |
-| Requires live infrastructure | no |
+| Blocks (transitive) | — |
+| Declared scope | 1 file(s), 1 test suite(s) |
+| Requires live infrastructure | yes |
 
 ## Executable queue
 
 | Capability | Title | Lifecycle | Priority | Blocks | Live infra |
 | --- | --- | --- | --- | --- | --- |
-| persistence.async-domain-repository-interface | Asynchronous domain repository interface | implementing | 43 | 2 | no |
+| persistence.domain-store-durability | Domain store durability for Engines 06-60 | planned | 45 | — | yes |
 
 ## Blocked
 
-| Capability | Status | Blocked by |
-| --- | --- | --- |
-| persistence.domain-store-environment-gate | partial | persistence.async-domain-repository-interface |
-| persistence.domain-store-durability | missing | persistence.domain-store-environment-gate |
+Nothing blocked.
 
 ## Awaiting live infrastructure
 
 - persistence.domain-store-durability
 
-## Completed (73)
+## Completed (75)
 
 - engine:01
 - engine:02
@@ -93,7 +90,9 @@
 - engine:58
 - engine:59
 - engine:60
+- persistence.async-domain-repository-interface
 - persistence.async-repository-interface
+- persistence.domain-store-environment-gate
 - persistence.postgres-repository
 - persistence.production-runtime-wiring
 - persistence.repository-conformance

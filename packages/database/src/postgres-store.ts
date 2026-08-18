@@ -18,6 +18,7 @@ import { BATCH_F_RELATIONS, batchFRelation, isBatchFCollection } from './batch-f
 import { BATCH_G_RELATIONS, batchGRelation, isBatchGCollection } from './batch-g-repository';
 import { BATCH_H_RELATIONS, batchHRelation, isBatchHCollection } from './batch-h-repository';
 import { BATCH_I_RELATIONS, batchIRelation, isBatchICollection } from './batch-i-repository';
+import { BATCH_K_RELATIONS, batchKRelation, isBatchKCollection } from './batch-k-repository';
 import { PostgresStoreError } from './store-error';
 
 export { PostgresStoreError } from './store-error';
@@ -281,6 +282,11 @@ export const POSTGRES_TRUST_COLLECTIONS: readonly string[] = Object.freeze(
     // version history, the analyses run over it and the risk assessments derived from them are the
     // evidence a completion certificate is later argued from.
     ...Object.keys(BATCH_I_RELATIONS),
+    // Batch K. Six more, the enterprise-intelligence engines, and the first of the group the accepted
+    // decision deferred until the persistence boundary was resolved. Two of the six could not be transitioned
+    // before `202608110014` — a KPI definition could never be retired, and a forecast could never be
+    // reviewed, which made the human-in-the-loop step that package's AI governance rests on unperformable.
+    ...Object.keys(BATCH_K_RELATIONS),
   ].sort(),
 );
 
@@ -309,6 +315,7 @@ export const POSTGRES_ROUTED_TABLES: readonly string[] = Object.freeze(
       ...Object.values(BATCH_G_RELATIONS).map((relation) => relation.table),
       ...Object.values(BATCH_H_RELATIONS).map((relation) => relation.table),
       ...Object.values(BATCH_I_RELATIONS).map((relation) => relation.table),
+      ...Object.values(BATCH_K_RELATIONS).map((relation) => relation.table),
     ]),
   ].sort(),
 );
@@ -440,6 +447,7 @@ function relationalUpdateTarget(collection: string): RelationalUpdate | undefine
   if (isBatchGCollection(collection)) return batchGRelation(collection);
   if (isBatchHCollection(collection)) return batchHRelation(collection);
   if (isBatchICollection(collection)) return batchIRelation(collection);
+  if (isBatchKCollection(collection)) return batchKRelation(collection);
   return undefined;
 }
 
@@ -567,6 +575,8 @@ export class PostgresTrustStore implements TrustPersistence {
         return (await batchHRelation(collection).list(this.sql)) as unknown as T[];
       if (isBatchICollection(collection))
         return (await batchIRelation(collection).list(this.sql)) as unknown as T[];
+      if (isBatchKCollection(collection))
+        return (await batchKRelation(collection).list(this.sql)) as unknown as T[];
       this.requireGoverned(collection);
       const rows = await this.sql<StoredRow[]>`
         SELECT payload, payload_digest FROM trust_records
@@ -682,6 +692,15 @@ export class PostgresTrustStore implements TrustPersistence {
 
       if (isBatchICollection(collection)) {
         await batchIRelation(collection).insert(
+          this.sql,
+          record,
+          this.requireRelationalTenant(collection, record),
+        );
+        return;
+      }
+
+      if (isBatchKCollection(collection)) {
+        await batchKRelation(collection).insert(
           this.sql,
           record,
           this.requireRelationalTenant(collection, record),
