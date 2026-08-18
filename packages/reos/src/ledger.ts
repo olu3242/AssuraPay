@@ -6,9 +6,11 @@ import { stableStringify, writeArtifact, writeJsonArtifact } from './util/serial
 import { LEDGER_DIRECTORY, absolute } from './paths.ts';
 import type {
   CapabilityLifecycle,
+  CapabilityProbeCount,
   CertificationReport,
   ExecutionManifest,
   LedgerEntry,
+  LedgerLifecycleContradiction,
   ValidationOutcome,
 } from './types.ts';
 
@@ -41,6 +43,75 @@ export function listLedgerEntries(repoRoot: string): LedgerEntry[] {
     .sort()
     .map((name) => readJson<LedgerEntry>(path.join(directory, name)))
     .sort((left, right) => left.recordedAt.localeCompare(right.recordedAt));
+}
+
+/**
+ * Capabilities whose **most recent** ledger entry records a passing full
+ * certification while the repository can see none of their declared evidence.
+ *
+ * The two facts contradict each other. Zero satisfied probes out of a non-zero
+ * declared set is what makes a capability derive `missing` or `planned` — the
+ * states meaning "this does not exist yet". A passing certification is a record
+ * that the repository's whole gate ran green over work reported *for this
+ * capability*. Both cannot be true, and when they disagree it is the probe that
+ * is wrong, because certification measured the repository while the probe
+ * measured a name — and a name can point at a file that was never written.
+ *
+ * This function exists because that happened, undetected, for thirteen
+ * consecutive executions. `persistence.domain-store-durability` declared probes
+ * naming `packages/database/src/domain-store.ts`, `PostgresDomainStore` and
+ * `DOMAIN_AGGREGATE_OWNERSHIP` — none of which has ever existed here, as git
+ * confirms: no commit ever created or deleted any of them. They described a
+ * design superseded before it was built. So no probe could ever be satisfied,
+ * the lifecycle stayed `planned`, `repo:next` selected the same capability every
+ * time as the highest-priority unstarted work, and thirteen ledger entries
+ * recorded `passed: true` beside it while thirteen batches shipped.
+ *
+ * Two deliberate choices about what is compared, each avoiding a trap:
+ *
+ *   * the **current** probe count rather than the lifecycle frozen in the entry.
+ *     Comparing an entry against itself would make certification depend on a
+ *     ledger entry that can only be written after certification passes, which is
+ *     a deadlock: the gate could never go green again once it went red. Judging
+ *     the recorded claim against the live measurement means redrawing the
+ *     evidence fixes it on the next run, which is the point;
+ *   * the **latest** entry per capability. The historical entries for this very
+ *     defect are contradictory, and they are also history — CLAUDE.md's third
+ *     hard constraint is that it is never mutated in place, so they stay exactly
+ *     as recorded. What must hold is the live claim.
+ */
+export function ledgerLifecycleContradictions(
+  entries: LedgerEntry[],
+  current: CapabilityProbeCount[],
+): LedgerLifecycleContradiction[] {
+  const unseen = new Map(
+    current
+      .filter((probe) => probe.totalProbes > 0 && probe.satisfiedProbes === 0)
+      .map((probe) => [probe.id, probe]),
+  );
+
+  const latest = new Map<string, LedgerEntry>();
+  for (const entry of entries) {
+    if (!entry.capabilityId) continue;
+    const incumbent = latest.get(entry.capabilityId);
+    // `listLedgerEntries` sorts by `recordedAt`, but this must not depend on the
+    // caller having done so.
+    if (!incumbent || entry.recordedAt >= incumbent.recordedAt)
+      latest.set(entry.capabilityId, entry);
+  }
+
+  return [...latest.values()]
+    .filter(
+      (entry) =>
+        entry.certification.passed && unseen.has(entry.capabilityId as string),
+    )
+    .map((entry) => ({
+      capabilityId: entry.capabilityId as string,
+      entryId: entry.entryId,
+      lifecycle: entry.lifecycle,
+      recordedAt: entry.recordedAt,
+    }))
+    .sort((left, right) => left.capabilityId.localeCompare(right.capabilityId));
 }
 
 export function buildLedgerEntry(input: {

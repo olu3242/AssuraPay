@@ -399,6 +399,17 @@ export const REQUIRED_TRUST_MIGRATIONS: readonly string[] = Object.freeze([
   // retires `agent_runtime.records`, the untyped envelope in which a capability could be edited into executing
   // a protected-state change and an execution could not transition at all.
   '202608110017_wave6_batch_m_agent_runtime',
+  // Makes every money column refuse a fractional amount rather than rounding it. Required rather than optional
+  // because the two disagree about what a valid amount is, and the looser one corrupts silently: a host without
+  // it stores 100.5 kobo as 101, and in `reconciliation_records` two amounts differing by less than a kobo round
+  // equal — which inverts `matched`, refusing the truthful row and accepting a clean match for a real
+  // discrepancy. Safe on populated tables: BIGINT to NUMERIC is a widening conversion.
+  '202608110018_money_columns_refuse_fractional_amounts',
+  // Retires `contracts` and `milestones`. Required rather than optional for the reason `202608110016` was: they
+  // are superseded legacy tables with no reader, no writer and no row-level security at all, and leaving a
+  // superseded model in place is how the next policy gets written against it. After it, the only table in the
+  // schema with no boundary is `trust_migration_ledger` — a table about the database rather than about a tenant.
+  '202608110019_retire_dead_legacy_tables',
 ]);
 
 export type SchemaCompatibility = {

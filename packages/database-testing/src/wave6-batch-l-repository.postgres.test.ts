@@ -729,8 +729,11 @@ describe('integration: Batch L tenancy and the retirement it unlocks', () => {
     );
     expect(unforced).toEqual([]);
 
-    // What remains without any boundary, named rather than left implicit: two dead legacy tables no engine
-    // reads or writes, and the migration ledger, which the owner writes and every host reads at startup.
+    // What remains without any boundary, named rather than left implicit. This was three until
+    // `202608110019`: `contracts` and `milestones` were legacy tables with no reader, no writer and no
+    // row-level security at all, superseded by `agreements` and `blueprint_milestones`, and they are now
+    // retired. The migration ledger is the one legitimate exception — the schema owner writes it and every host
+    // reads it at startup, so it is a table about the database rather than about a tenant.
     const none = await raw(database, (tx) =>
       tx<{ relname: string }[]>`
         SELECT c.relname FROM pg_class c
@@ -739,10 +742,6 @@ describe('integration: Batch L tenancy and the retirement it unlocks', () => {
         ORDER BY 1
       `,
     );
-    expect(none.map((row) => row.relname)).toEqual([
-      'contracts',
-      'milestones',
-      'trust_migration_ledger',
-    ]);
+    expect(none.map((row) => row.relname)).toEqual(['trust_migration_ledger']);
   }, 300_000);
 });

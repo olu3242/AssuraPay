@@ -77,6 +77,7 @@ export {
   buildLedgerEntry,
   digestOf,
   ledgerEntryId,
+  ledgerLifecycleContradictions,
   listLedgerEntries,
   renderLedgerIndex,
 } from './ledger.ts';

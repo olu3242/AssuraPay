@@ -401,6 +401,22 @@ export type GovernanceEvaluation = {
 
 /* --------------------------------------------------------- Execution ledger */
 
+/** The live probe result for one capability, as forensics measured it. */
+export type CapabilityProbeCount = {
+  id: string;
+  satisfiedProbes: number;
+  totalProbes: number;
+};
+
+/** A capability whose latest recorded execution contradicts what the repository can now see. */
+export type LedgerLifecycleContradiction = {
+  capabilityId: string;
+  entryId: string;
+  /** The lifecycle frozen into that entry, for context in the failure message. */
+  lifecycle: CapabilityLifecycle | null;
+  recordedAt: string;
+};
+
 export type LedgerEntry = {
   entryId: string;
   recordedAt: string;

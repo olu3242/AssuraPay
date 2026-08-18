@@ -184,7 +184,7 @@
     {
       "git": {
         "historicalCommits": [],
-        "reachableFromHead": false,
+        "reachableFromHead": true,
         "refsContaining": [],
         "removedFromHead": false
       },
@@ -194,34 +194,93 @@
       "probes": [
         {
           "kind": "path",
-          "matches": [],
-          "query": "packages/database/src/domain-store.ts",
-          "satisfied": false
+          "matches": [
+            "packages/database/src/postgres-store.ts"
+          ],
+          "query": "packages/database/src/postgres-store.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "path",
+          "matches": [
+            "packages/database/src/migrations.ts"
+          ],
+          "query": "packages/database/src/migrations.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "path",
+          "matches": [
+            "packages/database-testing/src/durability-coverage.test.ts"
+          ],
+          "query": "packages/database-testing/src/durability-coverage.test.ts",
+          "satisfied": true
         },
         {
           "kind": "symbol",
-          "matches": [],
-          "query": "PostgresDomainStore",
-          "satisfied": false
+          "matches": [
+            "packages/database-testing/src/durability-coverage.test.ts",
+            "packages/database-testing/src/postgres-store.postgres.test.ts",
+            "packages/database-testing/src/store-boundary.postgres.test.ts",
+            "packages/database/src/postgres-store.ts"
+          ],
+          "query": "POSTGRES_TRUST_COLLECTIONS",
+          "satisfied": true
         },
         {
           "kind": "symbol",
-          "matches": [],
-          "query": "DOMAIN_AGGREGATE_OWNERSHIP",
-          "satisfied": false
+          "matches": [
+            "packages/database-testing/src/store-boundary.postgres.test.ts",
+            "packages/database-testing/src/wave6-batch-g-repository.postgres.test.ts",
+            "packages/database-testing/src/wave6-batch-h-repository.postgres.test.ts",
+            "packages/database-testing/src/wave6-batch-i-repository.postgres.test.ts",
+            "packages/database-testing/src/wave6-batch-k-repository.postgres.test.ts",
+            "packages/database-testing/src/wave6-batch-l-repository.postgres.test.ts",
+            "packages/database-testing/src/wave6-batch-m-repository.postgres.test.ts",
+            "packages/database/src/postgres-store.ts",
+            "packages/reos/src/stages/forensics.ts",
+            "supabase/migrations/202608110019_retire_dead_legacy_tables.sql"
+          ],
+          "query": "POSTGRES_ROUTED_TABLES",
+          "satisfied": true
+        },
+        {
+          "kind": "symbol",
+          "matches": [
+            "packages/database-testing/src/store-boundary.postgres.test.ts",
+            "packages/database-testing/src/wave4-batch-a-repository.postgres.test.ts",
+            "packages/database-testing/src/wave5-batch-b-repository.postgres.test.ts",
+            "packages/database-testing/src/wave5-batch-c-repository.postgres.test.ts",
+            "packages/database-testing/src/wave5-batch-d-repository.postgres.test.ts",
+            "packages/database-testing/src/wave6-batch-e-repository.postgres.test.ts",
+            "packages/database-testing/src/wave6-batch-f-repository.postgres.test.ts",
+            "packages/database/src/migrations.ts"
+          ],
+          "query": "REQUIRED_DOMAIN_AGGREGATE_TABLES",
+          "satisfied": true
         },
         {
           "kind": "test",
-          "matches": [],
-          "query": "packages/database-testing/src/domain-store.postgres.test.ts",
-          "satisfied": false
+          "matches": [
+            "packages/database-testing/src/durability-coverage.test.ts"
+          ],
+          "query": "packages/database-testing/src/durability-coverage.test.ts",
+          "satisfied": true
+        },
+        {
+          "kind": "test",
+          "matches": [
+            "packages/database-testing/src/store-boundary.postgres.test.ts"
+          ],
+          "query": "packages/database-testing/src/store-boundary.postgres.test.ts",
+          "satisfied": true
         }
       ],
-      "rationale": "No evidence at HEAD, on any ref, or in history.",
-      "satisfiedProbes": 0,
-      "status": "missing",
-      "title": "Domain store durability for Engines 06-60",
-      "totalProbes": 4
+      "rationale": "All 8 evidence probes satisfied at HEAD.",
+      "satisfiedProbes": 8,
+      "status": "implemented",
+      "title": "Domain store durability for Engines 06-70",
+      "totalProbes": 8
     },
     {
       "git": {
@@ -232,7 +291,7 @@
       },
       "id": "persistence.domain-store-environment-gate",
       "kind": "platform",
-      "onDefaultBranch": true,
+      "onDefaultBranch": false,
       "probes": [
         {
           "kind": "path",
@@ -382,6 +441,7 @@
           "matches": [
             "packages/database-testing/src/index.ts",
             "packages/database-testing/src/migrations.postgres.test.ts",
+            "packages/database-testing/src/money-integrality.postgres.test.ts",
             "packages/database-testing/src/schema-ownership.postgres.test.ts",
             "packages/database-testing/src/store-boundary.postgres.test.ts",
             "packages/database-testing/src/wave4-batch-a-repository.postgres.test.ts",
@@ -768,7 +828,8 @@
             "packages/domain-contracts/src/batch-m.ts",
             "packages/runtime/src/persistence-runtime.ts",
             "supabase/migrations/202608110016_retire_trust_compatibility_tables.sql",
-            "supabase/migrations/202608110017_wave6_batch_m_agent_runtime.sql"
+            "supabase/migrations/202608110017_wave6_batch_m_agent_runtime.sql",
+            "supabase/migrations/202608110018_money_columns_refuse_fractional_amounts.sql"
           ],
           "query": "certifySchemaOwnership",
           "satisfied": true
@@ -778,7 +839,8 @@
           "matches": [
             "packages/database-testing/src/schema-ownership.postgres.test.ts",
             "packages/database/src/schema-ownership.test.ts",
-            "packages/database/src/schema-ownership.ts"
+            "packages/database/src/schema-ownership.ts",
+            "supabase/migrations/202608110018_money_columns_refuse_fractional_amounts.sql"
           ],
           "query": "RETIRED_TRUST_HISTORICAL_TABLES",
           "satisfied": true
@@ -1676,14 +1738,14 @@
       "totalProbes": 5
     }
   ],
-  "head": "a0d6e74c5c051c09abca131853fc000fd72680fa",
+  "head": "57053fa298cc68a5834d5a16439d4d8dfe34b80a",
   "reosVersion": "1.0.0",
   "stage": "forensics",
   "summary": {
     "deferred": 0,
-    "implemented": 19,
+    "implemented": 20,
     "lost": 0,
-    "missing": 1,
+    "missing": 0,
     "partial": 0,
     "unreachable": 0
   }
