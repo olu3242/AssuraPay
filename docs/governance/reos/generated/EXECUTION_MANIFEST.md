@@ -9,10 +9,10 @@
 | --- | --- |
 | Repository | assurapay |
 | Version | 0.1.0 |
-| Branch | feat/h1-batch-h-governance-core |
-| HEAD | 34fb3610d9d1a0f466698edca9d58e078e3e4c46 |
+| Branch | feat/i1-batch-i-agreement-intelligence |
+| HEAD | 97bcb207e98ce2c1ec12b6739a671bda17f71694 |
 | Worktree clean | no |
-| Manifest digest | fe94451bbcb8 |
+| Manifest digest | 23ea20c35978 |
 | REOS version | 1.0.0 |
 
 ## Architecture

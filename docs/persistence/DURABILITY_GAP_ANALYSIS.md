@@ -189,7 +189,11 @@ of the register above. The order is not arbitrary:
   `digital_certification_records UNIQUE (certificate_number)` — global, while the engine numbers
   certificates by counting its own rows, so every tenant produced `AP-CERT-2026-000001` and only the first
   could store it.
-- **Batch I: `agreement-intelligence` (5).**
+- **Batch I: `agreement-intelligence` (6).** Six, not the five this register recorded until now.
+  `contractVersionsV2` is written by `ContractVersionEngine` and was absent from both the register and the
+  coverage baseline, because the gate's collection-name pattern was `[a-zA-Z]+` and silently dropped every
+  name containing a digit — so an engine write with no durable mapping sat unseen inside the gate that
+  exists to find exactly that. It was the only collection so hidden.
 - **Last: `enterprise-intelligence` (6), `enterprise-analytics` (9), `agent-runtime` (9).** Deferred by
   the accepted decision until the persistence boundary is resolved, and the register keeps them in that
   position rather than reordering by convenience.

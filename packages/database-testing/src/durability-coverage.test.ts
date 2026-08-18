@@ -13,8 +13,16 @@ import { POSTGRES_TRUST_COLLECTIONS } from '@assurapay/database';
  * deployment could pass every gate in this repository and then be unable to create a contract.
  *
  * Measured when this file was written: engines write **129** collections, the store maps **64**, and
- * **67** were unmapped. Batch E closed six and Batch F fifteen, so the current figure is **46** — and it
- * is the assertions below, not this sentence, that keep that true.
+ * **67** were unmapped. Batches E through H closed thirty-eight between them, so the current measurement
+ * is **132** written, **102** mapped and **30** unmapped — and it is the assertions below, not this
+ * sentence, that keep that true.
+ *
+ * The written total rose rather than held because this gate had two blind spots, both since corrected. It
+ * read only `src/index.ts`, so a write in a sibling module was invisible; and its collection-name pattern
+ * was `[a-zA-Z]+`, which silently dropped every name containing a digit. Exactly one collection was
+ * hidden by the second: `contractVersionsV2`, written by `ContractVersionEngine` with no mapping and no
+ * baseline entry — precisely the regression the first assertion below exists to catch, sitting unseen
+ * inside the gate meant to catch it.
  * `ContractAuthoringEngine.create` — the first step of the canonical chain — was confirmed against a
  * live PostgreSQL instance to fail with
  * `PERSISTENCE_COLLECTION_NOT_MAPPED: agreements has no mapping in the durable trust store`. Batch F is
@@ -68,9 +76,12 @@ const KNOWN_UNMAPPED: readonly string[] = Object.freeze([
   // rather than a bare identifier, so a durable eligibility no longer points at a rule that cannot be
   // stored — and the rule can now reach ACTIVE, which the blanket append-only trigger `202608030005`
   // installed had made impossible.
-  // agreement-intelligence (5) — Engines 16-20.
+  // agreement-intelligence (6) — Engines 16-20. Six, not five: `contractVersionsV2` is written by
+  // `ContractVersionEngine` and was missing from this list because the scan's name pattern excluded
+  // digits. It is baselined here rather than quietly re-hidden, so the gap it represents is counted while
+  // Batch I gives it a durable home.
   'agreementIntelligenceVersions', 'analysisReviews', 'contractAnalysisRuns',
-  'contractRiskAssessments', 'repositoryDocuments',
+  'contractRiskAssessments', 'contractVersionsV2', 'repositoryDocuments',
   // enterprise-intelligence (6) — Engines 51-55, deferred by the accepted decision.
   'dashboardSnapshots', 'executionAssuranceIndices', 'executionForecasts', 'kpiDefinitions',
   'kpiValues', 'settlementAssuranceIndices',
@@ -120,7 +131,7 @@ function collectionsEnginesWrite(): Map<string, string[]> {
     for (const file of productionSources(`packages/${pkg}/src`)) {
       const source = readFileSync(file, 'utf8');
       if (!source.includes('TrustPersistence')) continue;
-      for (const match of source.matchAll(/\.(?:append|replace)(?:<[^>]*>)?\(\s*'([a-zA-Z]+)'/g)) {
+      for (const match of source.matchAll(/\.(?:append|replace)(?:<[^>]*>)?\(\s*'([a-zA-Z0-9]+)'/g)) {
         const collection = match[1];
         const owners = byCollection.get(collection) ?? [];
         if (!owners.includes(pkg)) owners.push(pkg);
