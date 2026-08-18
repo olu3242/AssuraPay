@@ -9,10 +9,10 @@
 | --- | --- |
 | Repository | assurapay |
 | Version | 0.1.0 |
-| Branch | feat/l1-batch-l-enterprise-analytics |
-| HEAD | 60602ed2dee40a898d70baa5f2de66eee3d38e5a |
+| Branch | feat/m1-batch-m-agent-runtime |
+| HEAD | a0d6e74c5c051c09abca131853fc000fd72680fa |
 | Worktree clean | no |
-| Manifest digest | 01a11ef66ae9 |
+| Manifest digest | 7bb6d7ebf90f |
 | REOS version | 1.0.0 |
 
 ## Architecture

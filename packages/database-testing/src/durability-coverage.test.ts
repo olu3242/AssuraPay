@@ -98,9 +98,17 @@ const KNOWN_UNMAPPED: readonly string[] = Object.freeze([
   // `202608080001` named and could not perform. Four of the nine were transitioned and every one was broken:
   // three refused by a blanket append-only trigger, and `drift_alerts` — the evidence that a model had gone
   // wrong — protected by nothing at all.
-  // agent-runtime (9) — the governed agent surface, deferred with the intelligence engines.
-  'agentApprovalRequests', 'agentCapabilities', 'agentContextSnapshots', 'agentExecutions',
-  'agentGovernancePolicies', 'agentMemory', 'agentTelemetry', 'promptVersions', 'registeredAgents',
+  // agent-runtime — CLOSED by Batch M (`202608110017`). Its nine aggregates are removed from this baseline
+  // rather than left in it, and with them the baseline itself: **this list is now empty**, which is the
+  // register closed. Every collection any canonical engine writes has a durable relational home.
+  //
+  // The only batch since Batch A to create its tables, and the one whose prior art nearly went unnoticed:
+  // `202608030012` had put all nine aggregates in a single untyped envelope in a schema of its own, invisible
+  // to the ownership registry and the RLS sweep alike because both enumerate `current_schema()`. In it a
+  // capability row could be edited into `EXECUTE_DETERMINISTIC` with `protectedState` true — an agent
+  // executing a protected-state change rather than proposing one — while an execution record could not
+  // transition at all, so Engine 61's entire lifecycle was unperformable. Both proved by statement against a
+  // live instance before anything was written.
 ]);
 
 /**
@@ -215,6 +223,15 @@ describe('durability coverage: the store accepts what the engines write', () => 
   it('keeps the baseline honest, so it can only shrink', () => {
     // Without this the baseline rots: a collection mapped by a later batch would sit in the list
     // forever, overstating the gap and quietly excusing the next one added beside it.
+    //
+    // Stated positively as well as conditionally, because the two filters below are now satisfied by an empty
+    // list and a passing assertion over nothing reads as coverage while proving none. This is the claim: the
+    // register is closed. The filters stay because they come back to life the moment anyone adds an entry.
+    expect(
+      KNOWN_UNMAPPED,
+      'the durability register is closed — every collection any canonical engine writes is mapped',
+    ).toEqual([]);
+
     const mapped = new Set(POSTGRES_TRUST_COLLECTIONS);
     const stale = KNOWN_UNMAPPED.filter((collection) => mapped.has(collection));
     expect(

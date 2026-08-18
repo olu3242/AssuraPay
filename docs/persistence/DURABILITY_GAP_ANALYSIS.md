@@ -41,9 +41,10 @@ The table below is the measurement taken when this register was written, kept as
 rather than edited on each batch. **The live figure is asserted by
 `packages/database-testing/src/durability-coverage.test.ts`, which is the authority** — a prose number
 here would go stale between one batch and the next, and a stale number in a document called a register is
-worse than none. As of Batch L: **132** collections written, **123** mapped, **9** unmapped — the nine that remain are `agent-runtime`'s, which have no tables at all. The written
-total is above 129 because the gate itself had two blind spots, both since corrected — it read only
-`src/index.ts`, and its collection-name pattern dropped every name containing a digit.
+worse than none. **As of Batch M the register is closed: 132 collections written, 132 mapped, 0 unmapped, and
+the coverage baseline is an empty list.** The written total is above the 129 measured when this document was
+written because the gate itself had two blind spots, both since corrected — it read only `src/index.ts`, and
+its collection-name pattern dropped every name containing a digit.
 
 | Question | Answer | How it was measured |
 |---|---|---|
@@ -111,7 +112,7 @@ Sixty-seven collections, grouped by owning package and ordered by the sequence b
 | 5 | `agreement-intelligence` | 16–20 | 6 | contract versions, analysis runs, risk assessments |
 | 6 | `enterprise-intelligence` | 51–55 | 6 | KPIs, assurance indices, forecasts |
 | 7 | `enterprise-analytics` | 56–60 | 9 | scorecards, model registry, drift |
-| 8 | `agent-runtime` | governed agents | 9 | agent memory, telemetry, executions |
+| 8 | `agent-runtime` | 61–70 | 9 | agent memory, telemetry, executions, capabilities, approvals |
 
 ### Two consequences worth naming precisely
 
@@ -318,9 +319,73 @@ of the register above. The order is not arbitrary:
   `workspace_memberships`, which by then had no children of its own. The three referenced only each other, so
   they dropped together, along with `has_active_workspace_membership()` and the superseded
   `current_workspace_id()`.
-- **Last: `agent-runtime` (9).** Deferred with the intelligence engines. Its nine collections have **no
-  tables at all**, so unlike every batch since A this one creates rather than converges — and it holds nothing
-  else back, since the compatibility tables are already gone.
+- **Last: `agent-runtime` (9) — CLOSED by Batch M (`202608110017`).** Deferred with the intelligence engines,
+  and the batch that closes the register. Unlike every batch since A it creates its tables rather than
+  converging them.
+
+  **But it was not starting from nothing, and this document is where that correction belongs, because the
+  claim above — "no tables at all" — was wrong.** `202608030012_agent_runtime.sql` creates
+  `agent_runtime.records`: one generic envelope for all nine aggregates, discriminated by a `record_type`
+  column, **in a schema of its own**. The batch's first scan searched `current_schema()` by table name, found
+  nothing, and concluded there was no prior art. That is also why no gate in this repository had ever seen it:
+  `certifySchemaOwnership`, the RLS certification sweep and the ownership registry all enumerate
+  `current_schema()`, so **an object outside it is governed by nothing**. Twelve batches of schema
+  reconciliation, and the one table that needed it most was invisible to all of them.
+
+  Three of its properties were proved by statement against a live migrated instance before anything was
+  written, and they invert the batch's premise — there *was* a mutation boundary contradicting these engines,
+  and it was wrong in both directions at once:
+
+  - a `capability` record could be **edited into the shape its engine exists to refuse**. `UPDATE ... SET
+    payload = '{"mode":"EXECUTE_DETERMINISTIC","protectedState":true}'` returned `UPDATE 1`. That row is the
+    only thing between an agent proposing a protected-state change and performing one:
+    `AgentRuntimeEngine.execute` invokes the deterministic gateway on that mode, and
+    `CapabilityRegistryEngine.register` raises `AGENTS_MAY_ONLY_PROPOSE_PROTECTED_STATE_CHANGES` on exactly
+    that combination. The engine refused to create one; the table permitted editing one into existence;
+  - an `execution` record **could not transition at all** — `QUEUED → RUNNING` raised "agent runtime history is
+    append-only" — so Engine 61's whole lifecycle was unperformable. The fourth batch in a row to find that
+    defect, after H, K and L;
+  - a `DELETE` **reported `DELETE 0` and left the row in place.** The trigger was `BEFORE DELETE` and returned
+    `NEW`, which is unassigned in a delete context, so PL/pgSQL skipped the row operation. Neither performed
+    nor refused: the caller was told nothing matched. That is worse than either.
+
+  A fourth was structural: its policy predicate is `current_setting('app.tenant_id', true)::uuid` while
+  `trust_current_tenant()` returns TEXT, so under the runtime's own identity every statement against the table
+  raises `invalid input syntax for type uuid` — an error naming a type rather than a permission. And being one
+  envelope it could express no invariant of any of the nine: its only constraints were a primary key and the
+  `record_type` CHECK.
+
+  So the register closes on the same lesson twice: **an aggregate stored as an untyped payload cannot carry its
+  own rules, and an object outside `current_schema()` is outside the reach of every gate built to notice
+  that.** `202608110017` creates the nine typed tables — with the protected-state rule as a CHECK and `mode`
+  and `protected_state` immutable, `decided_by <> requested_by_agent_id` as a CHECK because the action may be
+  `CERTIFICATION`, single-use hash-matched consumption as a trigger, and unique keys for every counter the
+  engines derive by counting — and retires the envelope, refusing rather than discarding if it holds rows.
+
+  One engine defect came with it. Engine 68 accepted any string as an approval's `proposalHash` — its own suite
+  passed `'abc'` — while every sibling hash in the package comes from one `createHash('sha256')` helper.
+  `consume()` authorises a protected action only when that hash matches the proposal being executed, so a value
+  nobody can recompute makes the match an agreement between two opaque strings rather than evidence. The engine
+  now asserts a digest, which is also what the column requires: the store and the engine agree rather than the
+  store refusing what the engine accepts.
+
+### The one gap this programme leaves open
+
+Measured during Batch M and recorded rather than closed: **an integer money column rounds a fractional value
+instead of refusing it.** `INSERT ... cost_minor = 100.5` stores `101`, and `99.5` stores `100`, because the
+cast to `BIGINT` happens before any CHECK can see the value — no constraint can inspect what was written before
+the cast. Every minor-units column in the platform is `BIGINT`, so this is true of all of them, not only Batch
+M's.
+
+What refuses a fractional amount today is the `minorUnits` contract in `packages/domain-contracts`, applied
+before the statement, and every write goes through a repository that applies it. So this is a gap in
+defence-in-depth rather than a live hole — but it is a real exception to this programme's thesis that the
+database is the authority, which is why it is named here instead of left for someone to rediscover.
+
+Closing it means `NUMERIC` with an integrality CHECK on every money column across all eleven batches, plus the
+read-path and proof changes that follow. That is its own change with its own migration and its own live
+proofs, and doing it as a footnote to the last batch would be the kind of quiet scope widening this register
+exists to prevent.
 
 Each batch should follow the shape Batches A–D settled into, because it produced four consecutive
 clean activations and found a real defect every time:

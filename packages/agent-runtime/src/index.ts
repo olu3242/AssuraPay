@@ -12,6 +12,18 @@ const workspace = (context: RequestContext) => {
 const assertText = (value: string, code: string) => {
   if (!value.trim()) throw new Error(code);
 };
+/**
+ * A SHA-256 digest in lower-case hexadecimal — the shape `hash()` above produces.
+ *
+ * Applied to the one hash this package accepts from a caller rather than computing itself: an approval's
+ * `proposalHash`. `consume()` authorises a protected action only when the hash matches what is being executed,
+ * and `ProtectedAction` includes `CERTIFICATION`, so the binding is what stops an approval for one proposal
+ * from authorising another. A value that is not a digest cannot be recomputed from the proposal, which makes
+ * the match an agreement between two opaque strings rather than evidence.
+ */
+const assertDigest = (value: string, code: string) => {
+  if (!/^[0-9a-f]{64}$/.test(value)) throw new Error(code);
+};
 
 async function records<T extends { workspaceId: string }>(
   store: TrustPersistence,
@@ -574,6 +586,7 @@ export class HumanApprovalEngine {
   ) {
     if (input.requestedByAgentId === context.actorUserId)
       throw new Error('AGENT_ID_CANNOT_BE_HUMAN_ACTOR');
+    assertDigest(input.proposalHash, 'PROPOSAL_HASH_MUST_BE_A_DIGEST');
     const request: ApprovalRequest = {
       id: randomUUID(),
       workspaceId: workspace(context),
