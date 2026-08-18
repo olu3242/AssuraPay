@@ -330,12 +330,14 @@
             "packages/database-testing/src/wave5-batch-d-repository.postgres.test.ts",
             "packages/database-testing/src/wave6-batch-e-repository.postgres.test.ts",
             "packages/database-testing/src/wave6-batch-f-repository.postgres.test.ts",
+            "packages/database-testing/src/wave6-batch-g-repository.postgres.test.ts",
             "packages/database/src/batch-a-repository.ts",
             "packages/database/src/batch-b-repository.ts",
             "packages/database/src/batch-c-repository.ts",
             "packages/database/src/batch-d-repository.ts",
             "packages/database/src/batch-e-repository.ts",
             "packages/database/src/batch-f-repository.ts",
+            "packages/database/src/batch-g-repository.ts",
             "packages/database/src/conformance.ts",
             "packages/database/src/migrations.ts",
             "packages/database/src/postgres-store.ts",
@@ -366,6 +368,7 @@
             "packages/database-testing/src/wave5-batch-d-repository.postgres.test.ts",
             "packages/database-testing/src/wave6-batch-e-repository.postgres.test.ts",
             "packages/database-testing/src/wave6-batch-f-repository.postgres.test.ts",
+            "packages/database-testing/src/wave6-batch-g-repository.postgres.test.ts",
             "packages/database/src/migrations.ts",
             "packages/database/src/schema-ownership.ts",
             "packages/runtime/src/persistence-runtime.postgres.test.ts",
@@ -653,6 +656,7 @@
             "packages/database-testing/src/wave5-batch-d-repository.postgres.test.ts",
             "packages/database-testing/src/wave6-batch-e-repository.postgres.test.ts",
             "packages/database-testing/src/wave6-batch-f-repository.postgres.test.ts",
+            "packages/database-testing/src/wave6-batch-g-repository.postgres.test.ts",
             "packages/database/src/trust-scope.ts",
             "packages/runtime/src/persistence-runtime.postgres.test.ts",
             "packages/runtime/src/rls-runtime.postgres.test.ts"
@@ -1633,7 +1637,7 @@
       "totalProbes": 5
     }
   ],
-  "head": "ef0a7af01059b5851947d5b9b3911f9b133cee41",
+  "head": "c0c9ef6531899b87254a0f20f2cffec746ad8654",
   "reosVersion": "1.0.0",
   "stage": "forensics",
   "summary": {

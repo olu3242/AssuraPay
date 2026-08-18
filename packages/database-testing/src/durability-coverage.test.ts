@@ -61,11 +61,11 @@ const KNOWN_UNMAPPED: readonly string[] = Object.freeze([
   // canonical chain links, are removed from this baseline rather than left in it: the third assertion
   // below fails on a baseline entry the store now maps, which is what makes the list a ratchet instead
   // of a record of good intentions.
-  // performance-readiness (6) — Engines 26-30. `paymentTriggerRules` is referenced by Batch B's
-  // `paymentEligibility.paymentTriggerRuleId`, so a durable eligibility already points at a rule that
-  // cannot be stored.
-  'acceptanceCriteria', 'baselineVariances', 'dependencies', 'paymentTriggerRules',
-  'performanceBaselines', 'successMetrics',
+  // performance-readiness — CLOSED by Batch G (`202608110009`). Its six aggregates are removed from this
+  // baseline rather than left in it. `paymentEligibility.paymentTriggerRuleId` is now a foreign key
+  // rather than a bare identifier, so a durable eligibility no longer points at a rule that cannot be
+  // stored — and the rule can now reach ACTIVE, which the blanket append-only trigger `202608030005`
+  // installed had made impossible.
   // agreement-intelligence (5) — Engines 16-20.
   'agreementIntelligenceVersions', 'analysisReviews', 'contractAnalysisRuns',
   'contractRiskAssessments', 'repositoryDocuments',

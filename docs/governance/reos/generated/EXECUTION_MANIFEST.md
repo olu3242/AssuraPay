@@ -10,9 +10,9 @@
 | Repository | assurapay |
 | Version | 0.1.0 |
 | Branch | fix/wave5-codex-followups |
-| HEAD | ef0a7af01059b5851947d5b9b3911f9b133cee41 |
+| HEAD | c0c9ef6531899b87254a0f20f2cffec746ad8654 |
 | Worktree clean | no |
-| Manifest digest | de700e00e1cd |
+| Manifest digest | a34708da323c |
 | REOS version | 1.0.0 |
 
 ## Architecture

@@ -449,11 +449,17 @@ describe('integration: Batch F is activated and the canonical chain closes', () 
 
     for (const aggregate of BATCH_F_AGGREGATES)
       expect(REQUIRED_DOMAIN_AGGREGATE_TABLES, aggregate.table).toContain(aggregate.table);
-    // Forty-one from Batches A-E plus these fifteen. Asserted as a containment and a total rather than
-    // as an exact count of some earlier batch's registry, which is the correction Batch E made to Batch
-    // D's suite: a bare count becomes false the moment the next batch lands.
-    expect(REQUIRED_DOMAIN_AGGREGATE_TABLES).toHaveLength(56);
-    expect(new Set(REQUIRED_DOMAIN_AGGREGATE_TABLES).size).toBe(56);
+    // Containment and uniqueness, and no total. The comment here used to explain that a bare count
+    // "becomes false the moment the next batch lands" and then asserted 56 anyway — which Batch G's six
+    // tables duly falsified. The count was never the property worth checking: that every Batch F table is
+    // required, and that the list names nothing twice, is what this test is for, and both survive the
+    // next batch.
+    expect(new Set(REQUIRED_DOMAIN_AGGREGATE_TABLES).size).toBe(
+      REQUIRED_DOMAIN_AGGREGATE_TABLES.length,
+    );
+    expect(REQUIRED_DOMAIN_AGGREGATE_TABLES.length).toBeGreaterThanOrEqual(
+      BATCH_F_AGGREGATES.length,
+    );
 
     const database = await schemaOnly();
     const compatible = await verifySchemaCompatibility(database.sql, migrationsDirectory());

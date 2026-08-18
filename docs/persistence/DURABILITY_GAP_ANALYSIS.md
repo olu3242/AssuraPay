@@ -153,8 +153,25 @@ of the register above. The order is not arbitrary:
   the bare identifier Batch A had to accept.
 - **Batch F: `agreement-creation` (15).** Completes the chain's front. Largest single batch; its
   closure will need measuring the way Batch B's and C's did, because `agreements` is referenced widely.
-- **Batch G: `performance-readiness` (6).** Closes the `paymentTriggerRules` hole that Batch B already
-  points at, and lets that reference become a foreign key.
+- **Batch G: `performance-readiness` (6) — DONE (`202608110009`).** Closed the `paymentTriggerRules` hole
+  Batch B pointed at: `paymentEligibility.paymentTriggerRuleId` is now a foreign key rather than a bare
+  `NOT NULL` column. Its discovery found the worst mutation-boundary defect of any batch so far, because
+  this one *disabled working code* rather than permitting something it should not. `202608030005` put
+  blanket append-only triggers on `acceptance_criteria`, `success_metrics` and `payment_trigger_rules`,
+  and all three are aggregates their engines transition, so `confirm()`, `confirm()` and `activate()`
+  every one refused on PostgreSQL. The third is the consequential one: `evaluate()` refuses any rule that
+  is not ACTIVE, so a rule that could not leave DRAFT could never be assessed at all — the settlement path
+  was citing a condition that, on the durable store, was permanently unassessable. That is a failure of
+  CLAUDE.md's second hard constraint arriving as an absence rather than as a wrong answer, which is why
+  nothing caught it: no bad release was produced because no release could be produced.
+- **Also closed while building Batch G's fixtures (`202608110010`).** Six routed tables still carried the
+  *historical* unique keys underneath their tenant-scoped replacements — `performance_blueprints
+  UNIQUE (contract_id, version)` among them. Batches A-F added the scoped keys and none removed the old
+  ones, so whichever tenant reached a `(contract_id, version)` pair first held it against every other
+  tenant on the deployment, permanently. A cross-tenant denial of service needing no privilege and no
+  mistake, found because a two-tenant fixture did the ordinary thing and was refused. Eleven further
+  tables have keys of the same shape and are deliberately left alone: no store route reaches them, so the
+  batch that activates each one should carry its key across.
 - **Batches H–I: `governance-core` (11), `agreement-intelligence` (5).**
 - **Last: `enterprise-intelligence` (6), `enterprise-analytics` (9), `agent-runtime` (9).** Deferred by
   the accepted decision until the persistence boundary is resolved, and the register keeps them in that

@@ -64,16 +64,93 @@ async function migratedDatabase(): Promise<TestDatabase> {
 
 async function foundTenancy(database: TestDatabase): Promise<void> {
   const store = new PostgresTrustStore(database.sql);
-  for (const [tenantId, workspaceId] of [
-    [TENANT, WORKSPACE],
-    [OTHER_TENANT, OTHER_WORKSPACE],
+  for (const [tenantId, workspaceId, suffix] of [
+    [TENANT, WORKSPACE, ''],
+    [OTHER_TENANT, OTHER_WORKSPACE, '-other'],
   ]) {
+    // `id` alone is the primary key on these tables — `(tenant_id, id)` is an additional unique on top,
+    // which makes cross-tenant *references* impossible without partitioning the key space. So the second
+    // tenant's chain needs its own identifiers, the same way Batch E's fixtures do.
+    const k = (base: string) => `${base}${suffix}`;
     await withTrustScope({ tenantId, workspaceId, actorId: REQUESTER }, async () => {
       await store.append('trustWorkspaces', {
         id: workspaceId,
         tenantId,
         status: 'ACTIVE',
         version: 1,
+      });
+      // The authority an eligibility cites. `202608110009` made
+      // `paymentEligibilities.paymentTriggerRuleId` a foreign key, which it could not be before Batch G
+      // gave the rule a durable home — so the fixtures now build the rule the eligibility has always
+      // claimed to rest on, and the blueprint and milestone it hangs off. That the chain has to be built
+      // is the point: an eligibility whose rule does not exist is exactly what the key now refuses.
+      await store.append('performanceBlueprints', {
+        id: k('bp-1'),
+        workspaceId,
+        contractId: k('c-1'),
+        contractVersionId: k('cv-1'),
+        agreementIntelligenceVersionId: k('aiv-1'),
+        version: 1,
+        status: 'ACTIVE',
+        createdBy: REQUESTER,
+        createdAt: stamp,
+        contentHash: 'a3f1c9',
+      });
+      await store.append('scopeItems', {
+        id: k('si-1'),
+        workspaceId,
+        blueprintId: k('bp-1'),
+        kind: 'INCLUDED',
+        description: 'Foundation works to slab level',
+        assumptions: ['Site access from week 1'],
+        constraints: ['No weekend working'],
+        ownerId: REQUESTER,
+        status: 'DRAFT',
+        createdAt: stamp,
+      });
+      await store.append('deliverables', {
+        id: k('dl-1'),
+        workspaceId,
+        blueprintId: k('bp-1'),
+        scopeItemId: k('si-1'),
+        title: 'Reinforced slab',
+        quantity: 2.5,
+        unit: 'tonnes',
+        qualityStandard: 'BS 8500-1',
+        ownerId: REQUESTER,
+        dueDate: '2026-09-30',
+        acceptanceCriteria: ['Cube test at 28 days'],
+        evidenceRequirements: ['Laboratory certificate'],
+        status: 'DRAFT',
+        createdAt: stamp,
+      });
+      await store.append('blueprintMilestones', {
+        id: k('ms-1'),
+        workspaceId,
+        blueprintId: k('bp-1'),
+        title: 'Slab complete',
+        // A milestone delivers something; the schema refuses an empty list, which is why the chain is
+        // built down to a deliverable rather than stopping at the blueprint.
+        deliverableIds: [k('dl-1')],
+        startDate: '2026-09-01',
+        dueDate: '2026-09-30',
+        budgetAmountMinor: 5_000_000,
+        currency: 'NGN',
+        valueAllocationPercent: 25,
+        status: 'SCHEDULED',
+        createdAt: stamp,
+      });
+      await store.append('paymentTriggerRules', {
+        id: k('ptr-1'),
+        workspaceId,
+        milestoneId: k('ms-1'),
+        name: 'On milestone completion',
+        ruleType: 'MILESTONE_COMPLETION',
+        requiredAcceptanceCriterionIds: [],
+        amountMinor: 5_000_000,
+        currency: 'NGN',
+        status: 'ACTIVE',
+        createdAt: stamp,
       });
     });
   }

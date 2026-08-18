@@ -102,6 +102,75 @@ async function foundChain(
     const store = new PostgresTrustStore(database.sql);
     const k = (base: string) => `${base}${suffix}`;
     await store.append('trustWorkspaces', { id: workspaceId, tenantId, status: 'ACTIVE', version: 1 });
+    // The authority the eligibility cites, made storable by Batch G. `202608110009` turned
+    // `paymentEligibilities.paymentTriggerRuleId` into a foreign key, and the rule hangs off a blueprint
+    // milestone, which hangs off a deliverable and a blueprint.
+    await store.append('performanceBlueprints', {
+      id: k('bp-1'),
+      workspaceId,
+      contractId: k('c-1'),
+      contractVersionId: k('cv-1'),
+      agreementIntelligenceVersionId: k('aiv-1'),
+      version: 1,
+      status: 'ACTIVE',
+      createdBy: RAISER,
+      createdAt: stamp,
+      contentHash: 'a3f1c9',
+    });
+    await store.append('scopeItems', {
+      id: k('si-1'),
+      workspaceId,
+      blueprintId: k('bp-1'),
+      kind: 'INCLUDED',
+      description: 'Foundation works to slab level',
+      assumptions: ['Site access from week 1'],
+      constraints: ['No weekend working'],
+      ownerId: RAISER,
+      status: 'DRAFT',
+      createdAt: stamp,
+    });
+    await store.append('deliverables', {
+      id: k('dl-1'),
+      workspaceId,
+      blueprintId: k('bp-1'),
+      scopeItemId: k('si-1'),
+      title: 'Reinforced slab',
+      quantity: 2.5,
+      unit: 'tonnes',
+      qualityStandard: 'BS 8500-1',
+      ownerId: RAISER,
+      dueDate: '2026-09-30',
+      acceptanceCriteria: ['Cube test at 28 days'],
+      evidenceRequirements: ['Laboratory certificate'],
+      status: 'DRAFT',
+      createdAt: stamp,
+    });
+    await store.append('blueprintMilestones', {
+      id: k('ms-1'),
+      workspaceId,
+      blueprintId: k('bp-1'),
+      title: 'Slab complete',
+      deliverableIds: [k('dl-1')],
+      startDate: '2026-09-01',
+      dueDate: '2026-09-30',
+      budgetAmountMinor: 5_000_000,
+      currency: 'NGN',
+      valueAllocationPercent: 25,
+      status: 'SCHEDULED',
+      createdAt: stamp,
+    });
+    await store.append('paymentTriggerRules', {
+      id: k('ptr-1'),
+      workspaceId,
+      milestoneId: k('ms-1'),
+      name: 'On milestone completion',
+      ruleType: 'MILESTONE_COMPLETION',
+      requiredAcceptanceCriterionIds: [],
+      amountMinor: 5_000_000,
+      currency: 'NGN',
+      status: 'ACTIVE',
+      createdAt: stamp,
+    });
     await store.append('paymentEligibilities', {
       id: k('pe-1'),
       workspaceId,

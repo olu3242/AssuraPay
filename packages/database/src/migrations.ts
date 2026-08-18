@@ -8,6 +8,7 @@ import {
   BATCH_D_TABLES,
   BATCH_E_TABLES,
   BATCH_F_TABLES,
+  BATCH_G_TABLES,
 } from '@assurapay/domain-contracts';
 import type { SqlClient } from './postgres-client';
 
@@ -342,6 +343,16 @@ export const REQUIRED_TRUST_MIGRATIONS: readonly string[] = Object.freeze([
   // host without it accepts a child row citing a parent in another workspace of the same tenant — a
   // reference no policy refuses, since foreign keys are checked by the system rather than through RLS.
   '202608110008_workspace_scoped_references',
+  // Batch G. The store routes six Engine 26-30 collections to tables `202608030005` created and this
+  // migration converges and governs. Required rather than optional for two reasons: the columns the
+  // repositories read and write do not exist without it, and it is what makes a payment trigger rule
+  // activatable at all — a host missing it cannot move a rule out of DRAFT, so no rule can ever be
+  // evaluated and every eligibility record cites an authority that is permanently inert.
+  '202608110009_wave6_batch_g_performance_readiness',
+  // Scopes six unique keys that still partitioned the whole platform. Required rather than optional
+  // because a host without it refuses ordinary writes from a second tenant — whichever tenant reaches a
+  // `(contract_id, version)` pair first holds it against every other one, permanently.
+  '202608110010_tenant_scoped_unique_keys',
 ]);
 
 export type SchemaCompatibility = {
@@ -403,6 +414,7 @@ export const REQUIRED_DOMAIN_AGGREGATE_TABLES = Object.freeze(
     ...BATCH_D_TABLES,
     ...BATCH_E_TABLES,
     ...BATCH_F_TABLES,
+    ...BATCH_G_TABLES,
   ].sort(),
 );
 
