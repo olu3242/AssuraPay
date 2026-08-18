@@ -9,6 +9,7 @@ import {
   BATCH_E_TABLES,
   BATCH_F_TABLES,
   BATCH_G_TABLES,
+  BATCH_H_TABLES,
 } from '@assurapay/domain-contracts';
 import type { SqlClient } from './postgres-client';
 
@@ -353,6 +354,12 @@ export const REQUIRED_TRUST_MIGRATIONS: readonly string[] = Object.freeze([
   // because a host without it refuses ordinary writes from a second tenant — whichever tenant reaches a
   // `(contract_id, version)` pair first holds it against every other one, permanently.
   '202608110010_tenant_scoped_unique_keys',
+  // Batch H. The store routes eleven Engine 06-10 collections to tables `202608030006` and `202608030007`
+  // created and this migration converges and governs. Required rather than optional, and the most
+  // consequential of the set: without it eight of the eleven tables have no mutation boundary at all, and a
+  // BLOCKED payment authorization proposal is one UPDATE away from authorising a release for uncertified
+  // work.
+  '202608110011_wave6_batch_h_governance_core',
 ]);
 
 export type SchemaCompatibility = {
@@ -415,6 +422,7 @@ export const REQUIRED_DOMAIN_AGGREGATE_TABLES = Object.freeze(
     ...BATCH_E_TABLES,
     ...BATCH_F_TABLES,
     ...BATCH_G_TABLES,
+    ...BATCH_H_TABLES,
   ].sort(),
 );
 

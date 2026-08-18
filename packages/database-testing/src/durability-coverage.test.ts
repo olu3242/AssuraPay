@@ -53,10 +53,12 @@ const KNOWN_UNMAPPED: readonly string[] = Object.freeze([
   // `agreements` — the canonical chain's first link — are removed from this baseline rather than left in
   // it. Two of the fifteen, `contractComments` and `signatureCallbacks`, had no *table* either, so they
   // were unstorable rather than merely unrouted.
-  // governance-core (11) — Engines 06-10.
-  'certificationDecisions', 'certificationRequests', 'digitalCertifications', 'dodEvaluations',
-  'dodVersions', 'executionHistory', 'governedExecutions', 'governedMilestones',
-  'milestoneDependencies', 'paymentAuthorizationProposals', 'paymentTriggerDefinitions',
+  // governance-core — CLOSED by Batch H (`202608110011`). Its eleven aggregates are removed from this
+  // baseline rather than left in it. The batch that mattered most for the platform's second hard
+  // constraint: eight of the eleven tables had no mutation boundary at all, including
+  // `paymentAuthorizationProposals`, which `createEscrowReleaseIntent` reads — and nothing else — before
+  // instructing a certified Financial Provider. A BLOCKED proposal was one UPDATE from authorising a
+  // release for uncertified work.
   // performance-blueprint — CLOSED by Batch E (`202608110004`). Its six aggregates, three of them
   // canonical chain links, are removed from this baseline rather than left in it: the third assertion
   // below fails on a baseline entry the store now maps, which is what makes the list a ratchet instead

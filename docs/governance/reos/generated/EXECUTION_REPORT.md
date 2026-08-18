@@ -6,26 +6,29 @@
 
 | Field | Value |
 | --- | --- |
-| Branch | fix/wave5-codex-followups |
-| HEAD | c0c9ef6531899b87254a0f20f2cffec746ad8654 |
+| Branch | feat/h1-batch-h-governance-core |
+| HEAD | 34fb3610d9d1a0f466698edca9d58e078e3e4c46 |
 | Worktree clean | no |
-| Uncommitted files | 22 |
-| Generated at | 2026-08-18T02:09:19.487Z |
+| Uncommitted files | 20 |
+| Generated at | 2026-08-18T02:38:47.283Z |
 
 ## Capability implemented
 
 `persistence.domain-store-durability` — lifecycle **planned**
 
-## Files modified (36)
+## Files modified (45)
 
+- `docs/governance/execution-ledger/34fb3610d9d1-persistence.domain-store-durability.json`
 - `docs/governance/execution-ledger/INDEX.md`
 - `docs/governance/execution-ledger/c0c9ef653189-persistence.domain-store-durability.json`
 - `docs/governance/reos/generated/CERTIFICATION_REPORT.md`
 - `docs/governance/reos/generated/EXECUTION_MANIFEST.md`
+- `docs/governance/reos/generated/EXECUTION_REPORT.md`
 - `docs/governance/reos/generated/certification.json`
 - `docs/governance/reos/generated/dependency-resolution.json`
 - `docs/governance/reos/generated/discovery.json`
 - `docs/governance/reos/generated/execution-manifest.json`
+- `docs/governance/reos/generated/execution-report.json`
 - `docs/governance/reos/generated/forensics.json`
 - `docs/persistence/DURABILITY_GAP_ANALYSIS.md`
 - `packages/agreement-creation/src/index.ts`
@@ -38,14 +41,19 @@
 - `packages/database-testing/src/wave5-batch-d-repository.postgres.test.ts`
 - `packages/database-testing/src/wave6-batch-f-repository.postgres.test.ts`
 - `packages/database-testing/src/wave6-batch-g-repository.postgres.test.ts`
+- `packages/database-testing/src/wave6-batch-h-repository.postgres.test.ts`
 - `packages/database/src/batch-f-repository.ts`
 - `packages/database/src/batch-g-repository.ts`
+- `packages/database/src/batch-h-repository.ts`
 - `packages/database/src/index.ts`
 - `packages/database/src/migrations.ts`
 - `packages/database/src/postgres-store.ts`
 - `packages/domain-contracts/src/batch-c.ts`
 - `packages/domain-contracts/src/batch-g.ts`
+- `packages/domain-contracts/src/batch-h.ts`
 - `packages/domain-contracts/src/index.ts`
+- `packages/governance-core/package.json`
+- `packages/governance-core/src/persisted-contracts.test.ts`
 - `packages/performance-readiness/package.json`
 - `packages/performance-readiness/src/persisted-contracts.test.ts`
 - `pnpm-lock.yaml`
@@ -54,15 +62,16 @@
 - `supabase/migrations/202608110008_workspace_scoped_references.sql`
 - `supabase/migrations/202608110009_wave6_batch_g_performance_readiness.sql`
 - `supabase/migrations/202608110010_tenant_scoped_unique_keys.sql`
+- `supabase/migrations/202608110011_wave6_batch_h_governance_core.sql`
 
 ## Validation
 
 | Validator | Result | Checked | Errors | Warnings |
 | --- | --- | --- | --- | --- |
-| architecture | pass | 239 | 0 | 0 |
+| architecture | pass | 243 | 0 | 0 |
 | dependencies | pass | 27 | 0 | 0 |
-| security | pass | 293 | 0 | 0 |
-| execution-contract | pass | 27 | 0 | 3 |
+| security | pass | 295 | 0 | 0 |
+| execution-contract | pass | 35 | 0 | 3 |
 
 ### Findings
 
@@ -92,8 +101,8 @@ No newly introduced violations.
 
 ## Ledger
 
-Recorded as `c0c9ef653189-persistence.domain-store-durability` in `docs/governance/execution-ledger/`.
+Recorded as `34fb3610d9d1-persistence.domain-store-durability` in `docs/governance/execution-ledger/`.
 
 ## Commit
 
-`c0c9ef6531899b87254a0f20f2cffec746ad8654`
+`34fb3610d9d1a0f466698edca9d58e078e3e4c46`
