@@ -4,9 +4,11 @@
   "private": true,
   "main": "src/index.ts",
   "dependencies": {
+    "@assurapay/agreement-creation": "workspace:*",
     "@assurapay/database": "workspace:*",
     "@assurapay/domain-contracts": "workspace:*",
-    "postgres": "^3.4.9",
-    "@assurapay/shared": "workspace:*"
+    "@assurapay/performance-readiness": "workspace:*",
+    "@assurapay/shared": "workspace:*",
+    "postgres": "^3.4.9"
   }
 }

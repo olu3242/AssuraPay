@@ -1,3 +1,4 @@
+import { createHmac } from 'node:crypto';
 import { afterAll, describe, expect, it } from 'vitest';
 import {
   BATCH_F_RELATIONS,
@@ -17,6 +18,8 @@ import {
 } from '@assurapay/domain-contracts';
 import type { SqlClient } from '@assurapay/database';
 import type { TrustPersistence } from '@assurapay/shared';
+import { DigitalExecutionEngine } from '@assurapay/agreement-creation';
+import type { SignatureProvider } from '@assurapay/agreement-creation';
 import { createTestDatabaseInstance, migrationsDirectory, requireTestDatabaseUrl } from './index';
 import type { TestDatabase } from './index';
 
@@ -446,11 +449,17 @@ describe('integration: Batch F is activated and the canonical chain closes', () 
 
     for (const aggregate of BATCH_F_AGGREGATES)
       expect(REQUIRED_DOMAIN_AGGREGATE_TABLES, aggregate.table).toContain(aggregate.table);
-    // Forty-one from Batches A-E plus these fifteen. Asserted as a containment and a total rather than
-    // as an exact count of some earlier batch's registry, which is the correction Batch E made to Batch
-    // D's suite: a bare count becomes false the moment the next batch lands.
-    expect(REQUIRED_DOMAIN_AGGREGATE_TABLES).toHaveLength(56);
-    expect(new Set(REQUIRED_DOMAIN_AGGREGATE_TABLES).size).toBe(56);
+    // Containment and uniqueness, and no total. The comment here used to explain that a bare count
+    // "becomes false the moment the next batch lands" and then asserted 56 anyway — which Batch G's six
+    // tables duly falsified. The count was never the property worth checking: that every Batch F table is
+    // required, and that the list names nothing twice, is what this test is for, and both survive the
+    // next batch.
+    expect(new Set(REQUIRED_DOMAIN_AGGREGATE_TABLES).size).toBe(
+      REQUIRED_DOMAIN_AGGREGATE_TABLES.length,
+    );
+    expect(REQUIRED_DOMAIN_AGGREGATE_TABLES.length).toBeGreaterThanOrEqual(
+      BATCH_F_AGGREGATES.length,
+    );
 
     const database = await schemaOnly();
     const compatible = await verifySchemaCompatibility(database.sql, migrationsDirectory());
@@ -1125,6 +1134,132 @@ describe('integration: Batch F invariants the schema alone cannot carry', () => 
     );
     expect(duplicate).toBeInstanceOf(PostgresStoreError);
     expect((duplicate as PostgresStoreError).code).toBe('PERSISTENCE_DUPLICATE_RECORD');
+  }, 300_000);
+});
+
+describe('integration: a provider callback is atomic and does not lose a concurrent signature', () => {
+  // Its own database. This block drives the engine rather than the store, and it needs a package with
+  // two outstanding signatories, which is not the shape `executeAgreement` leaves behind.
+  const seeded = sharedDatabase(async (database) => {
+    await executeAgreement(database);
+    await as(database, (store) =>
+      store.replace(
+        'signaturePackages',
+        record.signaturePackage({
+          status: 'SENT',
+          signers: [
+            { userId: 'signer-1', authorityReference: 'board-resolution-14', witnessRequired: false },
+            { userId: 'signer-2', authorityReference: 'board-resolution-15', witnessRequired: false },
+          ],
+        }),
+      ),
+    );
+  });
+
+  const SECRET = 'webhook-secret';
+  const CONTEXT = {
+    actorUserId: ACTOR,
+    sessionId: 'session-f',
+    identityAssuranceLevel: 'IAL2_VERIFIED' as const,
+    activeWorkspaceId: WORKSPACE,
+    tenantId: TENANT,
+    memberships: [WORKSPACE],
+    correlationId: 'correlation-f',
+  };
+  const provider: SignatureProvider = {
+    providerKey: 'sandbox',
+    send: async () => ({ reference: 'provider-reference' }),
+  };
+
+  function signed(payload: Record<string, unknown>): [Record<string, unknown>, string] {
+    return [payload, createHmac('sha256', SECRET).update(JSON.stringify(payload)).digest('hex')];
+  }
+
+  it('applies both signatures when two callbacks arrive at once', async () => {
+    const database = await seeded();
+    const [first, firstSignature] = signed({
+      eventId: 'evt-signer-1',
+      userId: 'signer-1',
+      action: 'SIGNED',
+      documentHash: DOC_HASH,
+    });
+    const [second, secondSignature] = signed({
+      eventId: 'evt-signer-2',
+      userId: 'signer-2',
+      action: 'SIGNED',
+      documentHash: DOC_HASH,
+    });
+
+    // Two stores, because two concurrent callbacks are two connections. One store would serialise them
+    // on the client and prove nothing about the database.
+    const deliver = (payload: Record<string, unknown>, signature: string) =>
+      as(database, (store) =>
+        new DigitalExecutionEngine(store, provider, SECRET).callback(
+          CONTEXT,
+          'sp-1',
+          payload as never,
+          signature,
+        ),
+      );
+
+    await Promise.all([deliver(first, firstSignature), deliver(second, secondSignature)]);
+
+    const [stored] = await as(database, (store) =>
+      store.list<{ signers: { userId: string; signedAt?: string }[]; status: string }>(
+        'signaturePackages',
+      ),
+    );
+    // The assertion the lost update failed: before the row was locked, whichever callback committed
+    // second wrote back the signer array it had read before the first one landed, and that signatory's
+    // timestamp vanished with it. Both callbacks had already recorded their event as consumed, so no
+    // retry could restore it and the package could never complete.
+    expect(stored.signers.filter((signer) => signer.signedAt)).toHaveLength(2);
+    expect(stored.status).toBe('COMPLETED');
+  }, 300_000);
+
+  it('leaves the event unconsumed when the package rewrite fails', async () => {
+    const database = await seeded();
+    const [payload, signature] = signed({
+      eventId: 'evt-rollback',
+      userId: 'signer-1',
+      action: 'SIGNED',
+      documentHash: DOC_HASH,
+    });
+
+    // A store whose package rewrite always fails, standing in for a transient database error after the
+    // marker was written. The marker and the rewrite share a transaction, so the marker must roll back.
+    const failing = (store: TrustPersistence): TrustPersistence => ({
+      ...store,
+      list: (collection) => store.list(collection),
+      append: (collection, value) => store.append(collection, value),
+      audit: (input) => store.audit(input),
+      emit: (input) => store.emit(input),
+      transaction: (operation) => store.transaction((tx) => operation(failing(tx))),
+      replace: async (collection) => {
+        if (collection === 'signaturePackages') throw new Error('TRANSIENT_DATABASE_FAILURE');
+      },
+    });
+
+    const failed = await as(database, (store) =>
+      new DigitalExecutionEngine(failing(store), provider, SECRET).callback(
+        CONTEXT,
+        'sp-1',
+        payload as never,
+        signature,
+      ),
+    ).catch((caught: unknown) => caught);
+    // The store reports its own failure code rather than the driver's or the caller's text — a
+    // transaction that could not commit is `PERSISTENCE_TRANSACTION_FAILED`, and the underlying cause is
+    // sanitised on the way out so a database message cannot reach a caller. What this test is about is
+    // the state left behind, asserted next.
+    expect((failed as PostgresStoreError).code).toBe('PERSISTENCE_TRANSACTION_FAILED');
+
+    const markers = await as(database, (store) =>
+      store.list<{ eventId: string }>('signatureCallbacks'),
+    );
+    // Unconsumed, so the provider's next delivery of this event is still a first delivery. Committed
+    // separately, the marker survived the failure and every retry returned the unchanged package.
+    expect(markers.map((marker) => marker.eventId)).not.toContain('evt-rollback');
   }, 300_000);
 });
 

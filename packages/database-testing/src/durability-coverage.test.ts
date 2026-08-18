@@ -61,11 +61,11 @@ const KNOWN_UNMAPPED: readonly string[] = Object.freeze([
   // canonical chain links, are removed from this baseline rather than left in it: the third assertion
   // below fails on a baseline entry the store now maps, which is what makes the list a ratchet instead
   // of a record of good intentions.
-  // performance-readiness (6) — Engines 26-30. `paymentTriggerRules` is referenced by Batch B's
-  // `paymentEligibility.paymentTriggerRuleId`, so a durable eligibility already points at a rule that
-  // cannot be stored.
-  'acceptanceCriteria', 'baselineVariances', 'dependencies', 'paymentTriggerRules',
-  'performanceBaselines', 'successMetrics',
+  // performance-readiness — CLOSED by Batch G (`202608110009`). Its six aggregates are removed from this
+  // baseline rather than left in it. `paymentEligibility.paymentTriggerRuleId` is now a foreign key
+  // rather than a bare identifier, so a durable eligibility no longer points at a rule that cannot be
+  // stored — and the rule can now reach ACTIVE, which the blanket append-only trigger `202608030005`
+  // installed had made impossible.
   // agreement-intelligence (5) — Engines 16-20.
   'agreementIntelligenceVersions', 'analysisReviews', 'contractAnalysisRuns',
   'contractRiskAssessments', 'repositoryDocuments',
@@ -115,21 +115,47 @@ const CANONICAL_CHAIN: readonly string[] = Object.freeze([
 function collectionsEnginesWrite(): Map<string, string[]> {
   const byCollection = new Map<string, string[]>();
   for (const pkg of readdirSync('packages').sort()) {
-    let source = '';
-    try {
-      source = readFileSync(`packages/${pkg}/src/index.ts`, 'utf8');
-    } catch {
-      continue;
-    }
-    if (!source.includes('TrustPersistence')) continue;
-    for (const match of source.matchAll(/\.(?:append|replace)(?:<[^>]*>)?\(\s*'([a-zA-Z]+)'/g)) {
-      const collection = match[1];
-      const owners = byCollection.get(collection) ?? [];
-      if (!owners.includes(pkg)) owners.push(pkg);
-      byCollection.set(collection, owners);
+    for (const file of productionSources(`packages/${pkg}/src`)) {
+      const source = readFileSync(file, 'utf8');
+      if (!source.includes('TrustPersistence')) continue;
+      for (const match of source.matchAll(/\.(?:append|replace)(?:<[^>]*>)?\(\s*'([a-zA-Z]+)'/g)) {
+        const collection = match[1];
+        const owners = byCollection.get(collection) ?? [];
+        if (!owners.includes(pkg)) owners.push(pkg);
+        byCollection.set(collection, owners);
+      }
     }
   }
   return byCollection;
+}
+
+/**
+ * Every production TypeScript file under a package's `src`, recursively.
+ *
+ * This walks rather than reading `src/index.ts`, and that is a correction rather than a refinement.
+ * Reading only the index assumed every engine stays in one file — true of this repository today, and an
+ * assumption the gate cannot afford: a write moved into a sibling module would vanish from the scan, and
+ * the gate would then report full coverage of a collection nothing had checked. A coverage test whose
+ * blind spot is "the code moved" is worse than no coverage test, because it is trusted.
+ *
+ * Tests are excluded because a test may legitimately write a collection the store does not map — that is
+ * what `InMemoryTrustStore` is for — and counting those would manufacture gaps that do not exist in
+ * production.
+ */
+function productionSources(directory: string): string[] {
+  let entries;
+  try {
+    entries = readdirSync(directory, { withFileTypes: true });
+  } catch {
+    return [];
+  }
+  const files: string[] = [];
+  for (const entry of entries.sort((a, b) => a.name.localeCompare(b.name))) {
+    const path = `${directory}/${entry.name}`;
+    if (entry.isDirectory()) files.push(...productionSources(path));
+    else if (entry.name.endsWith('.ts') && !/\.(?:test|spec)\.ts$/.test(entry.name)) files.push(path);
+  }
+  return files;
 }
 
 describe('durability coverage: the store accepts what the engines write', () => {

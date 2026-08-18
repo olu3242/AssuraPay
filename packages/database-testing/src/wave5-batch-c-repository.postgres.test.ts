@@ -108,6 +108,77 @@ async function foundSettlementChain(
     // tenant's chain needs its own ids rather than the same ones.
     const k = (base: string) => `${base}${suffix}`;
     await store.append('trustWorkspaces', { id: workspaceId, tenantId, status: 'ACTIVE', version: 1 });
+    // The authority the eligibility cites, made storable by Batch G. `202608110009` turned
+    // `paymentEligibilities.paymentTriggerRuleId` into a foreign key, so the chain has to reach the rule
+    // — and the rule hangs off a blueprint milestone, which hangs off a deliverable and a blueprint. That
+    // the fixture must now build this is the point: an eligibility whose rule does not exist is exactly
+    // what the key refuses.
+    await store.append('performanceBlueprints', {
+      id: k('bp-1'),
+      workspaceId,
+      contractId: k('c-1'),
+      contractVersionId: k('cv-1'),
+      agreementIntelligenceVersionId: k('aiv-1'),
+      version: 1,
+      status: 'ACTIVE',
+      createdBy: ACTOR,
+      createdAt: stamp,
+      contentHash: 'a3f1c9',
+    });
+    await store.append('scopeItems', {
+      id: k('si-1'),
+      workspaceId,
+      blueprintId: k('bp-1'),
+      kind: 'INCLUDED',
+      description: 'Foundation works to slab level',
+      assumptions: ['Site access from week 1'],
+      constraints: ['No weekend working'],
+      ownerId: ACTOR,
+      status: 'DRAFT',
+      createdAt: stamp,
+    });
+    await store.append('deliverables', {
+      id: k('dl-1'),
+      workspaceId,
+      blueprintId: k('bp-1'),
+      scopeItemId: k('si-1'),
+      title: 'Reinforced slab',
+      quantity: 2.5,
+      unit: 'tonnes',
+      qualityStandard: 'BS 8500-1',
+      ownerId: ACTOR,
+      dueDate: '2026-09-30',
+      acceptanceCriteria: ['Cube test at 28 days'],
+      evidenceRequirements: ['Laboratory certificate'],
+      status: 'DRAFT',
+      createdAt: stamp,
+    });
+    await store.append('blueprintMilestones', {
+      id: k('ms-1'),
+      workspaceId,
+      blueprintId: k('bp-1'),
+      title: 'Slab complete',
+      deliverableIds: [k('dl-1')],
+      startDate: '2026-09-01',
+      dueDate: '2026-09-30',
+      budgetAmountMinor: 5_000_000,
+      currency: 'NGN',
+      valueAllocationPercent: 25,
+      status: 'SCHEDULED',
+      createdAt: stamp,
+    });
+    await store.append('paymentTriggerRules', {
+      id: k('ptr-1'),
+      workspaceId,
+      milestoneId: k('ms-1'),
+      name: 'On milestone completion',
+      ruleType: 'MILESTONE_COMPLETION',
+      requiredAcceptanceCriterionIds: [],
+      amountMinor: 5_000_000,
+      currency: 'NGN',
+      status: 'ACTIVE',
+      createdAt: stamp,
+    });
     await store.append('paymentEligibilities', {
       id: k('pe-1'),
       workspaceId,
@@ -552,11 +623,16 @@ describe('integration: Batch C money and settlement invariants', () => {
   it('carries currency in the reconciliation key, closing the gap Batch C recorded', async () => {
     // `202608110003`. Two money amounts with no unit was the gap; the key can now express that a
     // reconciliation and the payment it reconciles agree on currency.
+    //
+    // `202608110008` then added `workspace_id`, so the key carries three scopes and the currency. The
+    // currency clause is what this test is about and is asserted on its own, rather than by matching the
+    // whole column list, so that a later scope addition does not read as this gap reopening.
     const [def] = await database.sql<{ d: string }[]>`
       SELECT pg_get_constraintdef(oid) AS d FROM pg_constraint
       WHERE conname = 'reconciliation_records_instruction_currency_fk'
     `;
-    expect(def.d).toContain('(tenant_id, payment_instruction_id, currency)');
+    expect(def.d).toContain('payment_instruction_id, currency)');
+    expect(def.d).toContain('(tenant_id, workspace_id,');
   }, 300_000);
 
   it('reconciles a statement once per instruction and refuses the second', async () => {
@@ -604,9 +680,59 @@ describe('integration: Batch C money and settlement invariants', () => {
     expect(String(error)).toContain('closed_at_follows_status');
   }, 300_000);
 
+  it('refuses a closed account that still owes something', async () => {
+    // `close()` refuses an outstanding balance, and until `202608110007` that rule was only in the
+    // engine. The arithmetic check alone does not catch this: entitlement 1000, settled 400,
+    // outstanding 600 is internally consistent and still not a closure.
+    const error = await raw(database, (tx) => tx`
+      INSERT INTO final_settlement_accounts
+        (id, tenant_id, workspace_id, milestone_id, total_entitlement_amount_minor,
+         total_settled_amount_minor, outstanding_amount_minor, currency, status, closed_at, created_at,
+         version, schema_version, updated_at)
+      VALUES ('fsa-owing', ${TENANT}, ${WORKSPACE}, 'ms-1', 1000, 400, 600, 'NGN', 'CLOSED',
+              ${stamp}, ${stamp}, 1, 1, ${stamp})
+    `).catch((caught: unknown) => caught);
+    expect(String(error)).toContain('closed_owes_nothing');
+  }, 300_000);
+
+  it('refuses a closure certificate for an account that is not closed', async () => {
+    await raw(database, (tx) => tx`
+      INSERT INTO final_settlement_accounts
+        (id, tenant_id, workspace_id, milestone_id, total_entitlement_amount_minor,
+         total_settled_amount_minor, outstanding_amount_minor, currency, status, created_at,
+         version, schema_version, updated_at)
+      VALUES ('fsa-draft', ${TENANT}, ${WORKSPACE}, 'ms-1', 1000, 0, 1000, 'NGN', 'DRAFT',
+              ${stamp}, 1, 1, ${stamp})
+    `);
+
+    // `issueCertificate()` checks the status and nothing else, so a certificate written around the
+    // engine was previously accepted and then indistinguishable from a true one. The foreign key now
+    // carries the required status, so the account has to actually be closed.
+    const error = await raw(database, (tx) => tx`
+      INSERT INTO financial_closure_certificates
+        (id, tenant_id, workspace_id, milestone_id, final_settlement_account_id, canonical_hash,
+         status, issued_by, issued_at, version, schema_version, updated_at)
+      VALUES ('fcc-draft', ${TENANT}, ${WORKSPACE}, 'ms-1', 'fsa-draft', 'c4d5e6', 'ISSUED',
+              ${ACTOR}, ${stamp}, 1, 1, ${stamp})
+    `).catch((caught: unknown) => caught);
+    expect(String(error)).toContain('closed_account_fk');
+  }, 300_000);
+
   it('issues one closure certificate per account and refuses a concurrent second', async () => {
     await as(database, async (store) => {
-      await store.append('finalSettlementAccounts', account());
+      // Closed, and settled in full. `202608110007` made the certificate's key demand a CLOSED account,
+      // so the DRAFT fixture this test used to open with is no longer a state a certificate can exist
+      // against — which is the constraint working, not a fixture inconvenience. What the test is about is
+      // unchanged: one ISSUED certificate per account.
+      await store.append(
+        'finalSettlementAccounts',
+        account({
+          totalSettledAmountMinor: 1_000_000,
+          outstandingAmountMinor: 0,
+          status: 'CLOSED',
+          closedAt: stamp,
+        }),
+      );
       await store.append('financialClosureCertificates', {
         id: 'fcc-1',
         workspaceId: WORKSPACE,
@@ -655,6 +781,68 @@ describe('integration: Batch C money and settlement invariants', () => {
       OTHER_WORKSPACE,
     ).catch((caught: unknown) => caught);
     expect(String(error)).toMatch(/reconciliation_records_instruction_currency_fk/);
+  }, 300_000);
+
+  it('refuses a child row referencing a parent in another workspace of the same tenant', async () => {
+    // The gap `202608110008` closes, and the one the cross-tenant test above could not catch. Same
+    // tenant, so the tenant half of the old composite key agreed; different workspace, which the key did
+    // not mention. RLS does not close it either — the child row's own `workspace_id` is the caller's, so
+    // the policy is satisfied — and `LedgerPostingEngine.post` never loads the instruction, so nothing
+    // in the application compares the two.
+    const SECOND_WORKSPACE = 'workspace-c-second';
+    await foundSettlementChain(database, TENANT, SECOND_WORKSPACE, '-second');
+    // `foundSettlementChain` stops at the release request, so the second workspace needs its own
+    // instruction for the intra-workspace half of this test to have a legitimate parent to reference.
+    await as(
+      database,
+      (store) =>
+        store.append(
+          'paymentInstructions',
+          instruction({
+            id: 'pi-1-second',
+            workspaceId: SECOND_WORKSPACE,
+            releaseRequestId: 'rr-1-second',
+            idempotencyKey: 'idem-second',
+            payloadDigest: 'digest-pi-1-second',
+          }),
+        ),
+      TENANT,
+      SECOND_WORKSPACE,
+    );
+
+    // `pi-1` exists in this tenant, in WORKSPACE. The reference is refused for naming a parent this
+    // workspace cannot see rather than for the row not existing, which is the distinction that matters:
+    // accepted, it would have produced a ledger entry in one workspace citing an instruction in another.
+    const error = await raw(
+      database,
+      (tx) => tx`
+        INSERT INTO reconciliation_records
+          (id, tenant_id, workspace_id, payment_instruction_id, provider_statement_reference,
+           currency, provider_reported_amount_minor, recorded_amount_minor, matched, reconciled_at,
+           version, schema_version, updated_at)
+        VALUES ('rec-cross-ws', ${TENANT}, ${SECOND_WORKSPACE}, 'pi-1', 'stmt-cross-ws', 'NGN', 1, 1,
+                true, ${stamp}, 1, 1, ${stamp})
+      `,
+      TENANT,
+      SECOND_WORKSPACE,
+    ).catch((caught: unknown) => caught);
+    expect(String(error)).toMatch(/reconciliation_records_instruction_currency_fk/);
+
+    // And the same reference within one workspace still works, so the constraint narrowed the key
+    // rather than breaking the relationship.
+    await raw(
+      database,
+      (tx) => tx`
+        INSERT INTO reconciliation_records
+          (id, tenant_id, workspace_id, payment_instruction_id, provider_statement_reference,
+           currency, provider_reported_amount_minor, recorded_amount_minor, matched, reconciled_at,
+           version, schema_version, updated_at)
+        VALUES ('rec-same-ws', ${TENANT}, ${SECOND_WORKSPACE}, 'pi-1-second', 'stmt-same-ws', 'NGN', 1,
+                1, true, ${stamp}, 1, 1, ${stamp})
+      `,
+      TENANT,
+      SECOND_WORKSPACE,
+    );
   }, 300_000);
 
   it('shows another tenant nothing', async () => {

@@ -125,6 +125,58 @@ describe('integration: the repository’s migration set applies to a clean datab
   });
 });
 
+/** The repository's real migration set, applied to a database of its own. */
+async function realMigrationSet(): Promise<PostgresPool> {
+  const database = await createTestDatabaseInstance();
+  cleanups.push(() => database.dispose());
+  await applyMigrations(database.sql, migrationsDirectory());
+  return database as unknown as PostgresPool;
+}
+
+describe('integration: a superseded checksum is accepted once and then converged', () => {
+  const SUPERSEDED = '559945007a0218166da75d1e5dcca9b75f4f55a44188591055d37f37bbd1430e';
+  const MIGRATION = '202608110003_wave5_close_batch_c_gaps';
+
+  it('accepts the checksum the earlier revision was applied under, and rewrites the ledger', async () => {
+    // Its own database, not a schema. The historical migrations are not schema-relocatable — they
+    // reference tables by unqualified name — so the real set has to run where it was written to run.
+    const pool = await realMigrationSet();
+
+    // Stands in for a host that applied the original file. That revision refused outright on a populated
+    // `payment_instructions`, so the only hosts holding this checksum are ones that got through it while
+    // the table was empty — and on an empty table the revised file produces the same schema.
+    await pool.sql`
+      UPDATE trust_migration_ledger SET checksum = ${SUPERSEDED} WHERE migration_id = ${MIGRATION}
+    `;
+
+    const outcomes = await applyMigrations(pool.sql, migrationsDirectory());
+    expect(outcomes.find((outcome) => outcome.id === MIGRATION)?.skippedReason).toBe('ALREADY_APPLIED');
+
+    const [row] = await pool.sql<{ checksum: string }[]>`
+      SELECT checksum FROM trust_migration_ledger WHERE migration_id = ${MIGRATION}
+    `;
+    // Converged, so the allowance is spent rather than consulted forever. Left at the old value, every
+    // startup would re-derive the same exception from a ledger that still disagreed with the file.
+    expect(row.checksum).not.toBe(SUPERSEDED);
+    const current = readMigrations(migrationsDirectory()).find((entry) => entry.id === MIGRATION);
+    expect(row.checksum).toBe(current?.checksum);
+  });
+
+  it('still refuses a checksum that is not the recorded superseded one', async () => {
+    const pool = await realMigrationSet();
+
+    await pool.sql`
+      UPDATE trust_migration_ledger SET checksum = ${'f'.repeat(64)} WHERE migration_id = ${MIGRATION}
+    `;
+
+    const error = await applyMigrations(pool.sql, migrationsDirectory()).catch(
+      (caught: unknown) => caught,
+    );
+    // The allowance is one named checksum, not a general amnesty for this migration.
+    expect((error as MigrationError).code).toBe('MIGRATION_CHECKSUM_MISMATCH');
+  });
+});
+
 describe('integration: an edited migration is refused, not reapplied', () => {
   it('rejects a migration whose file changed after it was applied', async () => {
     // The database already has the original's effects. No sequence of statements here

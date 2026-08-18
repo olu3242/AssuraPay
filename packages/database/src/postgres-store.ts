@@ -15,6 +15,7 @@ import { BATCH_C_RELATIONS, batchCRelation, isBatchCCollection } from './batch-c
 import { BATCH_D_RELATIONS, batchDRelation, isBatchDCollection } from './batch-d-repository';
 import { BATCH_E_RELATIONS, batchERelation, isBatchECollection } from './batch-e-repository';
 import { BATCH_F_RELATIONS, batchFRelation, isBatchFCollection } from './batch-f-repository';
+import { BATCH_G_RELATIONS, batchGRelation, isBatchGCollection } from './batch-g-repository';
 import { PostgresStoreError } from './store-error';
 
 export { PostgresStoreError } from './store-error';
@@ -250,6 +251,38 @@ export const POSTGRES_TRUST_COLLECTIONS: readonly string[] = Object.freeze(
     // `signatureCallbacks` — had no table at all until `202608110005`, so a comment on a contract and a
     // consumed provider callback could not be stored anywhere.
     ...Object.keys(BATCH_F_RELATIONS),
+    // Batch G. Six more, and the batch that makes a payment trigger rule storable at all — the record
+    // `paymentEligibility` names as the authority a release rests on. Three of the six could not even be
+    // transitioned before `202608110009`, so the engines that confirm a criterion, confirm a metric and
+    // activate a rule all refused on the durable path.
+    ...Object.keys(BATCH_G_RELATIONS),
+  ].sort(),
+);
+
+/**
+ * Every table any routing path in this store can reach.
+ *
+ * Derived from the routes themselves rather than listed, because a list would be the thing it is meant
+ * to check. Readiness verifies `REQUIRED_STORE_TABLES` exists before the host reports itself ready, and
+ * a table that is routed but not required is discovered on the first write instead — after the caller
+ * was told the host was healthy. `store-boundary.postgres.test.ts` asserts the containment this exists
+ * to make assertable.
+ */
+export const POSTGRES_ROUTED_TABLES: readonly string[] = Object.freeze(
+  [
+    ...new Set([
+      ...Object.values(DEDICATED).map((mapping) => mapping.table),
+      // The governed documents, the history collections and everything the batches do not own are served
+      // by `trust_records` through the generic statements.
+      'trust_records',
+      ...Object.values(BATCH_A_RELATIONS).map((relation) => relation.table),
+      ...Object.values(BATCH_B_RELATIONS).map((relation) => relation.table),
+      ...Object.values(BATCH_C_RELATIONS).map((relation) => relation.table),
+      ...Object.values(BATCH_D_RELATIONS).map((relation) => relation.table),
+      ...Object.values(BATCH_E_RELATIONS).map((relation) => relation.table),
+      ...Object.values(BATCH_F_RELATIONS).map((relation) => relation.table),
+      ...Object.values(BATCH_G_RELATIONS).map((relation) => relation.table),
+    ]),
   ].sort(),
 );
 
@@ -342,6 +375,16 @@ export type PostgresTrustStoreOptions = {
    */
   withinTransaction?: boolean;
 };
+
+/**
+ * Collections whose rows are locked when they are read inside a transaction.
+ *
+ * Membership is not a performance decision but a correctness one: it names the aggregates an engine
+ * reads, derives a new value from, and writes back, where two concurrent writers would otherwise each
+ * compute from the same stale read and the later write would erase the earlier one. Adding a collection
+ * here is only sound if its engine performs that whole sequence inside one `transaction`.
+ */
+const LOCK_ON_TRANSACTIONAL_READ = new Set<string>(['signaturePackages']);
 
 export class PostgresTrustStore implements TrustPersistence {
   private readonly now: () => Date;
@@ -455,7 +498,14 @@ export class PostgresTrustStore implements TrustPersistence {
       if (isBatchECollection(collection))
         return (await batchERelation(collection).list(this.sql)) as unknown as T[];
       if (isBatchFCollection(collection))
-        return (await batchFRelation(collection).list(this.sql)) as unknown as T[];
+        return (await batchFRelation(collection).list(this.sql, {
+          // Only inside a transaction, where a lock has a scope to be held for. A read-modify-write
+          // that is not wrapped in one cannot be made safe by locking, and asking for a lock outside
+          // a transaction would hold rows until the statement ended and imply a safety it lacks.
+          lock: this.withinTransaction && LOCK_ON_TRANSACTIONAL_READ.has(collection),
+        })) as unknown as T[];
+      if (isBatchGCollection(collection))
+        return (await batchGRelation(collection).list(this.sql)) as unknown as T[];
       this.requireGoverned(collection);
       const rows = await this.sql<StoredRow[]>`
         SELECT payload, payload_digest FROM trust_records
@@ -544,6 +594,15 @@ export class PostgresTrustStore implements TrustPersistence {
 
       if (isBatchFCollection(collection)) {
         await batchFRelation(collection).insert(
+          this.sql,
+          record,
+          this.requireRelationalTenant(collection, record),
+        );
+        return;
+      }
+
+      if (isBatchGCollection(collection)) {
+        await batchGRelation(collection).insert(
           this.sql,
           record,
           this.requireRelationalTenant(collection, record),
@@ -662,7 +721,8 @@ export class PostgresTrustStore implements TrustPersistence {
         isBatchCCollection(collection) ||
         isBatchDCollection(collection) ||
         isBatchECollection(collection) ||
-        isBatchFCollection(collection)
+        isBatchFCollection(collection) ||
+        isBatchGCollection(collection)
       ) {
         // The tenant is re-derived and checked even though the UPDATE does not write it: a
         // caller replacing a record outside its scope must be refused for that reason, not
@@ -678,7 +738,9 @@ export class PostgresTrustStore implements TrustPersistence {
                 ? batchDRelation(collection)
                 : isBatchECollection(collection)
                   ? batchERelation(collection)
-                  : batchFRelation(collection);
+                  : isBatchFCollection(collection)
+                    ? batchFRelation(collection)
+                    : batchGRelation(collection);
         const affected = await relation.update(this.sql, record);
         this.requireAffected(affected, collection, id);
         return;

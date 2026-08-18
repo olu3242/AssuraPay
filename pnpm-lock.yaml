@@ -204,12 +204,18 @@ importers:
 
   packages/database-testing:
     dependencies:
+      '@assurapay/agreement-creation':
+        specifier: workspace:*
+        version: link:../agreement-creation
       '@assurapay/database':
         specifier: workspace:*
         version: link:../database
       '@assurapay/domain-contracts':
         specifier: workspace:*
         version: link:../domain-contracts
+      '@assurapay/performance-readiness':
+        specifier: workspace:*
+        version: link:../performance-readiness
       '@assurapay/shared':
         specifier: workspace:*
         version: link:../shared
@@ -339,6 +345,9 @@ importers:
       '@assurapay/database':
         specifier: workspace:*
         version: link:../database
+      '@assurapay/domain-contracts':
+        specifier: workspace:*
+        version: link:../domain-contracts
       '@assurapay/shared':
         specifier: workspace:*
         version: link:../shared
