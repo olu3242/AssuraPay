@@ -172,7 +172,24 @@ of the register above. The order is not arbitrary:
   mistake, found because a two-tenant fixture did the ordinary thing and was refused. Eleven further
   tables have keys of the same shape and are deliberately left alone: no store route reaches them, so the
   batch that activates each one should carry its key across.
-- **Batches H–I: `governance-core` (11), `agreement-intelligence` (5).**
+- **Batch H: `governance-core` (11) — DONE (`202608110011`).** The tightest closure in the register: all
+  thirty-two of its foreign keys point inside the eleven or at the deprecated `workspaces` table, and
+  nothing outside references any of them. Its discovery inverted Batch G's. Where Batch G found triggers
+  that refused what its engines did, Batch H found **eight of eleven tables with no mutation boundary at
+  all** — and the three that had one were, for the first time in the register, correct.
+  What was unprotected was the release-authorisation chain. `createEscrowReleaseIntent` reads a payment
+  authorization proposal, requires `status === 'PROPOSED'`, and then instructs a certified Financial
+  Provider. No engine ever updates a proposal, so nothing in the database said so, and a BLOCKED proposal
+  carrying `['DOD_NOT_SATISFIED', 'CERTIFICATION_REQUIRED']` was one statement from authorising a release:
+  `UPDATE payment_authorization_proposals SET status = 'PROPOSED', blockers = '[]'`. `dod_evaluations
+  .mandatory_passed` — what produces `DOD_NOT_SATISFIED` — and `payment_trigger_definitions.amount_minor`
+  were exposed the same way. CLAUDE.md's second hard constraint says no unconditional release path exists;
+  on the durable store one did, needing no privilege beyond the write access the application already holds.
+  Batch H also carried across the six tenant-blind unique keys `202608110010` deferred to it, including
+  `digital_certification_records UNIQUE (certificate_number)` — global, while the engine numbers
+  certificates by counting its own rows, so every tenant produced `AP-CERT-2026-000001` and only the first
+  could store it.
+- **Batch I: `agreement-intelligence` (5).**
 - **Last: `enterprise-intelligence` (6), `enterprise-analytics` (9), `agent-runtime` (9).** Deferred by
   the accepted decision until the persistence boundary is resolved, and the register keeps them in that
   position rather than reordering by convenience.

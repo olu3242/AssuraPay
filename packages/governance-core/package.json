@@ -1,1 +1,11 @@
-{"name":"@assurapay/governance-core","version":"0.1.0","private":true,"main":"src/index.ts","dependencies":{"@assurapay/database":"workspace:*","@assurapay/shared":"workspace:*"}}
+{
+  "name": "@assurapay/governance-core",
+  "version": "0.1.0",
+  "private": true,
+  "main": "src/index.ts",
+  "dependencies": {
+    "@assurapay/database": "workspace:*",
+    "@assurapay/domain-contracts": "workspace:*",
+    "@assurapay/shared": "workspace:*"
+  }
+}

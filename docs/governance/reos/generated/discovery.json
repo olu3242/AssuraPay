@@ -2064,6 +2064,13 @@
       "id": "202608110010",
       "name": "tenant_scoped_unique_keys",
       "path": "supabase/migrations/202608110010_tenant_scoped_unique_keys.sql"
+    },
+    {
+      "declaresPolicies": 1,
+      "declaresRowLevelSecurity": true,
+      "id": "202608110011",
+      "name": "wave6_batch_h_governance_core",
+      "path": "supabase/migrations/202608110011_wave6_batch_h_governance_core.sql"
     }
   ],
   "packages": [
@@ -2254,8 +2261,8 @@
       "main": "src/index.ts",
       "moduleType": null,
       "name": "@assurapay/database",
-      "sourceFiles": 18,
-      "sourceLines": 9132,
+      "sourceFiles": 19,
+      "sourceLines": 9980,
       "testFiles": [
         "packages/database/src/async-conformance.test.ts",
         "packages/database/src/domain-repository.test.ts",
@@ -2303,14 +2310,15 @@
         "packages/database-testing/src/wave5-batch-d-repository.postgres.test.ts",
         "packages/database-testing/src/wave6-batch-e-repository.postgres.test.ts",
         "packages/database-testing/src/wave6-batch-f-repository.postgres.test.ts",
-        "packages/database-testing/src/wave6-batch-g-repository.postgres.test.ts"
+        "packages/database-testing/src/wave6-batch-g-repository.postgres.test.ts",
+        "packages/database-testing/src/wave6-batch-h-repository.postgres.test.ts"
       ],
       "tests": {
         "e2e": 0,
         "integration": 0,
         "performance": 0,
         "security": 0,
-        "unit": 15
+        "unit": 16
       },
       "workspaceDependencies": [
         "@assurapay/agreement-creation",
@@ -2366,8 +2374,8 @@
       "main": "src/index.ts",
       "moduleType": null,
       "name": "@assurapay/domain-contracts",
-      "sourceFiles": 9,
-      "sourceLines": 2388,
+      "sourceFiles": 10,
+      "sourceLines": 2809,
       "testFiles": [
         "packages/domain-contracts/src/batch-a.test.ts",
         "packages/domain-contracts/src/batch-c.test.ts"
@@ -2497,17 +2505,19 @@
       "testFiles": [
         "packages/governance-core/src/governance-core.e2e.test.ts",
         "packages/governance-core/src/governance-core.integration.test.ts",
-        "packages/governance-core/src/governance-core.test.ts"
+        "packages/governance-core/src/governance-core.test.ts",
+        "packages/governance-core/src/persisted-contracts.test.ts"
       ],
       "tests": {
         "e2e": 1,
         "integration": 1,
         "performance": 0,
         "security": 0,
-        "unit": 1
+        "unit": 2
       },
       "workspaceDependencies": [
         "@assurapay/database",
+        "@assurapay/domain-contracts",
         "@assurapay/shared"
       ]
     },
@@ -2923,7 +2933,7 @@
   "reosVersion": "1.0.0",
   "repository": {
     "git": {
-      "branch": "fix/wave5-codex-followups",
+      "branch": "feat/h1-batch-h-governance-core",
       "branches": [
         "assess/engines-31-50-certification-gap-matrix",
         "chore/post-merge-governance-artifacts-batch-a",
@@ -2936,6 +2946,7 @@
         "feat/e1-post-wave5-followups",
         "feat/f1-batch-e-performance-blueprint",
         "feat/g1-batch-f-agreement-creation",
+        "feat/h1-batch-h-governance-core",
         "feat/persistence-async-domain-repository",
         "feat/persistence-async-repository-interface",
         "feat/persistence-domain-store-durable-environment-gate",
@@ -2984,23 +2995,21 @@
         "docs/governance/reos/generated/execution-manifest.json",
         "docs/governance/reos/generated/forensics.json",
         "docs/persistence/DURABILITY_GAP_ANALYSIS.md",
-        "packages/database-testing/package.json",
         "packages/database-testing/src/durability-coverage.test.ts",
-        "packages/database-testing/src/wave5-batch-b-repository.postgres.test.ts",
-        "packages/database-testing/src/wave5-batch-c-repository.postgres.test.ts",
-        "packages/database-testing/src/wave5-batch-d-repository.postgres.test.ts",
-        "packages/database-testing/src/wave6-batch-f-repository.postgres.test.ts",
-        "packages/database-testing/src/wave6-batch-g-repository.postgres.test.ts",
-        "packages/database/src/batch-g-repository.ts",
+        "packages/database-testing/src/wave6-batch-h-repository.postgres.test.ts",
+        "packages/database/src/batch-h-repository.ts",
         "packages/database/src/index.ts",
         "packages/database/src/migrations.ts",
         "packages/database/src/postgres-store.ts",
+        "packages/domain-contracts/src/batch-h.ts",
+        "packages/domain-contracts/src/index.ts",
+        "packages/governance-core/package.json",
+        "packages/governance-core/src/persisted-contracts.test.ts",
         "pnpm-lock.yaml",
-        "supabase/migrations/202608110009_wave6_batch_g_performance_readiness.sql",
-        "supabase/migrations/202608110010_tenant_scoped_unique_keys.sql"
+        "supabase/migrations/202608110011_wave6_batch_h_governance_core.sql"
       ],
-      "head": "c0c9ef6531899b87254a0f20f2cffec746ad8654",
-      "headShort": "c0c9ef6",
+      "head": "34fb3610d9d1a0f466698edca9d58e078e3e4c46",
+      "headShort": "34fb361",
       "reflogAvailable": true,
       "remotes": [
         "origin"
@@ -3009,7 +3018,7 @@
         "platform-trust-foundation",
         "rc-engine-60"
       ],
-      "upstream": "origin/fix/wave5-codex-followups"
+      "upstream": null
     },
     "name": "assurapay",
     "packageManager": "pnpm@11.3.0",
@@ -3191,17 +3200,17 @@
       "integration": 15,
       "performance": 2,
       "security": 3,
-      "unit": 76
+      "unit": 78
     },
-    "files": 111
+    "files": 113
   },
   "totals": {
     "applications": 1,
     "documents": 154,
     "engines": 60,
-    "migrations": 37,
+    "migrations": 38,
     "packages": 26,
-    "testFiles": 111
+    "testFiles": 113
   },
   "workflows": [
     {

@@ -18,3 +18,4 @@ export * from './batch-d';
 export * from './batch-e';
 export * from './batch-f';
 export * from './batch-g';
+export * from './batch-h';

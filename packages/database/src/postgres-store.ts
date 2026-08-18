@@ -16,6 +16,7 @@ import { BATCH_D_RELATIONS, batchDRelation, isBatchDCollection } from './batch-d
 import { BATCH_E_RELATIONS, batchERelation, isBatchECollection } from './batch-e-repository';
 import { BATCH_F_RELATIONS, batchFRelation, isBatchFCollection } from './batch-f-repository';
 import { BATCH_G_RELATIONS, batchGRelation, isBatchGCollection } from './batch-g-repository';
+import { BATCH_H_RELATIONS, batchHRelation, isBatchHCollection } from './batch-h-repository';
 import { PostgresStoreError } from './store-error';
 
 export { PostgresStoreError } from './store-error';
@@ -256,6 +257,10 @@ export const POSTGRES_TRUST_COLLECTIONS: readonly string[] = Object.freeze(
     // transitioned before `202608110009`, so the engines that confirm a criterion, confirm a metric and
     // activate a rule all refused on the durable path.
     ...Object.keys(BATCH_G_RELATIONS),
+    // Batch H. Eleven more, the governance core, and the batch that gives the release-authorisation chain a
+    // boundary: eight of its eleven tables had none at all, including the payment authorization proposal
+    // `createEscrowReleaseIntent` reads before instructing a provider.
+    ...Object.keys(BATCH_H_RELATIONS),
   ].sort(),
 );
 
@@ -282,6 +287,7 @@ export const POSTGRES_ROUTED_TABLES: readonly string[] = Object.freeze(
       ...Object.values(BATCH_E_RELATIONS).map((relation) => relation.table),
       ...Object.values(BATCH_F_RELATIONS).map((relation) => relation.table),
       ...Object.values(BATCH_G_RELATIONS).map((relation) => relation.table),
+      ...Object.values(BATCH_H_RELATIONS).map((relation) => relation.table),
     ]),
   ].sort(),
 );
@@ -506,6 +512,8 @@ export class PostgresTrustStore implements TrustPersistence {
         })) as unknown as T[];
       if (isBatchGCollection(collection))
         return (await batchGRelation(collection).list(this.sql)) as unknown as T[];
+      if (isBatchHCollection(collection))
+        return (await batchHRelation(collection).list(this.sql)) as unknown as T[];
       this.requireGoverned(collection);
       const rows = await this.sql<StoredRow[]>`
         SELECT payload, payload_digest FROM trust_records
@@ -603,6 +611,15 @@ export class PostgresTrustStore implements TrustPersistence {
 
       if (isBatchGCollection(collection)) {
         await batchGRelation(collection).insert(
+          this.sql,
+          record,
+          this.requireRelationalTenant(collection, record),
+        );
+        return;
+      }
+
+      if (isBatchHCollection(collection)) {
+        await batchHRelation(collection).insert(
           this.sql,
           record,
           this.requireRelationalTenant(collection, record),
@@ -722,7 +739,8 @@ export class PostgresTrustStore implements TrustPersistence {
         isBatchDCollection(collection) ||
         isBatchECollection(collection) ||
         isBatchFCollection(collection) ||
-        isBatchGCollection(collection)
+        isBatchGCollection(collection) ||
+        isBatchHCollection(collection)
       ) {
         // The tenant is re-derived and checked even though the UPDATE does not write it: a
         // caller replacing a record outside its scope must be refused for that reason, not
@@ -740,7 +758,9 @@ export class PostgresTrustStore implements TrustPersistence {
                   ? batchERelation(collection)
                   : isBatchFCollection(collection)
                     ? batchFRelation(collection)
-                    : batchGRelation(collection);
+                    : isBatchGCollection(collection)
+                      ? batchGRelation(collection)
+                      : batchHRelation(collection);
         const affected = await relation.update(this.sql, record);
         this.requireAffected(affected, collection, id);
         return;
