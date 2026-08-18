@@ -18,33 +18,40 @@ import type { SqlClient } from './postgres-client';
  * database, and there is no data to migrate, no divergence to reconcile, and no dual write
  * to eliminate. Reporting migrated-row counts here would be fabrication.
  *
- * **The historical model is not uniformly removable.** Three of its tables are load-bearing
- * for the *out-of-scope* Engine 06–60 relational model:
+ * **The historical model was not uniformly removable, and now it is gone.** Three of its tables were
+ * load-bearing for the then-out-of-scope Engine 06–60 relational model, and `202608080001` had to retain
+ * them, each naming `persistence.domain-store-durability` as the condition that would free it:
  *
- *   - `workspaces` is the foreign-key parent of ninety-three of those tables;
- *   - `workspace_memberships` is read by `has_active_workspace_membership()`, which the RLS
- *     policies on those tables call;
- *   - `user_identities` is the foreign-key parent of `workspace_memberships`.
+ *   - `workspaces` was recorded as the foreign-key parent of ninety-three of those tables;
+ *   - `workspace_memberships` was read by `has_active_workspace_membership()`, which the RLS
+ *     policies on those tables called;
+ *   - `user_identities` was the foreign-key parent of `workspace_memberships`.
  *
- * PostgreSQL itself was the oracle for that closure: dropping the candidate set is refused
- * naming those dependencies, and dropping the set minus them succeeds.
+ * PostgreSQL itself was the oracle for that closure, then and at every step since. The ninety-three was
+ * never re-measured until Batch J, and it was wrong by a wide margin — Batches A–I had converged
+ * seventy-seven of those tables onto `trust_workspaces` as they activated them:
  *
- * > **Re-measured at Batch J.** The ninety-three is now **sixteen**: Batches A–I converged seventy-seven of
- * > those tables onto `trust_workspaces` as they activated them. Fifteen of the remaining sixteen are the
- * > tables of `enterprise-intelligence` and `enterprise-analytics`, which the accepted decision defers, and
- * > the sixteenth is `workspace_memberships` itself. Nothing has a foreign key to `workspace_memberships` any
- * > more; what holds it is fifteen policies calling `has_active_workspace_membership()`, on those same
- * > fifteen tables.
- * >
- * > So the retirement condition is now sharper than "`persistence.domain-store-durability`". The code half of
- * > that capability — retiring `FileAssuraStore` — is done, and it did **not** free these three tables. What
- * > frees them is activating the two deferred batches, after which all sixteen dependants are gone and the
- * > three drop together. See `docs/persistence/DOMAIN_STORE_RETIREMENT.md`.
+ *     recorded    93   (`202608080001`, never re-measured)
+ *     Batch J     16   measured — 15 deferred-batch tables plus workspace_memberships
+ *     Batch K     10   enterprise-intelligence converged its six
+ *     Batch L      1   enterprise-analytics converged its nine
+ *
+ * That last one was `workspace_memberships`, which by then had no children of its own. The three
+ * referenced only each other, so `202608110016` dropped all three together, along with
+ * `has_active_workspace_membership()` and the superseded `current_workspace_id()`.
+ *
+ * Two lessons worth keeping, because both cost real work to learn. A dependant count written once and never
+ * re-measured understated how close the retirement was by a factor of six, and each batch that could have
+ * checked it did not. And the retirement condition as `202608080001` stated it was not sufficient: Batch J
+ * retired `FileAssuraStore` — the code half of the named capability — and that freed none of these tables.
+ * What freed them was activating the batches that owned the dependants. See
+ * `docs/persistence/DOMAIN_STORE_RETIREMENT.md`.
  *
  * So the real risk the duplicate model posed was never corruption. It was that one hundred
- * and two of its tables carry `ENABLE ROW LEVEL SECURITY` with no `FORCE` — the exact defect
+ * and two of its tables carried `ENABLE ROW LEVEL SECURITY` with no `FORCE` — the exact defect
  * `persistence.rls-certification` corrected for the trust tables — so anything that *started*
- * using them would inherit a boundary that reads as protection and enforces nothing.
+ * using them would inherit a boundary that reads as protection and enforces nothing. Measured after
+ * Batch L, no table in the schema carries ENABLE without FORCE.
  *
  * What this module therefore is: the single place that says which relational object owns each
  * trust aggregate, executable rather than a document, consumed by architecture validation,
@@ -67,12 +74,18 @@ export type ObjectDisposition =
    * A trust-domain duplicate that cannot be retired yet because the out-of-scope model
    * depends on it. Not canonical, never written by the runtime, and carrying a named
    * retirement condition rather than an indefinite reprieve.
+   *
+   * No object holds this disposition today: `202608110016` retired the last three. The disposition stays for
+   * the next duplicate, because the discipline it encodes — a stated reason and a named capability that
+   * removes it, both checked against the live database — is what eventually got these three dropped.
    */
   | 'COMPATIBILITY'
   /**
-   * Engine 06–60 domain state, currently owned by `FileAssuraStore` rather than by any
-   * relational object. Out of scope here by construction: its durability is not certified,
-   * and claiming ownership of it would claim durability this capability did not establish.
+   * Engine 06–60 domain state that no relational object owned when this registry was written.
+   *
+   * It named `FileAssuraStore` as the owner, which Batch J removed — and Batches E through L gave every one
+   * of those aggregates a canonical relational owner, so the disposition now describes only the two dead
+   * legacy tables (`contracts`, `milestones`) that no engine reads or writes and no batch activated.
    */
   | 'OUT_OF_SCOPE_DOMAIN';
 
@@ -110,8 +123,9 @@ export const TRUST_AGGREGATE_OWNERSHIP: readonly AggregateOwnership[] = Object.f
     canonicalTable: 'trust_workspaces',
     repositoryOwner: 'PostgresTrustStore',
     requiresForcedRls: true,
-    // `workspaces` survives as a compatibility object; `organizations` and
-    // `organization_units` described the same tenancy shape and are retired.
+    // All four retired. `workspaces` was the last to go — `202608110016`, once Batch L removed its final
+    // dependant — and `organizations`, `organization_units` and `legal_entities` described the same tenancy
+    // shape and went with `202608080001`.
     supersededTables: Object.freeze(['workspaces', 'organizations', 'organization_units', 'legal_entities']),
   },
   {
@@ -253,6 +267,15 @@ export const RETIRED_TRUST_HISTORICAL_TABLES: readonly string[] = Object.freeze(
   'verification_requests',
   'verification_results',
   'workspace_invitations',
+  // Retired by `202608110016`, twelve batches after `202608080001` had to retain them. They were the last
+  // three trust-domain duplicates, and the retirement condition it named was
+  // `persistence.domain-store-durability`. Batch L removed the last tables referencing them: `workspaces`
+  // went from 93 recorded dependants to 16 measured (Batch J), to 10 (Batch K), to 1 (Batch L) — and that one
+  // was `workspace_memberships`, which by then had no children of its own. The three referenced only each
+  // other, so they dropped together.
+  'user_identities',
+  'workspace_memberships',
+  'workspaces',
 ]);
 
 export type CompatibilityObject = {
@@ -271,30 +294,18 @@ export type CompatibilityObject = {
  * None is a second persistence API — no repository method targets them.
  */
 export const COMPATIBILITY_OBJECTS: readonly CompatibilityObject[] = Object.freeze([
-  {
-    table: 'workspaces',
-    // Was 93 when this list was written. Measured against a fully migrated instance after Batch J: **16**,
-    // because Batches A-I converged the other 77 onto `trust_workspaces`. Fifteen of the sixteen are the
-    // tables of the two deferred batches — `enterprise-intelligence` (6) and `enterprise-analytics` (9) — and
-    // the sixteenth is `workspace_memberships` below. So this table is now blocked on activating those two
-    // batches, not on the file-backed store, which Batch J removed.
-    reason:
-      'foreign-key parent of 16 remaining tables — 15 belong to the deferred enterprise-intelligence and enterprise-analytics batches, and workspace_memberships is the sixteenth; dropping it requires CASCADE',
-    retirementCondition: 'persistence.domain-store-durability',
-  },
-  {
-    table: 'workspace_memberships',
-    // Nothing has a foreign key to this table any more — measured as 0 children. What holds it is the 15
-    // policies that call `has_active_workspace_membership()`, all on those same deferred-batch tables.
-    reason:
-      'read by has_active_workspace_membership(), which the RLS policies on the 15 deferred-batch tables call; dropping it breaks those policies',
-    retirementCondition: 'persistence.domain-store-durability',
-  },
-  {
-    table: 'user_identities',
-    reason: 'foreign-key parent of workspace_memberships, which is itself retained',
-    retirementCondition: 'persistence.domain-store-durability',
-  },
+  // Empty, and deliberately kept rather than deleted along with its last entries.
+  //
+  // It held `workspaces`, `workspace_memberships` and `user_identities` — the three trust-domain duplicates
+  // `202608080001` could not drop, each naming `persistence.domain-store-durability` as the condition that
+  // would free it. `202608110016` retired all three, so they move to `RETIRED_TRUST_HISTORICAL_TABLES` above
+  // and this list is empty for the first time.
+  //
+  // The type and the list stay because the next duplicate will need the same discipline: a table retained for
+  // a stated reason, with a named capability that removes the reason, checked by `certifySchemaOwnership`
+  // against what the database actually holds. That check is what caught the registry going stale the moment
+  // the tables were dropped — it reported `OWNERSHIP_COMPATIBILITY_TABLE_MISSING` rather than passing, which
+  // is why this list is now correct instead of merely unread.
 ]);
 
 /** Canonical tables, derived rather than restated so the two cannot disagree. */

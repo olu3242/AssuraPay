@@ -41,7 +41,7 @@ The table below is the measurement taken when this register was written, kept as
 rather than edited on each batch. **The live figure is asserted by
 `packages/database-testing/src/durability-coverage.test.ts`, which is the authority** — a prose number
 here would go stale between one batch and the next, and a stale number in a document called a register is
-worse than none. As of Batch K: **132** collections written, **114** mapped, **18** unmapped. The written
+worse than none. As of Batch L: **132** collections written, **123** mapped, **9** unmapped — the nine that remain are `agent-runtime`'s, which have no tables at all. The written
 total is above 129 because the gate itself had two blind spots, both since corrected — it read only
 `src/index.ts`, and its collection-name pattern dropped every name containing a digit.
 
@@ -57,6 +57,12 @@ total is above 129 because the gate itself had two blind spots, both since corre
 | Tables with FORCE row-level security | **44 of 108** | `pg_class` on a fully migrated database |
 | Tables with ENABLE but no FORCE | **59** | same; all outside the store's routing table |
 | Tables with no boundary | **5** | same; all outside the routing table |
+
+Measured again after Batch L: **105 of 108** tables force row-level security, **zero** carry ENABLE without
+FORCE, and the three without any boundary are `trust_migration_ledger` — which the owner writes and every host
+reads at startup — and `contracts` and `milestones`, two dead legacy tables no engine reads or writes and no
+batch activated. The 59 fell to zero without a single edit to the ceiling that recorded them, which is what
+that ceiling was for. Asserted in `wave6-batch-l-repository.postgres.test.ts`.
 
 ### Two prior claims this corrects
 
@@ -282,10 +288,39 @@ of the register above. The order is not arbitrary:
   Measured after the batch: `workspaces` is down from 16 dependants to **10**, and the policies calling
   `has_active_workspace_membership()` from 16 to **10**. What remains is the nine `enterprise-analytics`
   tables and `workspace_memberships` itself.
-- **Last: `enterprise-analytics` (9), `agent-runtime` (9).** Deferred by the accepted decision until the
-  persistence boundary is resolved. Batch J resolved it, so they are executable — and `enterprise-analytics` is
-  now the only thing standing between the repository and retiring `workspaces`, `workspace_memberships` and
-  `user_identities`. `agent-runtime`'s nine collections have no tables at all, so they hold nothing.
+- **Batch L: `enterprise-analytics` (9) — DONE (`202608110015`), and the retirement with it
+  (`202608110016`).** The last batch in the register, and the one that carries the sharpest instance of the
+  pattern every batch since A has found.
+
+  Four of the nine are transitioned, and **every one of the four was broken, in both possible directions at
+  once.** Three carried a blanket append-only trigger from `202608030009`, so the transition refused: a
+  financial forecast could not be reviewed, a model could not be deprecated, an AI recommendation could not be
+  accepted or dismissed. The fourth, `drift_alerts`, carried **no mutation boundary at all** — so
+  `acknowledgeDrift` and `resolveDrift` worked, and so did lowering an alert's severity or deleting it.
+
+  These sit in the engine whose own header calls it "the capstone AI-governance engine for the whole
+  platform", and the effect was that **every human decision point in the platform's AI governance was
+  unperformable on PostgreSQL, while the evidence of model failure was the one thing anybody could edit.**
+  `recordEvaluation` raises a drift alert automatically when a score falls below its threshold, so the
+  platform could detect that a model had gone wrong, could not take it out of service, and could have the
+  record of the failure quietly rewritten. Engine 56's forecasts are FUNDING_DELAY, PAYMENT_FAILURE, LEAKAGE
+  and RECONCILIATION_EXCEPTION, so the unreviewable output is about money.
+
+  `evaluation_records.passed` becomes a real CHECK rather than an application invariant, because `score` and
+  `threshold` are both in the row — unlike Batch K's `kpi_values.on_track`. It is the most consequential
+  constraint of the batch: a row claiming a pass below its own threshold does not merely misreport, it
+  suppresses the alert that would have prompted anyone to look.
+
+  **And the retirement.** `202608110016` drops `workspaces`, `workspace_memberships` and `user_identities` —
+  the three trust-domain compatibility tables `202608080001` had to retain twelve batches earlier, naming
+  `persistence.domain-store-durability` as the condition. The dependant count on `workspaces` went 93
+  (recorded, never re-measured) → 16 (Batch J, measured) → 10 (Batch K) → 1 (Batch L), and that one was
+  `workspace_memberships`, which by then had no children of its own. The three referenced only each other, so
+  they dropped together, along with `has_active_workspace_membership()` and the superseded
+  `current_workspace_id()`.
+- **Last: `agent-runtime` (9).** Deferred with the intelligence engines. Its nine collections have **no
+  tables at all**, so unlike every batch since A this one creates rather than converges — and it holds nothing
+  else back, since the compatibility tables are already gone.
 
 Each batch should follow the shape Batches A–D settled into, because it produced four consecutive
 clean activations and found a real defect every time:

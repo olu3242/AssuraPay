@@ -12,6 +12,7 @@ import {
   BATCH_H_TABLES,
   BATCH_I_TABLES,
   BATCH_K_TABLES,
+  BATCH_L_TABLES,
 } from '@assurapay/domain-contracts';
 import type { SqlClient } from './postgres-client';
 
@@ -380,6 +381,17 @@ export const REQUIRED_TRUST_MIGRATIONS: readonly string[] = Object.freeze([
   // forecast could never be reviewed — the human-in-the-loop step that package's AI-governance contract is
   // built on was unperformable on the durable store.
   '202608110014_wave6_batch_k_enterprise_intelligence',
+  // Batch L. The store routes nine Engine 56-60 collections to tables `202608030009` created and this
+  // migration converges and governs. Required rather than optional, and the most consequential mutation
+  // boundary in the programme: three of its four transitioning aggregates were refused by a blanket
+  // append-only trigger — a financial forecast could not be reviewed, a drifting model could not be
+  // deprecated, an AI recommendation could not be accepted or dismissed — while `drift_alerts`, the evidence
+  // that a model had gone wrong, had no boundary at all.
+  '202608110015_wave6_batch_l_enterprise_analytics',
+  // The retirement `202608080001` named its condition for and could not perform. Required rather than
+  // optional: leaving three deprecated tables and a function that reads one of them is how the next policy
+  // gets written against the superseded model. Refuses rather than discards if any holds rows.
+  '202608110016_retire_trust_compatibility_tables',
 ]);
 
 export type SchemaCompatibility = {
@@ -445,6 +457,7 @@ export const REQUIRED_DOMAIN_AGGREGATE_TABLES = Object.freeze(
     ...BATCH_H_TABLES,
     ...BATCH_I_TABLES,
     ...BATCH_K_TABLES,
+    ...BATCH_L_TABLES,
   ].sort(),
 );
 

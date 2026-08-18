@@ -1,9 +1,19 @@
 {
-  "awaitingInfrastructure": [
-    "persistence.domain-store-durability"
-  ],
-  "blocked": [],
-  "completed": [
+  "branch": "feat/l1-batch-l-enterprise-analytics",
+  "capabilityId": "persistence.domain-store-durability",
+  "certification": {
+    "available": true,
+    "failedSteps": [
+      "test:unit"
+    ],
+    "passed": false
+  },
+  "commit": "60602ed2dee40a898d70baa5f2de66eee3d38e5a",
+  "entryId": "60602ed2dee4-persistence.domain-store-durability",
+  "lifecycle": "planned",
+  "manifestDigest": "7bafdfc5895e",
+  "recordedAt": "2026-08-18T21:11:42.270Z",
+  "supersedes": [
     "engine:01",
     "engine:02",
     "engine:03",
@@ -80,49 +90,30 @@
     "trust.route-permission-rollout",
     "trust.session-assertion-issuance"
   ],
-  "executable": [
+  "validation": [
     {
-      "blockedBy": [],
-      "blocks": [],
-      "dependsOn": [
-        "persistence.domain-store-environment-gate"
-      ],
-      "executable": true,
-      "id": "persistence.domain-store-durability",
-      "lifecycle": "planned",
-      "priority": 45,
-      "requiresLiveInfrastructure": true,
-      "scope": {
-        "estimated": false,
-        "files": 1,
-        "tests": 1
-      },
-      "status": "missing",
-      "title": "Domain store durability for Engines 06-60"
-    }
-  ],
-  "head": "60602ed2dee40a898d70baa5f2de66eee3d38e5a",
-  "rejected": [],
-  "reosVersion": "1.0.0",
-  "selected": {
-    "blockedBy": [],
-    "blocks": [],
-    "dependsOn": [
-      "persistence.domain-store-environment-gate"
-    ],
-    "executable": true,
-    "id": "persistence.domain-store-durability",
-    "lifecycle": "planned",
-    "priority": 45,
-    "requiresLiveInfrastructure": true,
-    "scope": {
-      "estimated": false,
-      "files": 1,
-      "tests": 1
+      "errors": 0,
+      "passed": true,
+      "validator": "architecture",
+      "warnings": 0
     },
-    "status": "missing",
-    "title": "Domain store durability for Engines 06-60"
-  },
-  "selectionReason": "Highest-priority executable capability (priority 45, lifecycle planned) — selected despite needing live infrastructure, nothing else is executable",
-  "stage": "dependencies"
+    {
+      "errors": 0,
+      "passed": true,
+      "validator": "dependencies",
+      "warnings": 2
+    },
+    {
+      "errors": 0,
+      "passed": true,
+      "validator": "security",
+      "warnings": 0
+    },
+    {
+      "errors": 0,
+      "passed": true,
+      "validator": "execution-contract",
+      "warnings": 2
+    }
+  ]
 }
