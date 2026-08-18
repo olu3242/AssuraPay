@@ -604,6 +604,44 @@ describe('integration: Batch C money and settlement invariants', () => {
     expect(String(error)).toContain('closed_at_follows_status');
   }, 300_000);
 
+  it('refuses a closed account that still owes something', async () => {
+    // `close()` refuses an outstanding balance, and until `202608110007` that rule was only in the
+    // engine. The arithmetic check alone does not catch this: entitlement 1000, settled 400,
+    // outstanding 600 is internally consistent and still not a closure.
+    const error = await raw(database, (tx) => tx`
+      INSERT INTO final_settlement_accounts
+        (id, tenant_id, workspace_id, milestone_id, total_entitlement_amount_minor,
+         total_settled_amount_minor, outstanding_amount_minor, currency, status, closed_at, created_at,
+         version, schema_version, updated_at)
+      VALUES ('fsa-owing', ${TENANT}, ${WORKSPACE}, 'ms-1', 1000, 400, 600, 'NGN', 'CLOSED',
+              ${stamp}, ${stamp}, 1, 1, ${stamp})
+    `).catch((caught: unknown) => caught);
+    expect(String(error)).toContain('closed_owes_nothing');
+  }, 300_000);
+
+  it('refuses a closure certificate for an account that is not closed', async () => {
+    await raw(database, (tx) => tx`
+      INSERT INTO final_settlement_accounts
+        (id, tenant_id, workspace_id, milestone_id, total_entitlement_amount_minor,
+         total_settled_amount_minor, outstanding_amount_minor, currency, status, created_at,
+         version, schema_version, updated_at)
+      VALUES ('fsa-draft', ${TENANT}, ${WORKSPACE}, 'ms-1', 1000, 0, 1000, 'NGN', 'DRAFT',
+              ${stamp}, 1, 1, ${stamp})
+    `);
+
+    // `issueCertificate()` checks the status and nothing else, so a certificate written around the
+    // engine was previously accepted and then indistinguishable from a true one. The foreign key now
+    // carries the required status, so the account has to actually be closed.
+    const error = await raw(database, (tx) => tx`
+      INSERT INTO financial_closure_certificates
+        (id, tenant_id, workspace_id, milestone_id, final_settlement_account_id, canonical_hash,
+         status, issued_by, issued_at, version, schema_version, updated_at)
+      VALUES ('fcc-draft', ${TENANT}, ${WORKSPACE}, 'ms-1', 'fsa-draft', 'c4d5e6', 'ISSUED',
+              ${ACTOR}, ${stamp}, 1, 1, ${stamp})
+    `).catch((caught: unknown) => caught);
+    expect(String(error)).toContain('closed_account_fk');
+  }, 300_000);
+
   it('issues one closure certificate per account and refuses a concurrent second', async () => {
     await as(database, async (store) => {
       await store.append('finalSettlementAccounts', account());
@@ -655,6 +693,50 @@ describe('integration: Batch C money and settlement invariants', () => {
       OTHER_WORKSPACE,
     ).catch((caught: unknown) => caught);
     expect(String(error)).toMatch(/reconciliation_records_instruction_currency_fk/);
+  }, 300_000);
+
+  it('refuses a child row referencing a parent in another workspace of the same tenant', async () => {
+    // The gap `202608110008` closes, and the one the cross-tenant test above could not catch. Same
+    // tenant, so the tenant half of the old composite key agreed; different workspace, which the key did
+    // not mention. RLS does not close it either — the child row's own `workspace_id` is the caller's, so
+    // the policy is satisfied — and `LedgerPostingEngine.post` never loads the instruction, so nothing
+    // in the application compares the two.
+    const SECOND_WORKSPACE = 'workspace-c-second';
+    await foundSettlementChain(database, TENANT, SECOND_WORKSPACE, '-second');
+
+    // `pi-1` exists in this tenant, in WORKSPACE. The reference is refused for naming a parent this
+    // workspace cannot see rather than for the row not existing, which is the distinction that matters:
+    // accepted, it would have produced a ledger entry in one workspace citing an instruction in another.
+    const error = await raw(
+      database,
+      (tx) => tx`
+        INSERT INTO reconciliation_records
+          (id, tenant_id, workspace_id, payment_instruction_id, provider_statement_reference,
+           currency, provider_reported_amount_minor, recorded_amount_minor, matched, reconciled_at,
+           version, schema_version, updated_at)
+        VALUES ('rec-cross-ws', ${TENANT}, ${SECOND_WORKSPACE}, 'pi-1', 'stmt-cross-ws', 'NGN', 1, 1,
+                true, ${stamp}, 1, 1, ${stamp})
+      `,
+      TENANT,
+      SECOND_WORKSPACE,
+    ).catch((caught: unknown) => caught);
+    expect(String(error)).toMatch(/reconciliation_records_instruction_currency_fk/);
+
+    // And the same reference within one workspace still works, so the constraint narrowed the key
+    // rather than breaking the relationship.
+    await raw(
+      database,
+      (tx) => tx`
+        INSERT INTO reconciliation_records
+          (id, tenant_id, workspace_id, payment_instruction_id, provider_statement_reference,
+           currency, provider_reported_amount_minor, recorded_amount_minor, matched, reconciled_at,
+           version, schema_version, updated_at)
+        VALUES ('rec-same-ws', ${TENANT}, ${SECOND_WORKSPACE}, 'pi-1-second', 'stmt-same-ws', 'NGN', 1,
+                1, true, ${stamp}, 1, 1, ${stamp})
+      `,
+      TENANT,
+      SECOND_WORKSPACE,
+    );
   }, 300_000);
 
   it('shows another tenant nothing', async () => {

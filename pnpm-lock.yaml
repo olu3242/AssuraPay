@@ -204,6 +204,9 @@ importers:
 
   packages/database-testing:
     dependencies:
+      '@assurapay/agreement-creation':
+        specifier: workspace:*
+        version: link:../agreement-creation
       '@assurapay/database':
         specifier: workspace:*
         version: link:../database

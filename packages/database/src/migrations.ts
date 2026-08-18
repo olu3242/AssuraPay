@@ -130,6 +130,37 @@ async function ensureLedger(sql: SqlClient): Promise<void> {
   `;
 }
 
+/**
+ * Checksums an earlier revision of a migration file was applied under.
+ *
+ * The ledger refuses an applied migration whose file has changed, and it is right to: the database
+ * already holds the original's effects and no statement here can reconcile the two. This map is the
+ * narrow exception, and every entry has to earn it by argument, not convenience.
+ *
+ * An entry is only sound when the edited file leaves a host that applied the original in exactly the
+ * state the new file would have produced. That is a claim about the two revisions being
+ * indistinguishable in outcome for the hosts that got through the original — not a claim that editing
+ * migrations is acceptable. Anything else is still a forward corrective migration.
+ */
+const SUPERSEDED_CHECKSUMS: ReadonlyMap<string, ReadonlySet<string>> = new Map([
+  [
+    // `202608110003` refused to run at all when `payment_instructions` held any row, and told the
+    // operator to backfill `payload_digest` and re-run — an instruction that could not be followed,
+    // because the refusal fired before the column existed. Every host that had created a single payment
+    // instruction was permanently unable to upgrade, and a forward migration could not rescue them: the
+    // set is ordered and runs in one transaction, so nothing after the refusal is ever reached. The file
+    // had to stop refusing.
+    //
+    // A host only recorded this migration if it got through it, which only happened when the table was
+    // empty, and on an empty table the revised file adds the same nullable column, the same NOT NULL,
+    // the same length check and the same trigger — the unresolved-digest count is zero, so the new
+    // refusal cannot fire. The end state is identical, which is what makes accepting the old checksum
+    // sound rather than expedient.
+    '202608110003_wave5_close_batch_c_gaps',
+    new Set(['559945007a0218166da75d1e5dcca9b75f4f55a44188591055d37f37bbd1430e']),
+  ],
+]);
+
 type LedgerRow = { migration_id: string; checksum: string };
 
 async function readLedger(sql: SqlClient): Promise<Map<string, string>> {
@@ -182,12 +213,21 @@ export async function applyMigrations(
           // An applied migration whose file has changed. Refused rather than
           // reapplied: the database already has the original's effects, and no
           // sequence of statements here can reconcile the two.
-          if (recorded !== migration.checksum)
-            throw new MigrationError(
-              'MIGRATION_CHECKSUM_MISMATCH',
-              `${migration.id} was applied with a different checksum; add a forward corrective migration instead of editing it`,
-              migration.id,
-            );
+          if (recorded !== migration.checksum) {
+            if (!SUPERSEDED_CHECKSUMS.get(migration.id)?.has(recorded))
+              throw new MigrationError(
+                'MIGRATION_CHECKSUM_MISMATCH',
+                `${migration.id} was applied with a different checksum; add a forward corrective migration instead of editing it`,
+                migration.id,
+              );
+            // Converge the ledger on the current file so the exception is needed once. Left unwritten,
+            // every later startup would re-derive the same allowance from a table that still disagrees
+            // with the file, and the map could never be emptied.
+            await tx`
+              UPDATE trust_migration_ledger SET checksum = ${migration.checksum}
+              WHERE migration_id = ${migration.id}
+            `;
+          }
           outcomes.push({
             id: migration.id,
             applied: false,
@@ -293,6 +333,15 @@ export const REQUIRED_TRUST_MIGRATIONS: readonly string[] = Object.freeze([
   // then refuse the corrected resubmission that carries the same counterparty document reference,
   // leaving a confirmed entitlement with no route to an invoice.
   '202608110006_close_batch_b_invoice_number_gap',
+  // Puts two settlement-closure rules in the schema. Required rather than optional because the second
+  // adds a generated column the certificate's foreign key is built on: a host without it would accept a
+  // closure certificate for an account that is not closed, and one with it would refuse the same write,
+  // so the two disagree about what a final settlement is.
+  '202608110007_close_settlement_closure_gaps',
+  // Puts `workspace_id` in every cross-aggregate foreign key. Required rather than optional because a
+  // host without it accepts a child row citing a parent in another workspace of the same tenant — a
+  // reference no policy refuses, since foreign keys are checked by the system rather than through RLS.
+  '202608110008_workspace_scoped_references',
 ]);
 
 export type SchemaCompatibility = {

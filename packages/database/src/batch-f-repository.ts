@@ -76,7 +76,14 @@ export type BatchFRelation = {
    * The database is the authority in both cases; this flag only makes the refusal legible.
    */
   readonly appendOnly: boolean;
-  list(sql: SqlClient): Promise<Row[]>;
+  /**
+   * Reads the collection.
+   *
+   * `lock` asks for the rows to be held for the rest of the surrounding transaction. Only the
+   * aggregates an engine reads and then rewrites honour it; for the rest it is accepted and ignored,
+   * because a lock outside a transaction is a no-op the caller should not have to reason about.
+   */
+  list(sql: SqlClient, options?: { readonly lock?: boolean }): Promise<Row[]>;
   insert(sql: SqlClient, record: Row, tenantId: string): Promise<void>;
   /** Rows affected. Zero means the record does not exist, or lies outside the caller's scope. */
   update(sql: SqlClient, record: Row): Promise<number>;
@@ -211,7 +218,7 @@ function relation(
   collection: string,
   table: string,
   operations: {
-    list(sql: SqlClient): Promise<Row[]>;
+    list(sql: SqlClient, options?: { readonly lock?: boolean }): Promise<Row[]>;
     insert(sql: SqlClient, record: Row, tenantId: string): Promise<void>;
     update?(sql: SqlClient, record: Row): Promise<number>;
   },
@@ -852,12 +859,32 @@ const approvalDecisions = relation('approvalDecisions', 'agreement_approval_deci
 // ---------------------------------------------------------------------------------------
 
 const signaturePackages = relation('signaturePackages', 'signature_packages_v2', {
-  async list(sql) {
-    const rows = await sql<Row[]>`
-      SELECT id, workspace_id, contract_id, approval_request_id, document_version_id,
-             document_hash, signers, status, provider_key, created_at, schema_version
-      FROM signature_packages_v2 ORDER BY created_at ASC, id ASC
-    `;
+  // Honours `lock`, and has to. `callback()` reads the package, merges one signer's timestamp into the
+  // array it read, and writes the array back. Two provider callbacks for different signatories that
+  // interleave between the read and the write both compute their array from the same starting point, and
+  // the second write erases the first signature — a lost update that no constraint can catch, because
+  // both arrays are individually valid. `FOR UPDATE` holds the row until the surrounding transaction
+  // commits, so the second callback re-reads a signer list that already contains the first signature.
+  //
+  // The lock is taken over the workspace's packages rather than one row because `list` is the only read
+  // shape the store has; callbacks are low-volume webhook deliveries, so serialising them within a
+  // workspace costs less than the reconciliation of a silently dropped signature.
+  async list(sql, options) {
+    // Written twice rather than interpolated. `FOR UPDATE` is not a value, and the driver's fragment
+    // support types a nested template as a query rather than a clause, so a conditional fragment here
+    // reads as a parameter and fails to compile.
+    const rows = options?.lock
+      ? await sql<Row[]>`
+          SELECT id, workspace_id, contract_id, approval_request_id, document_version_id,
+                 document_hash, signers, status, provider_key, created_at, schema_version
+          FROM signature_packages_v2 ORDER BY created_at ASC, id ASC
+          FOR UPDATE
+        `
+      : await sql<Row[]>`
+          SELECT id, workspace_id, contract_id, approval_request_id, document_version_id,
+                 document_hash, signers, status, provider_key, created_at, schema_version
+          FROM signature_packages_v2 ORDER BY created_at ASC, id ASC
+        `;
     return rows.map((row) => {
       requireSupportedSchemaVersion('signaturePackages', row);
       return validateFromRow('signaturePackages', {

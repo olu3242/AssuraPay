@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
+  POSTGRES_ROUTED_TABLES,
   POSTGRES_TRUST_COLLECTIONS,
   REQUIRED_DOMAIN_AGGREGATE_TABLES,
   REQUIRED_STORE_TABLES,
@@ -156,12 +157,25 @@ describe('integration: every store-routed table forces the trust boundary', () =
     // the absence on the first write, having already told the caller the host was ready. Asserted the
     // other way round from the batch suites — they check their own tables are required; this checks
     // nothing is routed that is not.
+    //
+    // This compares the routes against the required list, which it did not before. The earlier version
+    // asserted only that the required list held no duplicates, which is true of any list and says
+    // nothing about what the store reaches: a collection routed to a table missing from readiness passed
+    // it unchanged, which is the exact regression the test is named for.
     expect(POSTGRES_TRUST_COLLECTIONS.length).toBeGreaterThan(0);
+    expect(POSTGRES_ROUTED_TABLES.length).toBeGreaterThan(0);
     const required = new Set(REQUIRED_STORE_TABLES);
-    // `trust_records`, the audit chain and the outbox are served by dedicated statements rather than
-    // by a per-aggregate relation, and they are all in REQUIRED_TRUST_TABLES, so the union covers
-    // every table any routing path can reach.
     expect(required.size).toBe(REQUIRED_STORE_TABLES.length);
+
+    const unrequired = POSTGRES_ROUTED_TABLES.filter((table) => !required.has(table));
+    expect(unrequired, 'tables the store routes to that readiness does not require').toEqual([]);
+
+    // Every routed table must also exist in the migrated schema. Requiring a table that readiness
+    // checks but no migration creates would fail the host at startup rather than on first write, which
+    // is the better failure but still a failure this suite can catch first.
+    const present = new Set((await boundaries()).map((row) => row.relname));
+    const missing = POSTGRES_ROUTED_TABLES.filter((table) => !present.has(table));
+    expect(missing, 'tables the store routes to that the schema does not define').toEqual([]);
   }, 300_000);
 });
 

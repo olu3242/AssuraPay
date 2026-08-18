@@ -3393,9 +3393,9 @@
     }
   ],
   "identity": {
-    "branch": "feat/g1-batch-f-agreement-creation",
+    "branch": "fix/wave5-codex-followups",
     "clean": false,
-    "head": "ed254b831ec1bc86ce67c62efeb5656799757d60",
+    "head": "ef0a7af01059b5851947d5b9b3911f9b133cee41",
     "repository": "assurapay",
     "version": "0.1.0"
   },
@@ -3486,7 +3486,7 @@
     "released": 75,
     "validated": 0
   },
-  "manifestDigest": "e032844d3126",
+  "manifestDigest": "de700e00e1cd",
   "missingCapabilities": [
     "persistence.domain-store-durability"
   ],
@@ -3546,7 +3546,7 @@
       "moduleType": null,
       "name": "@assurapay/agreement-creation",
       "sourceFiles": 1,
-      "sourceLines": 933,
+      "sourceLines": 942,
       "testFiles": [
         "packages/agreement-creation/src/agreement-creation.e2e.test.ts",
         "packages/agreement-creation/src/agreement-creation.integration.test.ts",
@@ -3679,7 +3679,7 @@
       "moduleType": null,
       "name": "@assurapay/database",
       "sourceFiles": 17,
-      "sourceLines": 8324,
+      "sourceLines": 8438,
       "testFiles": [
         "packages/database/src/async-conformance.test.ts",
         "packages/database/src/domain-repository.test.ts",
@@ -3736,6 +3736,7 @@
         "unit": 14
       },
       "workspaceDependencies": [
+        "@assurapay/agreement-creation",
         "@assurapay/database",
         "@assurapay/domain-contracts",
         "@assurapay/shared"
@@ -3788,7 +3789,7 @@
       "moduleType": null,
       "name": "@assurapay/domain-contracts",
       "sourceFiles": 8,
-      "sourceLines": 2105,
+      "sourceLines": 2115,
       "testFiles": [
         "packages/domain-contracts/src/batch-a.test.ts",
         "packages/domain-contracts/src/batch-c.test.ts"

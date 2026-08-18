@@ -176,6 +176,16 @@ export const finalSettlementAccountSchema = z
   .refine((value) => (value.status === 'CLOSED') === (value.closedAt !== undefined), {
     message: 'a closed account records when it closed, and an open one does not',
     path: ['closedAt'],
+  })
+  // Closure means nothing is owed. `close()` refuses an account with an outstanding balance, and until
+  // this refinement that rule lived only in the engine: a direct `append` or `replace` could persist a
+  // CLOSED account with a positive outstanding amount, and `issueCertificate()` reads nothing but the
+  // status, so it would then certify the settlement as final while money remained unsettled. The
+  // certificate is the evidence a milestone was paid out in full, which makes this the invariant it
+  // rests on rather than a tidiness check.
+  .refine((value) => value.status !== 'CLOSED' || value.outstandingAmountMinor === 0, {
+    message: 'a closed account has nothing outstanding',
+    path: ['outstandingAmountMinor'],
   });
 
 export const financialClosureCertificateSchema = z

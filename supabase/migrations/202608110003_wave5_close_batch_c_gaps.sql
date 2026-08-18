@@ -81,27 +81,42 @@ BEGIN
 END
 $reconciliation_currency$;
 
+-- Two phases, because the digest cannot be computed here. `payload_digest` is a SHA-256 over a
+-- canonical JSON payload the application builds, and a digest derived in SQL would disagree with the
+-- application's, which would make every legitimate idempotent retry fail as a payload mismatch.
+--
+-- The first version of this block refused outright whenever the table held any row, and told the
+-- operator to backfill and re-run. That instruction could not be followed: the refusal fired before the
+-- column was added, so there was nothing to backfill into, and a re-run failed for the same reason
+-- however much work had been done in between. Any deployment that had created a single payment
+-- instruction could not be upgraded at all.
+--
+-- So the column is added first, nullable, which is safe on a populated table and gives the backfill
+-- somewhere to write. Only the rows still missing a digest hold the migration back, and re-running after
+-- the backfill completes the activation. An empty deployment passes straight through both phases.
 DO $instruction_digest$
 DECLARE
-  rows BIGINT;
+  unresolved BIGINT;
 BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM information_schema.tables
     WHERE table_schema = current_schema() AND table_name = 'payment_instructions'
   ) THEN RETURN; END IF;
 
-  SELECT count(*) INTO rows FROM payment_instructions;
-  IF rows > 0 THEN
+  ALTER TABLE payment_instructions ADD COLUMN IF NOT EXISTS payload_digest TEXT;
+
+  SELECT count(*) INTO unresolved FROM payment_instructions WHERE payload_digest IS NULL;
+  IF unresolved > 0 THEN
     RAISE EXCEPTION
-      'WAVE5_GAP_CLOSURE_REFUSED: payment_instructions holds % row(s), and payload_digest cannot be '
-      'derived in SQL — it is a SHA-256 over a canonical JSON payload the application computes, and '
-      'a digest that disagreed with the application''s would make every legitimate idempotent retry '
-      'fail as a payload mismatch. Nothing has been changed. Backfill through the application, then '
-      're-run.',
-      rows;
+      'WAVE5_GAP_CLOSURE_PENDING_BACKFILL: payment_instructions holds % row(s) with no payload_digest. '
+      'The column now exists and is nullable, so the backfill can proceed: recompute the digest for '
+      'those rows through the application, then re-run this migration to make the column NOT NULL and '
+      'immutable. The digest is deliberately not derived in SQL — a value that disagreed with the '
+      'application''s would make every legitimate idempotent retry fail as a payload mismatch. The '
+      'column addition above is kept; nothing else in this block has been applied.',
+      unresolved;
   END IF;
 
-  ALTER TABLE payment_instructions ADD COLUMN IF NOT EXISTS payload_digest TEXT;
   ALTER TABLE payment_instructions ALTER COLUMN payload_digest SET NOT NULL;
   ALTER TABLE payment_instructions
     ADD CONSTRAINT payment_instructions_payload_digest_len

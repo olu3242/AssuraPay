@@ -834,49 +834,58 @@ export class DigitalExecutionEngine {
     // account it was issued for, not across every account the platform serves, so an unscoped match
     // treated another workspace's event as a replay of this one — and the replay path returns the
     // package unchanged, which means a real signature event would have been silently dropped.
-    if (
-      (await this.s
-        .list<SignatureCallback>('signatureCallbacks'))
-        .some((x) => x.workspaceId === workspace(c) && x.eventId === payload.eventId)
-    )
-      return await find<SignaturePackage>(this.s, 'signaturePackages', c, id);
-    const p = await find<SignaturePackage>(this.s, 'signaturePackages', c, id);
-    // A closed package does not reopen. Without this, a stray SIGNED event arriving after a signatory
-    // declined would recompute the signer list, find nothing outstanding, and move the package to
-    // COMPLETED — resurrecting a declined execution. Checked after the replay test so that a duplicate
-    // delivery of the event that closed the package stays idempotent rather than becoming an error.
-    if (['COMPLETED', 'DECLINED', 'VOID'].includes(p.status))
-      throw new Error('SIGNATURE_PACKAGE_CLOSED');
-    if (payload.documentHash !== p.documentHash)
-      throw new Error('DOCUMENT_HASH_MISMATCH');
-    await this.s.append('signatureCallbacks', {
-      id: randomUUID(),
-      workspaceId: workspace(c),
-      eventId: payload.eventId,
-      createdAt: now(),
-    });
-    if (payload.action === 'DECLINED') {
-      const y = { ...p, status: 'DECLINED' as const };
-      await this.s.replace('signaturePackages', y);
+    // One transaction for the replay check, the consumed-event marker and the package rewrite.
+    // Committing the marker separately made a transient failure of the rewrite permanent: the event was
+    // recorded as consumed, so every retry took the replay branch above and returned the package
+    // unchanged, and the signature the provider had delivered could never be applied. Rolled back
+    // together, a failed rewrite un-consumes the event and the provider's next delivery is a first
+    // delivery. The read inside the transaction locks the package, so a callback for a second signatory
+    // that arrives mid-flight waits and then merges into a signer list that already holds the first.
+    return await this.s.transaction(async (tx) => {
+      if (
+        (await tx
+          .list<SignatureCallback>('signatureCallbacks'))
+          .some((x) => x.workspaceId === workspace(c) && x.eventId === payload.eventId)
+      )
+        return await find<SignaturePackage>(tx, 'signaturePackages', c, id);
+      const p = await find<SignaturePackage>(tx, 'signaturePackages', c, id);
+      // A closed package does not reopen. Without this, a stray SIGNED event arriving after a signatory
+      // declined would recompute the signer list, find nothing outstanding, and move the package to
+      // COMPLETED — resurrecting a declined execution. Checked after the replay test so that a duplicate
+      // delivery of the event that closed the package stays idempotent rather than becoming an error.
+      if (['COMPLETED', 'DECLINED', 'VOID'].includes(p.status))
+        throw new Error('SIGNATURE_PACKAGE_CLOSED');
+      if (payload.documentHash !== p.documentHash)
+        throw new Error('DOCUMENT_HASH_MISMATCH');
+      await tx.append('signatureCallbacks', {
+        id: randomUUID(),
+        workspaceId: workspace(c),
+        eventId: payload.eventId,
+        createdAt: now(),
+      });
+      if (payload.action === 'DECLINED') {
+        const y = { ...p, status: 'DECLINED' as const };
+        await tx.replace('signaturePackages', y);
+        return y;
+      }
+      const signers = p.signers.map((x) =>
+        x.userId !== payload.userId
+          ? x
+          : payload.action === 'SIGNED'
+            ? { ...x, signedAt: now() }
+            : { ...x, witnessedAt: now() },
+      );
+      const complete = signers.every(
+        (x) => x.signedAt && (!x.witnessRequired || x.witnessedAt),
+      );
+      const y = {
+        ...p,
+        signers,
+        status: complete ? ('COMPLETED' as const) : ('PARTIALLY_SIGNED' as const),
+      };
+      await tx.replace('signaturePackages', y);
       return y;
-    }
-    const signers = p.signers.map((x) =>
-      x.userId !== payload.userId
-        ? x
-        : payload.action === 'SIGNED'
-          ? { ...x, signedAt: now() }
-          : { ...x, witnessedAt: now() },
-    );
-    const complete = signers.every(
-      (x) => x.signedAt && (!x.witnessRequired || x.witnessedAt),
-    );
-    const y = {
-      ...p,
-      signers,
-      status: complete ? ('COMPLETED' as const) : ('PARTIALLY_SIGNED' as const),
-    };
-    await this.s.replace('signaturePackages', y);
-    return y;
+    });
   }
   async issue(c: RequestContext, id: string) {
     const p = await find<SignaturePackage>(this.s, 'signaturePackages', c, id);
