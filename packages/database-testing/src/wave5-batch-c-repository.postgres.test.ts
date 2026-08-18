@@ -552,11 +552,16 @@ describe('integration: Batch C money and settlement invariants', () => {
   it('carries currency in the reconciliation key, closing the gap Batch C recorded', async () => {
     // `202608110003`. Two money amounts with no unit was the gap; the key can now express that a
     // reconciliation and the payment it reconciles agree on currency.
+    //
+    // `202608110008` then added `workspace_id`, so the key carries three scopes and the currency. The
+    // currency clause is what this test is about and is asserted on its own, rather than by matching the
+    // whole column list, so that a later scope addition does not read as this gap reopening.
     const [def] = await database.sql<{ d: string }[]>`
       SELECT pg_get_constraintdef(oid) AS d FROM pg_constraint
       WHERE conname = 'reconciliation_records_instruction_currency_fk'
     `;
-    expect(def.d).toContain('(tenant_id, payment_instruction_id, currency)');
+    expect(def.d).toContain('payment_instruction_id, currency)');
+    expect(def.d).toContain('(tenant_id, workspace_id,');
   }, 300_000);
 
   it('reconciles a statement once per instruction and refuses the second', async () => {
@@ -644,7 +649,19 @@ describe('integration: Batch C money and settlement invariants', () => {
 
   it('issues one closure certificate per account and refuses a concurrent second', async () => {
     await as(database, async (store) => {
-      await store.append('finalSettlementAccounts', account());
+      // Closed, and settled in full. `202608110007` made the certificate's key demand a CLOSED account,
+      // so the DRAFT fixture this test used to open with is no longer a state a certificate can exist
+      // against — which is the constraint working, not a fixture inconvenience. What the test is about is
+      // unchanged: one ISSUED certificate per account.
+      await store.append(
+        'finalSettlementAccounts',
+        account({
+          totalSettledAmountMinor: 1_000_000,
+          outstandingAmountMinor: 0,
+          status: 'CLOSED',
+          closedAt: stamp,
+        }),
+      );
       await store.append('financialClosureCertificates', {
         id: 'fcc-1',
         workspaceId: WORKSPACE,
@@ -703,6 +720,24 @@ describe('integration: Batch C money and settlement invariants', () => {
     // in the application compares the two.
     const SECOND_WORKSPACE = 'workspace-c-second';
     await foundSettlementChain(database, TENANT, SECOND_WORKSPACE, '-second');
+    // `foundSettlementChain` stops at the release request, so the second workspace needs its own
+    // instruction for the intra-workspace half of this test to have a legitimate parent to reference.
+    await as(
+      database,
+      (store) =>
+        store.append(
+          'paymentInstructions',
+          instruction({
+            id: 'pi-1-second',
+            workspaceId: SECOND_WORKSPACE,
+            releaseRequestId: 'rr-1-second',
+            idempotencyKey: 'idem-second',
+            payloadDigest: 'digest-pi-1-second',
+          }),
+        ),
+      TENANT,
+      SECOND_WORKSPACE,
+    );
 
     // `pi-1` exists in this tenant, in WORKSPACE. The reference is refused for naming a parent this
     // workspace cannot see rather than for the row not existing, which is the distinction that matters:

@@ -1242,7 +1242,11 @@ describe('integration: a provider callback is atomic and does not lose a concurr
         signature,
       ),
     ).catch((caught: unknown) => caught);
-    expect(String(failed)).toContain('TRANSIENT_DATABASE_FAILURE');
+    // The store reports its own failure code rather than the driver's or the caller's text — a
+    // transaction that could not commit is `PERSISTENCE_TRANSACTION_FAILED`, and the underlying cause is
+    // sanitised on the way out so a database message cannot reach a caller. What this test is about is
+    // the state left behind, asserted next.
+    expect((failed as PostgresStoreError).code).toBe('PERSISTENCE_TRANSACTION_FAILED');
 
     const markers = await as(database, (store) =>
       store.list<{ eventId: string }>('signatureCallbacks'),
