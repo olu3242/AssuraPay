@@ -162,6 +162,9 @@ importers:
       '@assurapay/database':
         specifier: workspace:*
         version: link:../database
+      '@assurapay/domain-contracts':
+        specifier: workspace:*
+        version: link:../domain-contracts
       '@assurapay/shared':
         specifier: workspace:*
         version: link:../shared

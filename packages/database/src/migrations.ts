@@ -10,6 +10,7 @@ import {
   BATCH_F_TABLES,
   BATCH_G_TABLES,
   BATCH_H_TABLES,
+  BATCH_I_TABLES,
 } from '@assurapay/domain-contracts';
 import type { SqlClient } from './postgres-client';
 
@@ -360,6 +361,11 @@ export const REQUIRED_TRUST_MIGRATIONS: readonly string[] = Object.freeze([
   // BLOCKED payment authorization proposal is one UPDATE away from authorising a release for uncertified
   // work.
   '202608110011_wave6_batch_h_governance_core',
+  // Batch I. The store routes six Engine 16-20 collections; five of the tables `202608030004` created and
+  // this migration converges, and `analysis_reviews` it creates — a reviewer's decision on a finding had no
+  // table at all. Required rather than optional: without it a published intelligence version can contain
+  // unreviewed items, which is the human-in-the-loop rule for machine-extracted contract terms.
+  '202608110012_wave6_batch_i_agreement_intelligence',
 ]);
 
 export type SchemaCompatibility = {
@@ -423,6 +429,7 @@ export const REQUIRED_DOMAIN_AGGREGATE_TABLES = Object.freeze(
     ...BATCH_F_TABLES,
     ...BATCH_G_TABLES,
     ...BATCH_H_TABLES,
+    ...BATCH_I_TABLES,
   ].sort(),
 );
 

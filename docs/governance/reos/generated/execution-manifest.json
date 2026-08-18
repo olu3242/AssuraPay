@@ -3395,7 +3395,7 @@
   "identity": {
     "branch": "feat/i1-batch-i-agreement-intelligence",
     "clean": false,
-    "head": "97bcb207e98ce2c1ec12b6739a671bda17f71694",
+    "head": "812ccd443fc45c749839e1e228ed25be1e4c2282",
     "repository": "assurapay",
     "version": "0.1.0"
   },
@@ -3486,7 +3486,7 @@
     "released": 75,
     "validated": 0
   },
-  "manifestDigest": "23ea20c35978",
+  "manifestDigest": "b0eda9e7cf7e",
   "missingCapabilities": [
     "persistence.domain-store-durability"
   ],
@@ -3580,21 +3580,23 @@
       "moduleType": null,
       "name": "@assurapay/agreement-intelligence",
       "sourceFiles": 1,
-      "sourceLines": 9,
+      "sourceLines": 23,
       "testFiles": [
         "packages/agreement-intelligence/src/agreement-intelligence.e2e.test.ts",
         "packages/agreement-intelligence/src/agreement-intelligence.integration.test.ts",
-        "packages/agreement-intelligence/src/agreement-intelligence.test.ts"
+        "packages/agreement-intelligence/src/agreement-intelligence.test.ts",
+        "packages/agreement-intelligence/src/persisted-contracts.test.ts"
       ],
       "tests": {
         "e2e": 1,
         "integration": 1,
         "performance": 0,
         "security": 0,
-        "unit": 1
+        "unit": 2
       },
       "workspaceDependencies": [
         "@assurapay/database",
+        "@assurapay/domain-contracts",
         "@assurapay/shared"
       ]
     },
@@ -3678,8 +3680,8 @@
       "main": "src/index.ts",
       "moduleType": null,
       "name": "@assurapay/database",
-      "sourceFiles": 19,
-      "sourceLines": 9980,
+      "sourceFiles": 20,
+      "sourceLines": 10585,
       "testFiles": [
         "packages/database/src/async-conformance.test.ts",
         "packages/database/src/domain-repository.test.ts",
@@ -3728,14 +3730,15 @@
         "packages/database-testing/src/wave6-batch-e-repository.postgres.test.ts",
         "packages/database-testing/src/wave6-batch-f-repository.postgres.test.ts",
         "packages/database-testing/src/wave6-batch-g-repository.postgres.test.ts",
-        "packages/database-testing/src/wave6-batch-h-repository.postgres.test.ts"
+        "packages/database-testing/src/wave6-batch-h-repository.postgres.test.ts",
+        "packages/database-testing/src/wave6-batch-i-repository.postgres.test.ts"
       ],
       "tests": {
         "e2e": 0,
         "integration": 0,
         "performance": 0,
         "security": 0,
-        "unit": 16
+        "unit": 17
       },
       "workspaceDependencies": [
         "@assurapay/agreement-creation",
@@ -3791,8 +3794,8 @@
       "main": "src/index.ts",
       "moduleType": null,
       "name": "@assurapay/domain-contracts",
-      "sourceFiles": 10,
-      "sourceLines": 2809,
+      "sourceFiles": 11,
+      "sourceLines": 3178,
       "testFiles": [
         "packages/domain-contracts/src/batch-a.test.ts",
         "packages/domain-contracts/src/batch-c.test.ts"
@@ -4680,6 +4683,7 @@
             "packages/database-testing/src/wave6-batch-f-repository.postgres.test.ts",
             "packages/database-testing/src/wave6-batch-g-repository.postgres.test.ts",
             "packages/database-testing/src/wave6-batch-h-repository.postgres.test.ts",
+            "packages/database-testing/src/wave6-batch-i-repository.postgres.test.ts",
             "packages/database/src/batch-a-repository.ts",
             "packages/database/src/batch-b-repository.ts",
             "packages/database/src/batch-c-repository.ts",
@@ -4688,6 +4692,7 @@
             "packages/database/src/batch-f-repository.ts",
             "packages/database/src/batch-g-repository.ts",
             "packages/database/src/batch-h-repository.ts",
+            "packages/database/src/batch-i-repository.ts",
             "packages/database/src/conformance.ts",
             "packages/database/src/migrations.ts",
             "packages/database/src/postgres-store.ts",
@@ -4720,6 +4725,7 @@
             "packages/database-testing/src/wave6-batch-f-repository.postgres.test.ts",
             "packages/database-testing/src/wave6-batch-g-repository.postgres.test.ts",
             "packages/database-testing/src/wave6-batch-h-repository.postgres.test.ts",
+            "packages/database-testing/src/wave6-batch-i-repository.postgres.test.ts",
             "packages/database/src/migrations.ts",
             "packages/database/src/schema-ownership.ts",
             "packages/runtime/src/persistence-runtime.postgres.test.ts",
@@ -5009,6 +5015,7 @@
             "packages/database-testing/src/wave6-batch-f-repository.postgres.test.ts",
             "packages/database-testing/src/wave6-batch-g-repository.postgres.test.ts",
             "packages/database-testing/src/wave6-batch-h-repository.postgres.test.ts",
+            "packages/database-testing/src/wave6-batch-i-repository.postgres.test.ts",
             "packages/database/src/trust-scope.ts",
             "packages/runtime/src/persistence-runtime.postgres.test.ts",
             "packages/runtime/src/rls-runtime.postgres.test.ts"

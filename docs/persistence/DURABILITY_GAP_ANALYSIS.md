@@ -37,6 +37,14 @@ Confirmed by running the real engine against a real database:
 
 ## Current state, measured
 
+The table below is the measurement taken when this register was written, kept as the starting point
+rather than edited on each batch. **The live figure is asserted by
+`packages/database-testing/src/durability-coverage.test.ts`, which is the authority** — a prose number
+here would go stale between one batch and the next, and a stale number in a document called a register is
+worse than none. As of Batch I: **132** collections written, **108** mapped, **24** unmapped. The written
+total is above 129 because the gate itself had two blind spots, both since corrected — it read only
+`src/index.ts`, and its collection-name pattern dropped every name containing a digit.
+
 | Question | Answer | How it was measured |
 |---|---|---|
 | Engine packages composing with `TrustPersistence` | **15 of 15** | source scan; no engine package uses `AssuraRepository` |
@@ -94,7 +102,7 @@ Sixty-seven collections, grouped by owning package and ordered by the sequence b
 | 2 | `agreement-creation` | 11–15 | 15 | `agreements` — **the chain's first link** |
 | 3 | `performance-readiness` | 26–30 | 6 | `paymentTriggerRules` |
 | 4 | `governance-core` | 06–10 | 11 | certification, governed execution, payment authorisation proposals |
-| 5 | `agreement-intelligence` | 16–20 | 5 | analysis runs, risk assessments |
+| 5 | `agreement-intelligence` | 16–20 | 6 | contract versions, analysis runs, risk assessments |
 | 6 | `enterprise-intelligence` | 51–55 | 6 | KPIs, assurance indices, forecasts |
 | 7 | `enterprise-analytics` | 56–60 | 9 | scorecards, model registry, drift |
 | 8 | `agent-runtime` | governed agents | 9 | agent memory, telemetry, executions |
@@ -189,11 +197,39 @@ of the register above. The order is not arbitrary:
   `digital_certification_records UNIQUE (certificate_number)` — global, while the engine numbers
   certificates by counting its own rows, so every tenant produced `AP-CERT-2026-000001` and only the first
   could store it.
-- **Batch I: `agreement-intelligence` (6).** Six, not the five this register recorded until now.
-  `contractVersionsV2` is written by `ContractVersionEngine` and was absent from both the register and the
-  coverage baseline, because the gate's collection-name pattern was `[a-zA-Z]+` and silently dropped every
-  name containing a digit — so an engine write with no durable mapping sat unseen inside the gate that
-  exists to find exactly that. It was the only collection so hidden.
+- **Batch I: `agreement-intelligence` (6) — DONE (`202608110012`).** Six, not the five this register
+  recorded until now. `contractVersionsV2` is written by `ContractVersionEngine` and was absent from both the
+  register and the coverage baseline, because the gate's collection-name pattern was `[a-zA-Z]+` and silently
+  dropped every name containing a digit — so an engine write with no durable mapping sat unseen inside the
+  gate that exists to find exactly that. It was the only collection so hidden, and it turned out to be the
+  parent of four of the other five: finding it is what made this closure tractable rather than unbounded.
+
+  Three firsts in this batch. **The closure is larger than the aggregate set.** `agreement_intelligence_items`
+  and `contract_analysis_findings` reference it and no engine writes either; they are leaves, but their
+  `*_id` columns point at aggregates whose identity converts from UUID to TEXT, so they are converged and
+  governed *without* being routed. **A table in the closure never existed at all**: `analysis_reviews`, so a
+  reviewer's decision on a machine-generated finding had nowhere to be recorded and the human-in-the-loop
+  rule left nothing to audit afterwards. And **an engine defect had to be fixed before the schema could hold
+  the invariant**: `contentHash` digested each intelligence item *including* its review status, while
+  `review()` changes that status without recomputing the hash — so after any review the stored hash described
+  a state that no longer existed, and `publish()` emitted it as the citation for what was published. The
+  engine now digests only what was extracted, which is what lets `content_hash` be immutable rather than a
+  value that silently goes stale.
+
+  What was unprotected was the human-in-the-loop rule itself. `publish()` refuses `HUMAN_REVIEW_REQUIRED`
+  while any item is PENDING, but that is a guard in one method, and these items become the contract's
+  parties, milestones and payment triggers downstream — so an unreviewed one is an unverified term entering
+  the settlement path. It is now a CHECK on the row. Two more of the same kind: a risk `level` must follow
+  from its `score` on the engine's own thresholds (the banner is what a reader acts on, and it was free to
+  disagree with its own number), and an assessment's score is immutable once validated, so a rating cannot be
+  lowered after sign-off.
+
+  Batch I also **found a defect in its own first draft**: step 3 drops the tenant-blind unique keys on the
+  closure, and the first version re-added only two of the four. The two it dropped silently were
+  `contract_risk_assessments (contract_version_id, version)` and `agreement_intelligence_versions
+  (contract_id, version)` — revision keys the engines compute by counting what exists, so two concurrent
+  calls both write the same revision. Trading a cross-tenant collision for a duplicate revision is the worse
+  of the two, and it was caught by reading the original `CREATE TABLE` statements rather than by any gate.
 - **Last: `enterprise-intelligence` (6), `enterprise-analytics` (9), `agent-runtime` (9).** Deferred by
   the accepted decision until the persistence boundary is resolved, and the register keeps them in that
   position rather than reordering by convenience.

@@ -13,8 +13,8 @@ import { POSTGRES_TRUST_COLLECTIONS } from '@assurapay/database';
  * deployment could pass every gate in this repository and then be unable to create a contract.
  *
  * Measured when this file was written: engines write **129** collections, the store maps **64**, and
- * **67** were unmapped. Batches E through H closed thirty-eight between them, so the current measurement
- * is **132** written, **102** mapped and **30** unmapped — and it is the assertions below, not this
+ * **67** were unmapped. Batches E through I closed forty-four between them, so the current measurement
+ * is **132** written, **108** mapped and **24** unmapped — and it is the assertions below, not this
  * sentence, that keep that true.
  *
  * The written total rose rather than held because this gate had two blind spots, both since corrected. It
@@ -22,7 +22,9 @@ import { POSTGRES_TRUST_COLLECTIONS } from '@assurapay/database';
  * was `[a-zA-Z]+`, which silently dropped every name containing a digit. Exactly one collection was
  * hidden by the second: `contractVersionsV2`, written by `ContractVersionEngine` with no mapping and no
  * baseline entry — precisely the regression the first assertion below exists to catch, sitting unseen
- * inside the gate meant to catch it.
+ * inside the gate meant to catch it. Fixing the pattern surfaced it, Batch I made it durable, and the six
+ * that batch covers are one more than the register predicted for that reason.
+ *
  * `ContractAuthoringEngine.create` — the first step of the canonical chain — was confirmed against a
  * live PostgreSQL instance to fail with
  * `PERSISTENCE_COLLECTION_NOT_MAPPED: agreements has no mapping in the durable trust store`. Batch F is
@@ -76,12 +78,13 @@ const KNOWN_UNMAPPED: readonly string[] = Object.freeze([
   // rather than a bare identifier, so a durable eligibility no longer points at a rule that cannot be
   // stored — and the rule can now reach ACTIVE, which the blanket append-only trigger `202608030005`
   // installed had made impossible.
-  // agreement-intelligence (6) — Engines 16-20. Six, not five: `contractVersionsV2` is written by
-  // `ContractVersionEngine` and was missing from this list because the scan's name pattern excluded
-  // digits. It is baselined here rather than quietly re-hidden, so the gap it represents is counted while
-  // Batch I gives it a durable home.
-  'agreementIntelligenceVersions', 'analysisReviews', 'contractAnalysisRuns',
-  'contractRiskAssessments', 'contractVersionsV2', 'repositoryDocuments',
+  // agreement-intelligence — CLOSED by Batch I (`202608110012`). Its six aggregates are removed from this
+  // baseline rather than left in it. Six, not the five the register predicted: `contractVersionsV2` is
+  // written by `ContractVersionEngine`, and this gate could not see it because the scan's name pattern
+  // excluded digits. It was baselined for exactly one commit — long enough to be counted — and is now
+  // durable along with the other five. `analysis_reviews` had no table at all, so a reviewer's decision on
+  // a machine-extracted finding could not be recorded anywhere, which made the human-in-the-loop rule for
+  // published intelligence unprovable after the fact.
   // enterprise-intelligence (6) — Engines 51-55, deferred by the accepted decision.
   'dashboardSnapshots', 'executionAssuranceIndices', 'executionForecasts', 'kpiDefinitions',
   'kpiValues', 'settlementAssuranceIndices',
