@@ -17,6 +17,7 @@ import { BATCH_E_RELATIONS, batchERelation, isBatchECollection } from './batch-e
 import { BATCH_F_RELATIONS, batchFRelation, isBatchFCollection } from './batch-f-repository';
 import { BATCH_G_RELATIONS, batchGRelation, isBatchGCollection } from './batch-g-repository';
 import { BATCH_H_RELATIONS, batchHRelation, isBatchHCollection } from './batch-h-repository';
+import { BATCH_I_RELATIONS, batchIRelation, isBatchICollection } from './batch-i-repository';
 import { PostgresStoreError } from './store-error';
 
 export { PostgresStoreError } from './store-error';
@@ -261,6 +262,12 @@ export const POSTGRES_TRUST_COLLECTIONS: readonly string[] = Object.freeze(
     // boundary: eight of its eleven tables had none at all, including the payment authorization proposal
     // `createEscrowReleaseIntent` reads before instructing a provider.
     ...Object.keys(BATCH_H_RELATIONS),
+    // Batch I. Six more, the agreement-intelligence engines. Six rather than the five the register
+    // predicted: `contractVersionsV2` is written by `ContractVersionEngine` and the coverage scan's name
+    // pattern excluded digits, so it had been invisible to the gate as well as undurable. A contract's
+    // version history, the analyses run over it and the risk assessments derived from them are the
+    // evidence a completion certificate is later argued from.
+    ...Object.keys(BATCH_I_RELATIONS),
   ].sort(),
 );
 
@@ -288,6 +295,7 @@ export const POSTGRES_ROUTED_TABLES: readonly string[] = Object.freeze(
       ...Object.values(BATCH_F_RELATIONS).map((relation) => relation.table),
       ...Object.values(BATCH_G_RELATIONS).map((relation) => relation.table),
       ...Object.values(BATCH_H_RELATIONS).map((relation) => relation.table),
+      ...Object.values(BATCH_I_RELATIONS).map((relation) => relation.table),
     ]),
   ].sort(),
 );
@@ -391,6 +399,36 @@ export type PostgresTrustStoreOptions = {
  * here is only sound if its engine performs that whole sequence inside one `transaction`.
  */
 const LOCK_ON_TRANSACTIONAL_READ = new Set<string>(['signaturePackages']);
+
+/**
+ * The one capability `replace` needs from a batch repository: an UPDATE that reports how many rows it
+ * changed. Each batch's relation type is its own, and none of them is assignable to another, but every
+ * one of them satisfies this — so `replace` can dispatch over all nine batches without a chain of
+ * ternaries that grows by a branch per batch and puts the newest batch behind the longest path.
+ */
+type RelationalUpdate = {
+  update(sql: SqlClient, record: Record<string, unknown>): Promise<number>;
+};
+
+/**
+ * The batch repository that owns a collection's UPDATE, or `undefined` when no batch owns it.
+ *
+ * Ordered by batch because the predicates are disjoint — a collection belongs to at most one batch, and
+ * `BATCH_*_RELATION_COUNT` in each repository asserts the registry it is derived from is complete — so
+ * the order is documentation rather than precedence.
+ */
+function relationalUpdateTarget(collection: string): RelationalUpdate | undefined {
+  if (isBatchACollection(collection)) return batchARelation(collection);
+  if (isBatchBCollection(collection)) return batchBRelation(collection);
+  if (isBatchCCollection(collection)) return batchCRelation(collection);
+  if (isBatchDCollection(collection)) return batchDRelation(collection);
+  if (isBatchECollection(collection)) return batchERelation(collection);
+  if (isBatchFCollection(collection)) return batchFRelation(collection);
+  if (isBatchGCollection(collection)) return batchGRelation(collection);
+  if (isBatchHCollection(collection)) return batchHRelation(collection);
+  if (isBatchICollection(collection)) return batchIRelation(collection);
+  return undefined;
+}
 
 export class PostgresTrustStore implements TrustPersistence {
   private readonly now: () => Date;
@@ -514,6 +552,8 @@ export class PostgresTrustStore implements TrustPersistence {
         return (await batchGRelation(collection).list(this.sql)) as unknown as T[];
       if (isBatchHCollection(collection))
         return (await batchHRelation(collection).list(this.sql)) as unknown as T[];
+      if (isBatchICollection(collection))
+        return (await batchIRelation(collection).list(this.sql)) as unknown as T[];
       this.requireGoverned(collection);
       const rows = await this.sql<StoredRow[]>`
         SELECT payload, payload_digest FROM trust_records
@@ -627,6 +667,15 @@ export class PostgresTrustStore implements TrustPersistence {
         return;
       }
 
+      if (isBatchICollection(collection)) {
+        await batchIRelation(collection).insert(
+          this.sql,
+          record,
+          this.requireRelationalTenant(collection, record),
+        );
+        return;
+      }
+
       if (collection === 'trustWorkspaces') {
         const tenantId = firstString(record, ['tenantId']);
         if (!tenantId)
@@ -732,35 +781,12 @@ export class PostgresTrustStore implements TrustPersistence {
     const updatedAt = this.now();
 
     try {
-      if (
-        isBatchACollection(collection) ||
-        isBatchBCollection(collection) ||
-        isBatchCCollection(collection) ||
-        isBatchDCollection(collection) ||
-        isBatchECollection(collection) ||
-        isBatchFCollection(collection) ||
-        isBatchGCollection(collection) ||
-        isBatchHCollection(collection)
-      ) {
+      const relation = relationalUpdateTarget(collection);
+      if (relation) {
         // The tenant is re-derived and checked even though the UPDATE does not write it: a
         // caller replacing a record outside its scope must be refused for that reason, not
         // discover it as a row that mysteriously does not exist.
         this.requireRelationalTenant(collection, record);
-        const relation = isBatchACollection(collection)
-          ? batchARelation(collection)
-          : isBatchBCollection(collection)
-            ? batchBRelation(collection)
-            : isBatchCCollection(collection)
-              ? batchCRelation(collection)
-              : isBatchDCollection(collection)
-                ? batchDRelation(collection)
-                : isBatchECollection(collection)
-                  ? batchERelation(collection)
-                  : isBatchFCollection(collection)
-                    ? batchFRelation(collection)
-                    : isBatchGCollection(collection)
-                      ? batchGRelation(collection)
-                      : batchHRelation(collection);
         const affected = await relation.update(this.sql, record);
         this.requireAffected(affected, collection, id);
         return;
