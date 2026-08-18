@@ -1,12 +1,12 @@
 {
   "capability": "persistence.domain-store-durability",
-  "capabilityLifecycle": "planned",
+  "capabilityLifecycle": "certified",
   "certification": {
     "available": true,
     "failedSteps": [],
     "passed": true
   },
-  "commit": "a0d6e74c5c051c09abca131853fc000fd72680fa",
+  "commit": "57053fa298cc68a5834d5a16439d4d8dfe34b80a",
   "filesModified": [
     "apps/web/app/api/v1/completion-certificates/[id]/verify/route.ts",
     "apps/web/app/api/v1/contracts/[id]/approve/route.ts",
@@ -26,6 +26,7 @@
     "apps/web/lib/route-permissions.test.ts",
     "apps/web/lib/route-permissions.ts",
     "docs/governance/execution-ledger/34fb3610d9d1-persistence.domain-store-durability.json",
+    "docs/governance/execution-ledger/57053fa298cc-persistence.domain-store-durability.json",
     "docs/governance/execution-ledger/60602ed2dee4-persistence.domain-store-durability.json",
     "docs/governance/execution-ledger/812ccd443fc4-persistence.domain-store-durability.json",
     "docs/governance/execution-ledger/INDEX.md",
@@ -35,6 +36,7 @@
     "docs/governance/execution-ledger/c0c9ef653189-persistence.domain-store-durability.json",
     "docs/governance/reos/capability-registry.json",
     "docs/governance/reos/generated/CERTIFICATION_REPORT.md",
+    "docs/governance/reos/generated/DEPENDENCY_RESOLUTION.md",
     "docs/governance/reos/generated/EXECUTION_MANIFEST.md",
     "docs/governance/reos/generated/EXECUTION_REPORT.md",
     "docs/governance/reos/generated/certification.json",
@@ -56,6 +58,7 @@
     "packages/database-testing/package.json",
     "packages/database-testing/src/durability-coverage.test.ts",
     "packages/database-testing/src/migrations.postgres.test.ts",
+    "packages/database-testing/src/money-integrality.postgres.test.ts",
     "packages/database-testing/src/schema-ownership.postgres.test.ts",
     "packages/database-testing/src/store-boundary.postgres.test.ts",
     "packages/database-testing/src/wave5-batch-b-repository.postgres.test.ts",
@@ -113,7 +116,12 @@
     "packages/organizations/src/organizations.test.ts",
     "packages/performance-readiness/package.json",
     "packages/performance-readiness/src/persisted-contracts.test.ts",
+    "packages/reos/src/index.ts",
+    "packages/reos/src/ledger.ts",
+    "packages/reos/src/reos.governance.test.ts",
     "packages/reos/src/reos.persistence.test.ts",
+    "packages/reos/src/stages/forensics.ts",
+    "packages/reos/src/types.ts",
     "packages/reos/src/validators/persistence.ts",
     "pnpm-lock.yaml",
     "supabase/migrations/202608110003_wave5_close_batch_c_gaps.sql",
@@ -127,9 +135,11 @@
     "supabase/migrations/202608110014_wave6_batch_k_enterprise_intelligence.sql",
     "supabase/migrations/202608110015_wave6_batch_l_enterprise_analytics.sql",
     "supabase/migrations/202608110016_retire_trust_compatibility_tables.sql",
-    "supabase/migrations/202608110017_wave6_batch_m_agent_runtime.sql"
+    "supabase/migrations/202608110017_wave6_batch_m_agent_runtime.sql",
+    "supabase/migrations/202608110018_money_columns_refuse_fractional_amounts.sql",
+    "supabase/migrations/202608110019_retire_dead_legacy_tables.sql"
   ],
-  "generatedAt": "2026-08-18T22:12:34.064Z",
+  "generatedAt": "2026-08-18T23:24:12.855Z",
   "governance": {
     "baselined": 15,
     "findings": [
@@ -289,53 +299,17 @@
     "phase": 2,
     "resolved": []
   },
-  "ledgerEntryId": "a0d6e74c5c05-persistence.domain-store-durability",
-  "recommendedNextCapability": {
-    "blockedBy": [],
-    "blocks": [],
-    "dependsOn": [
-      "persistence.domain-store-environment-gate"
-    ],
-    "executable": true,
-    "id": "persistence.domain-store-durability",
-    "lifecycle": "planned",
-    "priority": 45,
-    "requiresLiveInfrastructure": true,
-    "scope": {
-      "estimated": false,
-      "files": 1,
-      "tests": 1
-    },
-    "status": "missing",
-    "title": "Domain store durability for Engines 06-60"
-  },
-  "remainingBacklog": [
-    {
-      "blockedBy": [],
-      "blocks": [],
-      "dependsOn": [
-        "persistence.domain-store-environment-gate"
-      ],
-      "executable": true,
-      "id": "persistence.domain-store-durability",
-      "lifecycle": "planned",
-      "priority": 45,
-      "requiresLiveInfrastructure": true,
-      "scope": {
-        "estimated": false,
-        "files": 1,
-        "tests": 1
-      },
-      "status": "missing",
-      "title": "Domain store durability for Engines 06-60"
-    }
-  ],
+  "ledgerEntryId": "57053fa298cc-persistence.domain-store-durability",
+  "recommendedNextCapability": null,
+  "remainingBacklog": [],
   "reosVersion": "1.0.0",
   "repositoryState": {
-    "branch": "feat/m1-batch-m-agent-runtime",
+    "branch": "feat/n1-close-the-durability-capability",
     "clean": false,
     "dirtyFiles": [
+      "docs/governance/reos/capability-registry.json",
       "docs/governance/reos/generated/CERTIFICATION_REPORT.md",
+      "docs/governance/reos/generated/DEPENDENCY_RESOLUTION.md",
       "docs/governance/reos/generated/EXECUTION_MANIFEST.md",
       "docs/governance/reos/generated/certification.json",
       "docs/governance/reos/generated/dependency-resolution.json",
@@ -343,27 +317,24 @@
       "docs/governance/reos/generated/execution-manifest.json",
       "docs/governance/reos/generated/forensics.json",
       "docs/persistence/DURABILITY_GAP_ANALYSIS.md",
-      "packages/agent-runtime/package.json",
-      "packages/agent-runtime/src/agent-runtime.test.ts",
-      "packages/agent-runtime/src/index.ts",
-      "packages/agent-runtime/src/persisted-contracts.test.ts",
-      "packages/database-testing/src/durability-coverage.test.ts",
+      "packages/database-testing/src/money-integrality.postgres.test.ts",
+      "packages/database-testing/src/wave6-batch-l-repository.postgres.test.ts",
       "packages/database-testing/src/wave6-batch-m-repository.postgres.test.ts",
-      "packages/database/src/batch-m-repository.ts",
-      "packages/database/src/index.ts",
       "packages/database/src/migrations.ts",
-      "packages/database/src/postgres-store.ts",
-      "packages/domain-contracts/src/batch-m.ts",
-      "packages/domain-contracts/src/index.ts",
-      "pnpm-lock.yaml",
-      "supabase/migrations/202608110017_wave6_batch_m_agent_runtime.sql"
+      "packages/reos/src/index.ts",
+      "packages/reos/src/ledger.ts",
+      "packages/reos/src/reos.governance.test.ts",
+      "packages/reos/src/stages/forensics.ts",
+      "packages/reos/src/types.ts",
+      "supabase/migrations/202608110018_money_columns_refuse_fractional_amounts.sql",
+      "supabase/migrations/202608110019_retire_dead_legacy_tables.sql"
     ],
-    "head": "a0d6e74c5c051c09abca131853fc000fd72680fa"
+    "head": "57053fa298cc68a5834d5a16439d4d8dfe34b80a"
   },
   "stage": "report",
   "validation": [
     {
-      "checked": 249,
+      "checked": 250,
       "findings": [],
       "passed": true,
       "validator": "architecture"
@@ -394,7 +365,7 @@
       "validator": "security"
     },
     {
-      "checked": 110,
+      "checked": 119,
       "findings": [
         {
           "location": "packages/agreement-creation/src",

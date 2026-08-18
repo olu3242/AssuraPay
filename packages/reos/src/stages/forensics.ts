@@ -164,6 +164,22 @@ export function classifyStatus(
  * Whether the capability's evidence is already on the default branch. This is
  * what separates lifecycle `certified` (green on a feature branch) from
  * `released` (present on main).
+ *
+ * Paths and symbols are both required, and the reason is a false `released`
+ * this measured on `persistence.domain-store-durability`. Path existence alone
+ * is trivially satisfied by a file that **predates** the capability: that entry
+ * names `postgres-store.ts`, `migrations.ts` and `durability-coverage.test.ts`,
+ * all three of which have been on `main` since long before the batches that
+ * make the capability real. Every path existed at the ref, so this returned
+ * true and the lifecycle read `released` — the terminal state, meaning shipped
+ * — while thirteen batches sat in an unmerged stack and
+ * `POSTGRES_ROUTED_TABLES` did not exist on `main` at all.
+ *
+ * A capability adds symbols to files that may already exist, so the symbols are
+ * the part that distinguishes its work from its container. Requiring every
+ * declared symbol at the ref, rather than only the first, means a partially
+ * merged capability reads as `certified` rather than shipped. Declaring neither
+ * paths nor symbols still cannot be released, as before.
  */
 export function isOnDefaultBranch(
   repoRoot: string,
@@ -173,13 +189,17 @@ export function isOnDefaultBranch(
   if (!ref) return false;
 
   const paths = definition.evidence.paths ?? [];
-  if (paths.length > 0) {
-    return paths.every((candidate) => pathExistsAtRef(ref, candidate, repoRoot));
-  }
+  const symbols = definition.evidence.symbols ?? [];
+  if (paths.length === 0 && symbols.length === 0) return false;
 
-  const symbol = definition.evidence.symbols?.[0];
-  if (!symbol) return false;
-  return refsContainingSymbol(symbol, [ref], repoRoot).length > 0;
+  const pathsPresent = paths.every((candidate) =>
+    pathExistsAtRef(ref, candidate, repoRoot),
+  );
+  const symbolsPresent = symbols.every(
+    (symbol) => refsContainingSymbol(symbol, [ref], repoRoot).length > 0,
+  );
+
+  return pathsPresent && symbolsPresent;
 }
 
 /** Stage 2 — evidence-based investigation of every registered capability. */

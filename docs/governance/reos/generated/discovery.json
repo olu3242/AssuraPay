@@ -2118,6 +2118,20 @@
       "id": "202608110017",
       "name": "wave6_batch_m_agent_runtime",
       "path": "supabase/migrations/202608110017_wave6_batch_m_agent_runtime.sql"
+    },
+    {
+      "declaresPolicies": 0,
+      "declaresRowLevelSecurity": false,
+      "id": "202608110018",
+      "name": "money_columns_refuse_fractional_amounts",
+      "path": "supabase/migrations/202608110018_money_columns_refuse_fractional_amounts.sql"
+    },
+    {
+      "declaresPolicies": 0,
+      "declaresRowLevelSecurity": false,
+      "id": "202608110019",
+      "name": "retire_dead_legacy_tables",
+      "path": "supabase/migrations/202608110019_retire_dead_legacy_tables.sql"
     }
   ],
   "packages": [
@@ -2311,7 +2325,7 @@
       "moduleType": null,
       "name": "@assurapay/database",
       "sourceFiles": 22,
-      "sourceLines": 12316,
+      "sourceLines": 12327,
       "testFiles": [
         "packages/database/src/async-conformance.test.ts",
         "packages/database/src/rls-certification.test.ts",
@@ -2346,6 +2360,7 @@
         "packages/database-testing/src/durability-coverage.test.ts",
         "packages/database-testing/src/engine-identity.test.ts",
         "packages/database-testing/src/migrations.postgres.test.ts",
+        "packages/database-testing/src/money-integrality.postgres.test.ts",
         "packages/database-testing/src/postgres-store.postgres.test.ts",
         "packages/database-testing/src/rls-certification.postgres.test.ts",
         "packages/database-testing/src/schema-ownership.postgres.test.ts",
@@ -2370,7 +2385,7 @@
         "integration": 0,
         "performance": 0,
         "security": 0,
-        "unit": 21
+        "unit": 22
       },
       "workspaceDependencies": [
         "@assurapay/agreement-creation",
@@ -2791,7 +2806,7 @@
       "moduleType": "module",
       "name": "@assurapay/reos",
       "sourceFiles": 25,
-      "sourceLines": 4855,
+      "sourceLines": 4957,
       "testFiles": [
         "packages/reos/src/reos.e2e.test.ts",
         "packages/reos/src/reos.governance.test.ts",
@@ -2982,7 +2997,7 @@
   "reosVersion": "1.0.0",
   "repository": {
     "git": {
-      "branch": "feat/m1-batch-m-agent-runtime",
+      "branch": "feat/n1-close-the-durability-capability",
       "branches": [
         "assess/engines-31-50-certification-gap-matrix",
         "chore/post-merge-governance-artifacts-batch-a",
@@ -3001,6 +3016,7 @@
         "feat/k1-batch-k-enterprise-intelligence",
         "feat/l1-batch-l-enterprise-analytics",
         "feat/m1-batch-m-agent-runtime",
+        "feat/n1-close-the-durability-capability",
         "feat/persistence-async-domain-repository",
         "feat/persistence-async-repository-interface",
         "feat/persistence-domain-store-durable-environment-gate",
@@ -3030,6 +3046,7 @@
         "origin/feat/j1-retire-file-domain-store",
         "origin/feat/k1-batch-k-enterprise-intelligence",
         "origin/feat/l1-batch-l-enterprise-analytics",
+        "origin/feat/m1-batch-m-agent-runtime",
         "origin/feat/persistence-async-domain-repository",
         "origin/feat/persistence-async-repository-interface",
         "origin/feat/persistence-domain-store-durable-environment-gate",
@@ -3046,7 +3063,9 @@
       ],
       "clean": false,
       "dirtyFiles": [
+        "docs/governance/reos/capability-registry.json",
         "docs/governance/reos/generated/CERTIFICATION_REPORT.md",
+        "docs/governance/reos/generated/DEPENDENCY_RESOLUTION.md",
         "docs/governance/reos/generated/EXECUTION_MANIFEST.md",
         "docs/governance/reos/generated/certification.json",
         "docs/governance/reos/generated/dependency-resolution.json",
@@ -3054,23 +3073,20 @@
         "docs/governance/reos/generated/execution-manifest.json",
         "docs/governance/reos/generated/forensics.json",
         "docs/persistence/DURABILITY_GAP_ANALYSIS.md",
-        "packages/agent-runtime/package.json",
-        "packages/agent-runtime/src/agent-runtime.test.ts",
-        "packages/agent-runtime/src/index.ts",
-        "packages/agent-runtime/src/persisted-contracts.test.ts",
-        "packages/database-testing/src/durability-coverage.test.ts",
+        "packages/database-testing/src/money-integrality.postgres.test.ts",
+        "packages/database-testing/src/wave6-batch-l-repository.postgres.test.ts",
         "packages/database-testing/src/wave6-batch-m-repository.postgres.test.ts",
-        "packages/database/src/batch-m-repository.ts",
-        "packages/database/src/index.ts",
         "packages/database/src/migrations.ts",
-        "packages/database/src/postgres-store.ts",
-        "packages/domain-contracts/src/batch-m.ts",
-        "packages/domain-contracts/src/index.ts",
-        "pnpm-lock.yaml",
-        "supabase/migrations/202608110017_wave6_batch_m_agent_runtime.sql"
+        "packages/reos/src/index.ts",
+        "packages/reos/src/ledger.ts",
+        "packages/reos/src/reos.governance.test.ts",
+        "packages/reos/src/stages/forensics.ts",
+        "packages/reos/src/types.ts",
+        "supabase/migrations/202608110018_money_columns_refuse_fractional_amounts.sql",
+        "supabase/migrations/202608110019_retire_dead_legacy_tables.sql"
       ],
-      "head": "a0d6e74c5c051c09abca131853fc000fd72680fa",
-      "headShort": "a0d6e74",
+      "head": "57053fa298cc68a5834d5a16439d4d8dfe34b80a",
+      "headShort": "57053fa",
       "reflogAvailable": true,
       "remotes": [
         "origin"
@@ -3255,17 +3271,17 @@
       "integration": 15,
       "performance": 2,
       "security": 3,
-      "unit": 79
+      "unit": 80
     },
-    "files": 114
+    "files": 115
   },
   "totals": {
     "applications": 1,
     "documents": 155,
     "engines": 60,
-    "migrations": 44,
+    "migrations": 46,
     "packages": 26,
-    "testFiles": 114
+    "testFiles": 115
   },
   "workflows": [
     {

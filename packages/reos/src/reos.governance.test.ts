@@ -1,17 +1,23 @@
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
   DEFAULT_POLICY,
   deriveLifecycle,
   evaluateGovernance,
   fingerprint,
+  ledgerLifecycleContradictions,
+  listLedgerEntries,
   proposeBaseline,
   summariseLifecycle,
 } from './index.ts';
 import type {
+  CapabilityProbeCount,
   CertificationReport,
   ExecutionManifest,
   Finding,
   GovernancePolicy,
+  LedgerEntry,
 } from './types.ts';
 
 const finding = (overrides: Partial<Finding> = {}): Finding => ({
@@ -243,5 +249,131 @@ describe('capability lifecycle derivation', () => {
     expect(summary.planned).toBe(2);
     expect(summary.missing).toBe(1);
     expect(summary.released).toBe(0);
+  });
+});
+
+describe('the ledger and the lifecycle cannot disagree about whether work exists', () => {
+  /**
+   * This suite exists because they disagreed for thirteen consecutive executions and nothing noticed.
+   *
+   * `persistence.domain-store-durability` declared evidence probes naming
+   * `packages/database/src/domain-store.ts`, `PostgresDomainStore` and `DOMAIN_AGGREGATE_OWNERSHIP`. None of
+   * them has ever existed here — git records no commit creating or deleting any one — because they described a
+   * single-store design the accepted batch decision superseded before it was built. No probe could ever be
+   * satisfied, so the derived lifecycle stayed `planned`, which is the state meaning "no evidence at HEAD", and
+   * `repo:next` selected the same capability as the highest-priority unstarted work every single time.
+   *
+   * Meanwhile thirteen of its fourteen ledger entries recorded `certification.passed: true` — the repository's
+   * full eleven-step gate, green, over the work being reported. Two records of the same repository, flatly
+   * contradicting each other, both written by the same tool on the same run.
+   */
+  const entry = (overrides: Partial<LedgerEntry> = {}): LedgerEntry =>
+    ({
+      entryId: 'abc123abc123-persistence.example',
+      recordedAt: '2026-08-18T09:00:00.000Z',
+      capabilityId: 'persistence.example',
+      lifecycle: 'planned',
+      branch: 'feat/example',
+      commit: 'abc123abc123abc123abc123abc123abc123abcd',
+      manifestDigest: 'deadbeefcafe',
+      validation: [],
+      certification: { available: true, passed: true, failedSteps: [] },
+      supersedes: [],
+      ...overrides,
+    }) as LedgerEntry;
+
+  /** What forensics measured for that capability on this run. */
+  const unseen = [{ id: 'persistence.example', satisfiedProbes: 0, totalProbes: 4 }];
+  const seen = [{ id: 'persistence.example', satisfiedProbes: 4, totalProbes: 4 }];
+
+  it('flags a passing certification recorded against evidence the repository cannot see', () => {
+    expect(ledgerLifecycleContradictions([entry()], unseen)).toEqual([
+      {
+        capabilityId: 'persistence.example',
+        entryId: 'abc123abc123-persistence.example',
+        lifecycle: 'planned',
+        recordedAt: '2026-08-18T09:00:00.000Z',
+      },
+    ]);
+    expect(ledgerLifecycleContradictions([entry({ lifecycle: 'missing' })], unseen)).toHaveLength(1);
+  });
+
+  it('accepts the states that are not contradictions', () => {
+    // A green run over work the probes can see. The ordinary case, and the one the redrawn evidence produces:
+    // note the recorded lifecycle is still the stale `planned`, and this passes anyway — because the live
+    // measurement is what decides, which is what stops the gate deadlocking on its own history.
+    expect(ledgerLifecycleContradictions([entry()], seen)).toEqual([]);
+    // Work started with the gate still red — nothing satisfied and nothing claimed. The two agree.
+    expect(
+      ledgerLifecycleContradictions(
+        [entry({ certification: { available: false, passed: false, failedSteps: ['test:unit'] } })],
+        unseen,
+      ),
+    ).toEqual([]);
+    // An execution with no capability attributed to it makes no claim about one.
+    expect(ledgerLifecycleContradictions([entry({ capabilityId: null })], unseen)).toEqual([]);
+    // A capability declaring no evidence at all is a different defect, and not this one's business: zero of
+    // zero probes is not a contradiction, it is an empty claim.
+    expect(
+      ledgerLifecycleContradictions([entry()], [
+        { id: 'persistence.example', satisfiedProbes: 0, totalProbes: 0 },
+      ]),
+    ).toEqual([]);
+  });
+
+  it('judges the latest entry per capability, leaving history untouched', () => {
+    // The historical entries for this very defect are contradictory and they are also history — CLAUDE.md's
+    // third hard constraint is that it is never mutated in place. So the claim is about the live state: what a
+    // capability is being reported as *now*. An older contradictory entry superseded by a consistent one is a
+    // defect that was fixed, which is what the ledger is for.
+    const contradictions = ledgerLifecycleContradictions(
+      [
+        entry({ recordedAt: '2026-08-11T10:00:00.000Z', entryId: 'old-persistence.example' }),
+        entry({
+          recordedAt: '2026-08-18T22:00:00.000Z',
+          entryId: 'new-persistence.example',
+          certification: { available: true, passed: false, failedSteps: ['build'] },
+        }),
+      ],
+      unseen,
+    );
+    expect(contradictions).toEqual([]);
+
+    // And the reverse: a consistent history followed by a contradictory entry is caught, whatever the input
+    // order — the function sorts rather than trusting the caller to have done it.
+    const regressed = ledgerLifecycleContradictions(
+      [
+        entry({ recordedAt: '2026-08-18T22:00:00.000Z', entryId: 'new' }),
+        entry({
+          recordedAt: '2026-08-11T10:00:00.000Z',
+          entryId: 'old',
+          certification: { available: true, passed: false, failedSteps: ['build'] },
+        }),
+      ],
+      unseen,
+    );
+    expect(regressed.map((row) => row.entryId)).toEqual(['new']);
+  });
+
+  it('holds over the repository\u2019s own ledger', () => {
+    // The assertion that would have caught the original defect, and the one that stops it recurring. Not
+    // vacuous: the suite above proves the same function flags the shape this asserts the absence of.
+    const repoRoot = path.resolve(import.meta.dirname, '../../..');
+    const entries = listLedgerEntries(repoRoot);
+    expect(entries.length).toBeGreaterThan(0);
+
+    const manifest = JSON.parse(
+      readFileSync(
+        path.join(repoRoot, 'docs/governance/reos/generated/execution-manifest.json'),
+        'utf8',
+      ),
+    ) as { platformCapabilities: CapabilityProbeCount[] };
+    expect(manifest.platformCapabilities.length).toBeGreaterThan(0);
+
+    expect(
+      ledgerLifecycleContradictions(entries, manifest.platformCapabilities),
+      'a capability is being reported as certified while the repository derives that its evidence does not ' +
+        'exist \u2014 redraw its evidence probes at the artifacts that exist, or explain the gap in its notes',
+    ).toEqual([]);
   });
 });

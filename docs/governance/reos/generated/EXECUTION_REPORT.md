@@ -6,17 +6,17 @@
 
 | Field | Value |
 | --- | --- |
-| Branch | feat/m1-batch-m-agent-runtime |
-| HEAD | a0d6e74c5c051c09abca131853fc000fd72680fa |
+| Branch | feat/n1-close-the-durability-capability |
+| HEAD | 57053fa298cc68a5834d5a16439d4d8dfe34b80a |
 | Worktree clean | no |
-| Uncommitted files | 22 |
-| Generated at | 2026-08-18T22:12:34.064Z |
+| Uncommitted files | 21 |
+| Generated at | 2026-08-18T23:24:12.855Z |
 
 ## Capability implemented
 
-`persistence.domain-store-durability` — lifecycle **planned**
+`persistence.domain-store-durability` — lifecycle **certified**
 
-## Files modified (120)
+## Files modified (130)
 
 - `apps/web/app/api/v1/completion-certificates/[id]/verify/route.ts`
 - `apps/web/app/api/v1/contracts/[id]/approve/route.ts`
@@ -36,6 +36,7 @@
 - `apps/web/lib/route-permissions.test.ts`
 - `apps/web/lib/route-permissions.ts`
 - `docs/governance/execution-ledger/34fb3610d9d1-persistence.domain-store-durability.json`
+- `docs/governance/execution-ledger/57053fa298cc-persistence.domain-store-durability.json`
 - `docs/governance/execution-ledger/60602ed2dee4-persistence.domain-store-durability.json`
 - `docs/governance/execution-ledger/812ccd443fc4-persistence.domain-store-durability.json`
 - `docs/governance/execution-ledger/INDEX.md`
@@ -45,6 +46,7 @@
 - `docs/governance/execution-ledger/c0c9ef653189-persistence.domain-store-durability.json`
 - `docs/governance/reos/capability-registry.json`
 - `docs/governance/reos/generated/CERTIFICATION_REPORT.md`
+- `docs/governance/reos/generated/DEPENDENCY_RESOLUTION.md`
 - `docs/governance/reos/generated/EXECUTION_MANIFEST.md`
 - `docs/governance/reos/generated/EXECUTION_REPORT.md`
 - `docs/governance/reos/generated/certification.json`
@@ -66,6 +68,7 @@
 - `packages/database-testing/package.json`
 - `packages/database-testing/src/durability-coverage.test.ts`
 - `packages/database-testing/src/migrations.postgres.test.ts`
+- `packages/database-testing/src/money-integrality.postgres.test.ts`
 - `packages/database-testing/src/schema-ownership.postgres.test.ts`
 - `packages/database-testing/src/store-boundary.postgres.test.ts`
 - `packages/database-testing/src/wave5-batch-b-repository.postgres.test.ts`
@@ -123,7 +126,12 @@
 - `packages/organizations/src/organizations.test.ts`
 - `packages/performance-readiness/package.json`
 - `packages/performance-readiness/src/persisted-contracts.test.ts`
+- `packages/reos/src/index.ts`
+- `packages/reos/src/ledger.ts`
+- `packages/reos/src/reos.governance.test.ts`
 - `packages/reos/src/reos.persistence.test.ts`
+- `packages/reos/src/stages/forensics.ts`
+- `packages/reos/src/types.ts`
 - `packages/reos/src/validators/persistence.ts`
 - `pnpm-lock.yaml`
 - `supabase/migrations/202608110003_wave5_close_batch_c_gaps.sql`
@@ -138,15 +146,17 @@
 - `supabase/migrations/202608110015_wave6_batch_l_enterprise_analytics.sql`
 - `supabase/migrations/202608110016_retire_trust_compatibility_tables.sql`
 - `supabase/migrations/202608110017_wave6_batch_m_agent_runtime.sql`
+- `supabase/migrations/202608110018_money_columns_refuse_fractional_amounts.sql`
+- `supabase/migrations/202608110019_retire_dead_legacy_tables.sql`
 
 ## Validation
 
 | Validator | Result | Checked | Errors | Warnings |
 | --- | --- | --- | --- | --- |
-| architecture | pass | 249 | 0 | 0 |
+| architecture | pass | 250 | 0 | 0 |
 | dependencies | pass | 27 | 0 | 2 |
 | security | pass | 298 | 0 | 0 |
-| execution-contract | pass | 110 | 0 | 2 |
+| execution-contract | pass | 119 | 0 | 2 |
 
 ### Findings
 
@@ -165,20 +175,18 @@ No newly introduced violations.
 
 **PASSED** — every certification gate is green.
 
-## Remaining backlog (1)
+## Remaining backlog (0)
 
-| Capability | Status | Executable | Blocked by |
-| --- | --- | --- | --- |
-| persistence.domain-store-durability | missing | yes |  |
+Backlog empty.
 
 ## Recommended next capability
 
-`persistence.domain-store-durability` — Domain store durability for Engines 06-60
+None available.
 
 ## Ledger
 
-Recorded as `a0d6e74c5c05-persistence.domain-store-durability` in `docs/governance/execution-ledger/`.
+Recorded as `57053fa298cc-persistence.domain-store-durability` in `docs/governance/execution-ledger/`.
 
 ## Commit
 
-`a0d6e74c5c051c09abca131853fc000fd72680fa`
+`57053fa298cc68a5834d5a16439d4d8dfe34b80a`

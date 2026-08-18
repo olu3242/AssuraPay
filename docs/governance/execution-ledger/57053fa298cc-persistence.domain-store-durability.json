@@ -1,7 +1,17 @@
 {
-  "awaitingInfrastructure": [],
-  "blocked": [],
-  "completed": [
+  "branch": "feat/n1-close-the-durability-capability",
+  "capabilityId": "persistence.domain-store-durability",
+  "certification": {
+    "available": true,
+    "failedSteps": [],
+    "passed": true
+  },
+  "commit": "57053fa298cc68a5834d5a16439d4d8dfe34b80a",
+  "entryId": "57053fa298cc-persistence.domain-store-durability",
+  "lifecycle": "certified",
+  "manifestDigest": "6ef9c473e4cc",
+  "recordedAt": "2026-08-18T23:24:12.853Z",
+  "supersedes": [
     "engine:01",
     "engine:02",
     "engine:03",
@@ -60,7 +70,6 @@
     "engine:60",
     "persistence.async-domain-repository-interface",
     "persistence.async-repository-interface",
-    "persistence.domain-store-durability",
     "persistence.domain-store-environment-gate",
     "persistence.postgres-repository",
     "persistence.production-runtime-wiring",
@@ -79,11 +88,30 @@
     "trust.route-permission-rollout",
     "trust.session-assertion-issuance"
   ],
-  "executable": [],
-  "head": "57053fa298cc68a5834d5a16439d4d8dfe34b80a",
-  "rejected": [],
-  "reosVersion": "1.0.0",
-  "selected": null,
-  "selectionReason": null,
-  "stage": "dependencies"
+  "validation": [
+    {
+      "errors": 0,
+      "passed": true,
+      "validator": "architecture",
+      "warnings": 0
+    },
+    {
+      "errors": 0,
+      "passed": true,
+      "validator": "dependencies",
+      "warnings": 2
+    },
+    {
+      "errors": 0,
+      "passed": true,
+      "validator": "security",
+      "warnings": 0
+    },
+    {
+      "errors": 0,
+      "passed": true,
+      "validator": "execution-contract",
+      "warnings": 2
+    }
+  ]
 }

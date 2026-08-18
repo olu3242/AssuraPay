@@ -579,7 +579,7 @@
     },
     {
       "id": "persistence.domain-store-durability",
-      "title": "Domain store durability for Engines 06-60",
+      "title": "Domain store durability for Engines 06-70",
       "kind": "platform",
       "priority": 45,
       "dependsOn": [
@@ -587,19 +587,23 @@
       ],
       "evidence": {
         "paths": [
-          "packages/database/src/domain-store.ts"
+          "packages/database/src/postgres-store.ts",
+          "packages/database/src/migrations.ts",
+          "packages/database-testing/src/durability-coverage.test.ts"
         ],
         "symbols": [
-          "PostgresDomainStore",
-          "DOMAIN_AGGREGATE_OWNERSHIP"
+          "POSTGRES_TRUST_COLLECTIONS",
+          "POSTGRES_ROUTED_TABLES",
+          "REQUIRED_DOMAIN_AGGREGATE_TABLES"
         ],
         "tests": [
-          "packages/database-testing/src/domain-store.postgres.test.ts"
+          "packages/database-testing/src/durability-coverage.test.ts",
+          "packages/database-testing/src/store-boundary.postgres.test.ts"
         ]
       },
       "certify": "certify:postgres",
       "requiresLiveInfrastructure": true,
-      "notes": "Partly delivered, and the division is measured rather than described. See docs/persistence/DURABILITY_GAP_ANALYSIS.md, which is the authoritative register. DELIVERED: Batches A-D (migrations 202608090001, 202608100001, 202608100002, 202608110001, 202608110002, 202608110003) activated all THIRTY-FIVE wave 4-5 aggregates of Engines 31-50 - canonical Zod schemas with compile-time conformance proofs, relational repositories, store routing, tenant-composite foreign keys, FORCE row-level security, governed mutation boundaries, and database-enforced monetary invariants including double entry via a deferred constraint trigger and dispute-hold enforcement at three release points. WHAT REMAINS, corrected against a live measurement: engines write 129 collections, the durable store maps 64, and SIXTY-SEVEN are unmapped. An earlier version of this note said FileAssuraStore remains production-active for Engines 06-60. That was wrong in a specific way and is corrected here: those engines do not use FileAssuraStore, they compose with TrustPersistence, and PostgresTrustStore REFUSES their collections with PERSISTENCE_COLLECTION_NOT_MAPPED. Confirmed by running ContractAuthoringEngine.create against a fully migrated database, which fails on `agreements` - the canonical chain's first link. Only 8 of 163 API routes touch FileAssuraStore; 161 go through the durable store. So the remaining scope is not a file-backed store to replace but sixty-seven aggregates with no durable home, and four of the eleven canonical chain links among them. The row-level-security census is also corrected: 59 tables carry ENABLE with no FORCE, not the 102 previously recorded, because Batches A-D converted their share; all 59 plus 5 unbounded tables lie outside the store's routing table, and store-boundary.postgres.test.ts asserts that disjointness. The three trust-domain tables this capability is the named retirement condition for - workspaces, workspace_memberships, user_identities - are still present. GATE: durability-coverage.test.ts now fails the build when an engine writes a collection the store cannot persist, with a baseline of the sixty-seven that may only shrink, so the remaining scope is a number in a test rather than a discovery. ON THE DECLARED EVIDENCE BELOW: the probes name packages/database/src/domain-store.ts, PostgresDomainStore and DOMAIN_AGGREGATE_OWNERSHIP - a single-store shape the accepted batch decision superseded with per-batch repositories, BATCH_A_RELATIONS through BATCH_D_RELATIONS in packages/database/src/batch-*-repository.ts. They are deliberately left pointing at the superseded shape: repointing them at the artifacts that exist would flip the derived lifecycle to `implemented` without changing what exists, and sixty-seven aggregates have no durable home. They should be redrawn when the remaining scope is designed, with the gap analysis as its input."
+      "notes": "DELIVERED AND CLOSED by Batches A-M (migrations 202608090001 through 202608110017). Every collection any canonical engine writes has a durable relational home: 132 written, 132 mapped, and the baseline in durability-coverage.test.ts is an empty list. Thirteen batches activated the aggregates of Engines 06-70 with canonical Zod schemas and compile-time conformance proofs, relational repositories per batch (BATCH_A_RELATIONS through BATCH_M_RELATIONS), store routing, tenant-composite foreign keys, FORCE row-level security on 114 of 117 tables with ZERO carrying ENABLE without FORCE (from 59), governed mutation boundaries, and database-enforced invariants including double entry via a deferred constraint trigger and dispute-hold enforcement at three release points. Batch J retired FileAssuraStore and AssuraPayService; 202608110016 retired workspaces, workspace_memberships and user_identities, the retirement this capability was the named condition for; 202608110017 retired agent_runtime.records. ON THE DECLARED EVIDENCE, and why it changed: the probes previously named packages/database/src/domain-store.ts, PostgresDomainStore, DOMAIN_AGGREGATE_OWNERSHIP and domain-store.postgres.test.ts. None of those has ever existed - git records no commit creating or deleting any of them. They described a single-store shape the accepted batch decision superseded before it was built, and the previous note deliberately left them pointing there, reasoning that repointing would flip the derived lifecycle without changing what exists while sixty-seven aggregates had no durable home. That reasoning was sound then and expired when the register closed: zero aggregates are unmapped. The cost of leaving them was measured before they were changed - fourteen execution-ledger entries recorded work for this capability, THIRTEEN of them with a passing full certification against a derived lifecycle of `planned` or `missing`, which is the lifecycle for `no evidence exists`. So repo:next selected this capability thirteen times by measuring against paths that were never real. The probes now name the artifacts that are the capability: the routing table, the required-table contract and the coverage gate whose baseline is empty. reos.governance.test.ts now fails certification for any capability whose ledger records a passing certification while its lifecycle says no evidence exists, so this class of drift cannot recur silently. NOT CLAIMED: one gap is open and recorded in docs/persistence/DURABILITY_GAP_ANALYSIS.md - an integer money column rounds a fractional value rather than refusing it, because the cast to BIGINT precedes any CHECK. Closing it means NUMERIC with an integrality CHECK on every money column, which is its own change."
     }
   ]
 }

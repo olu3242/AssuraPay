@@ -807,24 +807,30 @@ describe('integration: rows that cannot contradict themselves', () => {
     expect(fractional).toBeInstanceOf(PostgresStoreError);
     expect((fractional as PostgresStoreError).code).toBe('PERSISTENCE_SCHEMA_VIOLATION');
 
-    // And the reason that check is load-bearing rather than belt-and-braces: `cost_minor` is BIGINT, and an
-    // integer column *rounds* a fractional value rather than refusing it — the cast happens before any CHECK
-    // can see it. A direct statement writing 4150.5 kobo stores 4151, silently. The register records the gap;
-    // closing it in the database would mean NUMERIC with an integrality CHECK on every money column in the
-    // platform.
-    await raw(database, (tx) =>
-      tx`
-        INSERT INTO agent_telemetry
-          (id, tenant_id, workspace_id, execution_id, agent_id, latency_ms, cost_minor, input_tokens,
-           output_tokens, errors, hallucination_flag, approval_requested, created_at)
-        VALUES ('tel-rounded', ${TENANT}, ${WORKSPACE}, 'ex-1', 'ag-1', 10, 4150.5, 1, 1, 0, false, false,
-                now())
-      `,
+    // And the column refuses it too, which it did not when this test was written.
+    //
+    // Batch M recorded the gap rather than closing it: `cost_minor` was BIGINT, an integer column *rounds* a
+    // fractional value rather than refusing it — the cast happens before any CHECK can see it — so a direct
+    // statement writing 4150.5 kobo stored 4151, silently, and this assertion asserted exactly that. Closing
+    // it meant NUMERIC with an integrality CHECK on every money column in the platform, which `202608110018`
+    // does for all thirty-one. So the assertion is inverted: the statement that used to succeed with a
+    // rounded value is now refused, and the test that documented the gap is the test that proves it closed.
+    const direct = await attempt(
+      raw(database, (tx) =>
+        tx`
+          INSERT INTO agent_telemetry
+            (id, tenant_id, workspace_id, execution_id, agent_id, latency_ms, cost_minor, input_tokens,
+             output_tokens, errors, hallucination_flag, approval_requested, created_at)
+          VALUES ('tel-rounded', ${TENANT}, ${WORKSPACE}, 'ex-1', 'ag-1', 10, 4150.5, 1, 1, 0, false, false,
+                  now())
+        `,
+      ),
     );
-    const rounded = await raw(database, (tx) =>
-      tx<{ cost_minor: string }[]>`SELECT cost_minor FROM agent_telemetry WHERE id = 'tel-rounded'`,
+    expect(String(direct)).toContain('cost_minor_is_integral');
+    const absent = await raw(database, (tx) =>
+      tx<{ id: string }[]>`SELECT id FROM agent_telemetry WHERE id = 'tel-rounded'`,
     );
-    expect(Number(rounded[0]?.cost_minor)).toBe(4_151);
+    expect(absent).toEqual([]);
   }, 300_000);
 });
 

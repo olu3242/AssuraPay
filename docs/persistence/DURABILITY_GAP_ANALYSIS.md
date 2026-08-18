@@ -369,23 +369,70 @@ of the register above. The order is not arbitrary:
   now asserts a digest, which is also what the column requires: the store and the engine agree rather than the
   store refusing what the engine accepts.
 
-### The one gap this programme leaves open
+### The gap this programme left open — CLOSED by `202608110018`
 
-Measured during Batch M and recorded rather than closed: **an integer money column rounds a fractional value
-instead of refusing it.** `INSERT ... cost_minor = 100.5` stores `101`, and `99.5` stores `100`, because the
-cast to `BIGINT` happens before any CHECK can see the value — no constraint can inspect what was written before
-the cast. Every minor-units column in the platform is `BIGINT`, so this is true of all of them, not only Batch
-M's.
+Measured during Batch M and recorded rather than closed at the time: **an integer money column rounds a
+fractional value instead of refusing it.** `INSERT ... cost_minor = 100.5` stores `101`, and `99.5` stores
+`100`, because the cast to `BIGINT` happens before any CHECK can see the value. Every minor-units column in the
+platform was `BIGINT` — thirty-one of them, across twenty-two tables — so it was true of all of them.
 
-What refuses a fractional amount today is the `minorUnits` contract in `packages/domain-contracts`, applied
-before the statement, and every write goes through a repository that applies it. So this is a gap in
-defence-in-depth rather than a live hole — but it is a real exception to this programme's thesis that the
-database is the authority, which is why it is named here instead of left for someone to rediscover.
+The register said closing it "means `NUMERIC` with an integrality CHECK on every money column across all eleven
+batches, plus the read-path and proof changes that follow", and that is what `202608110018` does, for all
+thirty-one. Three things came out of doing it that the original note had wrong or missing:
 
-Closing it means `NUMERIC` with an integrality CHECK on every money column across all eleven batches, plus the
-read-path and proof changes that follow. That is its own change with its own migration and its own live
-proofs, and doing it as a footnote to the last batch would be the kind of quiet scope widening this register
-exists to prevent.
+- **the consequence is an inversion, not an omission, and it is a settlement defect.**
+  `reconciliation_records.matched` is a CHECK over the equality of `provider_reported_amount_minor` and
+  `recorded_amount_minor`. Two amounts differing by less than a kobo round to the same integer, and then the
+  database does not merely fail to notice — it **refuses the truthful `matched = false` row and accepts
+  `matched = true`**. Both halves proved by statement against a live instance, with the provider reporting
+  100.5 and the ledger holding 100.6. So a reconciliation between two amounts that were not equal is recorded
+  as a clean match, the exception that should have been raised never is, and CLAUDE.md's third hard constraint
+  makes that row permanent. The same mechanism sat under `financial_entitlements_net_follows_from_parts` and
+  `final_settlement_accounts_outstanding_follows_from_parts`, where the derived value is what a certified
+  Financial Provider is instructed to release;
+- **there was a read-side half nobody had named.** `BIGINT` accepts values up to about 9.2 × 10¹⁸, while
+  `minorUnits` declares `max(Number.MAX_SAFE_INTEGER)` and every repository reads these columns through
+  `Number(...)`. A stored amount above 2⁵³−1 therefore loses precision on the way *out*, silently, and
+  `Number.isInteger` still answers true for the corrupted value. Each column now carries a
+  `_within_safe_range` CHECK as well as a `_is_integral` one;
+- **the read path needed no change at all**, verified rather than assumed: the postgres.js driver returns
+  `NUMERIC` and `BIGINT` alike as strings, precisely to avoid the precision loss a float conversion would
+  cause, and every batch repository already parses them through the same `integer()` reader. No repository, no
+  schema and no engine changed.
+
+Safe on populated tables, unlike every identity conversion in Batches A–M: `BIGINT` to `NUMERIC` is a widening
+conversion, so every stored value satisfies both new constraints by construction and the migration refuses
+nothing.
+
+The migration carries its own completeness assertion — any money-named column still of an integer type fails
+it — and that assertion earned its place immediately: it caught two columns the initial measurement missed,
+`delegations.authority_limit_minor` and `authority_rules.maximum_value_minor`, visible only in the upgrade
+rehearsal that defers reconciliation. Both belong to the historical trust model `202608080001` retires, so they
+are excluded with the reasoning recorded in the migration, and `certifySchemaOwnership` already refuses their
+presence in a reconciled database with `OWNERSHIP_RETIRED_TABLE_PRESENT`.
+
+One artefact of sequencing to note for a reader: `202608110017`'s comment on `cost_minor` describes the
+rounding as an open limitation, because it was when that migration was written. Applied migrations are
+immutable here — the runner checksums them — so it stays as written, and this section plus `202608110018` are
+the record of the change.
+
+### `contracts` and `milestones` — RETIRED by `202608110019`
+
+The last two tables in the schema with **no row-level security at all** — not the ENABLE-without-FORCE that
+Batches A–M reduced from 59 to zero, but no boundary of any kind. Measured before the migration was written:
+zero rows, zero policies, zero foreign keys inbound or outbound, and no reference anywhere in TypeScript except
+the Batch L assertion that named them as the known exceptions. Superseded by `agreements_v2` (Batch F, the
+canonical chain's first link — the `_v2` suffix exists precisely because `agreements` was taken by this legacy
+table) and `blueprint_milestones` (Batch E).
+
+Retired rather than secured, for the reason this document already recorded about the 59 unforced tables:
+forcing a boundary on a table with no reader and no writer is work that looks like security and delivers none.
+These two were never going to gain a repository. Leaving them is how the next policy gets written against a
+superseded model, which is exactly what `202608080001` had to correct for the thirty-one-table trust model.
+
+**After it, the only table in the schema without row-level security is `trust_migration_ledger`** — a table
+about the database rather than about a tenant, which the schema owner writes and every host reads at startup.
+That is the one legitimate exception, and it is now asserted as an equality rather than described.
 
 Each batch should follow the shape Batches A–D settled into, because it produced four consecutive
 clean activations and found a real defect every time:
@@ -417,6 +464,26 @@ clean activations and found a real defect every time:
 - **It does not re-point the capability's REOS probes.** They name a single-store shape the batch
   decision superseded; repointing them would flip the derived lifecycle without changing what exists.
   They should be redrawn when the remaining scope is designed, and this document is the input to that.
+
+  > **Done, and the cost of the delay is now measurable.** The probes named
+  > `packages/database/src/domain-store.ts`, `PostgresDomainStore` and `DOMAIN_AGGREGATE_OWNERSHIP`, and git
+  > records no commit ever creating *or deleting* any of them — they were aspirational at registration and
+  > described a design superseded before it was built. So no probe could ever be satisfied, the derived
+  > lifecycle stayed `planned` — the state meaning "no evidence at HEAD" — and `repo:next` selected this same
+  > capability as the highest-priority unstarted work on every one of thirteen executions, while thirteen
+  > batches of it shipped. **Thirteen of its fourteen ledger entries record a passing full certification
+  > beside a lifecycle of `planned` or `missing`**: two records of the same repository, written by the same
+  > tool on the same run, flatly contradicting each other, and nothing compared them.
+  >
+  > The probes now name the routing table, the required-table contract and the coverage gate. Two ratchets stop
+  > the class recurring: `ledgerLifecycleContradictions` fails certification when a capability's latest ledger
+  > entry records a passing certification while the repository can currently see none of its declared
+  > evidence — judged against the live measurement rather than the entry's own frozen lifecycle, because
+  > comparing an entry against itself would make the gate a deadlock it could never clear. And
+  > `isOnDefaultBranch` now requires the declared *symbols* at the ref as well as the paths: path existence
+  > alone was trivially satisfied by files that predate the capability, which had every one of the twenty
+  > platform capabilities reporting `released` — the terminal state, meaning shipped — including two whose work
+  > sits in an unmerged stack.
 
 ## Evidence
 
