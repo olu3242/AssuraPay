@@ -1,1 +1,12 @@
-const stages=['Draft authoring','Clause review','Negotiation','Approval routing','Digital execution'];export default function ContractsPage({params}:{params:{path?:string[]}}){return <main className="shell"><p className="eyebrow">Agreement creation</p><h1>{params.path?.length?'Contract workspace':'Contracts'}</h1><p className="lead">Versioned drafting through human approval and verified digital execution.</p><section className="grid">{stages.map((stage,index)=><article className="card" key={stage}><span>Engine {11+index}</span><h2>{stage}</h2><p>{index===4?'Only the exact approved document may be signed.':'History, permissions, audit and workspace isolation are enforced.'}</p></article>)}</section></main>}
+import { AgreementConsole } from '../../components/agreement-console';
+
+/**
+ * RC1 Phase C — the agreement workspace.
+ *
+ * The old route rendered five descriptive cards and called no API. This route now
+ * mounts the browser client that reaches the governed contract, role-assignment and
+ * agreement-intelligence endpoints under the caller's active workspace.
+ */
+export default function ContractsPage() {
+  return <AgreementConsole />;
+}
