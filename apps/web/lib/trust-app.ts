@@ -130,7 +130,7 @@ import {
 } from '@assurapay/workflow-intelligence';
 import { AuditLedgerEngine } from '@assurapay/audit-ledger';
 import { RouteAccessError, requirementForRoute } from './route-permissions';
-import { enterTrustScope } from '@assurapay/database';
+import { enterMutableTrustScope } from '@assurapay/database';
 import { requireReadyPersistence, trustStore } from './persistence';
 
 const globalTrust = globalThis as typeof globalThis & {
@@ -365,6 +365,16 @@ export async function actingRequestContext(request: Request): Promise<RequestCon
  * ask for an authorized context — so it is refused rather than silently allowed.
  */
 export async function authorizedContextForRoute(request: Request): Promise<RequestContext> {
+  // Bound here, in the synchronous prologue, before this function's first `await` — and filled in
+  // below once authentication has said who the caller is.
+  //
+  // The order is the whole point. `enterWith` binds the *current* execution context, and an async
+  // function resumes after an `await` in a context the caller does not reliably share. Entering the
+  // scope after authentication therefore bound it for the funnel and nobody else: the funnel's own
+  // `resolveMemberships` read was scoped, and every read the route performed afterwards ran with no
+  // scope at all. Under forced RLS those reads returned nothing, so `GET /v1/me/workspaces` answered
+  // `[]` to a caller holding an ACTIVE membership. `enterMutableTrustScope` explains the measurement.
+  const scope = enterMutableTrustScope();
   const access = requirementForRoute(new URL(request.url).pathname, request.method);
   const correlationId = correlationOf(request);
 
@@ -389,11 +399,10 @@ export async function authorizedContextForRoute(request: Request): Promise<Reque
   // Set from the verified identity, never from a request field. A tenant taken from a header
   // or a body would let a caller name the scope its own reads are checked against, which is
   // the whole boundary handed to the caller.
-  enterTrustScope({
-    tenantId: identity.tenantId,
-    workspaceId: identity.activeWorkspaceId,
-    actorId: identity.actorUserId,
-  });
+  // Assigned into the already-bound object rather than binding a new one, so the route sees it.
+  scope.tenantId = identity.tenantId;
+  scope.workspaceId = identity.activeWorkspaceId;
+  scope.actorId = identity.actorUserId;
 
   // An identity-class route is authenticated and membership-scoped, but carries no
   // permission requirement; see route-permissions.ts for why that is not a gap.
@@ -459,6 +468,49 @@ export function workspaceScoped(context: RequestContext): WorkspaceScopedContext
  * engine owns and can revoke, and mints something strictly weaker.
  */
 export async function issueSessionAssertion(input: IssueAssertionInput): Promise<IssuedAssertion> {
+  // Bound in the prologue, before the first `await`, for the reason `enterMutableTrustScope`
+  // documents — and needed here even though this route is `public`.
+  //
+  // Issuance reads two things beyond the session: the requested workspace, and the caller's
+  // membership of it. `POST /v1/auth/assertion` carries no assertion by construction, so it never
+  // passes through `authorizedContextForRoute` and had no trust scope at all — those reads ran
+  // unscoped and returned nothing, so selecting a workspace the caller genuinely owned failed with
+  // `ISSUANCE_WORKSPACE_UNKNOWN`. The browser hit it at the last step of the bootstrap journey:
+  // "Context activation failed: assertion could not be minted: ISSUANCE_WORKSPACE_UNKNOWN".
+  const scope = enterMutableTrustScope();
+
+  // The session is resolved here purely to learn who is asking, so the reads below have an actor to
+  // be scoped by. `issueAssertionForSession` resolves it again and that duplication is deliberate:
+  // the alternative is threading a persistence scope through Engine 01's issuance signature, which
+  // would couple the identity engine to the store's scoping mechanism. Both resolutions read the
+  // identity plane, which `202608110020` makes readable without a tenant, and neither can succeed on
+  // a revoked or expired session — so this cannot widen what issuance would have accepted.
+  const session = await trust.identity.resolveSession(input.rawSessionToken);
+  scope.actorId = session.userId;
+
+  // The tenant, when a workspace is in play — because issuance *audits* what it mints, and an audit
+  // record carries the tenant of the workspace it concerns. `trust_audit_tenant_scope` requires a
+  // tenanted row to match the caller's scope, so with an actor-only scope the audit write was refused:
+  // "assertion could not be minted: PERSISTENCE_SCOPE_INVALID: 42501: new row violates row-level
+  // security policy for table \"trust_audit_records\"".
+  //
+  // The tenant is *derived from a read that is itself the membership proof*, never from the request.
+  // `trust_workspaces_tenant_scope` reveals a workspace to an actor-only caller only when that actor
+  // holds an ACTIVE membership in it, so a workspace this read returns is one the caller belongs to —
+  // and a workspace it does not return leaves the scope untenanted, after which issuance refuses with
+  // `ISSUANCE_WORKSPACE_UNKNOWN` exactly as it did before. Naming someone else's workspace therefore
+  // grants nothing: the read comes back empty and no tenant is entered.
+  const requestedWorkspaceId = input.workspaceId?.trim() || session.workspaceId?.trim();
+  if (requestedWorkspaceId) {
+    const workspaces = await trustStore.list<{ id: string; tenantId?: string; status?: string }>(
+      'trustWorkspaces',
+    );
+    const workspace = workspaces.find(
+      (entry) => entry.id === requestedWorkspaceId && entry.status === 'ACTIVE',
+    );
+    if (workspace?.tenantId) scope.tenantId = workspace.tenantId;
+  }
+
   return await issueAssertionForSession(
     getIdentityGateway(),
     trust.identity,

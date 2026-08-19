@@ -118,6 +118,35 @@ jobs:
         env:
           ASSURAPAY_TEST_DATABASE_URL: postgres://assurapay_ci:assurapay_ci@127.0.0.1:5432/assurapay_test
 
+      # Browser certification, on the same PostgreSQL service and against the production
+      # build. The suite provisions its own database through the governed migration
+      # runner and starts `next start`, so a green run is a statement about the
+      # composition a deployment uses rather than about `next dev`. Chromium comes from
+      # the runner image; `playwright install --with-deps chromium` fetches it in CI
+      # because the pinned path this repository uses locally does not exist there.
+      - name: Install Chromium for browser certification
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Certify the product through a real browser
+        run: pnpm certify:browser
+        env:
+          ASSURAPAY_TEST_DATABASE_URL: postgres://assurapay_ci:assurapay_ci@127.0.0.1:5432/assurapay_test
+          # GitHub's stock postgres:16 service is intentionally plaintext. The browser
+          # gate is a test harness, so run its durable adapter explicitly as PostgreSQL
+          # while leaving production's TLS-required configuration policy untouched.
+          ASSURAPAY_DEPLOYMENT: test
+          ASSURAPAY_PERSISTENCE_ADAPTER: postgres
+          ASSURAPAY_E2E_DATABASE_SSL: disable
+          CI: 'true'
+
+      - name: Publish browser traces on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
       - name: Prove the gate fails with no database configured
         run: |
           if pnpm certify:postgres; then

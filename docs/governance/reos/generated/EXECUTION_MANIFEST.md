@@ -9,10 +9,10 @@
 | --- | --- |
 | Repository | assurapay |
 | Version | 0.1.0 |
-| Branch | feat/n1-close-the-durability-capability |
-| HEAD | 57053fa298cc68a5834d5a16439d4d8dfe34b80a |
+| Branch | feat/rc1-production-e2e-convergence |
+| HEAD | 096bf8004c8ffff829f28a0ad2aa5f240a4f5f68 |
 | Worktree clean | no |
-| Manifest digest | 6ef9c473e4cc |
+| Manifest digest | 283808dc37b8 |
 | REOS version | 1.0.0 |
 
 ## Architecture
@@ -26,8 +26,7 @@
 
 | Lifecycle | Count |
 | --- | --- |
-| certified | 2 |
-| released | 74 |
+| released | 76 |
 | deferred | 4 |
 
 ## Engine reconciliation
@@ -104,8 +103,8 @@ from repository evidence: package presence, test files, and certification wiring
 | --- | --- | --- | --- | --- | --- |
 | persistence.async-domain-repository-interface | Asynchronous domain repository interface (satisfied by removal) | implemented | released | 5/5 | All 5 evidence probes satisfied at HEAD. |
 | persistence.async-repository-interface | Asynchronous repository interface | implemented | released | 5/5 | All 5 evidence probes satisfied at HEAD. |
-| persistence.domain-store-durability | Domain store durability for Engines 06-70 | implemented | certified | 8/8 | All 8 evidence probes satisfied at HEAD. |
-| persistence.domain-store-environment-gate | Domain store durable-environment gate (satisfied by removal) | implemented | certified | 5/5 | All 5 evidence probes satisfied at HEAD. |
+| persistence.domain-store-durability | Domain store durability for Engines 06-70 | implemented | released | 8/8 | All 8 evidence probes satisfied at HEAD. |
+| persistence.domain-store-environment-gate | Domain store durable-environment gate (satisfied by removal) | implemented | released | 5/5 | All 5 evidence probes satisfied at HEAD. |
 | persistence.postgres-repository | PostgreSQL repository implementation | implemented | released | 10/10 | All 10 evidence probes satisfied at HEAD. |
 | persistence.production-runtime-wiring | Production persistence runtime wiring | implemented | released | 10/10 | All 10 evidence probes satisfied at HEAD. |
 | persistence.repository-conformance | TrustPersistence conformance specification | implemented | released | 4/4 | All 4 evidence probes satisfied at HEAD. |
@@ -151,5 +150,5 @@ Backlog empty.
 
 ## Certification coverage
 
-- Certification scripts: 86
+- Certification scripts: 87
 - Packages without a certification script: packages/database, packages/database-testing, packages/domain, packages/domain-contracts

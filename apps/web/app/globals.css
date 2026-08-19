@@ -247,3 +247,106 @@ textarea {
     transition: none;
   }
 }
+
+/*
+ * The application shell.
+ *
+ * These class names were already used by every page under /contracts, /approvals, /settlements and the rest —
+ * and none of them was defined, so those pages rendered as unstyled text. They are defined here because the
+ * bootstrap console is the first surface a user is expected to complete a task in, and a form nobody can read
+ * is not a certified journey.
+ */
+.shell {
+  max-width: 60rem;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 4rem;
+}
+
+.eyebrow {
+  margin: 0 0 0.5rem;
+  font-size: 0.8125rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.lead {
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  max-width: 46rem;
+}
+
+.panel {
+  margin: 1.5rem 0;
+  padding: 1.25rem 1.5rem;
+  border: 1px solid rgba(127, 127, 127, 0.35);
+  border-radius: 14px;
+}
+
+.panel h2 {
+  margin-top: 0;
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+}
+
+.panel label {
+  display: block;
+  margin: 0.75rem 0 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.panel input {
+  display: block;
+  width: 100%;
+  max-width: 28rem;
+  padding: 0.5rem 0.625rem;
+  font: inherit;
+  border: 1px solid rgba(127, 127, 127, 0.5);
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+}
+
+.panel .button {
+  margin: 1rem 0.5rem 0 0;
+}
+
+.panel dl {
+  display: grid;
+  grid-template-columns: minmax(8rem, max-content) 1fr;
+  gap: 0.35rem 1rem;
+  margin: 0;
+}
+
+.panel dt {
+  font-size: 0.875rem;
+  font-weight: 600;
+  opacity: 0.75;
+}
+
+.panel dd {
+  margin: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.875rem;
+  overflow-wrap: anywhere;
+}
+
+.panel ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.panel li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(127, 127, 127, 0.2);
+}
+
+.panel li:last-child {
+  border-bottom: none;
+}

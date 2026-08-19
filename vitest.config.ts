@@ -14,7 +14,20 @@ export default defineConfig({
      * rather than skipping when the database is missing. Nothing is skipped: the suites
      * either run against PostgreSQL or the gate that owns them fails.
      */
-    exclude: ['**/node_modules/**', '**/*.postgres.test.ts'],
+    exclude: [
+      '**/node_modules/**',
+      '**/*.postgres.test.ts',
+      /*
+       * The browser suites, which are Playwright's and not vitest's.
+       *
+       * `include` above matches `.spec.ts` as well as `.test.ts`, so without this the default run collects
+       * `e2e/*.spec.ts`, tries to import `@playwright/test`, and fails — which is exactly what happened: the
+       * first CI run of the browser harness turned `test:unit`, `test:integration` and `test:e2e` red at once
+       * while lint, typecheck and build stayed green. The two runners own disjoint directories, and
+       * `certify:browser` is the gate that owns this one.
+       */
+      'e2e/**',
+    ],
   },
   resolve: {
     alias: {

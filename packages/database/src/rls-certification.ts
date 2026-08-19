@@ -237,10 +237,23 @@ export async function assertUnscopedReadDenied(
     await tx`SELECT set_config('app.workspace_id', '', true)`;
     await tx`SELECT set_config('app.actor_id', '', true)`;
 
-    for (const table of ['trust_workspaces', 'trust_permission_grants', 'trust_audit_records']) {
-      const [row] = await tx<{ n: string }[]>(
-        toTemplate(`SELECT count(*)::text AS n FROM ${quoteIdentifier(table)}`),
-      );
+    // `trust_audit_records` is counted with a predicate, and the predicate is the point.
+    // `202608110020` makes an *untenanted* audit record deliberately visible to an unscoped
+    // caller — registration audits itself before the actor belongs to any tenant, so a policy
+    // that hid those rows would make registration impossible. The invariant this probe exists
+    // to defend is therefore "no *tenanted* row leaks to an unscoped caller", and counting every
+    // row would have asserted something stronger that the schema does not claim. It passed
+    // before only because the fixture happens to seed both its audit records with a tenant;
+    // stating the predicate turns that accident into the actual rule.
+    const unscopedVisible: Record<string, string> = {
+      trust_workspaces: 'SELECT count(*)::text AS n FROM trust_workspaces',
+      trust_permission_grants: 'SELECT count(*)::text AS n FROM trust_permission_grants',
+      trust_audit_records:
+        'SELECT count(*)::text AS n FROM trust_audit_records WHERE tenant_id IS NOT NULL',
+    };
+
+    for (const [table, query] of Object.entries(unscopedVisible)) {
+      const [row] = await tx<{ n: string }[]>(toTemplate(query));
       if (row.n !== '0')
         findings.push({
           code: 'RLS_UNSCOPED_READ',

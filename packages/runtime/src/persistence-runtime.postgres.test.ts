@@ -394,7 +394,7 @@ describe('integration: the full trust application, composed through the runtime'
     const first = await startRuntime(url);
     const registered = await withTrustScope(SCOPE, async () => {
       const identities = new IdentityService(first.store);
-      const identity = await identities.register({
+      const { identity } = await identities.register({
         email: 'owner@example.test',
         displayName: 'Owner',
         correlationId: 'corr-1',

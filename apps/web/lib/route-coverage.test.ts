@@ -32,6 +32,8 @@ export const ROUTE_COVERAGE_PUBLIC_ALLOWLIST: Readonly<Record<string, string>> =
     'Public. Registration precedes having any identity to authorize.',
   'v1/auth/assertion/route.ts':
     'Public. It authenticates the session cookie in order to mint an assertion, so requiring an assertion would be circular. The session is the authority: no request field can name a subject, session or assurance level.',
+  'v1/auth/verify-email/route.ts':
+    'Public. The verification token in the body is the credential, and the caller has no session by definition — it is proving possession of an email address in order to become able to sign in. Until this route existed no identity could leave PENDING_VERIFICATION, so nobody could authenticate at all. Every failure returns one indistinguishable VERIFICATION_DENIED so the route cannot be used to enumerate registered addresses.',
   'health/live/route.ts':
     'Public. Liveness does no I/O and publishes only that the process is running. Requiring a credential would make an orchestrator unable to tell a dead process from an unauthenticated probe.',
   'health/ready/route.ts':
@@ -126,10 +128,11 @@ describe('route authorization coverage — every handler authorizes', () => {
       expect(reason.length, key).toBeGreaterThan(40);
     }
     // Pinned so a new entry is a deliberate edit to this number with a reason beside it,
-    // rather than something that grows unremarked. Four auth routes that cannot require a
+    // rather than something that grows unremarked. Five auth routes that cannot require a
     // credential to obtain one, and two health probes an orchestrator polls without a
-    // session.
-    expect(Object.keys(ROUTE_COVERAGE_PUBLIC_ALLOWLIST)).toHaveLength(6);
+    // session. The fifth is `verify-email`, added because registration produced an identity
+    // that could never become ACTIVE and therefore could never sign in.
+    expect(Object.keys(ROUTE_COVERAGE_PUBLIC_ALLOWLIST)).toHaveLength(7);
   });
 
   it('allowlists only routes the policy table classes as public or identity', () => {

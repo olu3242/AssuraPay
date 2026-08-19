@@ -190,7 +190,7 @@
       },
       "id": "persistence.domain-store-durability",
       "kind": "platform",
-      "onDefaultBranch": false,
+      "onDefaultBranch": true,
       "probes": [
         {
           "kind": "path",
@@ -291,7 +291,7 @@
       },
       "id": "persistence.domain-store-environment-gate",
       "kind": "platform",
-      "onDefaultBranch": false,
+      "onDefaultBranch": true,
       "probes": [
         {
           "kind": "path",
@@ -388,9 +388,12 @@
           "matches": [
             "packages/audit-ledger/src/audit-ledger.postgres.test.ts",
             "packages/database-testing/src/durability-coverage.test.ts",
+            "packages/database-testing/src/identity-plane-rls.postgres.test.ts",
+            "packages/database-testing/src/index.ts",
             "packages/database-testing/src/postgres-store.postgres.test.ts",
             "packages/database-testing/src/rls-certification.postgres.test.ts",
             "packages/database-testing/src/schema-ownership.postgres.test.ts",
+            "packages/database-testing/src/scope-propagation.postgres.test.ts",
             "packages/database-testing/src/wave4-batch-a-repository.postgres.test.ts",
             "packages/database-testing/src/wave5-batch-b-repository.postgres.test.ts",
             "packages/database-testing/src/wave5-batch-c-repository.postgres.test.ts",
@@ -431,7 +434,10 @@
             "packages/runtime/src/persistence-runtime.ts",
             "supabase/migrations/202608080001_trust_schema_ownership_reconciliation.sql",
             "supabase/migrations/202608110004_wave6_batch_e_performance_blueprint.sql",
-            "supabase/migrations/202608110005_wave6_batch_f_agreement_creation.sql"
+            "supabase/migrations/202608110005_wave6_batch_f_agreement_creation.sql",
+            "supabase/migrations/202608110020_identity_plane_is_reachable_without_a_tenant.sql",
+            "supabase/migrations/202608110021_trust_memberships_carry_their_tenant.sql",
+            "supabase/migrations/202608110022_membership_discovery_precedes_tenant_scope.sql"
           ],
           "query": "PostgresTrustStore",
           "satisfied": true
@@ -738,6 +744,7 @@
           "matches": [
             "packages/database-testing/src/rls-certification.postgres.test.ts",
             "packages/database-testing/src/schema-ownership.postgres.test.ts",
+            "packages/database-testing/src/scope-propagation.postgres.test.ts",
             "packages/database-testing/src/wave4-batch-a-repository.postgres.test.ts",
             "packages/database-testing/src/wave4-trust-authority.postgres.test.ts",
             "packages/database-testing/src/wave5-batch-b-repository.postgres.test.ts",
@@ -1348,6 +1355,7 @@
           "kind": "symbol",
           "matches": [
             "apps/web/app/api/v1/workspaces/[id]/found/route.ts",
+            "apps/web/app/components/bootstrap-console.tsx",
             "apps/web/lib/grant-administration.ts",
             "apps/web/lib/trust-app.ts",
             "packages/permissions/src/catalogue.test.ts",
@@ -1421,6 +1429,8 @@
           "kind": "symbol",
           "matches": [
             "apps/web/lib/grant-administration.test.ts",
+            "apps/web/lib/personas.test.ts",
+            "apps/web/lib/personas.ts",
             "apps/web/lib/route-coverage.test.ts",
             "apps/web/lib/route-permissions.test.ts",
             "apps/web/lib/route-permissions.ts"
@@ -1602,7 +1612,9 @@
             "apps/web/app/api/v1/workspaces/route.ts",
             "apps/web/lib/persistence.test.ts",
             "apps/web/lib/route-coverage.test.ts",
-            "apps/web/lib/trust-app.ts"
+            "apps/web/lib/trust-app.ts",
+            "packages/database-testing/src/scope-propagation.postgres.test.ts",
+            "packages/database/src/trust-scope.ts"
           ],
           "query": "authorizedContextForRoute",
           "satisfied": true
@@ -1705,6 +1717,7 @@
         {
           "kind": "symbol",
           "matches": [
+            "apps/web/app/components/bootstrap-console.tsx",
             "apps/web/lib/route-coverage.test.ts",
             "apps/web/lib/trust-app.ts",
             "packages/identity/src/issuance.test.ts",
@@ -1738,7 +1751,7 @@
       "totalProbes": 5
     }
   ],
-  "head": "57053fa298cc68a5834d5a16439d4d8dfe34b80a",
+  "head": "096bf8004c8ffff829f28a0ad2aa5f240a4f5f68",
   "reosVersion": "1.0.0",
   "stage": "forensics",
   "summary": {
