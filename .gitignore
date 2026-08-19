@@ -9,3 +9,9 @@ coverage
 .DS_Store
 .vscode
 apps/web/apps/
+
+# Playwright artefacts. Traces and screenshots are produced on failure only, and the HTML report is a build
+# product of a run rather than a source of truth about one.
+/test-results/
+/playwright-report/
+/blob-report/

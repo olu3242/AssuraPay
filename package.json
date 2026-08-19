@@ -119,7 +119,8 @@
     "certify:workflow-intelligence": "vitest run packages/workflow-intelligence",
     "certify:batch14": "npm run certify && npm run test:integration && npm run test:e2e && npm run build",
     "certify:audit-ledger": "vitest run packages/audit-ledger",
-    "certify:runtime": "vitest run packages/runtime apps/web/lib"
+    "certify:runtime": "vitest run packages/runtime apps/web/lib",
+    "certify:browser": "playwright test"
   },
   "dependencies": {
     "framer-motion": "^11.11.9",
@@ -131,6 +132,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "2.1.4",
+    "@playwright/test": "^1.62.1",
     "@types/node": "^20.14.0",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.1",
