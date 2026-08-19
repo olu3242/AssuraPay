@@ -118,7 +118,61 @@ licensed Financial Provider. The data seam is there too — `providerKey`, `prov
 So §7 needs a browser-reachable journey and the nine certifications it lists, not a new adapter. Non-custody is
 already structural: the gateway is injected, and AssuraPay sends instructions rather than holding balances.
 
-## Three defects the browser gate found by booting the real application
+## The blocker: registration is impossible on the durable store
+
+Found by clicking "Register" in a browser against the production build, and it is the reason RC1 cannot proceed
+past the first journey:
+
+```
+Registration refused: PERSISTENCE_SCOPE_INVALID: 42501:
+new row violates row-level security policy for table "trust_records"
+```
+
+The mechanism, verified against the live policy. `trust_records_scope` admits a row on three conditions, and
+the third is the one an identity needs:
+
+```sql
+(tenant_id IS NULL AND workspace_id IS NULL AND trust_current_tenant() IS NOT NULL)
+```
+
+A tenant-less row may be written **only when a tenant scope is set**. `IdentityGatewayEngine.register` appends to
+`identities`, which has no tenant — a person registering does not have one yet — and
+`POST /v1/auth/register` is classified `public`, so there is no session, no scope, and
+`trust_current_tenant()` is NULL. Forced row-level security refuses the insert.
+
+`login` writes a session row the same way, so the whole chain is dead at step one:
+
+| Step | Durable store |
+| --- | --- |
+| register | **refused** — no scope to write a scope-less row |
+| sign in | unreachable — no identity exists |
+| found a tenant | unreachable — `authorizedContextForRoute` needs a session |
+| the other 160 routes | unreachable — all need a workspace |
+
+**This is Batch J's finding one step earlier.** Batch J discovered that nothing could create the first workspace,
+so 161 routes were unreachable; it fixed that with `POST /v1/tenants`. But the tenant route requires an
+authenticated caller, and no caller can become authenticated, because no identity can be written. Batch J's proof
+was a live suite that established identities through `InMemoryTrustStore` or inside an existing scope — so the
+gap sat one layer below everything that had been certified.
+
+### Why this is not fixed here
+
+The fix decides **what may be written to the durable store by an unauthenticated caller**, and that is a
+tenancy-boundary decision, not an implementation detail. The plausible shapes each carry a real risk:
+
+- a bootstrap scope entered by the registration route — but then the route chooses its own scope, which is the
+  property `POST /v1/tenants` is safe *because* it does not have;
+- identities exempted from `trust_records_scope` — a policy hole in the table every trust aggregate shares;
+- identities moved to their own table with its own policy — a schema change to Engine 01 under CLAUDE.md's
+  trust-foundation boundary;
+- registration made `identity`-class behind some prior credential — which changes what "register" means.
+
+Choosing wrongly would open a hole in the boundary thirteen batches built, so §22 applies: this is a security
+invariant that cannot be implemented safely without a decision, and it is reported rather than invented. It
+should be its own capability, with its own live proof that an unauthenticated caller can write an identity **and
+nothing else**.
+
+## Three further defects the browser gate found by booting the real application
 
 None of these was visible to any existing gate, because no existing gate started the production build and asked
 it for readiness. They are recorded in the order the harness hit them, since each was hidden behind the one
@@ -160,8 +214,17 @@ cost a ten-minute readiness timeout that looked like a hung server, so it is wri
 baseline · zero tables with ENABLE-without-FORCE · `trust_migration_ledger` the only table without row-level
 security · migration `202608110018` keeping all 31 money columns exact, integral and safe-range bounded.
 
-## Honest scoping
+## Honest scoping, and the browser result
 
-Phases B through H are a multi-week front-end programme, not a single change. This branch therefore delivers
-the foundation and the first certified journey, and reports the remainder as outstanding with this matrix as
-the plan of record. Nothing below the line it reaches is claimed as certified.
+Phases B through H are a multi-week front-end programme, not a single change. This branch delivers Phase A, the
+harness, the persona matrix and the bootstrap surface — and stops where the platform stops.
+
+**Browser certification: 4 passed, 3 failed.** The four that pass are the refusals: an unauthenticated session
+lookup, a permission-gated route with no session, a sign-in for an identity that was never registered, and
+liveness plus readiness. Deny-by-default is demonstrated through a real browser against the production build on
+real PostgreSQL — which is worth having, because it is the half §8 says is not optional.
+
+The three that fail are the journeys, and all three fail at the same first step for the reason above:
+registration cannot write an identity. They are left failing rather than adjusted to pass, because the suite is
+correct and the platform is not. A harness changed to seed identities through a back door would certify the back
+door, which §19 forbids and which is how this gap survived thirteen certified batches in the first place.
