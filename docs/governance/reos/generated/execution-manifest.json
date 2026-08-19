@@ -3374,9 +3374,9 @@
   ],
   "executionBacklog": [],
   "identity": {
-    "branch": "feat/rc1-production-e2e-convergence",
+    "branch": "claude/git-pull-cqc04u",
     "clean": false,
-    "head": "096bf8004c8ffff829f28a0ad2aa5f240a4f5f68",
+    "head": "0e4bc1a3a2db00b6098151923d5bef8d9fce6c75",
     "repository": "assurapay",
     "version": "0.1.0"
   },
@@ -3468,7 +3468,7 @@
     "released": 76,
     "validated": 0
   },
-  "manifestDigest": "283808dc37b8",
+  "manifestDigest": "9598c9150b36",
   "missingCapabilities": [],
   "packages": [
     {

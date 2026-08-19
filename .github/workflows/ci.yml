@@ -87,6 +87,60 @@ jobs:
         env:
           ADMIN_URL: postgres://assurapay:assurapay@127.0.0.1:5432/assurapay_test
 
+      # The browser gate runs the app in its durable, production composition, and
+      # `loadPersistenceConfig` refuses such a deployment unless it states TLS and refuses one that
+      # states `disable`. That gate is correct and must not be weakened for CI — so CI has to give
+      # PostgreSQL a certificate instead.
+      #
+      # This was found the hard way: the browser step failed on `main` with a ten-minute readiness
+      # timeout and nothing else, because `playwright.config.ts` defaults `ASSURAPAY_DATABASE_SSL` to
+      # `require`, the `postgres:16` service container serves no TLS, and the app therefore never
+      # became ready. Locally it passed, because the local instance had been given a certificate by
+      # hand — so the harness was verified in exactly the one place that did not matter.
+      #
+      # `ssl` is a SIGHUP parameter, so it can be turned on with a reload rather than a restart, which
+      # matters here: a service container cannot be restarted mid-job without losing the role and
+      # databases the earlier steps created.
+      #
+      # The certificate is generated on the runner rather than inside the container, so this does not
+      # depend on the image shipping openssl, and it is self-signed — which `require` accepts and
+      # `verify-full` would not. That is the distinction the config already draws, and the browser
+      # suite states `require` for exactly this reason.
+      - name: Serve TLS from the database, because a durable deployment requires it
+        run: |
+          set -euo pipefail
+          # Matched on the image the service definition pins, so this cannot pick up some other
+          # container that happens to expose the same port.
+          container="$(docker ps --filter ancestor=postgres:16 --format '{{.ID}}' | head -1)"
+          if [ -z "$container" ]; then echo "no PostgreSQL service container found"; exit 1; fi
+
+          openssl req -new -x509 -days 365 -nodes \
+            -subj '/CN=assurapay-ci' -keyout server.key -out server.crt
+
+          docker cp server.key "$container:/var/lib/postgresql/data/server.key"
+          docker cp server.crt "$container:/var/lib/postgresql/data/server.crt"
+          # PostgreSQL refuses to start with a group- or world-readable key, and refuses a key it does
+          # not own, so both are set before the reload rather than after.
+          docker exec "$container" chown postgres:postgres \
+            /var/lib/postgresql/data/server.key /var/lib/postgresql/data/server.crt
+          docker exec "$container" chmod 600 /var/lib/postgresql/data/server.key
+          rm -f server.key server.crt
+
+          docker exec -e PGPASSWORD=assurapay "$container" \
+            psql -U assurapay -d assurapay_test -v ON_ERROR_STOP=1 \
+            -c "ALTER SYSTEM SET ssl = on" -c "SELECT pg_reload_conf()"
+
+          # Asserted, not assumed. Without this the job could go green against a plaintext database
+          # while claiming to have certified the composition that requires encryption — which is the
+          # failure this whole step exists to prevent, wearing a different hat.
+          encrypted="$(psql "$VERIFY_URL" -Atc "SELECT ssl FROM pg_stat_ssl WHERE pid = pg_backend_pid()")"
+          if [ "$encrypted" != "t" ]; then
+            echo "the database is not serving TLS, so the browser gate cannot certify the durable composition"
+            exit 1
+          fi
+        env:
+          VERIFY_URL: postgres://assurapay:assurapay@127.0.0.1:5432/assurapay_test?sslmode=require
+
       - name: Certify durability against real PostgreSQL
         run: pnpm certify:postgres
         env:
