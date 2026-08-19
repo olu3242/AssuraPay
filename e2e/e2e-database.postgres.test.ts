@@ -8,7 +8,7 @@ import { adminDatabaseUrl, e2eDatabaseName, e2eDatabaseUrl } from './database';
  * A vitest suite rather than a script, because there is no other runnable path to the governed migration runner.
  * `packages/database` is resolved by path alias in the vitest configs and its modules use extensionless relative
  * imports, so bare Node cannot load it — `node e2e/apply-migrations.ts` failed with ERR_MODULE_NOT_FOUND on
- * `./trust-store`. `scripts/run-migrations.js` is still the one-line placeholder `migrations.ts` describes. The
+ * `./trust-store`. `scripts/run-migrations.js` is still the single `console.log` that `migrations.ts` describes. The
  * alternative was applying the SQL with `psql`, which would skip the ledger, the checksum verification and the
  * required-migration contract — and would therefore certify a schema built by a shortcut.
  *

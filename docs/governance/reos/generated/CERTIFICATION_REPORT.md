@@ -4,9 +4,9 @@
 
 | Field | Value |
 | --- | --- |
-| Branch | feat/n1-close-the-durability-capability |
-| HEAD | 57053fa298cc68a5834d5a16439d4d8dfe34b80a |
-| Generated at | 2026-08-18T23:23:20.803Z |
+| Branch | feat/rc1-production-e2e-convergence |
+| HEAD | bc9a3bc771987e7c8ae4ea4dd249058a72fd7865 |
+| Generated at | 2026-08-19T01:01:26.667Z |
 | Result | **PASSED** |
 | Steps | 11 passed, 0 failed, 0 skipped |
 
@@ -14,14 +14,14 @@
 
 | Step | Description | Result | Duration | Findings |
 | --- | --- | --- | --- | --- |
-| lint | ESLint across the workspace | pass | 8269 ms | — |
-| typecheck | TypeScript project typecheck | pass | 2953 ms | — |
-| test:unit | Unit tests | pass | 33074 ms | — |
-| test:integration | Integration tests | pass | 15683 ms | — |
-| test:e2e | End-to-end tests | pass | 33186 ms | — |
-| architecture | Architecture validation | pass | 666 ms | — |
-| dependencies | Dependency validation | pass | 22 ms | 2 |
+| lint | ESLint across the workspace | pass | 6487 ms | — |
+| typecheck | TypeScript project typecheck | pass | 2955 ms | — |
+| test:unit | Unit tests | pass | 33778 ms | — |
+| test:integration | Integration tests | pass | 16019 ms | — |
+| test:e2e | End-to-end tests | pass | 34007 ms | — |
+| architecture | Architecture validation | pass | 692 ms | — |
+| dependencies | Dependency validation | pass | 21 ms | 2 |
 | security | Security validation | pass | 47 ms | — |
-| contract | Execution contract validation | pass | 57 ms | 2 |
-| governance | Reconciliation governance policy | pass | 1 ms | 15 |
-| build | Production build | pass | 27482 ms | — |
+| contract | Execution contract validation | pass | 20 ms | — |
+| governance | Reconciliation governance policy | pass | 0 ms | 15 |
+| build | Production build | pass | 25152 ms | — |

@@ -7,7 +7,7 @@ import { useCallback, useEffect, useState } from 'react';
  *
  * Before this component the web application had 163 API routes and **zero** browser callers: 517 lines of TSX
  * with no form, no input, no `fetch`, and one button belonging to a carousel. Thirteen persistence batches made
- * the domain durable while the front end stayed a set of descriptive placeholders, so nothing a user could do
+ * the domain durable while the front end stayed a set of descriptive pages, so nothing a user could do
  * in a browser reached the platform at all. `docs/product/RC1_GAP_MATRIX.md` records the measurement.
  *
  * This is the bootstrap journey, and it is deliberately the whole of it — register, sign in, found a tenant,

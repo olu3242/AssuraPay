@@ -26,7 +26,7 @@ output is reproducible; where a figure is a count of source constructs the comma
 | `'use client'` components | 1 | `components/hero-carousel.tsx` |
 | Browser harness | **none** | no `playwright.config.*`, no `e2e/`, no `@playwright/test` dependency |
 
-So 163 routes have **zero browser callers**. Of the 23 pages, 21 are static descriptive placeholders — for
+So 163 routes have **zero browser callers**. Of the 23 pages, 21 render static descriptive prose — for
 example `/approvals` renders a heading and one sentence with no queue and no data, and `/contracts` renders
 five hardcoded stage cards. The one component that names governed surfaces, `TrustConsole`, is two lines long,
 makes no network call, and says so in its own copy: the states it lists are *"handled by the secured API
