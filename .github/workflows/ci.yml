@@ -131,6 +131,12 @@ jobs:
         run: pnpm certify:browser
         env:
           ASSURAPAY_TEST_DATABASE_URL: postgres://assurapay_ci:assurapay_ci@127.0.0.1:5432/assurapay_test
+          # GitHub's stock postgres:16 service is intentionally plaintext. The browser
+          # gate is a test harness, so run its durable adapter explicitly as PostgreSQL
+          # while leaving production's TLS-required configuration policy untouched.
+          ASSURAPAY_DEPLOYMENT: test
+          ASSURAPAY_PERSISTENCE_ADAPTER: postgres
+          ASSURAPAY_E2E_DATABASE_SSL: disable
           CI: 'true'
 
       - name: Publish browser traces on failure
