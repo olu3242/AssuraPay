@@ -85,6 +85,12 @@ describe('route permission policy — public and identity classes', () => {
       '/api/v1/auth/assertion|POST',
       '/api/v1/auth/login|POST',
       '/api/v1/auth/register|POST',
+      // Email verification, for the same reason as the three above: the token in the body *is*
+      // the credential, and the caller is proving possession of an address precisely because it
+      // has no session yet. Requiring one would make the route unreachable by the only person who
+      // should ever call it — and until it existed, no identity could ever reach ACTIVE and so
+      // nobody could sign in at all. `packages/identity/src/verification.ts` argues it.
+      '/api/v1/auth/verify-email|POST',
     ]);
   });
 

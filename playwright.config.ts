@@ -1,3 +1,4 @@
+import { randomBytes } from 'node:crypto';
 import { existsSync } from 'node:fs';
 import { defineConfig, devices } from '@playwright/test';
 import { e2eDatabaseUrl } from './e2e/database.ts';
@@ -52,13 +53,32 @@ const PINNED_CHROMIUM = ['/opt/pw-browsers/chromium-1194/chrome-linux/chrome'].f
 // enough past the TLS gate to reach it. `next start <dir>` keeps the cwd at the root while still finding the
 // build output, so the path resolves. The finding is recorded in `docs/product/RC1_GAP_MATRIX.md`: a
 // deployment that starts the app from the app directory has a readiness endpoint that can never report ready.
-const START_COMMAND = `pnpm build && pnpm exec next start apps/web --hostname 127.0.0.1 --port ${PORT}`;
+// Provisioning is a step *in the start command*, not a `globalSetup`, and that ordering is the whole
+// point rather than a style preference.
+//
+// Playwright launches `webServer` concurrently with global setup, so a harness that migrated in
+// `globalSetup` was racing the application's own startup. The first version leaned on
+// `/api/health/ready` to bridge the gap — readiness answers 503 until the schema is present — but the
+// runtime does not retry: it fails startup once, caches
+// `RUNTIME_MIGRATIONS_PENDING: 1 required migration(s) have not been applied`, and never recovers. So
+// readiness never turns green and the run dies ten minutes later on a webServer timeout.
+//
+// That race was invisible for several runs because the database already carried a full schema from
+// the previous one, and it appeared the moment a migration was added — which is to say it would have
+// appeared in CI, on every run, since CI always starts from a fresh database. Sequencing the two with
+// `&&` removes the race instead of timing it: the application cannot start until the schema it
+// verifies at startup exists. It also runs exactly once, which is what `globalSetup` was chosen for
+// over module scope in the first place.
+const PROVISION_COMMAND =
+  'pnpm vitest run --config vitest.postgres.config.ts e2e/e2e-database.postgres.test.ts';
+const START_COMMAND = `pnpm build && ${PROVISION_COMMAND} && pnpm exec next start apps/web --hostname 127.0.0.1 --port ${PORT}`;
 const BASE_URL = `http://localhost:${PORT}`;
 
 export default defineConfig({
   testDir: './e2e',
-  // Once per run, not once per worker. Provisioning from the config module dropped the database mid-run.
-  globalSetup: './e2e/global-setup.ts',
+  // No `globalSetup`. Provisioning moved into `webServer.command` because Playwright runs global setup
+  // concurrently with the web server, and the application verifies its schema at startup — see the
+  // note on `PROVISION_COMMAND`.
   // Only `.spec.ts`. `e2e/e2e-database.postgres.test.ts` is a vitest suite that lives here because it
   // provisions this gate's database; without this, Playwright collects it and fails on
   // "Vitest cannot be imported in a CommonJS module".
@@ -109,7 +129,7 @@ export default defineConfig({
       PORT: String(PORT),
       NODE_ENV: 'production',
       // The durable runtime, which is the point: the suite certifies the composition that refuses to fall back
-      // to memory. `global-setup.ts` has already migrated this database.
+      // to memory. The start command has already migrated this database; see PROVISION_COMMAND.
       ASSURAPAY_DATABASE_URL: e2eDatabaseUrl(),
       // Stated, because the durable-environment gate requires it to be: `loadPersistenceConfig` refuses a
       // durable deployment that inherits a TLS default and refuses one that disables TLS. Running the browser
@@ -118,6 +138,35 @@ export default defineConfig({
       // certificate is self-signed, which `require` accepts and `verify-full` would not — the distinction the
       // config already draws.
       ASSURAPAY_DATABASE_SSL: process.env.ASSURAPAY_E2E_DATABASE_SSL ?? 'require',
+      // Stated for the same reason TLS is, and it is a deployment property rather than a test
+      // switch: Engine 09 (Notification & Communication) is deferred, so this deployment has no way
+      // to email a verification token and declares that `POST /v1/auth/register` returns it to the
+      // caller instead. A staging deployment without SMTP sets exactly this. The business rule does
+      // not change with it — the token is still required, single-use and expiring — which is what
+      // keeps this on the allowed side of §19's line between infrastructure and business truth.
+      ASSURAPAY_IDENTITY_VERIFICATION_CHANNEL: 'DIRECT_RETURN',
+      // The assertion keyring, which every deployment must supply and this one had not.
+      //
+      // Found the same way the other two blockers were — by clicking. `POST /v1/tenants` and
+      // `POST /v1/auth/logout` are identity-class routes, so they mint a signed assertion through
+      // the identity gateway, and an unconfigured deployment fails closed with
+      // `ASSERTION_KEYRING_REQUIRED`. That refusal is correct: `assertions.ts` deliberately has no
+      // default secret, because a default would mean every deployment signs with a value anyone
+      // can read out of the repository.
+      //
+      // Generated per run rather than committed. A fixed secret in version control is a real one
+      // once someone copies this file into a deployment, and nothing here needs it to be stable —
+      // the keyring only has to outlive the process it signs for.
+      IDENTITY_ASSERTION_KEYS: `e2e:${randomBytes(32).toString('hex')}`,
+      IDENTITY_ASSERTION_ACTIVE_KEY_ID: 'e2e',
+      IDENTITY_ASSERTION_ISSUER: 'assurapay-e2e',
+      IDENTITY_ASSERTION_AUDIENCE: 'assurapay-web',
+      // One process, so process-local replay protection is the accurate statement rather than a
+      // relaxation: `loadGatewayConfig` requires distributed replay protection under
+      // `NODE_ENV=production` precisely because a multi-instance deployment cannot detect replay
+      // in memory. This deployment is a single `next start`, which can. A horizontally scaled
+      // deployment must not set this, and the variable is named so that saying so is unavoidable.
+      IDENTITY_ASSERTION_ACCEPT_PROCESS_LOCAL_REPLAY: 'true',
     },
   },
 });

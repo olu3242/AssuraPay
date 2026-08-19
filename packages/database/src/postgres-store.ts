@@ -7,7 +7,7 @@ import {
 } from '@assurapay/shared';
 import type { SqlClient } from './postgres-client';
 import { sanitizeDatabaseFailure } from './postgres-client';
-import { currentTrustScope, isTenantScoped } from './trust-scope';
+import { currentTrustScope, isScopeBearing, isTenantScoped } from './trust-scope';
 import type { TrustScope } from './trust-scope';
 import { BATCH_A_RELATIONS, batchARelation, isBatchACollection } from './batch-a-repository';
 import { BATCH_B_RELATIONS, batchBRelation, isBatchBCollection } from './batch-b-repository';
@@ -235,6 +235,34 @@ const GOVERNED_DOCUMENTS = Object.freeze([
   'trustOrganizations',
   'verificationRequests',
   'verificationResults',
+]);
+
+/**
+ * The identity plane: collections guarded by the identity gateway rather than by tenancy.
+ *
+ * These are the collections a caller reaches *before* it has a tenant, and they are the reason
+ * `trust_records_scope` has a branch keyed on the collection rather than on the scope columns.
+ * The identity plane is what establishes scope, so it cannot be guarded by scope — registration
+ * has no tenant to be checked against, and session resolution is how a tenant is discovered in
+ * the first place. `202608110020_identity_plane_is_reachable_without_a_tenant.sql` states the
+ * argument in full, along with the defect that made registration impossible before it.
+ *
+ * The membership is derived, not chosen. `UserIdentity`, `AuthenticationMethod`, `TrustedDevice`
+ * and `StepUpChallenge` are the only trust types carrying neither `tenantId` nor `workspaceId`;
+ * `UserSession` carries `workspaceId`, but as an activation *result* rather than an ownership
+ * scope, which is why an activated session must still be readable by the unscoped resolver.
+ *
+ * `trust_collection_is_identity_plane()` in that migration holds the same five, and
+ * `identity-plane-rls.postgres.test.ts` asserts the two sets are equal — so a sixth collection
+ * added on one side alone fails certification instead of silently diverging from the policy that
+ * decides whether its rows are visible.
+ */
+export const POSTGRES_IDENTITY_PLANE_COLLECTIONS: readonly string[] = Object.freeze([
+  'authenticationMethods',
+  'devices',
+  'identities',
+  'sessions',
+  'stepUpChallenges',
 ]);
 
 /** Collections with bespoke handling, reached through `audit` and `emit` only. */
@@ -495,17 +523,30 @@ export class PostgresTrustStore implements TrustPersistence {
    *
    *   Already inside a transaction — the scope was applied when it opened.
    *   An ambient scope exists — open a transaction, set it, run.
-   *   No ambient scope — run unscoped. Under forced RLS that reads nothing and writes
+   *   No ambient scope at all — run unscoped. Under forced RLS that reads nothing and writes
    *     nothing, which is the correct outcome: an unscoped governed operation must not
    *     quietly see every tenant. It fails at the database rather than at the type level,
    *     which is the cost of carrying scope ambiently and is why scope is established at
    *     the funnel every protected route passes through.
+   *
+   * ## Why the second case is not gated on the tenant
+   *
+   * It was, and that made membership discovery impossible. `isTenantScoped` decided whether to apply
+   * the scope at all, so a caller who knew its actor but not yet its tenant — every caller between
+   * signing in and activating a workspace — ran with no `app.actor_id` set either, and the
+   * actor-keyed branches `202608110021` adds to the membership and workspace policies could never
+   * match. The condition is now "the scope carries anything", because whether a *policy* is satisfied
+   * is the database's decision and not this method's to pre-empt.
+   *
+   * This widens nothing on its own. Applying a tenant-less scope sets `app.actor_id` and leaves
+   * `app.tenant_id` empty, so every tenant-keyed policy still matches nothing — the only predicates
+   * that become satisfiable are the ones written to be satisfied by an actor alone.
    */
   private async inScope<T>(run: (store: PostgresTrustStore) => Promise<T>): Promise<T> {
     if (this.withinTransaction) return await run(this);
 
     const scope = currentTrustScope();
-    if (!isTenantScoped(scope)) return await run(this);
+    if (!isScopeBearing(scope)) return await run(this);
 
     try {
       return await this.sql.begin(async (tx) => {
@@ -773,13 +814,39 @@ export class PostgresTrustStore implements TrustPersistence {
       }
 
       if (collection === 'memberships') {
+        // `tenant_id` is derived from the membership's own workspace, never from the record and never
+        // from the ambient scope.
+        //
+        // `Membership` carries no tenant and must not start carrying one from a caller. The workspace
+        // is the authoritative source — a membership's tenant *is* its workspace's tenant, which is
+        // what `202608110021` backfilled from — so resolving it here cannot disagree with the row it
+        // belongs to. The scope is not bypassed: this read goes through `trust_workspaces`' own policy,
+        // so a workspace outside the caller's reach resolves nothing.
+        //
+        // Resolved in its own statement rather than as a subquery in the INSERT, and the reason is the
+        // error a caller gets. As a subquery, a workspace that does not exist yields NULL, PostgreSQL
+        // checks NOT NULL before the foreign key, and the failure arrives as
+        // `PERSISTENCE_CORRUPT_RECORD: 23502` — corruption, for what is actually a caller naming a
+        // workspace it cannot reach. One extra read on a path that runs at founding and invitation
+        // time buys an error that says what happened.
+        const membershipWorkspaceId = requireScope(record, 'workspaceId');
+        const [membershipWorkspace] = await this.sql<{ tenantId: string }[]>`
+          SELECT tenant_id AS "tenantId" FROM trust_workspaces WHERE workspace_id = ${membershipWorkspaceId}
+        `;
+        if (!membershipWorkspace)
+          throw new PostgresStoreError(
+            'PERSISTENCE_SCOPE_INVALID',
+            `membership names workspace ${membershipWorkspaceId}, which does not exist or is outside this scope`,
+          );
+
         await this.sql`
           INSERT INTO trust_memberships (
-            membership_id, workspace_id, user_id, status, role,
+            membership_id, workspace_id, tenant_id, user_id, status, role,
             effective_from, effective_to, revoked_at, payload, payload_digest, version
           ) VALUES (
             ${id},
-            ${requireScope(record, 'workspaceId')},
+            ${membershipWorkspaceId},
+            ${membershipWorkspace.tenantId},
             ${requireScope(record, 'userId')},
             ${firstString(record, ['status']) ?? 'ACTIVE'},
             ${firstString(record, ['role'])},
@@ -1071,7 +1138,10 @@ export class PostgresTrustStore implements TrustPersistence {
         // connection with this scope, and `inScope` sees `withinTransaction` and does not
         // reapply it.
         const scope = currentTrustScope();
-        if (isTenantScoped(scope)) await applyTrustScope(tx, scope);
+        // Applied whenever the scope carries anything, matching `inScope`. A transaction opened by a
+        // caller that knows only its actor still needs `app.actor_id` set, or the actor-keyed
+        // policies see NULL and the transaction reads nothing.
+        if (isScopeBearing(scope)) await applyTrustScope(tx, scope);
         return await operation(
           new PostgresTrustStore(tx, { now: this.now, withinTransaction: true }),
         );
@@ -1221,6 +1291,7 @@ function requireScope(record: Record<string, unknown>, field: string): string {
     throw new PostgresStoreError('PERSISTENCE_SCOPE_INVALID', `${field} is required`);
   return value;
 }
+
 
 /**
  * Sets the session variables the policies read, transaction-locally.

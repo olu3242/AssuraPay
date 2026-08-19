@@ -2143,6 +2143,27 @@
       "id": "202608110019",
       "name": "retire_dead_legacy_tables",
       "path": "supabase/migrations/202608110019_retire_dead_legacy_tables.sql"
+    },
+    {
+      "declaresPolicies": 3,
+      "declaresRowLevelSecurity": false,
+      "id": "202608110020",
+      "name": "identity_plane_is_reachable_without_a_tenant",
+      "path": "supabase/migrations/202608110020_identity_plane_is_reachable_without_a_tenant.sql"
+    },
+    {
+      "declaresPolicies": 0,
+      "declaresRowLevelSecurity": false,
+      "id": "202608110021",
+      "name": "trust_memberships_carry_their_tenant",
+      "path": "supabase/migrations/202608110021_trust_memberships_carry_their_tenant.sql"
+    },
+    {
+      "declaresPolicies": 2,
+      "declaresRowLevelSecurity": false,
+      "id": "202608110022",
+      "name": "membership_discovery_precedes_tenant_scope",
+      "path": "supabase/migrations/202608110022_membership_discovery_precedes_tenant_scope.sql"
     }
   ],
   "packages": [
@@ -2336,7 +2357,7 @@
       "moduleType": null,
       "name": "@assurapay/database",
       "sourceFiles": 22,
-      "sourceLines": 12327,
+      "sourceLines": 12486,
       "testFiles": [
         "packages/database/src/async-conformance.test.ts",
         "packages/database/src/rls-certification.test.ts",
@@ -2366,15 +2387,17 @@
       "moduleType": null,
       "name": "@assurapay/database-testing",
       "sourceFiles": 1,
-      "sourceLines": 454,
+      "sourceLines": 473,
       "testFiles": [
         "packages/database-testing/src/durability-coverage.test.ts",
         "packages/database-testing/src/engine-identity.test.ts",
+        "packages/database-testing/src/identity-plane-rls.postgres.test.ts",
         "packages/database-testing/src/migrations.postgres.test.ts",
         "packages/database-testing/src/money-integrality.postgres.test.ts",
         "packages/database-testing/src/postgres-store.postgres.test.ts",
         "packages/database-testing/src/rls-certification.postgres.test.ts",
         "packages/database-testing/src/schema-ownership.postgres.test.ts",
+        "packages/database-testing/src/scope-propagation.postgres.test.ts",
         "packages/database-testing/src/store-boundary.postgres.test.ts",
         "packages/database-testing/src/wave4-batch-a-repository.postgres.test.ts",
         "packages/database-testing/src/wave4-trust-authority.postgres.test.ts",
@@ -2396,7 +2419,7 @@
         "integration": 0,
         "performance": 0,
         "security": 0,
-        "unit": 22
+        "unit": 24
       },
       "workspaceDependencies": [
         "@assurapay/agreement-creation",
@@ -2605,26 +2628,28 @@
         "IdentityGateway",
         "IdentityGatewayError",
         "IdentityService",
+        "IdentityVerificationConfigError",
         "InMemoryAssertionReplayStore"
       ],
       "externalDependencies": [],
       "main": "src/index.ts",
       "moduleType": null,
       "name": "@assurapay/identity",
-      "sourceFiles": 4,
-      "sourceLines": 1179,
+      "sourceFiles": 5,
+      "sourceLines": 1370,
       "testFiles": [
         "packages/identity/src/assertions.test.ts",
         "packages/identity/src/gateway.test.ts",
         "packages/identity/src/identity.test.ts",
-        "packages/identity/src/issuance.test.ts"
+        "packages/identity/src/issuance.test.ts",
+        "packages/identity/src/verification.test.ts"
       ],
       "tests": {
         "e2e": 0,
         "integration": 0,
         "performance": 0,
         "security": 0,
-        "unit": 4
+        "unit": 5
       },
       "workspaceDependencies": [
         "@assurapay/database",
@@ -3081,7 +3106,16 @@
       ],
       "clean": false,
       "dirtyFiles": [
+        "apps/web/app/api/v1/auth/assertion/route.ts",
+        "apps/web/app/api/v1/auth/register/route.ts",
+        "apps/web/app/api/v1/auth/session/route.ts",
+        "apps/web/app/api/v1/auth/verify-email/route.ts",
+        "apps/web/app/api/v1/workspaces/[id]/activate-context/route.ts",
         "apps/web/app/components/bootstrap-console.tsx",
+        "apps/web/lib/route-coverage.test.ts",
+        "apps/web/lib/route-permissions.test.ts",
+        "apps/web/lib/route-permissions.ts",
+        "apps/web/lib/trust-app.ts",
         "docs/governance/reos/generated/CERTIFICATION_REPORT.md",
         "docs/governance/reos/generated/EXECUTION_MANIFEST.md",
         "docs/governance/reos/generated/certification.json",
@@ -3090,11 +3124,29 @@
         "docs/governance/reos/generated/execution-manifest.json",
         "docs/governance/reos/generated/forensics.json",
         "docs/product/RC1_GAP_MATRIX.md",
-        "e2e/e2e-database.postgres.test.ts",
-        "vitest.config.ts"
+        "e2e/global-setup.ts",
+        "packages/database-testing/src/identity-plane-rls.postgres.test.ts",
+        "packages/database-testing/src/index.ts",
+        "packages/database-testing/src/rls-certification.postgres.test.ts",
+        "packages/database-testing/src/scope-propagation.postgres.test.ts",
+        "packages/database/src/migrations.ts",
+        "packages/database/src/postgres-store.ts",
+        "packages/database/src/rls-certification.ts",
+        "packages/database/src/trust-scope.ts",
+        "packages/domain/src/trust-foundation.e2e.test.ts",
+        "packages/identity/src/identity.test.ts",
+        "packages/identity/src/index.ts",
+        "packages/identity/src/verification.test.ts",
+        "packages/identity/src/verification.ts",
+        "packages/runtime/src/persistence-runtime.postgres.test.ts",
+        "playwright.config.ts",
+        "supabase/migrations/202608110020_identity_plane_is_reachable_without_a_tenant.sql",
+        "supabase/migrations/202608110021_membership_discovery_precedes_tenant_scope.sql",
+        "supabase/migrations/202608110021_trust_memberships_carry_their_tenant.sql",
+        "supabase/migrations/202608110022_membership_discovery_precedes_tenant_scope.sql"
       ],
-      "head": "bc9a3bc771987e7c8ae4ea4dd249058a72fd7865",
-      "headShort": "bc9a3bc",
+      "head": "096bf8004c8ffff829f28a0ad2aa5f240a4f5f68",
+      "headShort": "096bf80",
       "reflogAvailable": true,
       "remotes": [
         "origin"
@@ -3279,17 +3331,17 @@
       "integration": 15,
       "performance": 2,
       "security": 3,
-      "unit": 80
+      "unit": 83
     },
-    "files": 115
+    "files": 118
   },
   "totals": {
     "applications": 1,
     "documents": 156,
     "engines": 60,
-    "migrations": 46,
+    "migrations": 49,
     "packages": 26,
-    "testFiles": 115
+    "testFiles": 118
   },
   "workflows": [
     {

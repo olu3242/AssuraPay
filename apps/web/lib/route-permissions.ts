@@ -92,6 +92,10 @@ export const ROUTE_PERMISSION_REQUIREMENTS: Readonly<Record<string, RouteAccess>
   '/api/v1/auth/logout|POST': { access: 'identity' },
   '/api/v1/auth/register|POST': { access: 'public' },
   '/api/v1/auth/session|GET': { access: 'identity' },
+  // Public because the token *is* the credential: the caller is proving possession of an email
+  // address and by definition has no session yet. Requiring one would make the route unreachable
+  // by the only person who should ever call it.
+  '/api/v1/auth/verify-email|POST': { access: 'public' },
   '/api/v1/authorization-decisions/[id]/approve|POST': { access: 'permission', permissionKey: 'authorization-decisions:approve', segregatedFrom: ['payment-instructions:submit'] },
   '/api/v1/authorization-decisions/[id]/reject|POST': { access: 'permission', permissionKey: 'authorization-decisions:reject' },
   '/api/v1/authorization-decisions|POST': { access: 'permission', permissionKey: 'authorization-decisions:create' },

@@ -118,113 +118,245 @@ licensed Financial Provider. The data seam is there too — `providerKey`, `prov
 So §7 needs a browser-reachable journey and the nine certifications it lists, not a new adapter. Non-custody is
 already structural: the gateway is injected, and AssuraPay sends instructions rather than holding balances.
 
-## The blocker: registration is impossible on the durable store
+## Eight blockers, found by clicking, in the order they were hidden behind each other
 
-Found by clicking "Register" in a browser against the production build, and it is the reason RC1 cannot proceed
-past the first journey:
+This is the section the document exists for. Each of these made the product unusable. **None was
+visible to any of the 461 PostgreSQL proofs, the 880 unit tests, or the 168 REOS checks**, and each
+became visible only once the one in front of it was repaired — so they were found one at a time, by
+running the journey again after every fix.
+
+That progression is the finding: *a platform can be exhaustively certified component by component and
+still not open at all.* Eight independent defects stood between a working backend and a user reaching
+their own workspace, and the suites could not see any of them because of a single shared property —
+every test established its preconditions from inside. Suites called `IdentityService.activate()`
+directly, set a tenant scope by hand, or used `InMemoryTrustStore`. They exercised transitions no user
+could reach, through a store whose policies never ran. Nothing had ever entered the product from
+outside, so nothing had ever tested the way in.
+
+All eight are fixed. The browser journey passes: **7 of 7**.
+
+### 1. Registration could not write its own row
 
 ```
 Registration refused: PERSISTENCE_SCOPE_INVALID: 42501:
 new row violates row-level security policy for table "trust_records"
 ```
 
-The mechanism, verified against the live policy. `trust_records_scope` admits a row on three conditions, and
-the third is the one an identity needs:
+`trust_records_scope`, `trust_audit_tenant_scope` and `trust_outbox_tenant_scope` each had an
+untenanted branch written as `tenant_id IS NULL AND trust_current_tenant() IS NOT NULL` — admitting a
+tenant-less row only for a caller that *already had* a tenant. The migration's own comments state the
+opposite intent in prose: "identity registration and activation happen before the actor belongs to any
+tenant… Refusing those writes would make registration impossible under forced RLS, so they are
+permitted." The branch written to permit the pre-tenant path was the one predicate excluding it, in
+three policies at once.
 
-```sql
-(tenant_id IS NULL AND workspace_id IS NULL AND trust_current_tenant() IS NOT NULL)
+Fixed by `202608110020_identity_plane_is_reachable_without_a_tenant.sql`, which names the identity
+plane — `identities`, `authenticationMethods`, `sessions`, `devices`, `stepUpChallenges` — as the set
+guarded by the identity gateway rather than by tenancy, because it is what *establishes* scope and so
+cannot be guarded by it. The branch is keyed on the collection rather than on the scope columns,
+because an activated session is workspace-scoped and must still be readable by a resolver that has no
+scope yet.
+
+Additive: every row admitted before is admitted after, and the new branch reaches only those five
+collections. `identity-plane-rls.postgres.test.ts` proves both directions — the plane is reachable
+unscoped, and an unscoped caller still sees zero parties, zero tenanted audit records, and nothing of
+another tenant.
+
+### 2. No identity could ever become ACTIVE
+
+Sign-in refused with `AUTHENTICATION_DENIED`. `register` creates `status: 'PENDING_VERIFICATION'`;
+`login` requires `ACTIVE`; and the only engine method bridging them, `IdentityService.activate`, **had
+no HTTP route anywhere in the application**. Every identity the platform could create was permanently
+unable to sign in.
+
+Fixed by adding email verification as the transition activation is meant to evidence: `register` mints
+a single-use token and stores only its digest — the treatment `UserSession.sessionTokenHash` already
+gets — and `POST /v1/auth/verify-email` consumes it. Exposing `activate(userId)` directly was rejected
+because it would let anyone turn another person's dormant registration into a signable-into account.
+
+**The delivery channel is a deployment statement with no default.** Engine 09 (Notification &
+Communication) is Deferred, so the platform has no email transport at all.
+`ASSURAPAY_IDENTITY_VERIFICATION_CHANNEL` must be stated; `DIRECT_RETURN` declares that a deployment
+has no channel and that registration returns the token to its caller; `NOTIFICATION_ENGINE` is refused
+at load with a message naming Engine 09. Infrastructure, not business truth — the rule that a token is
+required, single-use and expiring is identical in every environment, which is what keeps it on the
+permitted side of §19.
+
+### 3. Identity-class routes had no signing keyring
+
+`ASSERTION_KEYRING_REQUIRED` on tenant founding and sign-out. `assertions.ts` deliberately has no
+default secret, so an unconfigured deployment fails closed — correct, and a deployment obligation the
+harness had not met. The browser suite now generates a keyring per run rather than committing one.
+
+### 4. The assertion route could not succeed on any input
+
+```js
+const body = await (await request.json()).catch(() => ({}));
 ```
 
-A tenant-less row may be written **only when a tenant scope is set**. `IdentityGatewayEngine.register` appends to
-`identities`, which has no tenant — a person registering does not have one yet — and
-`POST /v1/auth/register` is classified `public`, so there is no session, no scope, and
-`trust_current_tenant()` is NULL. Forced row-level security refuses the insert.
+`await` first, then `.catch` on a plain object — a `TypeError` on every request whose body parsed, and
+an unhandled parse error on every request without one. Since the gateway authenticates *only* a signed
+assertion and minting one was impossible, **all 156 permission-class routes and every identity-class
+route were unreachable from a browser**, reporting `GATEWAY_ASSERTION_MISSING`. One `await` in the
+wrong place. The route now also validates `minimumAssuranceLevel` against the defined set instead of
+passing an attacker-controlled string through.
 
-`login` writes a session row the same way, so the whole chain is dead at step one:
+### 5. Membership discovery required the tenant scope it exists to establish
 
-| Step | Durable store |
-| --- | --- |
-| register | **refused** — no scope to write a scope-less row |
-| sign in | unreachable — no identity exists |
-| found a tenant | unreachable — `authorizedContextForRoute` needs a session |
-| the other 160 routes | unreachable — all need a workspace |
+Founding an organization succeeded and the page said "No workspace memberships yet". The row existed,
+was `ACTIVE`, and named the caller. `GET /v1/me/workspaces` answers "which workspaces may I enter" —
+which is how a caller learns its tenant — and both policies it reads required a tenant already.
+`202608070001`'s own comment shows the author reasoning about this trap one level down ("a policy keyed
+on the active workspace would require knowing the answer first") and then keying it on the tenant,
+which has the identical problem one level up.
 
-**This is Batch J's finding one step earlier.** Batch J discovered that nothing could create the first workspace,
-so 161 routes were unreachable; it fixed that with `POST /v1/tenants`. But the tenant route requires an
-authenticated caller, and no caller can become authenticated, because no identity can be written. Batch J's proof
-was a live suite that established identities through `InMemoryTrustStore` or inside an existing scope — so the
-gap sat one layer below everything that had been certified.
+**This made every return visit unusable**, not merely the first: the only way in was to found a new
+organization each time.
 
-### Why this is not fixed here
+The obvious repair — an actor-keyed branch on each policy — is mutually recursive, and PostgreSQL says
+so rather than looping: `infinite recursion detected in policy for relation "trust_memberships"`. That
+was measured, not predicted. `202608110021_membership_discovery_precedes_tenant_scope.sql` breaks the
+cycle by denormalising `tenant_id` onto `trust_memberships` so its policy references no table, after
+which the workspace policy may query memberships freely. The actor branch is on `USING` only — on
+`WITH CHECK` it would let any caller grant itself an ACTIVE membership in any tenant's workspace, which
+the suite asserts is refused.
 
-The fix decides **what may be written to the durable store by an unauthenticated caller**, and that is a
-tenancy-boundary decision, not an implementation detail. The plausible shapes each carry a real risk:
+### 6. Every store operation after a route's first ran unscoped
 
-- a bootstrap scope entered by the registration route — but then the route chooses its own scope, which is the
-  property `POST /v1/tenants` is safe *because* it does not have;
-- identities exempted from `trust_records_scope` — a policy hole in the table every trust aggregate shares;
-- identities moved to their own table with its own policy — a schema change to Engine 01 under CLAUDE.md's
-  trust-foundation boundary;
-- registration made `identity`-class behind some prior credential — which changes what "register" means.
+The largest of the eight, and the one with the widest blast radius. With the policies repaired, the
+membership list was *still* empty — and PostgreSQL's statement log for one request showed why:
 
-Choosing wrongly would open a hole in the boundary thirteen batches built, so §22 applies: this is a security
-invariant that cannot be implemented safely without a decision, and it is reported rather than invented. It
-should be its own capability, with its own live proof that an unauthenticated caller can write an identity **and
-nothing else**.
+```
+begin
+set_config('app.tenant_id',…,'app.actor_id',$3)   -- applied
+SELECT payload … FROM trust_memberships           -- scoped, returned the row
+commit
+SELECT payload … FROM trust_memberships           -- no begin, no set_config
+SELECT payload … FROM trust_workspaces            -- no begin, no set_config
+```
 
-## Three further defects the browser gate found by booting the real application
+`enterTrustScope` uses `AsyncLocalStorage.enterWith`, which binds the *current* execution context.
+`authorizedContextForRoute` is an async function that authenticated and *then* entered the scope —
+after its first `await`, in a context the route handler awaiting it does not share. So the funnel's own
+read was scoped and **every read the route performed afterwards was not**. Under forced RLS those reads
+returned nothing, silently: an unscoped read is indistinguishable from a caller who genuinely has no
+rows.
 
-None of these was visible to any existing gate, because no existing gate started the production build and asked
-it for readiness. They are recorded in the order the harness hit them, since each was hidden behind the one
-before it.
+This was not specific to one route. Any route performing more than one independent store operation was
+reading nothing after its first. `POST /v1/tenants` escaped only because it calls `enterTrustScope` in
+the handler's own body.
 
-**1. A durable deployment must state TLS, and the harness had not.** `/api/health/ready` returned
-`503 PERSISTENCE_CONFIG_SSL_REQUIRED`. `loadPersistenceConfig` refuses a durable deployment that inherits a TLS
-default and refuses one that sets `disable` — correct behaviour, and the reason the browser suite now runs
-against a PostgreSQL instance serving real TLS with `ASSURAPAY_DATABASE_SSL=require`. Certifying against a
-plaintext database would have meant either weakening that gate or certifying a composition production cannot
-use.
+Fixed by `enterMutableTrustScope()`, which binds an empty scope in the funnel's **synchronous
+prologue** — before its first `await`, in the caller's own context — and fills it in once
+authentication has said who the caller is. Re-asserting the scope after the fact was tried first and
+does not work: by then there is no binding to update. `scope-propagation.postgres.test.ts` pins all
+three shapes, including the broken one, so the repair cannot be undone quietly.
 
-**2. `/api/health/ready` can never report ready when the app is started the way the repository starts it.**
-This is a product defect, not a harness one. `defaultMigrationsDirectory()` in `packages/runtime` resolves
-`supabase/migrations` against `process.cwd()`; `apps/web`'s own `start` script runs `next start` **inside
-`apps/web`**, where no such directory exists. The result is
-`ENOENT: scandir '…/apps/web/supabase/migrations'` and a permanent 503. The harness works around it by starting
-from the repository root with `next start apps/web`, which keeps the cwd at the root while still finding the
-build output — but **a deployment that runs `pnpm start` has a readiness endpoint that cannot succeed**, and the
-right fix is for the runtime to resolve the directory from a stated configuration value rather than from the
-current working directory. That belongs in its own change against `packages/runtime`, not in a browser harness.
+Two related scoping gaps fell out of the same investigation and are fixed with it.
+`POST /v1/auth/assertion` is public, so it never had a scope at all, and the workspace and membership
+reads inside issuance returned nothing — selecting a workspace the caller owned failed with
+`ISSUANCE_WORKSPACE_UNKNOWN`. It now scopes by the resolved session's actor, and derives the tenant
+from a workspace read that is *itself* the membership proof: `trust_workspaces_tenant_scope` reveals a
+workspace to an actor-only caller only when that actor holds an ACTIVE membership, so naming someone
+else's workspace returns nothing and enters no tenant.
 
-**3. Health routes are under `/api`.** `/health/live` is a 404; the route is `/api/health/live`. Minor, but it
-cost a ten-minute readiness timeout that looked like a hung server, so it is written down.
+### 7. A new organization's owner had no permissions in it
+
+`Context activation refused: ENFORCEMENT_PERMISSION_DENIED`, on the workspace the caller had just
+created and owned. `POST /v1/tenants` mints the tenant, workspace and OWNER membership;
+`POST /v1/workspaces/{id}/found` writes the workspace's *first permission grant*; and nothing called
+the second. Every other route is permission-gated, so the owner of a brand-new organization could do
+nothing in it.
+
+Not a platform defect — both routes existed and both are correct — but a real gap in the journey. The
+bootstrap console now founds administration as part of founding the organization, which is what a user
+means by the act. Both routes are identity-class by necessity and both are safe for the same reason:
+the tenant cannot be named by the caller, and `bootstrapWorkspaceGrants` refuses unless the caller is
+already an ACTIVE OWNER of a workspace holding no grant.
+
+### 8. Activating a workspace context had no durable effect
+
+Activation reported success and changed nothing. `POST /v1/workspaces/{id}/activate-context` called
+`OrganizationService.activateContext`, which *computes* a `RequestContext` and returns it — the choice
+was never written down. `GET /v1/auth/session` still reported no active workspace, and the next
+assertion minted from that session carried no workspace either, so a client had to re-name the
+workspace on every request. **The route was named for a state change it did not make.**
+
+Fixed by `IdentityService.selectWorkspace`, which records the choice on the session row. Sessions
+belong to Engine 01, so the persistence lives there; authorization stays with Engine 03, and the route
+calls them in that order, so a refused activation writes nothing. Membership is deliberately not
+re-checked in the identity engine — that would put a second authority on one question, which is what
+CLAUDE.md's trust-foundation boundary exists to prevent.
+
+`GET /v1/auth/session` now also reports the tenant, derived from the session's workspace through a
+membership-filtered read rather than duplicated onto the session record, and returns
+`activeWorkspaceId` alongside `workspaceId` — the session row and `RequestContext` name the same thing
+differently, and a client reading the wrong one got an empty value and no error.
+
+## What this leaves open, stated rather than closed
+
+- **`POST /v1/auth/login` proves nothing about possession of the address.** It takes `{ email }` and
+  returns a session. Pre-existing, and it is the §6 identity-provider gap. Email verification does not
+  change it and the two must not be conflated: verification gates *activation*, not authentication.
+  This is the most significant open item in the document.
+- **`legalPolicyVersions` is scope-less by omission, not by design.** It carries neither `tenantId` nor
+  `workspaceId` — it is scoped transitively through its parent policy — so it depends on the
+  pre-existing untenanted branch and is *not* in the identity plane. Narrowing that branch to the
+  identity plane would refuse it. A data-model gap; `identity-plane-rls.postgres.test.ts` asserts the
+  current behaviour so the next reader does not mistake it for closed.
+- **`/api/health/ready` can never report ready when the app is started the way the repository starts
+  it.** `defaultMigrationsDirectory()` resolves `supabase/migrations` against `process.cwd()`, and
+  `apps/web`'s own `start` script runs `next start` inside `apps/web`, where no such directory exists —
+  `ENOENT: scandir '…/apps/web/supabase/migrations'`, a permanent 503. The harness starts from the
+  repository root to work around it, but a deployment running `pnpm start` has an unusable readiness
+  endpoint. The fix belongs in `packages/runtime`: resolve the directory from stated configuration
+  rather than from the working directory.
+- **A durable deployment must state TLS.** `/api/health/ready` returned `503
+  PERSISTENCE_CONFIG_SSL_REQUIRED` until the harness pointed at an instance serving real TLS with
+  `ASSURAPAY_DATABASE_SSL=require`. Correct gate behaviour, recorded because certifying against
+  plaintext would have meant weakening it or certifying a composition production cannot use.
+- **Health routes are under `/api`.** `/health/live` is a 404. Minor, but it cost a ten-minute
+  readiness timeout that looked like a hung server.
 
 ## What already exists and must not be rebuilt
 
-- `POST /v1/tenants` — founds tenant, first workspace and the caller's `OWNER` membership. Identity-class by
-  necessity, since a permission check would need a grant that needs a workspace that does not exist yet.
-- `GET /v1/me/workspaces`, `POST /v1/workspaces`, `POST /v1/workspaces/[id]/found`,
-  `POST /v1/workspaces/[id]/activate-context`.
-- `GET /health/live`, `GET /health/ready` — §15's readiness and liveness endpoints exist.
+- `POST /v1/tenants` — founds tenant, first workspace and the caller's `OWNER` membership.
+- `POST /v1/workspaces/[id]/found` — writes the workspace's first permission grant.
+- `POST /v1/auth/assertion` — the cookie-to-assertion join. It existed and was broken; see blocker 4.
+- `GET /v1/me/workspaces`, `POST /v1/workspaces`, `POST /v1/workspaces/[id]/activate-context`.
+- `GET /api/health/live`, `GET /api/health/ready` — §15's endpoints exist.
 - `apps/web/lib/assurance-read-model.ts` — the cross-engine read model for dashboards.
 - The full settlement chain, agent runtime, and analytics engines, all durable and certified.
 
-## Regression baseline to preserve (§2)
+## Regression baseline (§2)
 
-`repo:certify` 11/11 · `certify:postgres` 461/461 · REOS 168/168 · 132/132 durable mappings · empty coverage
-baseline · zero tables with ENABLE-without-FORCE · `trust_migration_ledger` the only table without row-level
-security · migration `202608110018` keeping all 31 money columns exact, integral and safe-range bounded.
+`repo:certify` 11/11 · REOS 168/168 · 132/132 durable mappings · empty coverage baseline · zero tables
+with ENABLE-without-FORCE · `trust_migration_ledger` the only table without row-level security ·
+migration `202608110018` keeping all 31 money columns exact, integral and safe-range bounded.
 
-## Honest scoping, and the browser result
+`certify:postgres` went **461 → 481**: +10 identity-plane proofs, +6 membership-discovery proofs,
++3 scope-propagation proofs, and +1 elsewhere. Unit tests went 880 → 882, and both of those additions
+are the existing ratchets catching this work rather than new assertions of my own — the public-route set
+and the authorization-coverage allowlist each had to be edited deliberately, with a reason, to admit
+`verify-email`.
 
-Phases B through H are a multi-week front-end programme, not a single change. This branch delivers Phase A, the
-harness, the persona matrix and the bootstrap surface — and stops where the platform stops.
+No proof was removed or relaxed. `assertUnscopedReadDenied` gained a predicate on
+`trust_audit_records` so that it states the invariant the schema actually claims — no *tenanted* row
+leaks to an unscoped caller — rather than passing because the fixture happened to seed both its rows
+with a tenant.
 
-**Browser certification: 4 passed, 3 failed.** The four that pass are the refusals: an unauthenticated session
-lookup, a permission-gated route with no session, a sign-in for an identity that was never registered, and
-liveness plus readiness. Deny-by-default is demonstrated through a real browser against the production build on
-real PostgreSQL — which is worth having, because it is the half §8 says is not optional.
+## Honest scoping
 
-The three that fail are the journeys, and all three fail at the same first step for the reason above:
-registration cannot write an identity. They are left failing rather than adjusted to pass, because the suite is
-correct and the platform is not. A harness changed to seed identities through a back door would certify the back
-door, which §19 forbids and which is how this gap survived thirteen certified batches in the first place.
+Phases B through H are a multi-week front-end programme, not a single change. This branch delivers
+Phase A, the harness, the persona matrix, the bootstrap surface, and the eight repairs above — which
+were not optional, because without them there is no journey to certify and no way into the product.
+
+What it does **not** deliver is the rest of the lifecycle. Agreement, blueprint, milestone, assignment,
+evidence, review, approval, certification, eligibility, entitlement, release, provider instruction,
+reconciliation and reporting all remain uncertified through a browser. Their backends are durable and
+proven.
+
+The honest expectation for that work is set by this one. Eight blockers stood between a proven backend
+and the first four screens; the eight were not exotic, and the reason none was caught is structural
+rather than accidental. There is no reason to assume the rest of the lifecycle is in better shape than
+its first four steps were, and the way to find out is to keep clicking.

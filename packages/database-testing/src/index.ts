@@ -330,10 +330,20 @@ export async function applyRlsMigration(sql: SqlClient): Promise<void> {
       // missing a required migration would produce a database no host would start against.
       // It is existence-conditional, so on a trust-only schema it marks nothing and drops
       // nothing — which is the correct outcome when the historical model was never created.
-      entry.id.endsWith('trust_schema_ownership_reconciliation'),
+      entry.id.endsWith('trust_schema_ownership_reconciliation') ||
+      // The identity-plane repair belongs to the definition of the tenancy boundary, not to a
+      // later capability, so an RLS-only schema has to carry it. Without it these harnesses would
+      // build schemas on which registration is impossible — and every suite that asserts the
+      // boundary would be asserting it against a policy the runtime no longer has.
+      entry.id.endsWith('identity_plane_is_reachable_without_a_tenant') ||
+      // Membership discovery is part of the boundary too: it is what decides whether a caller can
+      // read the membership rows that name the tenant it will scope to next. Its column half is
+      // applied by `applyTrustStoreMigration`, which runs first, so the column exists by the time this
+      // policy referencing it is created.
+      entry.id.endsWith('membership_discovery_precedes_tenant_scope'),
   );
-  if (migrations.length !== 3)
-    throw new Error('a row-level-security or reconciliation migration is missing');
+  if (migrations.length !== 5)
+    throw new Error('a row-level-security, reconciliation, identity-plane or membership migration is missing');
   await sql.begin(async (tx) => {
     for (const migration of migrations) {
       await tx.unsafe(migration.sql);
@@ -348,19 +358,28 @@ export async function applyRlsMigration(sql: SqlClient): Promise<void> {
 
 /** Applies the trust-store migration alone, through the same governed runner. */
 export async function applyTrustStoreMigration(sql: SqlClient): Promise<void> {
-  const migration = readMigrations(migrationsDirectory()).find((entry) =>
-    entry.id.endsWith('trust_repository_store'),
+  // Two, in order. The second adds `trust_memberships.tenant_id`, which `PostgresTrustStore` writes on
+  // every membership insert — so a store-only schema without it fails that write with
+  // `column "tenant_id" of relation "trust_memberships" does not exist`, which reads as a store defect
+  // rather than a missing migration. Its policy half is applied separately by `applyRlsMigration`,
+  // because a suite testing store behaviour does not want the tenancy boundary in force.
+  const wanted = ['trust_repository_store', 'trust_memberships_carry_their_tenant'];
+  const migrations = readMigrations(migrationsDirectory()).filter((entry) =>
+    wanted.some((suffix) => entry.id.endsWith(suffix)),
   );
-  if (!migration) throw new Error('the trust repository migration is missing');
+  if (migrations.length !== wanted.length)
+    throw new Error('the trust repository or membership-tenant migration is missing');
   await sql.begin(async (tx) => {
-    // The migration creates the ledger, so its own row is written afterwards inside
-    // the same transaction — the two can never disagree.
-    await tx.unsafe(migration.sql);
-    await tx`
-      INSERT INTO trust_migration_ledger (migration_id, checksum, applied_by, execution_ms, ordinal)
-      VALUES (${migration.id}, ${migration.checksum}, 'integration-test', 0, ${migration.ordinal})
-      ON CONFLICT (migration_id) DO NOTHING
-    `;
+    for (const migration of migrations) {
+      // The first migration creates the ledger, so each row is written after its own DDL inside the
+      // same transaction — the two can never disagree.
+      await tx.unsafe(migration.sql);
+      await tx`
+        INSERT INTO trust_migration_ledger (migration_id, checksum, applied_by, execution_ms, ordinal)
+        VALUES (${migration.id}, ${migration.checksum}, 'integration-test', 0, ${migration.ordinal})
+        ON CONFLICT (migration_id) DO NOTHING
+      `;
+    }
   });
 }
 

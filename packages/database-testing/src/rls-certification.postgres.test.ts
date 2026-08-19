@@ -38,8 +38,24 @@ afterEach(async () => {
   for (const database of databases.splice(0)) await database.dispose();
 });
 
-const TENANT_A = { tenantId: 'tenant-a', workspaceId: 'workspace-a' };
-const TENANT_B = { tenantId: 'tenant-b', workspaceId: 'workspace-b' };
+/**
+ * A distinct user per tenant, and that distinction is load-bearing.
+ *
+ * The fixture seeded both tenants' memberships and grants for the same `user-1`, which was harmless
+ * while every policy was keyed purely on tenancy. `202608110022` gives `trust_memberships` and
+ * `trust_workspaces` an actor-keyed branch — a caller may read its *own* memberships and the
+ * workspaces it belongs to, so that sign-in can discover which tenant to enter — and under that policy
+ * a user who belongs to both tenants can legitimately see both. The cross-tenant probes below then
+ * failed, correctly: they were asserting a tenancy boundary against a caller who was a member on both
+ * sides of it.
+ *
+ * So each tenant gets its own user. `A` remains `user-1` because the probes are run as tenant A's
+ * caller, and the point of the assertions is that a caller with no relationship to tenant B sees
+ * nothing of it. `identity-plane-rls.postgres.test.ts` covers the other half — that a member sees its
+ * own memberships and nobody else's.
+ */
+const TENANT_A = { tenantId: 'tenant-a', workspaceId: 'workspace-a', userId: 'user-1' };
+const TENANT_B = { tenantId: 'tenant-b', workspaceId: 'workspace-b', userId: 'user-2' };
 
 /**
  * A schema with the RLS migration applied and two tenants' data in it.
@@ -67,20 +83,26 @@ async function seededDatabase(): Promise<TestDatabase> {
       const membership = seeded({
         id: `membership-${tenant.tenantId}`,
         workspaceId: tenant.workspaceId,
-        userId: 'user-1',
+        userId: tenant.userId,
         status: 'ACTIVE',
       });
+      // `tenant_id` is written explicitly here because this is a raw fixture insert rather than a
+      // store write. `202608110021` made the column NOT NULL so the membership policy needs no join
+      // and cannot recurse into `trust_workspaces`; `PostgresTrustStore` fills it from a subquery on
+      // the workspace, which a fixture bypassing the store has to do for itself.
       await database.sql`
-        INSERT INTO trust_memberships (membership_id, workspace_id, user_id, status, payload, payload_digest)
+        INSERT INTO trust_memberships (
+          membership_id, workspace_id, tenant_id, user_id, status, payload, payload_digest
+        )
         VALUES (
-          ${`membership-${tenant.tenantId}`}, ${tenant.workspaceId}, 'user-1', 'ACTIVE',
+          ${`membership-${tenant.tenantId}`}, ${tenant.workspaceId}, ${tenant.tenantId}, ${tenant.userId}, 'ACTIVE',
           ${database.sql.json(membership.record)}, ${membership.digest}
         )
       `;
       const grant = seeded({
         id: `grant-${tenant.tenantId}`,
         workspaceId: tenant.workspaceId,
-        userId: 'user-1',
+        userId: tenant.userId,
         permissionKey: 'settlement:approve',
         effect: 'ALLOW',
       });
@@ -89,7 +111,7 @@ async function seededDatabase(): Promise<TestDatabase> {
           grant_id, workspace_id, user_id, permission_key, effect, scope_type,
           source_type, source_id, effective_from, payload, payload_digest
         ) VALUES (
-          ${`grant-${tenant.tenantId}`}, ${tenant.workspaceId}, 'user-1', 'settlement:approve',
+          ${`grant-${tenant.tenantId}`}, ${tenant.workspaceId}, ${tenant.userId}, 'settlement:approve',
           'ALLOW', 'WORKSPACE', 'ROLE', 'OWNER', now(), ${database.sql.json(grant.record)}, ${grant.digest}
         )
       `;
@@ -104,7 +126,7 @@ async function seededDatabase(): Promise<TestDatabase> {
           aggregate_type, aggregate_id, correlation_id, previous_hash, integrity_hash
         ) VALUES (
           ${`audit-${tenant.tenantId}`}, ${position}, ${tenant.tenantId},
-          ${tenant.workspaceId}, 'user-1', 'Seeded', 'Thing', 'thing-1', 'corr-1',
+          ${tenant.workspaceId}, ${tenant.userId}, 'Seeded', 'Thing', 'thing-1', 'corr-1',
           ${position === 1 ? null : `hash-${TENANT_A.tenantId}`},
           ${`hash-${tenant.tenantId}`}
         )

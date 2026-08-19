@@ -410,6 +410,28 @@ export const REQUIRED_TRUST_MIGRATIONS: readonly string[] = Object.freeze([
   // superseded model in place is how the next policy gets written against it. After it, the only table in the
   // schema with no boundary is `trust_migration_ledger` — a table about the database rather than about a tenant.
   '202608110019_retire_dead_legacy_tables',
+  // Makes the identity plane reachable by a caller that has no tenant yet. Required rather than
+  // optional, and it is the one entry in this register whose absence makes the product unusable
+  // rather than merely unsafe: without it `POST /v1/auth/register` cannot write its own row under
+  // forced RLS, so nobody can enter the platform at all. Three policies had an untenanted branch
+  // whose predicate contradicted its own comment — `tenant_id IS NULL AND trust_current_tenant()
+  // IS NOT NULL` admits an untenanted row only for a caller that already has a tenant, which the
+  // pre-tenant path by definition does not. Safe on populated tables: the change is additive, so
+  // no row admitted before this migration is refused after it.
+  '202608110020_identity_plane_is_reachable_without_a_tenant',
+  // Gives `trust_memberships` its own `tenant_id`. Required, and split from the policy migration
+  // below because this half is schema: the store writes the column on every membership insert, so a
+  // host missing it fails that write outright. Denormalised deliberately — it is what lets the
+  // membership policy be evaluated without joining `trust_workspaces`, which is what stops the two
+  // policies recursing into each other. Safe on populated tables: backfilled from the workspace
+  // before it is made NOT NULL, and the migration refuses rather than proceeds if any membership names
+  // no reachable workspace.
+  '202608110021_trust_memberships_carry_their_tenant',
+  // Lets a caller read the memberships that tell it which tenant to scope to. Required rather than
+  // optional, and for the same reason as `202608110020`: without it the only way into the product is
+  // to found a new organization on every visit, because `GET /v1/me/workspaces` runs before the
+  // caller has a tenant and both policies it reads required one.
+  '202608110022_membership_discovery_precedes_tenant_scope',
 ]);
 
 export type SchemaCompatibility = {
