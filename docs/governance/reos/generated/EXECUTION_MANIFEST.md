@@ -9,10 +9,10 @@
 | --- | --- |
 | Repository | assurapay |
 | Version | 0.1.0 |
-| Branch | feat/rc1-production-e2e-convergence |
-| HEAD | 096bf8004c8ffff829f28a0ad2aa5f240a4f5f68 |
+| Branch | claude/git-pull-cqc04u |
+| HEAD | 0e4bc1a3a2db00b6098151923d5bef8d9fce6c75 |
 | Worktree clean | no |
-| Manifest digest | 283808dc37b8 |
+| Manifest digest | 9598c9150b36 |
 | REOS version | 1.0.0 |
 
 ## Architecture
