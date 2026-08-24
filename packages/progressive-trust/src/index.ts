@@ -184,37 +184,55 @@ export class ProgressiveTrustEngine {
       createdAt: new Date().toISOString(),
     };
 
-    await this.supersedePrevious(context, input.subjectType, input.subjectId);
-    await this.store.append('trustAssessments', assessment);
-    await this.store.audit({
-      actorId: context.actorUserId,
-      workspaceId: context.activeWorkspaceId,
-      tenantId: context.tenantId,
-      eventType: 'TrustAssessed',
-      aggregateType: 'TrustAssessment',
-      aggregateId: assessment.id,
-      correlationId: context.correlationId,
-      // The disagreement is the interesting part, so it is audited explicitly rather than left to be
-      // reconstructed by comparing two fields.
-      metadata: {
-        policyLevel: assessment.policyLevel,
-        effectiveLevel: assessment.effectiveLevel,
-        advisoryApplied: assessment.advisoryApplied,
-        recommendedLevel: input.recommendation?.recommendedLevel,
-        agentId: input.recommendation?.agentId,
-      },
+    // One transaction, because these three writes are one fact.
+    //
+    // They ran as separate store calls, and review on #42 named both ways that breaks. A failure
+    // after `supersedePrevious` but before the append leaves the subject with **no active
+    // assessment at all** — so the next release finds no level rather than the old one, which is
+    // worse than either. A failure after the append but before the audit leaves a governing
+    // assessment with no audit record, while `assess()` reports failure to its caller: the level
+    // silently governs and nothing says where it came from.
+    await this.store.transaction(async (tx) => {
+      for (const previous of await this.activeFor(context, input.subjectType, input.subjectId, tx))
+        await tx.replace('trustAssessments', { ...previous, status: 'SUPERSEDED' as const });
+
+      await tx.append('trustAssessments', assessment);
+      await tx.audit({
+        actorId: context.actorUserId,
+        workspaceId: context.activeWorkspaceId,
+        tenantId: context.tenantId,
+        eventType: 'TrustAssessed',
+        aggregateType: 'TrustAssessment',
+        aggregateId: assessment.id,
+        correlationId: context.correlationId,
+        // The disagreement is the interesting part, so it is audited explicitly rather than left to be
+        // reconstructed by comparing two fields.
+        metadata: {
+          policyLevel: assessment.policyLevel,
+          effectiveLevel: assessment.effectiveLevel,
+          advisoryApplied: assessment.advisoryApplied,
+          recommendedLevel: input.recommendation?.recommendedLevel,
+          agentId: input.recommendation?.agentId,
+        },
+      });
     });
     return assessment;
   }
 
   /**
-   * Raises the level above what policy required.
+   * Raises the level above the one currently in force.
    *
-   * Three refusals, and each closes a different hole. An override may not go **below** the policy floor —
-   * that is the whole guarantee of this module, and an override that could lower a level would hand
-   * back everything the deterministic policy exists to hold. It may not be applied by the person who
-   * produced the assessment, matching `HumanApprovalEngine`'s refusal of self-approval. And it must
-   * carry a reason, because an unexplained escalation is indistinguishable from a mistake later.
+   * Three refusals, and each closes a different hole. An override may not go **below the effective
+   * level** — not merely below the policy floor. That distinction is the whole guarantee of this
+   * module and the first version got it wrong: it compared against `policyLevel`, so an assessment
+   * that advisory input had raised from L1 to L2 would accept an L1 override and quietly switch off
+   * the L2 controls, while every comment in the file promised tighten-only. `effectiveLevel` is
+   * `>= policyLevel` by construction, so comparing against it subsumes the floor and closes the gap.
+   * Found by review on #42.
+   *
+   * The other two: an override may not be applied by the person who produced the assessment,
+   * matching `HumanApprovalEngine`'s refusal of self-approval; and it must carry a reason, because
+   * an unexplained escalation is indistinguishable from a mistake later.
    */
   async override(
     context: RequestContext,
@@ -230,10 +248,12 @@ export class ProgressiveTrustEngine {
       throw new TrustAssessmentError('TRUST_OVERRIDE_REASON_REQUIRED');
     if (assessment.assessedBy === context.actorUserId)
       throw new TrustAssessmentError('TRUST_OVERRIDE_SELF_APPROVAL', assessmentId);
-    if (levelRank(input.level) < levelRank(assessment.policyLevel))
+    if (levelRank(input.level) < levelRank(assessment.effectiveLevel))
       throw new TrustAssessmentError(
         'TRUST_OVERRIDE_BELOW_POLICY_FLOOR',
-        `policy requires ${assessment.policyLevel}`,
+        assessment.effectiveLevel === assessment.policyLevel
+          ? `policy requires ${assessment.policyLevel}`
+          : `${assessment.effectiveLevel} is in force (policy floor ${assessment.policyLevel}, raised by advisory input)`,
       );
 
     const overridden: TrustAssessment = {
@@ -247,16 +267,21 @@ export class ProgressiveTrustEngine {
       effectiveLevel: input.level,
       controls: controlsFor(input.level),
     };
-    await this.store.replace('trustAssessments', overridden);
-    await this.store.audit({
-      actorId: context.actorUserId,
-      workspaceId: context.activeWorkspaceId,
-      tenantId: context.tenantId,
-      eventType: 'TrustOverridden',
-      aggregateType: 'TrustAssessment',
-      aggregateId: assessmentId,
-      correlationId: context.correlationId,
-      metadata: { from: assessment.effectiveLevel, to: input.level, reason: input.reason },
+    // Same reasoning as `assess`: an override whose audit record failed to write would raise the
+    // level with no account of who raised it or why, which is precisely the thing an override has
+    // to be able to justify later.
+    await this.store.transaction(async (tx) => {
+      await tx.replace('trustAssessments', overridden);
+      await tx.audit({
+        actorId: context.actorUserId,
+        workspaceId: context.activeWorkspaceId,
+        tenantId: context.tenantId,
+        eventType: 'TrustOverridden',
+        aggregateType: 'TrustAssessment',
+        aggregateId: assessmentId,
+        correlationId: context.correlationId,
+        metadata: { from: assessment.effectiveLevel, to: input.level, reason: input.reason },
+      });
     });
     return overridden;
   }
@@ -267,14 +292,7 @@ export class ProgressiveTrustEngine {
     subjectType: string,
     subjectId: string,
   ): Promise<TrustAssessment | undefined> {
-    requireActiveWorkspace(context);
-    return (await this.store.list<TrustAssessment>('trustAssessments')).find(
-      (entry) =>
-        entry.workspaceId === context.activeWorkspaceId &&
-        entry.subjectType === subjectType &&
-        entry.subjectId === subjectId &&
-        entry.status === 'ACTIVE',
-    );
+    return (await this.activeFor(context, subjectType, subjectId))[0];
   }
 
   private async require(context: RequestContext, id: string): Promise<TrustAssessment> {
@@ -286,20 +304,26 @@ export class ProgressiveTrustEngine {
     return found;
   }
 
-  private async supersedePrevious(
+  /**
+   * Active assessments of a subject, read through whichever repository the caller is using.
+   *
+   * `store` is passed rather than assumed so the supersession read happens inside the same
+   * transaction as the writes that depend on it. Reading through the outer repository would put the
+   * read outside the transaction, which is the race this refactor exists to close.
+   */
+  private async activeFor(
     context: RequestContext,
     subjectType: string,
     subjectId: string,
-  ): Promise<void> {
+    store: TrustPersistence = this.store,
+  ): Promise<TrustAssessment[]> {
     requireActiveWorkspace(context);
-    const previous = (await this.store.list<TrustAssessment>('trustAssessments')).filter(
+    return (await store.list<TrustAssessment>('trustAssessments')).filter(
       (entry) =>
         entry.workspaceId === context.activeWorkspaceId &&
         entry.subjectType === subjectType &&
         entry.subjectId === subjectId &&
         entry.status === 'ACTIVE',
     );
-    for (const entry of previous)
-      await this.store.replace('trustAssessments', { ...entry, status: 'SUPERSEDED' as const });
   }
 }

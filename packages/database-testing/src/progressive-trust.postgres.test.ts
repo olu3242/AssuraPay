@@ -174,6 +174,49 @@ describe('integration: a trust assessment is durable', () => {
     expect(still?.effectiveLevel).toBe('L4_CONTROLLED');
   });
 
+  it('refuses an override below the level advisory input raised it to', async () => {
+    // Review on #42 found the comparison was against `policyLevel` rather than the level actually in
+    // force. Re-proved against PostgreSQL because the check reads the persisted record: if the advisory
+    // fields did not survive the round trip, the refusal would silently stop working here and nowhere else.
+    const database = await seededDatabase();
+    const trust = new ProgressiveTrustEngine(new PostgresTrustStore(database.sql));
+    const scope = { tenantId: TENANT_A.tenantId, workspaceId: TENANT_A.workspaceId, actorId: TENANT_A.userId };
+
+    const assessment = await withTrustScope(scope, () =>
+      trust.assess(context(TENANT_A), {
+        ...subject,
+        facts: facts(),
+        recommendation: {
+          agentId: 'Risk',
+          recommendedLevel: 'L3_ENHANCED',
+          confidence: 0.9,
+          reasonCodes: ['UNUSUAL_BENEFICIARY_PATTERN'],
+          modelId: 'sandbox',
+          modelVersion: '1',
+          promptVersion: '1',
+          capabilityVersion: '1',
+        },
+      }),
+    );
+    expect(assessment.policyLevel).toBe('L1_STANDARD');
+    expect(assessment.effectiveLevel).toBe('L2_PROTECTED');
+
+    await expect(
+      withTrustScope(scope, () =>
+        trust.override(context(TENANT_A, 'user-reviewer'), assessment.id, {
+          level: 'L1_STANDARD',
+          reason: 'the agent was jumpy',
+        }),
+      ),
+    ).rejects.toThrow('TRUST_OVERRIDE_BELOW_POLICY_FLOOR');
+
+    const still = await withTrustScope(scope, () =>
+      trust.active(context(TENANT_A), subject.subjectType, subject.subjectId),
+    );
+    expect(still?.effectiveLevel).toBe('L2_PROTECTED');
+    expect(still?.controls.independentReviewRequired).toBe(true);
+  });
+
   it('records a durable override with its reason and reviewer', async () => {
     const database = await seededDatabase();
     const trust = new ProgressiveTrustEngine(new PostgresTrustStore(database.sql));
