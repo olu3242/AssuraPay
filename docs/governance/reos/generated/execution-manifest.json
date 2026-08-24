@@ -24,6 +24,7 @@
         "@assurapay/performance-blueprint",
         "@assurapay/performance-readiness",
         "@assurapay/permissions",
+        "@assurapay/progressive-trust",
         "@assurapay/runtime",
         "@assurapay/settlement-assurance",
         "@assurapay/settlement-execution",
@@ -47,7 +48,7 @@
       "PaymentInstruction",
       "ReconciliationRecord"
     ],
-    "packageCount": 26,
+    "packageCount": 27,
     "waves": [
       {
         "engines": [
@@ -242,7 +243,8 @@
       "packages/database",
       "packages/database-testing",
       "packages/domain",
-      "packages/domain-contracts"
+      "packages/domain-contracts",
+      "packages/progressive-trust"
     ]
   },
   "dependencyGraph": [
@@ -580,18 +582,73 @@
       "status": "implemented"
     },
     {
-      "blocks": [],
+      "blocks": [
+        "engine:07",
+        "engine:08",
+        "engine:09",
+        "engine:10",
+        "engine:11",
+        "engine:12",
+        "engine:13",
+        "engine:14",
+        "engine:15",
+        "engine:16",
+        "engine:17",
+        "engine:18",
+        "engine:19",
+        "engine:20",
+        "engine:21",
+        "engine:22",
+        "engine:23",
+        "engine:24",
+        "engine:25",
+        "engine:26",
+        "engine:27",
+        "engine:28",
+        "engine:29",
+        "engine:30",
+        "engine:31",
+        "engine:32",
+        "engine:33",
+        "engine:34",
+        "engine:35",
+        "engine:36",
+        "engine:37",
+        "engine:38",
+        "engine:39",
+        "engine:40",
+        "engine:41",
+        "engine:42",
+        "engine:43",
+        "engine:44",
+        "engine:45",
+        "engine:46",
+        "engine:47",
+        "engine:48",
+        "engine:49",
+        "engine:50",
+        "engine:51",
+        "engine:52",
+        "engine:53",
+        "engine:54",
+        "engine:55",
+        "engine:56",
+        "engine:57",
+        "engine:58",
+        "engine:59",
+        "engine:60"
+      ],
       "dependsOn": [
         "engine:05"
       ],
       "id": "engine:06",
-      "lifecycle": "deferred",
-      "status": "deferred"
+      "lifecycle": "implementing",
+      "status": "partial"
     },
     {
       "blocks": [],
       "dependsOn": [
-        "engine:05"
+        "engine:06"
       ],
       "id": "engine:07",
       "lifecycle": "deferred",
@@ -653,7 +710,7 @@
         "engine:60"
       ],
       "dependsOn": [
-        "engine:05"
+        "engine:06"
       ],
       "id": "engine:08",
       "lifecycle": "released",
@@ -2767,14 +2824,14 @@
       "wave": 1
     },
     {
-      "certificationScript": "certify:batch1",
-      "declaredStatus": "Deferred",
+      "certificationScript": null,
+      "declaredStatus": "Conditionally implemented",
       "divergent": false,
       "id": "06",
-      "lifecycle": "deferred",
-      "name": "Third-Party Risk",
-      "observedStatus": "deferred",
-      "packageDirectory": null,
+      "lifecycle": "implementing",
+      "name": "Counterparty & Transaction Risk",
+      "observedStatus": "partial",
+      "packageDirectory": "packages/progressive-trust",
       "wave": 1
     },
     {
@@ -3372,11 +3429,86 @@
       "wave": 6
     }
   ],
-  "executionBacklog": [],
+  "executionBacklog": [
+    {
+      "blockedBy": [],
+      "blocks": [
+        "engine:07",
+        "engine:08",
+        "engine:09",
+        "engine:10",
+        "engine:11",
+        "engine:12",
+        "engine:13",
+        "engine:14",
+        "engine:15",
+        "engine:16",
+        "engine:17",
+        "engine:18",
+        "engine:19",
+        "engine:20",
+        "engine:21",
+        "engine:22",
+        "engine:23",
+        "engine:24",
+        "engine:25",
+        "engine:26",
+        "engine:27",
+        "engine:28",
+        "engine:29",
+        "engine:30",
+        "engine:31",
+        "engine:32",
+        "engine:33",
+        "engine:34",
+        "engine:35",
+        "engine:36",
+        "engine:37",
+        "engine:38",
+        "engine:39",
+        "engine:40",
+        "engine:41",
+        "engine:42",
+        "engine:43",
+        "engine:44",
+        "engine:45",
+        "engine:46",
+        "engine:47",
+        "engine:48",
+        "engine:49",
+        "engine:50",
+        "engine:51",
+        "engine:52",
+        "engine:53",
+        "engine:54",
+        "engine:55",
+        "engine:56",
+        "engine:57",
+        "engine:58",
+        "engine:59",
+        "engine:60"
+      ],
+      "dependsOn": [
+        "engine:05"
+      ],
+      "executable": true,
+      "id": "engine:06",
+      "lifecycle": "implementing",
+      "priority": 106,
+      "requiresLiveInfrastructure": false,
+      "scope": {
+        "estimated": false,
+        "files": 0,
+        "tests": 0
+      },
+      "status": "partial",
+      "title": "Engine 06 — Counterparty & Transaction Risk"
+    }
+  ],
   "identity": {
-    "branch": "feat/rc1-production-e2e-convergence",
+    "branch": "claude/git-pull-cqc04u",
     "clean": false,
-    "head": "096bf8004c8ffff829f28a0ad2aa5f240a4f5f68",
+    "head": "d13fd5cff182ef6f2ce2b0753922e3024d0250b6",
     "repository": "assurapay",
     "version": "0.1.0"
   },
@@ -3460,15 +3592,15 @@
   ],
   "lifecycleSummary": {
     "certified": 0,
-    "deferred": 4,
+    "deferred": 3,
     "implemented": 0,
-    "implementing": 0,
+    "implementing": 1,
     "missing": 0,
     "planned": 0,
     "released": 76,
     "validated": 0
   },
-  "manifestDigest": "283808dc37b8",
+  "manifestDigest": "4c8324cd7b35",
   "missingCapabilities": [],
   "packages": [
     {
@@ -3661,7 +3793,7 @@
       "moduleType": null,
       "name": "@assurapay/database",
       "sourceFiles": 22,
-      "sourceLines": 12486,
+      "sourceLines": 12487,
       "testFiles": [
         "packages/database/src/async-conformance.test.ts",
         "packages/database/src/rls-certification.test.ts",
@@ -3699,6 +3831,7 @@
         "packages/database-testing/src/migrations.postgres.test.ts",
         "packages/database-testing/src/money-integrality.postgres.test.ts",
         "packages/database-testing/src/postgres-store.postgres.test.ts",
+        "packages/database-testing/src/progressive-trust.postgres.test.ts",
         "packages/database-testing/src/rls-certification.postgres.test.ts",
         "packages/database-testing/src/schema-ownership.postgres.test.ts",
         "packages/database-testing/src/scope-propagation.postgres.test.ts",
@@ -3723,7 +3856,7 @@
         "integration": 0,
         "performance": 0,
         "security": 0,
-        "unit": 24
+        "unit": 25
       },
       "workspaceDependencies": [
         "@assurapay/agreement-creation",
@@ -3731,6 +3864,7 @@
         "@assurapay/domain-contracts",
         "@assurapay/organizations",
         "@assurapay/performance-readiness",
+        "@assurapay/progressive-trust",
         "@assurapay/shared"
       ]
     },
@@ -4139,6 +4273,34 @@
       ]
     },
     {
+      "directory": "packages/progressive-trust",
+      "exportedClasses": [
+        "ProgressiveTrustEngine",
+        "TrustAssessmentError"
+      ],
+      "externalDependencies": [],
+      "main": "src/index.ts",
+      "moduleType": null,
+      "name": "@assurapay/progressive-trust",
+      "sourceFiles": 2,
+      "sourceLines": 636,
+      "testFiles": [
+        "packages/progressive-trust/src/assessment.test.ts",
+        "packages/progressive-trust/src/policy.test.ts"
+      ],
+      "tests": {
+        "e2e": 0,
+        "integration": 0,
+        "performance": 0,
+        "security": 0,
+        "unit": 2
+      },
+      "workspaceDependencies": [
+        "@assurapay/database",
+        "@assurapay/shared"
+      ]
+    },
+    {
       "directory": "packages/reos",
       "exportedClasses": [],
       "externalDependencies": [],
@@ -4422,6 +4584,7 @@
             "packages/permissions/src/catalogue.ts",
             "packages/permissions/src/enforcement.ts",
             "packages/permissions/src/index.ts",
+            "packages/progressive-trust/src/index.ts",
             "packages/reos/src/reos.persistence.test.ts",
             "packages/reos/src/validators/architecture.ts",
             "packages/reos/src/validators/persistence.ts",
@@ -4726,6 +4889,7 @@
             "packages/database-testing/src/identity-plane-rls.postgres.test.ts",
             "packages/database-testing/src/index.ts",
             "packages/database-testing/src/postgres-store.postgres.test.ts",
+            "packages/database-testing/src/progressive-trust.postgres.test.ts",
             "packages/database-testing/src/rls-certification.postgres.test.ts",
             "packages/database-testing/src/schema-ownership.postgres.test.ts",
             "packages/database-testing/src/scope-propagation.postgres.test.ts",
@@ -5077,6 +5241,7 @@
         {
           "kind": "symbol",
           "matches": [
+            "packages/database-testing/src/progressive-trust.postgres.test.ts",
             "packages/database-testing/src/rls-certification.postgres.test.ts",
             "packages/database-testing/src/schema-ownership.postgres.test.ts",
             "packages/database-testing/src/scope-propagation.postgres.test.ts",
@@ -6112,7 +6277,7 @@
         "vitest run packages/governance-core/src/governance-core.test.ts --testNamePattern=06"
       ],
       "location": "package.json",
-      "message": "certify:execution certifies packages/governance-core using batch number 06, but catalog engine 06 (Third-Party Risk) maps to no implementation package. The certify:* batch numbering and the catalog engine numbering are two different identifier spaces using the same numbers.",
+      "message": "certify:execution certifies packages/governance-core using batch number 06, but catalog engine 06 (Counterparty & Transaction Risk) maps to packages/progressive-trust. The certify:* batch numbering and the catalog engine numbering are two different identifier spaces using the same numbers.",
       "rule": "catalog/certification-numbering-collision",
       "severity": "warning",
       "subject": "certify:execution"
@@ -6306,6 +6471,7 @@
       "PredictiveExecutionIntelligenceEngine",
       "PredictiveRiskIntelligenceEngine",
       "ProgressMeasurementEngine",
+      "ProgressiveTrustEngine",
       "PromptRegistryEngine",
       "QualityAssuranceEngine",
       "ReconciliationLedgerEngine",
@@ -6384,6 +6550,7 @@
           "PredictiveExecutionIntelligenceEngine",
           "PredictiveRiskIntelligenceEngine",
           "ProgressMeasurementEngine",
+          "ProgressiveTrustEngine",
           "QualityAssuranceEngine",
           "ReconciliationLedgerEngine",
           "RenewalRelationshipIntelligenceEngine",

@@ -25,6 +25,7 @@
         "@assurapay/performance-blueprint",
         "@assurapay/performance-readiness",
         "@assurapay/permissions",
+        "@assurapay/progressive-trust",
         "@assurapay/runtime",
         "@assurapay/settlement-assurance",
         "@assurapay/settlement-execution",
@@ -1215,6 +1216,11 @@
     },
     {
       "category": "product",
+      "path": "docs/product/ASSURA_AI_CONVERGENCE_AUDIT.md",
+      "title": "AssuraPay AI Convergence — Phase 1 audit"
+    },
+    {
+      "category": "product",
       "path": "docs/product/EXECUTION_ASSURANCE_MATURITY_MODEL.md",
       "title": "AssuraPay Execution Assurance Maturity Model"
     },
@@ -1381,10 +1387,10 @@
       "waveName": "Trust Foundation"
     },
     {
-      "declaredStatus": "Deferred",
+      "declaredStatus": "Conditionally implemented",
       "id": "06",
-      "name": "Third-Party Risk",
-      "responsibility": "Vendor, cyber, financial, AML, ESG and resilience risk",
+      "name": "Counterparty & Transaction Risk",
+      "responsibility": "Progressive Trust and Adaptive Assurance: deterministic L0–L4 assurance levels from governed counterparty and transaction facts, the controls each level requires, advisory AI recommendations bounded so they can only raise scrutiny, and tighten-only overrides. Vendor, cyber, ESG and resilience risk remain deferred.",
       "wave": 1,
       "waveName": "Trust Foundation"
     },
@@ -2357,7 +2363,7 @@
       "moduleType": null,
       "name": "@assurapay/database",
       "sourceFiles": 22,
-      "sourceLines": 12486,
+      "sourceLines": 12487,
       "testFiles": [
         "packages/database/src/async-conformance.test.ts",
         "packages/database/src/rls-certification.test.ts",
@@ -2395,6 +2401,7 @@
         "packages/database-testing/src/migrations.postgres.test.ts",
         "packages/database-testing/src/money-integrality.postgres.test.ts",
         "packages/database-testing/src/postgres-store.postgres.test.ts",
+        "packages/database-testing/src/progressive-trust.postgres.test.ts",
         "packages/database-testing/src/rls-certification.postgres.test.ts",
         "packages/database-testing/src/schema-ownership.postgres.test.ts",
         "packages/database-testing/src/scope-propagation.postgres.test.ts",
@@ -2419,7 +2426,7 @@
         "integration": 0,
         "performance": 0,
         "security": 0,
-        "unit": 24
+        "unit": 25
       },
       "workspaceDependencies": [
         "@assurapay/agreement-creation",
@@ -2427,6 +2434,7 @@
         "@assurapay/domain-contracts",
         "@assurapay/organizations",
         "@assurapay/performance-readiness",
+        "@assurapay/progressive-trust",
         "@assurapay/shared"
       ]
     },
@@ -2835,6 +2843,34 @@
       ]
     },
     {
+      "directory": "packages/progressive-trust",
+      "exportedClasses": [
+        "ProgressiveTrustEngine",
+        "TrustAssessmentError"
+      ],
+      "externalDependencies": [],
+      "main": "src/index.ts",
+      "moduleType": null,
+      "name": "@assurapay/progressive-trust",
+      "sourceFiles": 2,
+      "sourceLines": 636,
+      "testFiles": [
+        "packages/progressive-trust/src/assessment.test.ts",
+        "packages/progressive-trust/src/policy.test.ts"
+      ],
+      "tests": {
+        "e2e": 0,
+        "integration": 0,
+        "performance": 0,
+        "security": 0,
+        "unit": 2
+      },
+      "workspaceDependencies": [
+        "@assurapay/database",
+        "@assurapay/shared"
+      ]
+    },
+    {
       "directory": "packages/reos",
       "exportedClasses": [],
       "externalDependencies": [],
@@ -3033,7 +3069,7 @@
   "reosVersion": "1.0.0",
   "repository": {
     "git": {
-      "branch": "feat/rc1-production-e2e-convergence",
+      "branch": "claude/git-pull-cqc04u",
       "branches": [
         "assess/engines-31-50-certification-gap-matrix",
         "chore/post-merge-governance-artifacts-batch-a",
@@ -3106,47 +3142,15 @@
       ],
       "clean": false,
       "dirtyFiles": [
-        "apps/web/app/api/v1/auth/assertion/route.ts",
-        "apps/web/app/api/v1/auth/register/route.ts",
-        "apps/web/app/api/v1/auth/session/route.ts",
-        "apps/web/app/api/v1/auth/verify-email/route.ts",
-        "apps/web/app/api/v1/workspaces/[id]/activate-context/route.ts",
-        "apps/web/app/components/bootstrap-console.tsx",
-        "apps/web/lib/route-coverage.test.ts",
-        "apps/web/lib/route-permissions.test.ts",
-        "apps/web/lib/route-permissions.ts",
-        "apps/web/lib/trust-app.ts",
-        "docs/governance/reos/generated/CERTIFICATION_REPORT.md",
-        "docs/governance/reos/generated/EXECUTION_MANIFEST.md",
-        "docs/governance/reos/generated/certification.json",
-        "docs/governance/reos/generated/dependency-resolution.json",
-        "docs/governance/reos/generated/discovery.json",
-        "docs/governance/reos/generated/execution-manifest.json",
-        "docs/governance/reos/generated/forensics.json",
-        "docs/product/RC1_GAP_MATRIX.md",
-        "e2e/global-setup.ts",
-        "packages/database-testing/src/identity-plane-rls.postgres.test.ts",
-        "packages/database-testing/src/index.ts",
-        "packages/database-testing/src/rls-certification.postgres.test.ts",
-        "packages/database-testing/src/scope-propagation.postgres.test.ts",
-        "packages/database/src/migrations.ts",
-        "packages/database/src/postgres-store.ts",
-        "packages/database/src/rls-certification.ts",
-        "packages/database/src/trust-scope.ts",
-        "packages/domain/src/trust-foundation.e2e.test.ts",
-        "packages/identity/src/identity.test.ts",
-        "packages/identity/src/index.ts",
-        "packages/identity/src/verification.test.ts",
-        "packages/identity/src/verification.ts",
-        "packages/runtime/src/persistence-runtime.postgres.test.ts",
-        "playwright.config.ts",
-        "supabase/migrations/202608110020_identity_plane_is_reachable_without_a_tenant.sql",
-        "supabase/migrations/202608110021_membership_discovery_precedes_tenant_scope.sql",
-        "supabase/migrations/202608110021_trust_memberships_carry_their_tenant.sql",
-        "supabase/migrations/202608110022_membership_discovery_precedes_tenant_scope.sql"
+        ".github/workflows/ci.yml",
+        "packages/database-testing/src/progressive-trust.postgres.test.ts",
+        "packages/progressive-trust/src/assessment.test.ts",
+        "packages/progressive-trust/src/index.ts",
+        "packages/progressive-trust/src/policy.test.ts",
+        "packages/progressive-trust/src/policy.ts"
       ],
-      "head": "096bf8004c8ffff829f28a0ad2aa5f240a4f5f68",
-      "headShort": "096bf80",
+      "head": "d13fd5cff182ef6f2ce2b0753922e3024d0250b6",
+      "headShort": "d13fd5c",
       "reflogAvailable": true,
       "remotes": [
         "origin"
@@ -3155,7 +3159,7 @@
         "platform-trust-foundation",
         "rc-engine-60"
       ],
-      "upstream": "origin/feat/rc1-production-e2e-convergence"
+      "upstream": "origin/claude/git-pull-cqc04u"
     },
     "name": "assurapay",
     "packageManager": "pnpm@11.3.0",
@@ -3228,6 +3232,7 @@
       "PredictiveExecutionIntelligenceEngine",
       "PredictiveRiskIntelligenceEngine",
       "ProgressMeasurementEngine",
+      "ProgressiveTrustEngine",
       "PromptRegistryEngine",
       "QualityAssuranceEngine",
       "ReconciliationLedgerEngine",
@@ -3306,6 +3311,7 @@
           "PredictiveExecutionIntelligenceEngine",
           "PredictiveRiskIntelligenceEngine",
           "ProgressMeasurementEngine",
+          "ProgressiveTrustEngine",
           "QualityAssuranceEngine",
           "ReconciliationLedgerEngine",
           "RenewalRelationshipIntelligenceEngine",
@@ -3331,17 +3337,17 @@
       "integration": 15,
       "performance": 2,
       "security": 3,
-      "unit": 83
+      "unit": 86
     },
-    "files": 118
+    "files": 121
   },
   "totals": {
     "applications": 1,
-    "documents": 156,
+    "documents": 157,
     "engines": 60,
     "migrations": 49,
-    "packages": 26,
-    "testFiles": 118
+    "packages": 27,
+    "testFiles": 121
   },
   "workflows": [
     {

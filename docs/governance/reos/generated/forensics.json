@@ -87,6 +87,7 @@
             "packages/permissions/src/catalogue.ts",
             "packages/permissions/src/enforcement.ts",
             "packages/permissions/src/index.ts",
+            "packages/progressive-trust/src/index.ts",
             "packages/reos/src/reos.persistence.test.ts",
             "packages/reos/src/validators/architecture.ts",
             "packages/reos/src/validators/persistence.ts",
@@ -391,6 +392,7 @@
             "packages/database-testing/src/identity-plane-rls.postgres.test.ts",
             "packages/database-testing/src/index.ts",
             "packages/database-testing/src/postgres-store.postgres.test.ts",
+            "packages/database-testing/src/progressive-trust.postgres.test.ts",
             "packages/database-testing/src/rls-certification.postgres.test.ts",
             "packages/database-testing/src/schema-ownership.postgres.test.ts",
             "packages/database-testing/src/scope-propagation.postgres.test.ts",
@@ -742,6 +744,7 @@
         {
           "kind": "symbol",
           "matches": [
+            "packages/database-testing/src/progressive-trust.postgres.test.ts",
             "packages/database-testing/src/rls-certification.postgres.test.ts",
             "packages/database-testing/src/schema-ownership.postgres.test.ts",
             "packages/database-testing/src/scope-propagation.postgres.test.ts",
@@ -1751,7 +1754,7 @@
       "totalProbes": 5
     }
   ],
-  "head": "096bf8004c8ffff829f28a0ad2aa5f240a4f5f68",
+  "head": "d13fd5cff182ef6f2ce2b0753922e3024d0250b6",
   "reosVersion": "1.0.0",
   "stage": "forensics",
   "summary": {

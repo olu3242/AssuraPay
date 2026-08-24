@@ -9,15 +9,15 @@
 | --- | --- |
 | Repository | assurapay |
 | Version | 0.1.0 |
-| Branch | feat/rc1-production-e2e-convergence |
-| HEAD | 096bf8004c8ffff829f28a0ad2aa5f240a4f5f68 |
+| Branch | claude/git-pull-cqc04u |
+| HEAD | d13fd5cff182ef6f2ce2b0753922e3024d0250b6 |
 | Worktree clean | no |
-| Manifest digest | 283808dc37b8 |
+| Manifest digest | 4c8324cd7b35 |
 | REOS version | 1.0.0 |
 
 ## Architecture
 
-- Packages: 26
+- Packages: 27
 - Applications: 1
 - Waves: 6
 - Canonical chain: Contract → PerformanceBlueprint → Milestone → DefinitionOfDonePackage → ExecutionWorkspace → CompletionCertificate → PaymentEligibility → FinancialEntitlement → ReleaseRequest → PaymentInstruction → ReconciliationRecord
@@ -26,8 +26,9 @@
 
 | Lifecycle | Count |
 | --- | --- |
+| implementing | 1 |
 | released | 76 |
-| deferred | 4 |
+| deferred | 3 |
 
 ## Engine reconciliation
 
@@ -41,7 +42,7 @@ from repository evidence: package presence, test files, and certification wiring
 | 03 | Roles, Permissions & Governance | 1 | Conditionally implemented | implemented | released | packages/permissions | **yes** |
 | 04 | Party Verification | 1 | Conditionally implemented | implemented | released | packages/parties | **yes** |
 | 05 | Legal Governance | 1 | Conditionally implemented | implemented | released | packages/legal | **yes** |
-| 06 | Third-Party Risk | 1 | Deferred | deferred | deferred | — | no |
+| 06 | Counterparty & Transaction Risk | 1 | Conditionally implemented | partial | implementing | packages/progressive-trust | no |
 | 07 | Compliance Foundation | 1 | Deferred | deferred | deferred | — | no |
 | 08 | Audit & Evidence Ledger | 1 | Conditionally implemented | implemented | released | packages/audit-ledger | **yes** |
 | 09 | Notification & Communication | 1 | Deferred | deferred | deferred | — | no |
@@ -128,7 +129,7 @@ from repository evidence: package presence, test files, and certification wiring
 | --- | --- | --- |
 | warning | catalog/certification-numbering-collision | certify:certification certifies packages/governance-core using batch number 09, but catalog engine 09 (Notification & Communication) maps to no implementation package. The certify:* batch numbering and the catalog engine numbering are two different identifier spaces using the same numbers. |
 | warning | catalog/certification-numbering-collision | certify:dod certifies packages/governance-core using batch number 08, but catalog engine 08 (Audit & Evidence Ledger) maps to packages/audit-ledger. The certify:* batch numbering and the catalog engine numbering are two different identifier spaces using the same numbers. |
-| warning | catalog/certification-numbering-collision | certify:execution certifies packages/governance-core using batch number 06, but catalog engine 06 (Third-Party Risk) maps to no implementation package. The certify:* batch numbering and the catalog engine numbering are two different identifier spaces using the same numbers. |
+| warning | catalog/certification-numbering-collision | certify:execution certifies packages/governance-core using batch number 06, but catalog engine 06 (Counterparty & Transaction Risk) maps to packages/progressive-trust. The certify:* batch numbering and the catalog engine numbering are two different identifier spaces using the same numbers. |
 | warning | catalog/certification-numbering-collision | certify:milestones certifies packages/governance-core using batch number 07, but catalog engine 07 (Compliance Foundation) maps to no implementation package. The certify:* batch numbering and the catalog engine numbering are two different identifier spaces using the same numbers. |
 | warning | catalog/certification-numbering-collision | certify:payment-triggers certifies packages/governance-core using batch number 10, but catalog engine 10 (Enterprise Configuration) maps to no implementation package. The certify:* batch numbering and the catalog engine numbering are two different identifier spaces using the same numbers. |
 | warning | catalog/status-divergence | Engine 01 (Identity & Digital Trust) is declared "Conditionally implemented" but repository evidence shows "implemented". |
@@ -144,11 +145,13 @@ from repository evidence: package presence, test files, and certification wiring
 
 ## Execution backlog
 
-0 open item(s). Highest-priority first.
+1 open item(s). Highest-priority first.
 
-Backlog empty.
+| Capability | Title | Lifecycle | Priority | Executable | Blocked by | Blocks |
+| --- | --- | --- | --- | --- | --- | --- |
+| engine:06 | Engine 06 — Counterparty & Transaction Risk | implementing | 106 | yes | — | 54 |
 
 ## Certification coverage
 
 - Certification scripts: 87
-- Packages without a certification script: packages/database, packages/database-testing, packages/domain, packages/domain-contracts
+- Packages without a certification script: packages/database, packages/database-testing, packages/domain, packages/domain-contracts, packages/progressive-trust

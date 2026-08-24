@@ -107,11 +107,14 @@ describe('integration: stage 3 reconciles the engine catalog', () => {
 
   it('reconciles all 60 engines and maps them to packages where they exist', () => {
     expect(manifest.engines).toHaveLength(60);
-    // Engines 01-05, 08 and 11-60 map to packages. 06, 07, 09 and 10 remain
-    // deferred; 08 was declared "Foundation only" and is now implemented, which is
-    // why this figure is 56 rather than 55.
+    // Engines 01-06, 08 and 11-60 map to packages. 07, 09 and 10 remain deferred; 08 was
+    // declared "Foundation only" and is now implemented; and 06 gained
+    // `packages/progressive-trust` when Progressive Trust & Adaptive Assurance was built,
+    // which is why this figure is 57 rather than the 55 the catalog's declared statuses
+    // would suggest. 06 is only *partly* what its row once described — vendor, cyber, ESG
+    // and resilience risk are still deferred and the row says so.
     const mapped = manifest.engines.filter((engine) => engine.packageDirectory !== null);
-    expect(mapped.length).toBe(56);
+    expect(mapped.length).toBe(57);
   });
 
   it('reads the canonical chain from CLAUDE.md', () => {
