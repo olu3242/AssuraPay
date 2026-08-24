@@ -71,9 +71,32 @@ const DEDICATED: Record<string, DedicatedMapping> = {
 };
 
 const GOVERNED_DOCUMENTS = Object.freeze([
-  'authenticationMethods','beneficiaryAccounts','consents','delegations','devices','evidenceLedgerEntries','fieldPermissions','authorityRules','invitations','identities','legalHolds','legalPolicies','legalPolicyVersions','organizationUnits','parties','policyAcceptances','policyAssignments','segregationRules','sessions','signaturePolicies','stepUpChallenges','trustOrganizations','verificationRequests','verificationResults',
-  // Flow OS durable documents. These are intentionally explicit: a durable store still refuses every unknown collection.
-  'flowInstances','flowStepInstances','flowSignals','humanTasks',
+  'authenticationMethods',
+  'beneficiaryAccounts',
+  'consents',
+  'delegations',
+  'devices',
+  'evidenceLedgerEntries',
+  'fieldPermissions',
+  'authorityRules',
+  'invitations',
+  'identities',
+  'legalHolds',
+  'legalPolicies',
+  'legalPolicyVersions',
+  'organizationUnits',
+  'parties',
+  'policyAcceptances',
+  'policyAssignments',
+  'segregationRules',
+  'sessions',
+  'signaturePolicies',
+  'stepUpChallenges',
+  'trustAssessments',
+  'trustOrganizations',
+  'verificationRequests',
+  'verificationResults',
+  'flowInstances', 'flowStepInstances', 'flowSignals', 'humanTasks',
 ]);
 
 export const POSTGRES_IDENTITY_PLANE_COLLECTIONS: readonly string[] = Object.freeze(['authenticationMethods','devices','identities','sessions','stepUpChallenges']);

@@ -95,6 +95,10 @@ export default defineConfig({
         __dirname,
         'packages/performance-readiness/src/index.ts',
       ),
+      '@assurapay/progressive-trust': path.resolve(
+        __dirname,
+        'packages/progressive-trust/src/index.ts',
+      ),
       '@assurapay/execution-orchestration': path.resolve(
         __dirname,
         'packages/execution-orchestration/src/index.ts',

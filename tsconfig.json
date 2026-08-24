@@ -68,6 +68,9 @@
       "@assurapay/performance-readiness": [
         "packages/performance-readiness/src/index.ts"
       ],
+      "@assurapay/progressive-trust": [
+        "packages/progressive-trust/src/index.ts"
+      ],
       "@assurapay/execution-orchestration": [
         "packages/execution-orchestration/src/index.ts"
       ],
