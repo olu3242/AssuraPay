@@ -144,6 +144,28 @@ describe('assessments supersede rather than mutate', () => {
     );
   });
 
+  it('leaves the previous assessment governing when the write fails part-way', async () => {
+    // Also from review on #42: supersede, append and audit were three separate store calls. A failure
+    // between the first and the second leaves the subject with **no** active assessment, so the next
+    // release finds no level at all rather than the old one — worse than either outcome. They are one
+    // fact and now run in one transaction, and this is the proof: the audit write is made to fail and
+    // the earlier assessment must still be the one in force.
+    const { store, trust } = engine();
+    const first = await trust.assess(context(), { ...subject, facts: facts() });
+
+    const audit = store.audit.bind(store);
+    store.audit = () => Promise.reject(new Error('AUDIT_UNAVAILABLE'));
+    await expect(
+      trust.assess(context(), { ...subject, facts: facts({ kybStatus: 'FAILED' }) }),
+    ).rejects.toThrow('AUDIT_UNAVAILABLE');
+    store.audit = audit;
+
+    const all = await store.list<TrustAssessment>('trustAssessments');
+    expect(all).toHaveLength(1);
+    expect(all[0].id).toBe(first.id);
+    expect((await trust.active(context(), 'ReleaseRequest', 'release-1'))?.id).toBe(first.id);
+  });
+
   it('does not disturb another subject’s assessment', async () => {
     const { trust } = engine();
     await trust.assess(context(), { ...subject, facts: facts() });
@@ -171,6 +193,45 @@ describe('an override may only ever tighten', () => {
         reason: 'counterparty is known to us',
       }),
     ).rejects.toThrow('TRUST_OVERRIDE_BELOW_POLICY_FLOOR');
+  });
+
+  it('refuses a level below the one advisory input raised it to', async () => {
+    // The hole review on #42 found: the refusal compared against `policyLevel`, so an assessment the
+    // agent had pulled from L1 to L2 would accept an L1 override and silently switch off the L2
+    // controls — a loosening, performed through the one path that is documented as tighten-only.
+    const { trust } = engine();
+    const assessment = await trust.assess(context(), {
+      ...subject,
+      facts: facts(),
+      recommendation: recommendation(),
+    });
+    expect(assessment.policyLevel).toBe('L1_STANDARD');
+    expect(assessment.effectiveLevel).toBe('L2_PROTECTED');
+
+    await expect(
+      trust.override(context({ actorUserId: 'user-reviewer' }), assessment.id, {
+        level: 'L1_STANDARD',
+        reason: 'the agent was jumpy',
+      }),
+    ).rejects.toThrow('TRUST_OVERRIDE_BELOW_POLICY_FLOOR');
+
+    // And the level it was raised to is still the one in force, with its controls intact.
+    const still = await trust.active(context(), subject.subjectType, subject.subjectId);
+    expect(still?.effectiveLevel).toBe('L2_PROTECTED');
+    expect(still?.controls.independentReviewRequired).toBe(true);
+  });
+
+  it('accepts a level equal to the one in force, since it is not a loosening', async () => {
+    // Holding the line and recording a reason is legitimate — the refusal is about lowering, not about
+    // restating. Asserted so the `<` in the comparison cannot drift to `<=` unnoticed.
+    const { trust } = engine();
+    const assessment = await trust.assess(context(), { ...subject, facts: facts() });
+    const held = await trust.override(context({ actorUserId: 'user-reviewer' }), assessment.id, {
+      level: 'L1_STANDARD',
+      reason: 'reviewed and confirmed at the policy level',
+    });
+    expect(held.effectiveLevel).toBe('L1_STANDARD');
+    expect(held.override?.reason).toBe('reviewed and confirmed at the policy level');
   });
 
   it('accepts a stricter level, and records who and why', async () => {

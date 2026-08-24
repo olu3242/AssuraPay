@@ -213,4 +213,18 @@ describe('controls make the level actionable', () => {
     const demanding = TRUST_LEVELS.filter((level) => controlsFor(level).enhancedDueDiligenceRequired);
     expect(demanding).toEqual(['L4_CONTROLLED']);
   });
+
+  it('cannot be loosened for the whole process by a caller mutating what it was handed', () => {
+    // Raised by review on #42, and worth stating as a test rather than trusting the freeze: the control
+    // table is process-global, so one assignment on a returned object would have disabled manual release
+    // for every L4 assessment until restart — with the already-written assessments still claiming the
+    // control was required, and nothing in the audit trail to show the change.
+    const handed = controlsFor('L4_CONTROLLED');
+    handed.manualReleaseRequired = false;
+    handed.dualApprovalRequired = false;
+
+    const next = controlsFor('L4_CONTROLLED');
+    expect(next.manualReleaseRequired).toBe(true);
+    expect(next.dualApprovalRequired).toBe(true);
+  });
 });

@@ -2853,7 +2853,7 @@
       "moduleType": null,
       "name": "@assurapay/progressive-trust",
       "sourceFiles": 2,
-      "sourceLines": 593,
+      "sourceLines": 636,
       "testFiles": [
         "packages/progressive-trust/src/assessment.test.ts",
         "packages/progressive-trust/src/policy.test.ts"
@@ -3142,35 +3142,15 @@
       ],
       "clean": false,
       "dirtyFiles": [
-        "apps/web/lib/trust-app.ts",
-        "apps/web/package.json",
-        "docs/ENGINE_CATALOG.md",
-        "docs/governance/reos/capability-registry.json",
-        "docs/governance/reos/generated/CERTIFICATION_REPORT.md",
-        "docs/governance/reos/generated/DEPENDENCY_RESOLUTION.md",
-        "docs/governance/reos/generated/EXECUTION_MANIFEST.md",
-        "docs/governance/reos/generated/certification.json",
-        "docs/governance/reos/generated/dependency-resolution.json",
-        "docs/governance/reos/generated/discovery.json",
-        "docs/governance/reos/generated/execution-manifest.json",
-        "docs/governance/reos/generated/forensics.json",
-        "docs/product/ASSURA_AI_CONVERGENCE_AUDIT.md",
-        "packages/database-testing/package.json",
+        ".github/workflows/ci.yml",
         "packages/database-testing/src/progressive-trust.postgres.test.ts",
-        "packages/database/src/postgres-store.ts",
-        "packages/progressive-trust/package.json",
         "packages/progressive-trust/src/assessment.test.ts",
         "packages/progressive-trust/src/index.ts",
         "packages/progressive-trust/src/policy.test.ts",
-        "packages/progressive-trust/src/policy.ts",
-        "packages/reos/src/reos.integration.test.ts",
-        "pnpm-lock.yaml",
-        "tsconfig.json",
-        "vitest.config.ts",
-        "vitest.postgres.config.ts"
+        "packages/progressive-trust/src/policy.ts"
       ],
-      "head": "feb4174599ed65e6eca2a0eea381e8839c976d48",
-      "headShort": "feb4174",
+      "head": "d13fd5cff182ef6f2ce2b0753922e3024d0250b6",
+      "headShort": "d13fd5c",
       "reflogAvailable": true,
       "remotes": [
         "origin"

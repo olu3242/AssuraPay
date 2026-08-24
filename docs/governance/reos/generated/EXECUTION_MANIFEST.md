@@ -10,9 +10,9 @@
 | Repository | assurapay |
 | Version | 0.1.0 |
 | Branch | claude/git-pull-cqc04u |
-| HEAD | feb4174599ed65e6eca2a0eea381e8839c976d48 |
+| HEAD | d13fd5cff182ef6f2ce2b0753922e3024d0250b6 |
 | Worktree clean | no |
-| Manifest digest | d78c22fc0e28 |
+| Manifest digest | 4c8324cd7b35 |
 | REOS version | 1.0.0 |
 
 ## Architecture
@@ -27,7 +27,7 @@
 | Lifecycle | Count |
 | --- | --- |
 | implementing | 1 |
-| implemented | 76 |
+| released | 76 |
 | deferred | 3 |
 
 ## Engine reconciliation
@@ -37,91 +37,91 @@ from repository evidence: package presence, test files, and certification wiring
 
 | # | Engine | Wave | Declared | Observed | Lifecycle | Package | Divergent |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| 01 | Identity & Digital Trust | 1 | Conditionally implemented | implemented | implemented | packages/identity | **yes** |
-| 02 | Organization & Multi-Tenant | 1 | Conditionally implemented | implemented | implemented | packages/organizations | **yes** |
-| 03 | Roles, Permissions & Governance | 1 | Conditionally implemented | implemented | implemented | packages/permissions | **yes** |
-| 04 | Party Verification | 1 | Conditionally implemented | implemented | implemented | packages/parties | **yes** |
-| 05 | Legal Governance | 1 | Conditionally implemented | implemented | implemented | packages/legal | **yes** |
+| 01 | Identity & Digital Trust | 1 | Conditionally implemented | implemented | released | packages/identity | **yes** |
+| 02 | Organization & Multi-Tenant | 1 | Conditionally implemented | implemented | released | packages/organizations | **yes** |
+| 03 | Roles, Permissions & Governance | 1 | Conditionally implemented | implemented | released | packages/permissions | **yes** |
+| 04 | Party Verification | 1 | Conditionally implemented | implemented | released | packages/parties | **yes** |
+| 05 | Legal Governance | 1 | Conditionally implemented | implemented | released | packages/legal | **yes** |
 | 06 | Counterparty & Transaction Risk | 1 | Conditionally implemented | partial | implementing | packages/progressive-trust | no |
 | 07 | Compliance Foundation | 1 | Deferred | deferred | deferred | — | no |
-| 08 | Audit & Evidence Ledger | 1 | Conditionally implemented | implemented | implemented | packages/audit-ledger | **yes** |
+| 08 | Audit & Evidence Ledger | 1 | Conditionally implemented | implemented | released | packages/audit-ledger | **yes** |
 | 09 | Notification & Communication | 1 | Deferred | deferred | deferred | — | no |
 | 10 | Enterprise Configuration | 1 | Deferred | deferred | deferred | — | no |
-| 11 | Contract Authoring | 2 | — | implemented | implemented | packages/agreement-creation | no |
-| 12 | Clause Intelligence | 2 | — | implemented | implemented | packages/agreement-creation | no |
-| 13 | Negotiation | 2 | — | implemented | implemented | packages/agreement-creation | no |
-| 14 | Approval Workflow | 2 | — | implemented | implemented | packages/agreement-creation | no |
-| 15 | Digital Execution | 2 | — | implemented | implemented | packages/agreement-creation | no |
-| 16 | AI Contract Analysis | 2 | — | implemented | implemented | packages/agreement-intelligence | no |
-| 17 | Contract Risk | 2 | — | implemented | implemented | packages/agreement-intelligence | no |
-| 18 | Contract Version | 2 | — | implemented | implemented | packages/agreement-intelligence | no |
-| 19 | Contract Repository | 2 | — | implemented | implemented | packages/agreement-intelligence | no |
-| 20 | Agreement Intelligence | 2 | — | implemented | implemented | packages/agreement-intelligence | no |
-| 21 | Performance Blueprint | 3 | — | implemented | implemented | packages/performance-blueprint | no |
-| 22 | Scope Definition | 3 | — | implemented | implemented | packages/performance-blueprint | no |
-| 23 | Deliverables | 3 | — | implemented | implemented | packages/performance-blueprint | no |
-| 24 | Milestone Planning | 3 | — | implemented | implemented | packages/performance-blueprint | no |
-| 25 | Definition of Done | 3 | — | implemented | implemented | packages/performance-blueprint | no |
-| 26 | Acceptance Criteria | 3 | — | implemented | implemented | packages/performance-readiness | no |
-| 27 | Success Metrics | 3 | — | implemented | implemented | packages/performance-readiness | no |
-| 28 | Dependency Intelligence | 3 | — | implemented | implemented | packages/performance-readiness | no |
-| 29 | Payment Trigger | 3 | — | implemented | implemented | packages/performance-readiness | no |
-| 30 | Performance Baseline | 3 | — | implemented | implemented | packages/performance-readiness | no |
-| 31 | Execution Orchestration | 4 | — | implemented | implemented | packages/execution-orchestration | no |
-| 32 | Progress Measurement | 4 | — | implemented | implemented | packages/execution-orchestration | no |
-| 33 | Evidence Management | 4 | — | implemented | implemented | packages/execution-orchestration | no |
-| 34 | Validation & Acceptance Testing | 4 | — | implemented | implemented | packages/execution-orchestration | no |
-| 35 | Quality Assurance | 4 | — | implemented | implemented | packages/execution-orchestration | no |
-| 36 | Inspection & Field Verification | 4 | — | implemented | implemented | packages/completion-assurance | no |
-| 37 | Issue, Risk & Corrective Action | 4 | — | implemented | implemented | packages/completion-assurance | no |
-| 38 | Change Control | 4 | — | implemented | implemented | packages/completion-assurance | no |
-| 39 | Acceptance & Decision | 4 | — | implemented | implemented | packages/completion-assurance | no |
-| 40 | Completion Certification | 4 | — | implemented | implemented | packages/completion-assurance | no |
-| 41 | Payment Eligibility | 5 | — | implemented | implemented | packages/settlement-assurance | no |
-| 42 | Financial Entitlement | 5 | — | implemented | implemented | packages/settlement-assurance | no |
-| 43 | Invoice & Claim Management | 5 | — | implemented | implemented | packages/settlement-assurance | no |
-| 44 | Escrow & Funding Assurance | 5 | — | implemented | implemented | packages/settlement-assurance | no |
-| 45 | Conditional Release Orchestration | 5 | — | implemented | implemented | packages/settlement-assurance | no |
-| 46 | Financial Approval & Authority | 5 | — | implemented | implemented | packages/settlement-execution | no |
-| 47 | Payment Execution & Treasury Integration | 5 | — | implemented | implemented | packages/settlement-execution | no |
-| 48 | Reconciliation & Financial Ledger | 5 | — | implemented | implemented | packages/settlement-execution | no |
-| 49 | Dispute, Claim & Appeal Resolution | 5 | — | implemented | implemented | packages/settlement-execution | no |
-| 50 | Final Settlement & Financial Closure | 5 | — | implemented | implemented | packages/settlement-execution | no |
-| 51 | Execution Assurance Index | 6 | — | implemented | implemented | packages/enterprise-intelligence | no |
-| 52 | Settlement Assurance Index | 6 | — | implemented | implemented | packages/enterprise-intelligence | no |
-| 53 | Enterprise KPI | 6 | — | implemented | implemented | packages/enterprise-intelligence | no |
-| 54 | Executive Dashboard | 6 | — | implemented | implemented | packages/enterprise-intelligence | no |
-| 55 | Predictive Execution Intelligence | 6 | — | implemented | implemented | packages/enterprise-intelligence | no |
-| 56 | Financial & Payment Intelligence | 6 | — | implemented | implemented | packages/enterprise-analytics | no |
-| 57 | Vendor & Customer Performance | 6 | — | implemented | implemented | packages/enterprise-analytics | no |
-| 58 | Portfolio Analytics | 6 | — | implemented | implemented | packages/enterprise-analytics | no |
-| 59 | Renewal & Relationship Intelligence | 6 | — | implemented | implemented | packages/enterprise-analytics | no |
-| 60 | AI Decision Support & Continuous Improvement | 6 | — | implemented | implemented | packages/enterprise-analytics | no |
+| 11 | Contract Authoring | 2 | — | implemented | released | packages/agreement-creation | no |
+| 12 | Clause Intelligence | 2 | — | implemented | released | packages/agreement-creation | no |
+| 13 | Negotiation | 2 | — | implemented | released | packages/agreement-creation | no |
+| 14 | Approval Workflow | 2 | — | implemented | released | packages/agreement-creation | no |
+| 15 | Digital Execution | 2 | — | implemented | released | packages/agreement-creation | no |
+| 16 | AI Contract Analysis | 2 | — | implemented | released | packages/agreement-intelligence | no |
+| 17 | Contract Risk | 2 | — | implemented | released | packages/agreement-intelligence | no |
+| 18 | Contract Version | 2 | — | implemented | released | packages/agreement-intelligence | no |
+| 19 | Contract Repository | 2 | — | implemented | released | packages/agreement-intelligence | no |
+| 20 | Agreement Intelligence | 2 | — | implemented | released | packages/agreement-intelligence | no |
+| 21 | Performance Blueprint | 3 | — | implemented | released | packages/performance-blueprint | no |
+| 22 | Scope Definition | 3 | — | implemented | released | packages/performance-blueprint | no |
+| 23 | Deliverables | 3 | — | implemented | released | packages/performance-blueprint | no |
+| 24 | Milestone Planning | 3 | — | implemented | released | packages/performance-blueprint | no |
+| 25 | Definition of Done | 3 | — | implemented | released | packages/performance-blueprint | no |
+| 26 | Acceptance Criteria | 3 | — | implemented | released | packages/performance-readiness | no |
+| 27 | Success Metrics | 3 | — | implemented | released | packages/performance-readiness | no |
+| 28 | Dependency Intelligence | 3 | — | implemented | released | packages/performance-readiness | no |
+| 29 | Payment Trigger | 3 | — | implemented | released | packages/performance-readiness | no |
+| 30 | Performance Baseline | 3 | — | implemented | released | packages/performance-readiness | no |
+| 31 | Execution Orchestration | 4 | — | implemented | released | packages/execution-orchestration | no |
+| 32 | Progress Measurement | 4 | — | implemented | released | packages/execution-orchestration | no |
+| 33 | Evidence Management | 4 | — | implemented | released | packages/execution-orchestration | no |
+| 34 | Validation & Acceptance Testing | 4 | — | implemented | released | packages/execution-orchestration | no |
+| 35 | Quality Assurance | 4 | — | implemented | released | packages/execution-orchestration | no |
+| 36 | Inspection & Field Verification | 4 | — | implemented | released | packages/completion-assurance | no |
+| 37 | Issue, Risk & Corrective Action | 4 | — | implemented | released | packages/completion-assurance | no |
+| 38 | Change Control | 4 | — | implemented | released | packages/completion-assurance | no |
+| 39 | Acceptance & Decision | 4 | — | implemented | released | packages/completion-assurance | no |
+| 40 | Completion Certification | 4 | — | implemented | released | packages/completion-assurance | no |
+| 41 | Payment Eligibility | 5 | — | implemented | released | packages/settlement-assurance | no |
+| 42 | Financial Entitlement | 5 | — | implemented | released | packages/settlement-assurance | no |
+| 43 | Invoice & Claim Management | 5 | — | implemented | released | packages/settlement-assurance | no |
+| 44 | Escrow & Funding Assurance | 5 | — | implemented | released | packages/settlement-assurance | no |
+| 45 | Conditional Release Orchestration | 5 | — | implemented | released | packages/settlement-assurance | no |
+| 46 | Financial Approval & Authority | 5 | — | implemented | released | packages/settlement-execution | no |
+| 47 | Payment Execution & Treasury Integration | 5 | — | implemented | released | packages/settlement-execution | no |
+| 48 | Reconciliation & Financial Ledger | 5 | — | implemented | released | packages/settlement-execution | no |
+| 49 | Dispute, Claim & Appeal Resolution | 5 | — | implemented | released | packages/settlement-execution | no |
+| 50 | Final Settlement & Financial Closure | 5 | — | implemented | released | packages/settlement-execution | no |
+| 51 | Execution Assurance Index | 6 | — | implemented | released | packages/enterprise-intelligence | no |
+| 52 | Settlement Assurance Index | 6 | — | implemented | released | packages/enterprise-intelligence | no |
+| 53 | Enterprise KPI | 6 | — | implemented | released | packages/enterprise-intelligence | no |
+| 54 | Executive Dashboard | 6 | — | implemented | released | packages/enterprise-intelligence | no |
+| 55 | Predictive Execution Intelligence | 6 | — | implemented | released | packages/enterprise-intelligence | no |
+| 56 | Financial & Payment Intelligence | 6 | — | implemented | released | packages/enterprise-analytics | no |
+| 57 | Vendor & Customer Performance | 6 | — | implemented | released | packages/enterprise-analytics | no |
+| 58 | Portfolio Analytics | 6 | — | implemented | released | packages/enterprise-analytics | no |
+| 59 | Renewal & Relationship Intelligence | 6 | — | implemented | released | packages/enterprise-analytics | no |
+| 60 | AI Decision Support & Continuous Improvement | 6 | — | implemented | released | packages/enterprise-analytics | no |
 
 ## Platform capabilities
 
 | Capability | Title | Status | Lifecycle | Probes | Rationale |
 | --- | --- | --- | --- | --- | --- |
-| persistence.async-domain-repository-interface | Asynchronous domain repository interface (satisfied by removal) | implemented | implemented | 5/5 | All 5 evidence probes satisfied at HEAD. |
-| persistence.async-repository-interface | Asynchronous repository interface | implemented | implemented | 5/5 | All 5 evidence probes satisfied at HEAD. |
-| persistence.domain-store-durability | Domain store durability for Engines 06-70 | implemented | implemented | 8/8 | All 8 evidence probes satisfied at HEAD. |
-| persistence.domain-store-environment-gate | Domain store durable-environment gate (satisfied by removal) | implemented | implemented | 5/5 | All 5 evidence probes satisfied at HEAD. |
-| persistence.postgres-repository | PostgreSQL repository implementation | implemented | implemented | 10/10 | All 10 evidence probes satisfied at HEAD. |
-| persistence.production-runtime-wiring | Production persistence runtime wiring | implemented | implemented | 10/10 | All 10 evidence probes satisfied at HEAD. |
-| persistence.repository-conformance | TrustPersistence conformance specification | implemented | implemented | 4/4 | All 4 evidence probes satisfied at HEAD. |
-| persistence.rls-certification | Row Level Security certification | implemented | implemented | 8/8 | All 8 evidence probes satisfied at HEAD. |
-| persistence.schema-ownership-reconciliation | Trust schema ownership reconciliation | implemented | implemented | 8/8 | All 8 evidence probes satisfied at HEAD. |
-| reos.execution-os | Repository Execution Operating System | implemented | implemented | 7/7 | All 7 evidence probes satisfied at HEAD. |
-| runtime.agent-registration | Agent Runtime registration | implemented | implemented | 3/3 | All 3 evidence probes satisfied at HEAD. |
-| settlement.non-custody-guard | Non-custody architectural guard | implemented | implemented | 4/4 | All 4 evidence probes satisfied at HEAD. |
-| trust.grant-administration-api | HTTP surface for workspace founding and role assignment | implemented | implemented | 6/6 | All 6 evidence probes satisfied at HEAD. |
-| trust.identity-assertions | HMAC identity assertions | implemented | implemented | 4/4 | All 4 evidence probes satisfied at HEAD. |
-| trust.identity-gateway | Production identity gateway | implemented | implemented | 4/4 | All 4 evidence probes satisfied at HEAD. |
-| trust.permission-enforcement | Permission enforcement middleware | implemented | implemented | 4/4 | All 4 evidence probes satisfied at HEAD. |
-| trust.permission-grant-catalogue | Permission grant catalogue and workspace bootstrap | implemented | implemented | 8/8 | All 8 evidence probes satisfied at HEAD. |
-| trust.route-permission-integration | Route-level permission mapping | implemented | implemented | 6/6 | All 6 evidence probes satisfied at HEAD. |
-| trust.route-permission-rollout | Route migration to authorized context | implemented | implemented | 4/4 | All 4 evidence probes satisfied at HEAD. |
-| trust.session-assertion-issuance | Identity assertion issuance from an authenticated session | implemented | implemented | 5/5 | All 5 evidence probes satisfied at HEAD. |
+| persistence.async-domain-repository-interface | Asynchronous domain repository interface (satisfied by removal) | implemented | released | 5/5 | All 5 evidence probes satisfied at HEAD. |
+| persistence.async-repository-interface | Asynchronous repository interface | implemented | released | 5/5 | All 5 evidence probes satisfied at HEAD. |
+| persistence.domain-store-durability | Domain store durability for Engines 06-70 | implemented | released | 8/8 | All 8 evidence probes satisfied at HEAD. |
+| persistence.domain-store-environment-gate | Domain store durable-environment gate (satisfied by removal) | implemented | released | 5/5 | All 5 evidence probes satisfied at HEAD. |
+| persistence.postgres-repository | PostgreSQL repository implementation | implemented | released | 10/10 | All 10 evidence probes satisfied at HEAD. |
+| persistence.production-runtime-wiring | Production persistence runtime wiring | implemented | released | 10/10 | All 10 evidence probes satisfied at HEAD. |
+| persistence.repository-conformance | TrustPersistence conformance specification | implemented | released | 4/4 | All 4 evidence probes satisfied at HEAD. |
+| persistence.rls-certification | Row Level Security certification | implemented | released | 8/8 | All 8 evidence probes satisfied at HEAD. |
+| persistence.schema-ownership-reconciliation | Trust schema ownership reconciliation | implemented | released | 8/8 | All 8 evidence probes satisfied at HEAD. |
+| reos.execution-os | Repository Execution Operating System | implemented | released | 7/7 | All 7 evidence probes satisfied at HEAD. |
+| runtime.agent-registration | Agent Runtime registration | implemented | released | 3/3 | All 3 evidence probes satisfied at HEAD. |
+| settlement.non-custody-guard | Non-custody architectural guard | implemented | released | 4/4 | All 4 evidence probes satisfied at HEAD. |
+| trust.grant-administration-api | HTTP surface for workspace founding and role assignment | implemented | released | 6/6 | All 6 evidence probes satisfied at HEAD. |
+| trust.identity-assertions | HMAC identity assertions | implemented | released | 4/4 | All 4 evidence probes satisfied at HEAD. |
+| trust.identity-gateway | Production identity gateway | implemented | released | 4/4 | All 4 evidence probes satisfied at HEAD. |
+| trust.permission-enforcement | Permission enforcement middleware | implemented | released | 4/4 | All 4 evidence probes satisfied at HEAD. |
+| trust.permission-grant-catalogue | Permission grant catalogue and workspace bootstrap | implemented | released | 8/8 | All 8 evidence probes satisfied at HEAD. |
+| trust.route-permission-integration | Route-level permission mapping | implemented | released | 6/6 | All 6 evidence probes satisfied at HEAD. |
+| trust.route-permission-rollout | Route migration to authorized context | implemented | released | 4/4 | All 4 evidence probes satisfied at HEAD. |
+| trust.session-assertion-issuance | Identity assertion issuance from an authenticated session | implemented | released | 5/5 | All 5 evidence probes satisfied at HEAD. |
 
 ## Reconciliation findings
 

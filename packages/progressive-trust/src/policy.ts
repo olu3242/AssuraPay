@@ -118,7 +118,17 @@ export type RequiredControls = {
   enhancedDueDiligenceRequired: boolean;
 };
 
-const CONTROLS: Record<TrustLevel, RequiredControls> = {
+/**
+ * The control table itself, frozen.
+ *
+ * This is process-global mutable state holding the obligations that keep money from moving without a
+ * human, so it is worth being blunt about the failure it would otherwise permit: one assignment to the
+ * object a caller was handed — `controls.manualReleaseRequired = false` — would disable manual release
+ * for every L4 assessment in the process until restart, silently and with no audit record, because the
+ * assessments already written would still claim the control was required. Freezing turns that into a
+ * `TypeError` under strict mode (which every module here is, being ESM) instead of a policy change.
+ */
+const CONTROLS: Record<TrustLevel, Readonly<RequiredControls>> = {
   L0_VERIFIED: {
     independentReviewRequired: false,
     dualApprovalRequired: false,
@@ -161,8 +171,19 @@ const CONTROLS: Record<TrustLevel, RequiredControls> = {
   },
 };
 
+for (const controls of Object.values(CONTROLS)) Object.freeze(controls);
+Object.freeze(CONTROLS);
+
+/**
+ * The controls a level requires, as a fresh object the caller owns.
+ *
+ * A copy rather than the frozen original because the result is written into a `TrustAssessment` and
+ * persisted, and a caller holding a shared frozen reference would either throw on an unrelated
+ * assignment or silently alias the table across every assessment in the process. The copy is the
+ * caller's; the table is nobody's.
+ */
 export function controlsFor(level: TrustLevel): RequiredControls {
-  return CONTROLS[level];
+  return { ...CONTROLS[level] };
 }
 
 /** An advisory recommendation. Recorded in full; authoritative for nothing. */
