@@ -114,6 +114,9 @@ importers:
       '@assurapay/permissions':
         specifier: workspace:*
         version: link:../../packages/permissions
+      '@assurapay/progressive-trust':
+        specifier: workspace:*
+        version: link:../../packages/progressive-trust
       '@assurapay/runtime':
         specifier: workspace:*
         version: link:../../packages/runtime
@@ -228,6 +231,9 @@ importers:
       '@assurapay/performance-readiness':
         specifier: workspace:*
         version: link:../performance-readiness
+      '@assurapay/progressive-trust':
+        specifier: workspace:*
+        version: link:../progressive-trust
       '@assurapay/shared':
         specifier: workspace:*
         version: link:../shared
@@ -374,6 +380,15 @@ importers:
         version: link:../shared
 
   packages/permissions:
+    dependencies:
+      '@assurapay/database':
+        specifier: workspace:*
+        version: link:../database
+      '@assurapay/shared':
+        specifier: workspace:*
+        version: link:../shared
+
+  packages/progressive-trust:
     dependencies:
       '@assurapay/database':
         specifier: workspace:*

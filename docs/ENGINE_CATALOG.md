@@ -13,7 +13,7 @@ AssuraPay is an Execution Assurance and Conditional Payment Platform. The engine
 | 03 | Roles, Permissions & Governance | RBAC, ABAC, record/field access, delegation, authority, segregation of duties, grant catalogue and workspace founding | Conditionally implemented |
 | 04 | Party Verification | KYC/KYB, company, director, tax, licence, insurance, beneficiary verification | Conditionally implemented |
 | 05 | Legal Governance | Terms, privacy, consent, jurisdiction, legal holds, signature policy packs | Conditionally implemented |
-| 06 | Third-Party Risk | Vendor, cyber, financial, AML, ESG and resilience risk | Deferred |
+| 06 | Counterparty & Transaction Risk | Progressive Trust and Adaptive Assurance: deterministic L0–L4 assurance levels from governed counterparty and transaction facts, the controls each level requires, advisory AI recommendations bounded so they can only raise scrutiny, and tighten-only overrides. Vendor, cyber, ESG and resilience risk remain deferred. | Conditionally implemented |
 | 07 | Compliance Foundation | Configurable privacy, AML, sanctions, quality and internal-policy controls | Deferred |
 | 08 | Audit & Evidence Ledger | Append-only decisions, approvals, signatures, evidence and financial audit; hash-chain verification and snapshot comparison | Conditionally implemented |
 | 09 | Notification & Communication | Email, SMS, WhatsApp, push, in-app, webhooks and delivery evidence | Deferred |

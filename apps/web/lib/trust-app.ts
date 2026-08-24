@@ -129,6 +129,7 @@ import {
   deterministicRiskPredictionGateway,
 } from '@assurapay/workflow-intelligence';
 import { AuditLedgerEngine } from '@assurapay/audit-ledger';
+import { ProgressiveTrustEngine } from '@assurapay/progressive-trust';
 import { RouteAccessError, requirementForRoute } from './route-permissions';
 import { enterMutableTrustScope } from '@assurapay/database';
 import { requireReadyPersistence, trustStore } from './persistence';
@@ -193,6 +194,12 @@ export function getIdentityGateway(): IdentityGateway {
 }
 export const trust = {
   identity: new IdentityService(trustStore),
+  // Engine 06. The «policy evaluates» link of the governing rule: an advisory recommendation is
+  // bounded against a deterministic level computed from governed facts, and can only ever raise
+  // scrutiny. Composed here rather than beside the agent runtime deliberately — Progressive Trust
+  // must work identically whether an agent ran, was disregarded, or was never configured, which is
+  // every deployment of this repository today.
+  progressiveTrust: new ProgressiveTrustEngine(trustStore),
   // Engine 08. It reads the chain the store writes and never rewrites it, so it is
   // safe to share one instance across every request.
   auditLedger: new AuditLedgerEngine(trustStore),

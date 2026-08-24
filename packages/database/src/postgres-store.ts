@@ -232,6 +232,7 @@ const GOVERNED_DOCUMENTS = Object.freeze([
   'sessions',
   'signaturePolicies',
   'stepUpChallenges',
+  'trustAssessments',
   'trustOrganizations',
   'verificationRequests',
   'verificationResults',
