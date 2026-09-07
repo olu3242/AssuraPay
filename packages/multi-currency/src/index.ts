@@ -36,7 +36,7 @@ const CURRENCIES: Readonly<Record<CurrencyCode, CurrencyDefinition>> = Object.fr
   BHD: { code: 'BHD', exponent: 3, status: 'ACTIVE', symbol: 'BD', name: 'Bahraini Dinar' },
 });
 
-export class CurrencyRegistryEngine {
+export class CurrencyRegistry {
   listSupportedCurrencies(): CurrencyDefinition[] {
     return Object.values(CURRENCIES).filter((currency) => currency.status === 'ACTIVE');
   }
@@ -143,7 +143,7 @@ export type FxConversion = Readonly<{
   confirmedAt?: string;
 }>;
 
-export class ForeignExchangeEngine {
+export class ForeignExchangeService {
   quote(input: Omit<FxQuote, 'target' | 'status'> & { targetCurrency: CurrencyCode; roundingMode?: RoundingMode }): FxQuote {
     if (new Date(input.expiresAt).getTime() <= new Date(input.observedAt).getTime()) throw new Error('FX_QUOTE_EXPIRY_INVALID');
     const conversion = convertMoney(input.source, input.targetCurrency, input.rate, input.roundingMode ?? 'HALF_UP');
