@@ -222,3 +222,6 @@ export function registerAgentRuntime(
     providerIds,
   };
 }
+
+export { registerAgenticOs } from './agentic-registration';
+export type { AgenticOsRegistration } from './agentic-registration';
