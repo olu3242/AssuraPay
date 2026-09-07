@@ -6,7 +6,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./agentic-os": "./src/agentic-os.ts",
-    "./agentic-registration": "./src/agentic-registration.ts"
+    "./agentic-registration": "./src/agentic-registration.ts",
+    "./persona-bootstrap": "./src/persona-bootstrap.ts"
   },
   "dependencies": {
     "@assurapay/database": "workspace:*",
