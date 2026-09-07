@@ -1,0 +1,86 @@
+name: Flow OS structural fix
+
+on:
+  push:
+    branches: [feat/flow-orchestration-os]
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/flow-orchestration-os
+      - name: Apply certification fixes
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json
+
+          root = Path('.')
+
+          # Flow OS is a platform orchestration layer, not another domain-engine bounded context.
+          targets = list((root / 'packages/flow-orchestration').rglob('*.ts')) + [root / 'apps/web/lib/flow-app.ts']
+          for p in targets:
+              s = p.read_text()
+              s = s.replace('FlowOrchestrationEngine', 'FlowOrchestrator')
+              s = s.replace('AssuranceRoutingEngine', 'AssuranceRouter')
+              p.write_text(s)
+
+          index = root / 'packages/flow-orchestration/src/index.ts'
+          s = index.read_text()
+          s = s.replace('export const COMMERCIAL_COMMITMENT_FLOW_V1: FlowDefinition = {',
+                        'export const BASIC_COMMERCIAL_COMMITMENT_FLOW_V1: FlowDefinition = {')
+          if "export { COMMERCIAL_COMMITMENT_FLOW_V1 } from './canonical-chain';" not in s:
+              s += "\nexport { COMMERCIAL_COMMITMENT_FLOW_V1 } from './canonical-chain';\n"
+          index.write_text(s)
+
+          # Narrow dispatch's FlowInstance | HumanTask result in tests instead of weakening production types.
+          test = root / 'packages/flow-orchestration/src/flow-orchestration.test.ts'
+          s = test.read_text()
+          marker = "async function grantReviewer(store: InMemoryTrustStore) {"
+          helper = "function asFlow(result: Awaited<ReturnType<FlowOrchestrator['dispatch']>>) {\n  if ('status' in result) throw new Error('EXPECTED_FLOW_INSTANCE');\n  return result;\n}\n\n"
+          if helper not in s:
+              s = s.replace(marker, helper + marker)
+          replacements = {
+              "flow = await engine.dispatch(context, flow.id, 'evidence');": "flow = asFlow(await engine.dispatch(context, flow.id, 'evidence'));",
+              "flow = await engine.dispatch(context, flow.id, 'finish');": "flow = asFlow(await engine.dispatch(context, flow.id, 'finish'));",
+              "flow = await engine.dispatch(context, flow.id, 'unstable');": "flow = asFlow(await engine.dispatch(context, flow.id, 'unstable'));",
+          }
+          for a, b in replacements.items():
+              s = s.replace(a, b)
+          test.write_text(s)
+
+          package = root / 'packages/flow-orchestration/package.json'
+          data = json.loads(package.read_text())
+          data['main'] = 'src/index.ts'
+          package.write_text(json.dumps(data, indent=2) + '\n')
+
+          tsconfig = root / 'tsconfig.json'
+          data = json.loads(tsconfig.read_text())
+          data['compilerOptions']['paths']['@assurapay/flow-orchestration'] = ['packages/flow-orchestration/src/index.ts']
+          tsconfig.write_text(json.dumps(data, indent=2) + '\n')
+
+          vitest = root / 'vitest.config.ts'
+          s = vitest.read_text()
+          needle = "      '@assurapay/execution-orchestration': path.resolve(__dirname, 'packages/execution-orchestration/src/index.ts'),"
+          insertion = needle + "\n      '@assurapay/flow-orchestration': path.resolve(__dirname, 'packages/flow-orchestration/src/index.ts'),"
+          if "'@assurapay/flow-orchestration'" not in s:
+              s = s.replace(needle, insertion)
+          vitest.write_text(s)
+
+          public = root / 'packages/flow-orchestration/src/public.ts'
+          if public.exists():
+              public.unlink()
+          PY
+      - name: Commit fixes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add packages/flow-orchestration apps/web/lib/flow-app.ts tsconfig.json vitest.config.ts
+          git commit -m "fix(flow-os): converge package and certification boundaries"
+          git push origin HEAD:feat/flow-orchestration-os
