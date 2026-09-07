@@ -84,6 +84,14 @@ export type HumanTask = {
   completedAt?: string;
 };
 
+type ActiveMembership = {
+  workspaceId: string;
+  userId: string;
+  status: string;
+  role?: string;
+  membershipType?: string;
+};
+
 export type StepHandler = (input: {
   context: RequestContext;
   flow: FlowInstance;
@@ -141,6 +149,20 @@ async function emit(store: TrustPersistence, context: RequestContext, flowId: st
     eventVersion: 1,
     payload,
     correlationId: context.correlationId,
+  });
+}
+
+async function transition(
+  store: TrustPersistence,
+  context: RequestContext,
+  flowId: string,
+  eventType: string,
+  operation: (tx: TrustPersistence) => Promise<void>,
+  payload: Record<string, unknown> = {},
+) {
+  await store.transaction(async (tx) => {
+    await operation(tx);
+    await emit(tx, context, flowId, eventType, payload);
   });
 }
 
@@ -204,16 +226,18 @@ export class FlowOrchestrationEngine {
       idempotencyKey: input.idempotencyKey, correlationId: context.correlationId,
       createdAt: time, updatedAt: time,
     };
-    await this.store.append('flowInstances', flow);
-    for (const stepDefinition of definition.steps) {
-      const step: StepInstance = {
-        id: randomUUID(), workspaceId, flowInstanceId: flow.id,
-        stepDefinitionId: stepDefinition.id, state: 'PENDING', attempts: 0,
-        createdAt: time, updatedAt: time,
-      };
-      await this.store.append('flowStepInstances', step);
-    }
-    await emit(this.store, context, flow.id, 'FLOW_STARTED', { transactionId: flow.transactionId, flowVersion: flow.flowVersion });
+    await this.store.transaction(async (tx) => {
+      await tx.append('flowInstances', flow);
+      for (const stepDefinition of definition.steps) {
+        const step: StepInstance = {
+          id: randomUUID(), workspaceId, flowInstanceId: flow.id,
+          stepDefinitionId: stepDefinition.id, state: 'PENDING', attempts: 0,
+          createdAt: time, updatedAt: time,
+        };
+        await tx.append('flowStepInstances', step);
+      }
+      await emit(tx, context, flow.id, 'FLOW_STARTED', { transactionId: flow.transactionId, flowVersion: flow.flowVersion });
+    });
     return this.evaluate(context, flow.id);
   }
 
@@ -236,36 +260,60 @@ export class FlowOrchestrationEngine {
     for (const stepDefinition of definition.steps) {
       const step = byId.get(stepDefinition.id);
       if (!step || step.state !== 'PENDING') continue;
-      if (stepDefinition.minimumAssurance && assuranceOrder.indexOf(flow.assuranceLevel) < assuranceOrder.indexOf(stepDefinition.minimumAssurance)) {
-        await this.store.replace('flowStepInstances', { ...step, state: 'SKIPPED', updatedAt: now() });
-        await emit(this.store, context, flow.id, 'STEP_SKIPPED', { stepDefinitionId: stepDefinition.id, reason: 'ASSURANCE_THRESHOLD_NOT_MET' });
-        byId.set(stepDefinition.id, { ...step, state: 'SKIPPED', updatedAt: now() });
-        continue;
-      }
       const ready = (stepDefinition.dependencies ?? []).every((dependency) => {
         const state = byId.get(dependency)?.state;
         return state === 'COMPLETED' || state === 'SKIPPED';
       });
       if (!ready) continue;
+
+      if (stepDefinition.minimumAssurance && assuranceOrder.indexOf(flow.assuranceLevel) < assuranceOrder.indexOf(stepDefinition.minimumAssurance)) {
+        const skipped: StepInstance = { ...step, state: 'SKIPPED', updatedAt: now() };
+        await transition(
+          this.store,
+          context,
+          flow.id,
+          'STEP_SKIPPED',
+          (tx) => tx.replace('flowStepInstances', skipped),
+          { stepDefinitionId: stepDefinition.id, reason: 'ASSURANCE_THRESHOLD_NOT_MET' },
+        );
+        byId.set(stepDefinition.id, skipped);
+        continue;
+      }
+
       const updated: StepInstance = { ...step, state: 'READY', updatedAt: now() };
-      await this.store.replace('flowStepInstances', updated);
+      await transition(
+        this.store,
+        context,
+        flow.id,
+        'STEP_READY',
+        (tx) => tx.replace('flowStepInstances', updated),
+        { stepDefinitionId: stepDefinition.id },
+      );
       byId.set(stepDefinition.id, updated);
-      await emit(this.store, context, flow.id, 'STEP_READY', { stepDefinitionId: stepDefinition.id });
     }
 
     const refreshed = await this.steps(context, flow.id);
     if (refreshed.every((step) => ['COMPLETED', 'SKIPPED', 'CANCELLED'].includes(step.state))) {
       flow = { ...flow, state: 'COMPLETED', updatedAt: now(), completedAt: now() };
-      await this.store.replace('flowInstances', flow);
-      await emit(this.store, context, flow.id, 'FLOW_COMPLETED');
+      await transition(this.store, context, flow.id, 'FLOW_COMPLETED', (tx) => tx.replace('flowInstances', flow));
       return flow;
     }
     const state: FlowState = refreshed.some((step) => step.state === 'WAITING_HUMAN') ? 'WAITING_HUMAN'
       : refreshed.some((step) => step.state === 'WAITING_EVENT') ? 'WAITING_EVENT'
       : refreshed.some((step) => step.state === 'READY' || step.state === 'RUNNING') ? 'RUNNING'
       : 'WAITING_DEPENDENCY';
-    flow = { ...flow, state, updatedAt: now() };
-    await this.store.replace('flowInstances', flow);
+    if (flow.state !== state) {
+      const previousState = flow.state;
+      flow = { ...flow, state, updatedAt: now() };
+      await transition(
+        this.store,
+        context,
+        flow.id,
+        'FLOW_STATE_CHANGED',
+        (tx) => tx.replace('flowInstances', flow),
+        { previousState, state },
+      );
+    }
     return flow;
   }
 
@@ -278,22 +326,44 @@ export class FlowOrchestrationEngine {
     const step = (await this.steps(context, flow.id)).find((candidate) => candidate.stepDefinitionId === stepDefinitionId);
     if (!step || step.state !== 'READY') throw new Error('FLOW_STEP_NOT_READY');
     const running: StepInstance = { ...step, state: 'RUNNING', attempts: step.attempts + 1, updatedAt: now() };
-    await this.store.replace('flowStepInstances', running);
-    await emit(this.store, context, flow.id, 'STEP_STARTED', { stepDefinitionId });
+    await transition(
+      this.store,
+      context,
+      flow.id,
+      'STEP_STARTED',
+      (tx) => tx.replace('flowStepInstances', running),
+      { stepDefinitionId },
+    );
 
     if (stepDefinition.waitForEvent) {
-      await this.store.replace('flowStepInstances', { ...running, state: 'WAITING_EVENT', updatedAt: now() });
-      await emit(this.store, context, flow.id, 'FLOW_WAITING_EVENT', { stepDefinitionId, eventType: stepDefinition.waitForEvent });
+      const waiting: StepInstance = { ...running, state: 'WAITING_EVENT', updatedAt: now() };
+      await transition(
+        this.store,
+        context,
+        flow.id,
+        'FLOW_WAITING_EVENT',
+        (tx) => tx.replace('flowStepInstances', waiting),
+        { stepDefinitionId, eventType: stepDefinition.waitForEvent },
+      );
       return this.evaluate(context, flow.id);
     }
     if (stepDefinition.humanTaskRole) {
-      await this.store.replace('flowStepInstances', { ...running, state: 'WAITING_HUMAN', updatedAt: now() });
+      const waiting: StepInstance = { ...running, state: 'WAITING_HUMAN', updatedAt: now() };
       const task: HumanTask = {
         id: randomUUID(), workspaceId: ws(context), flowInstanceId: flow.id, stepInstanceId: running.id,
         requiredRole: stepDefinition.humanTaskRole, status: 'OPEN', createdAt: now(),
       };
-      await this.store.append('humanTasks', task);
-      await emit(this.store, context, flow.id, 'HUMAN_TASK_CREATED', { taskId: task.id, requiredRole: task.requiredRole });
+      await transition(
+        this.store,
+        context,
+        flow.id,
+        'HUMAN_TASK_CREATED',
+        async (tx) => {
+          await tx.replace('flowStepInstances', waiting);
+          await tx.append('humanTasks', task);
+        },
+        { taskId: task.id, requiredRole: task.requiredRole },
+      );
       await this.evaluate(context, flow.id);
       return task;
     }
@@ -314,11 +384,18 @@ export class FlowOrchestrationEngine {
       (signal) => signal.workspaceId === ws(context) && signal.idempotencyKey === input.idempotencyKey,
     );
     if (duplicate) return flow;
-    await this.store.append('flowSignals', {
+    const signal = {
       id: randomUUID(), workspaceId: ws(context), flowInstanceId: flow.id, eventType: input.eventType,
       idempotencyKey: input.idempotencyKey, payload: input.payload ?? {}, receivedAt: now(),
-    });
-    await emit(this.store, context, flow.id, 'SIGNAL_RECEIVED', { eventType: input.eventType });
+    };
+    await transition(
+      this.store,
+      context,
+      flow.id,
+      'SIGNAL_RECEIVED',
+      (tx) => tx.append('flowSignals', signal),
+      { eventType: input.eventType },
+    );
     const definition = this.registry.get(flow.flowDefinitionId, flow.flowVersion);
     for (const step of await this.steps(context, flow.id)) {
       if (step.state !== 'WAITING_EVENT') continue;
@@ -331,8 +408,23 @@ export class FlowOrchestrationEngine {
   async decide(context: RequestContext, taskId: string, decision: 'APPROVE' | 'REJECT') {
     const task = await scoped<HumanTask>(this.store, 'humanTasks', context, taskId);
     if (task.status !== 'OPEN') throw new Error('HUMAN_TASK_NOT_OPEN');
-    await this.store.replace('humanTasks', { ...task, status: decision === 'APPROVE' ? 'APPROVED' : 'REJECTED', completedAt: now() });
-    await emit(this.store, context, task.flowInstanceId, 'HUMAN_TASK_DECIDED', { taskId, decision });
+    const authorized = (await this.store.list<ActiveMembership>('memberships')).some(
+      (membership) =>
+        membership.workspaceId === ws(context) &&
+        membership.userId === context.actorUserId &&
+        membership.status === 'ACTIVE' &&
+        (membership.role === task.requiredRole || membership.membershipType === task.requiredRole),
+    );
+    if (!authorized) throw new Error('HUMAN_TASK_REQUIRED_ROLE_MISSING');
+    const decided: HumanTask = { ...task, status: decision === 'APPROVE' ? 'APPROVED' : 'REJECTED', completedAt: now() };
+    await transition(
+      this.store,
+      context,
+      task.flowInstanceId,
+      'HUMAN_TASK_DECIDED',
+      (tx) => tx.replace('humanTasks', decided),
+      { taskId, decision, requiredRole: task.requiredRole },
+    );
     return decision === 'APPROVE'
       ? this.complete(context, task.flowInstanceId, task.stepInstanceId)
       : this.fail(context, task.flowInstanceId, task.stepInstanceId, 'HUMAN_TASK_REJECTED');
@@ -342,24 +434,38 @@ export class FlowOrchestrationEngine {
     if (!reason.trim()) throw new Error('SUSPENSION_REASON_REQUIRED');
     const flow = await this.get(context, flowId);
     if (['FAILED', 'CANCELLED', 'COMPLETED'].includes(flow.state)) throw new Error('FLOW_NOT_SUSPENDABLE');
-    await this.store.replace('flowInstances', { ...flow, state: 'SUSPENDED', updatedAt: now() });
-    await emit(this.store, context, flow.id, 'FLOW_SUSPENDED', { reason });
-    return this.get(context, flow.id);
+    const suspended: FlowInstance = { ...flow, state: 'SUSPENDED', updatedAt: now() };
+    await transition(
+      this.store,
+      context,
+      flow.id,
+      'FLOW_SUSPENDED',
+      (tx) => tx.replace('flowInstances', suspended),
+      { reason },
+    );
+    return suspended;
   }
 
   async resume(context: RequestContext, flowId: string) {
     const flow = await this.get(context, flowId);
     if (flow.state !== 'SUSPENDED') throw new Error('FLOW_NOT_SUSPENDED');
-    await this.store.replace('flowInstances', { ...flow, state: 'READY', updatedAt: now() });
-    await emit(this.store, context, flow.id, 'FLOW_RESUMED');
+    const resumed: FlowInstance = { ...flow, state: 'READY', updatedAt: now() };
+    await transition(this.store, context, flow.id, 'FLOW_RESUMED', (tx) => tx.replace('flowInstances', resumed));
     return this.evaluate(context, flow.id);
   }
 
   private async complete(context: RequestContext, flowId: string, stepId: string) {
     const step = await scoped<StepInstance>(this.store, 'flowStepInstances', context, stepId);
     if (!['RUNNING', 'WAITING_EVENT', 'WAITING_HUMAN'].includes(step.state)) throw new Error('FLOW_STEP_NOT_COMPLETABLE');
-    await this.store.replace('flowStepInstances', { ...step, state: 'COMPLETED', completedAt: now(), updatedAt: now() });
-    await emit(this.store, context, flowId, 'STEP_COMPLETED', { stepDefinitionId: step.stepDefinitionId });
+    const completed: StepInstance = { ...step, state: 'COMPLETED', completedAt: now(), updatedAt: now() };
+    await transition(
+      this.store,
+      context,
+      flowId,
+      'STEP_COMPLETED',
+      (tx) => tx.replace('flowStepInstances', completed),
+      { stepDefinitionId: step.stepDefinitionId },
+    );
     return this.evaluate(context, flowId);
   }
 
@@ -368,15 +474,35 @@ export class FlowOrchestrationEngine {
     const step = await scoped<StepInstance>(this.store, 'flowStepInstances', context, stepId);
     const definition = this.registry.get(flow.flowDefinitionId, flow.flowVersion).steps.find((candidate) => candidate.id === step.stepDefinitionId);
     if (definition?.retry && step.attempts < definition.retry.maxAttempts) {
-      await this.store.replace('flowStepInstances', { ...step, state: 'READY', lastError: reason, updatedAt: now() });
-      await this.store.replace('flowInstances', { ...flow, state: 'RETRY_PENDING', updatedAt: now() });
-      await emit(this.store, context, flow.id, 'STEP_RETRY_SCHEDULED', { stepDefinitionId: step.stepDefinitionId, attempt: step.attempts, backoffSeconds: definition.retry.backoffSeconds });
-      return this.get(context, flow.id);
+      const retryStep: StepInstance = { ...step, state: 'READY', lastError: reason, updatedAt: now() };
+      const retryFlow: FlowInstance = { ...flow, state: 'RETRY_PENDING', updatedAt: now() };
+      await transition(
+        this.store,
+        context,
+        flow.id,
+        'STEP_RETRY_SCHEDULED',
+        async (tx) => {
+          await tx.replace('flowStepInstances', retryStep);
+          await tx.replace('flowInstances', retryFlow);
+        },
+        { stepDefinitionId: step.stepDefinitionId, attempt: step.attempts, backoffSeconds: definition.retry.backoffSeconds },
+      );
+      return retryFlow;
     }
-    await this.store.replace('flowStepInstances', { ...step, state: 'FAILED', lastError: reason, updatedAt: now() });
-    await this.store.replace('flowInstances', { ...flow, state: 'FAILED', updatedAt: now() });
-    await emit(this.store, context, flow.id, 'STEP_FAILED', { stepDefinitionId: step.stepDefinitionId, reason });
-    return this.get(context, flow.id);
+    const failedStep: StepInstance = { ...step, state: 'FAILED', lastError: reason, updatedAt: now() };
+    const failedFlow: FlowInstance = { ...flow, state: 'FAILED', updatedAt: now() };
+    await transition(
+      this.store,
+      context,
+      flow.id,
+      'STEP_FAILED',
+      async (tx) => {
+        await tx.replace('flowStepInstances', failedStep);
+        await tx.replace('flowInstances', failedFlow);
+      },
+      { stepDefinitionId: step.stepDefinitionId, reason },
+    );
+    return failedFlow;
   }
 }
 
