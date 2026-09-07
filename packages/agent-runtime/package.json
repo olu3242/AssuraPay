@@ -3,6 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "main": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./agentic-os": "./src/agentic-os.ts"
+  },
   "dependencies": {
     "@assurapay/database": "workspace:*",
     "@assurapay/domain-contracts": "workspace:*",
