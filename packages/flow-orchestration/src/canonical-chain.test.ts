@@ -17,7 +17,7 @@ function event(eventId: string, eventType: string) {
 }
 
 describe('canonical AssuraPay domain-event chain', () => {
-  it('advances only from authoritative events and requires enhanced approval when assurance demands it', async () => {
+  it('advances only from authoritative events and requires a governed currency route before payment', async () => {
     const store = new InMemoryTrustStore();
     const registry = new FlowRegistry();
     registry.register(COMMERCIAL_COMMITMENT_FLOW_V1);
@@ -53,12 +53,14 @@ describe('canonical AssuraPay domain-event chain', () => {
     expect('status' in approval && approval.status).toBe('OPEN');
     await flows.decide(context, approval.id, 'APPROVE');
 
+    await flows.dispatch(context, flow.id, 'currency-route');
+    await bridge.apply(context, flow.id, event('e11', 'SettlementCurrencyRouteAuthorized'));
     await flows.dispatch(context, flow.id, 'payment');
-    await bridge.apply(context, flow.id, event('e11', 'PaymentInstructionSubmitted'));
+    await bridge.apply(context, flow.id, event('e12', 'PaymentInstructionSubmitted'));
     await flows.dispatch(context, flow.id, 'reconciliation');
-    await bridge.apply(context, flow.id, event('e12', 'ReconciliationRecorded'));
+    await bridge.apply(context, flow.id, event('e13', 'ReconciliationRecorded'));
     await flows.dispatch(context, flow.id, 'closure');
-    await bridge.apply(context, flow.id, event('e13', 'FinalSettlementAccountClosed'));
+    await bridge.apply(context, flow.id, event('e14', 'FinalSettlementAccountClosed'));
 
     expect((await flows.get(context, flow.id)).state).toBe('COMPLETED');
   });
