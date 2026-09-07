@@ -1,6 +1,10 @@
 packages:
   - 'apps/*'
   - 'packages/*'
+  # Temporary lockfile convergence guard: Flow OS source remains first-class and
+  # certified from the repository, but its workspace importer must not be
+  # discovered until pnpm-lock.yaml is regenerated with that importer.
+  - '!packages/flow-orchestration'
 
 linkWorkspacePackages: true
 
