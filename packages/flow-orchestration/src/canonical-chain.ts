@@ -6,7 +6,7 @@ import type { FlowDefinition } from './index';
  * Protected domain state remains owned by the existing engines. The flow waits for
  * the domain events those engines emit and advances only after the authoritative
  * transition has happened. This prevents Flow OS from becoming a second source of
- * truth for certification, release, payment or settlement state.
+ * truth for certification, release, payment, FX or settlement state.
  */
 export const COMMERCIAL_COMMITMENT_FLOW_V1: FlowDefinition = {
   id: 'COMMERCIAL_COMMITMENT_FLOW',
@@ -25,7 +25,13 @@ export const COMMERCIAL_COMMITMENT_FLOW_V1: FlowDefinition = {
     { id: 'eligibility', title: 'Payment eligibility assessed', dependencies: ['completion'], waitForEvent: 'PaymentEligibilityAssessed' },
     { id: 'release', title: 'Release eligibility evaluated', dependencies: ['eligibility'], waitForEvent: 'ReleaseRequestEvaluated' },
     { id: 'enhanced-approval', title: 'Independent release approval', dependencies: ['release'], humanTaskRole: 'RELEASE_APPROVER', minimumAssurance: 'ENHANCED' },
-    { id: 'payment', title: 'Payment instruction submitted', dependencies: ['enhanced-approval'], waitForEvent: 'PaymentInstructionSubmitted' },
+    {
+      id: 'currency-route',
+      title: 'Settlement currency route authorized',
+      dependencies: ['enhanced-approval'],
+      waitForEvent: 'SettlementCurrencyRouteAuthorized',
+    },
+    { id: 'payment', title: 'Payment instruction submitted', dependencies: ['currency-route'], waitForEvent: 'PaymentInstructionSubmitted' },
     { id: 'reconciliation', title: 'Settlement reconciled', dependencies: ['payment'], waitForEvent: 'ReconciliationRecorded' },
     { id: 'closure', title: 'Final settlement closed', dependencies: ['reconciliation'], waitForEvent: 'FinalSettlementAccountClosed' },
   ],
