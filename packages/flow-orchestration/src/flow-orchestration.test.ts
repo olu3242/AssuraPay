@@ -30,7 +30,7 @@ const definition: FlowDefinition = {
   ],
 };
 
-function setup(assuranceLevel: 'STANDARD' | 'ENHANCED' = 'STANDARD') {
+function setup() {
   const store = new InMemoryTrustStore();
   const registry = new FlowRegistry();
   registry.register(definition);
@@ -38,7 +38,17 @@ function setup(assuranceLevel: 'STANDARD' | 'ENHANCED' = 'STANDARD') {
     prepare: async () => 'COMPLETED',
     finish: async () => 'COMPLETED',
   });
-  return { store, engine, assuranceLevel };
+  return { store, engine };
+}
+
+async function grantReviewer(store: InMemoryTrustStore) {
+  await store.append('memberships', {
+    id: 'membership-reviewer',
+    workspaceId: 'w',
+    userId: 'operator',
+    status: 'ACTIVE',
+    role: 'REVIEWER',
+  });
 }
 
 async function start(engine: FlowOrchestrationEngine, assuranceLevel: 'STANDARD' | 'ENHANCED') {
@@ -53,8 +63,16 @@ async function start(engine: FlowOrchestrationEngine, assuranceLevel: 'STANDARD'
 }
 
 describe('Flow Orchestration OS', () => {
+  it('does not skip an assurance gate until its dependencies are complete', async () => {
+    const { engine } = setup();
+    const flow = await start(engine, 'STANDARD');
+    const steps = await engine.steps(context, flow.id);
+    expect(steps.find((step) => step.stepDefinitionId === 'approval')?.state).toBe('PENDING');
+    expect(steps.find((step) => step.stepDefinitionId === 'finish')?.state).toBe('PENDING');
+  });
+
   it('runs deterministic steps, waits durably for signals, skips higher-assurance gates and completes', async () => {
-    const { engine } = setup('STANDARD');
+    const { engine } = setup();
     let flow = await start(engine, 'STANDARD');
     expect(flow.state).toBe('RUNNING');
 
@@ -74,8 +92,20 @@ describe('Flow Orchestration OS', () => {
     expect(flow.state).toBe('COMPLETED');
   });
 
+  it('requires the task role before accepting a governed human decision', async () => {
+    const { engine } = setup();
+    let flow = await start(engine, 'ENHANCED');
+    await engine.dispatch(context, flow.id, 'prepare');
+    await engine.dispatch(context, flow.id, 'evidence');
+    flow = await engine.signal(context, { flowId: flow.id, eventType: 'EVIDENCE_SUBMITTED', idempotencyKey: 'signal-role' });
+    const task = await engine.dispatch(context, flow.id, 'approval');
+    if (!('id' in task)) throw new Error('TASK_ID_MISSING');
+    await expect(engine.decide(context, task.id, 'APPROVE')).rejects.toThrow('HUMAN_TASK_REQUIRED_ROLE_MISSING');
+  });
+
   it('requires a governed human decision on enhanced-assurance flows', async () => {
-    const { store, engine } = setup('ENHANCED');
+    const { store, engine } = setup();
+    await grantReviewer(store);
     let flow = await start(engine, 'ENHANCED');
     await engine.dispatch(context, flow.id, 'prepare');
     await engine.dispatch(context, flow.id, 'evidence');
@@ -95,7 +125,7 @@ describe('Flow Orchestration OS', () => {
   });
 
   it('deduplicates start commands and external signals', async () => {
-    const { store, engine } = setup('STANDARD');
+    const { store, engine } = setup();
     const first = await start(engine, 'STANDARD');
     const second = await start(engine, 'STANDARD');
     expect(second.id).toBe(first.id);
