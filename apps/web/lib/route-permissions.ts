@@ -1,42 +1,5 @@
 import type { PermissionRequirement } from '@assurapay/permissions';
 
-/**
- * Engine 03 — route-level permission policy.
- *
- * The authorization policy table for the HTTP surface. Every route is classified
- * explicitly; there is no default that lets an unmapped route through.
- *
- * This module is deliberately pure — a table and a resolver, no engines and no
- * composition-root imports — so the policy can be tested and reviewed on its own.
- * Enforcement lives in `trust-app.ts`, which composes this with the identity
- * gateway and the permission authority.
- *
- * ## Three classes, stated rather than inferred
- *
- * - `public` — no authentication. Only sign-in and registration: you cannot be
- *   authenticated in order to authenticate.
- * - `identity` — authenticated, no permission required. Reserved for routes that
- *   read the caller's own identity or membership. Requiring a permission here
- *   would be circular, since permission evaluation needs membership.
- * - `permission` — an explicit `resource:action` requirement, deny-by-default.
- *
- * ## Keys
- *
- * `resource:action`, where resource is the collection segment and action is the
- * operation. A trailing path segment names the action (`/[id]/approve` →
- * `approve`); a bare collection takes `create` for POST and `read` for GET.
- * Noun-shaped segments are normalised to the verb they perform, so
- * `/[id]/decisions` is `decide`, not `decisions`.
- *
- * ## Segregation of duties
- *
- * Money movement carries explicit conflicts, per CLAUDE.md constraint 2: the
- * principal who approves a release may not be the one who executes the payment,
- * and the principal who drafts an artefact may not be the one who decides it.
- * These are checked through the permission authority's segregation rules, so an
- * empty rule set means they are recorded here but not yet enforced by data.
- */
-
 export type RouteAccess =
   | { access: 'public' }
   | { access: 'identity' }
@@ -44,11 +7,6 @@ export type RouteAccess =
 
 export type RouteAccessErrorCode = 'ROUTE_NOT_MAPPED' | 'ROUTE_METHOD_NOT_MAPPED';
 
-/**
- * Raised when no policy covers a request. Fail closed: an unmapped route is a
- * denial, never an implicit allow, so adding a route without a policy entry is a
- * visible failure rather than a silent hole.
- */
 export class RouteAccessError extends Error {
   readonly code: RouteAccessErrorCode;
   readonly detail?: string;
@@ -62,11 +20,9 @@ export class RouteAccessError extends Error {
 }
 
 /**
- * Policy table, keyed `<route template>|<method>`. `[id]` and other bracketed
- * segments match exactly one path segment.
- *
- * Generated from the route tree and reviewed by hand; regenerate deliberately, not
- * automatically, because a permission key is a policy decision.
+ * Canonical deny-by-default HTTP authorization policy.
+ * Every protected route is declared here and every handler resolves its requirement
+ * through `authorizedContextForRoute`; no feature owns a parallel route policy.
  */
 export const ROUTE_PERMISSION_REQUIREMENTS: Readonly<Record<string, RouteAccess>> = {
   '/api/v1/acceptance-criteria/[id]/confirm|POST': { access: 'permission', permissionKey: 'acceptance-criteria:confirm' },
@@ -78,23 +34,13 @@ export const ROUTE_PERMISSION_REQUIREMENTS: Readonly<Record<string, RouteAccess>
   '/api/v1/approval-requests/[id]/decisions|POST': { access: 'permission', permissionKey: 'approval-requests:decide' },
   '/api/v1/approval-requests|POST': { access: 'permission', permissionKey: 'approval-requests:create' },
   '/api/v1/approval-thresholds|POST': { access: 'permission', permissionKey: 'approval-thresholds:create' },
-  // Health probes. Public because an orchestrator polling readiness has no session and
-  // cannot obtain one — and because a readiness endpoint that required authorization
-  // would report unready for the wrong reason during exactly the outage it exists to
-  // detect. Neither publishes a connection string, credential or internal hostname; see
-  // apps/web/app/api/health/*/route.ts.
   '/api/health/live|GET': { access: 'public' },
   '/api/health/ready|GET': { access: 'public' },
   '/api/v1/auth/login|POST': { access: 'public' },
-  // Public because the credential it authenticates is the session cookie, not an
-  // assertion. Requiring an assertion to obtain an assertion is circular.
   '/api/v1/auth/assertion|POST': { access: 'public' },
   '/api/v1/auth/logout|POST': { access: 'identity' },
   '/api/v1/auth/register|POST': { access: 'public' },
   '/api/v1/auth/session|GET': { access: 'identity' },
-  // Public because the token *is* the credential: the caller is proving possession of an email
-  // address and by definition has no session yet. Requiring one would make the route unreachable
-  // by the only person who should ever call it.
   '/api/v1/auth/verify-email|POST': { access: 'public' },
   '/api/v1/authorization-decisions/[id]/approve|POST': { access: 'permission', permissionKey: 'authorization-decisions:approve', segregatedFrom: ['payment-instructions:submit'] },
   '/api/v1/authorization-decisions/[id]/reject|POST': { access: 'permission', permissionKey: 'authorization-decisions:reject' },
@@ -120,12 +66,6 @@ export const ROUTE_PERMISSION_REQUIREMENTS: Readonly<Record<string, RouteAccess>
   '/api/v1/contract-risks|POST': { access: 'permission', permissionKey: 'contract-risks:create' },
   '/api/v1/contract-templates/versions|POST': { access: 'permission', permissionKey: 'contract-templates:create-version' },
   '/api/v1/contract-versions|POST': { access: 'permission', permissionKey: 'contract-versions:create' },
-  // `/api/v1/contracts/[id]/approve` is retired rather than re-pointed. It set `status = 'APPROVED'` with an
-  // actor and a timestamp and nothing else, while the durable path — `/api/v1/approval-requests` then
-  // `/api/v1/approval-requests/[id]/decisions` — requires an approval policy and a document version, records
-  // an `ApprovalRequest`, and holds a decision immutable once made. Approving a contract with no policy, no
-  // required roles and no decision record is an approval trail that cannot be relied on, so the shortcut is
-  // removed instead of given a durable home. See `docs/persistence/DOMAIN_STORE_RETIREMENT.md`.
   '/api/v1/contracts|GET': { access: 'permission', permissionKey: 'contracts:read' },
   '/api/v1/contracts|POST': { access: 'permission', permissionKey: 'contracts:create' },
   '/api/v1/corrective-action-plans/[id]/complete|POST': { access: 'permission', permissionKey: 'corrective-action-plans:complete' },
@@ -168,6 +108,11 @@ export const ROUTE_PERMISSION_REQUIREMENTS: Readonly<Record<string, RouteAccess>
   '/api/v1/execution-workspaces|POST': { access: 'permission', permissionKey: 'execution-workspaces:create' },
   '/api/v1/executions/[id]/transition|POST': { access: 'permission', permissionKey: 'executions:transition' },
   '/api/v1/executions|POST': { access: 'permission', permissionKey: 'executions:create' },
+  '/api/v1/flow-tasks/[id]/decisions|POST': { access: 'permission', permissionKey: 'authorization-decisions:approve', segregatedFrom: ['payment-instructions:submit'] },
+  '/api/v1/flows/[id]/resume|POST': { access: 'permission', permissionKey: 'executions:transition' },
+  '/api/v1/flows/[id]/signals|POST': { access: 'permission', permissionKey: 'executions:transition' },
+  '/api/v1/flows/[id]/suspend|POST': { access: 'permission', permissionKey: 'executions:transition' },
+  '/api/v1/flows|POST': { access: 'permission', permissionKey: 'executions:create' },
   '/api/v1/final-settlement-accounts/[id]/close|POST': { access: 'permission', permissionKey: 'final-settlement-accounts:close' },
   '/api/v1/final-settlement-accounts|POST': { access: 'permission', permissionKey: 'final-settlement-accounts:create' },
   '/api/v1/financial-closure-certificates|POST': { access: 'permission', permissionKey: 'financial-closure-certificates:create' },
@@ -196,14 +141,9 @@ export const ROUTE_PERMISSION_REQUIREMENTS: Readonly<Record<string, RouteAccess>
   '/api/v1/legal/policies|POST': { access: 'permission', permissionKey: 'legal:create' },
   '/api/v1/legal/policy-versions/[id]/accept|POST': { access: 'permission', permissionKey: 'legal:accept' },
   '/api/v1/me/workspaces|GET': { access: 'identity' },
-  // Founding creates the first grant in a workspace, so it cannot require one.
-  // The owner-membership and no-existing-grant guards are what make it safe.
   '/api/v1/workspaces/[id]/found|POST': { access: 'identity' },
   '/api/v1/roles|GET': { access: 'permission', permissionKey: 'roles:read' },
-  '/api/v1/roles/assignments|POST': {
-    access: 'permission',
-    permissionKey: 'roles:assign',
-  },
+  '/api/v1/roles/assignments|POST': { access: 'permission', permissionKey: 'roles:assign' },
   '/api/v1/milestones/[id]/assurance|GET': { access: 'permission', permissionKey: 'milestones:assurance' },
   '/api/v1/milestones|POST': { access: 'permission', permissionKey: 'milestones:create' },
   '/api/v1/model-feedback|POST': { access: 'permission', permissionKey: 'model-feedback:create' },
@@ -213,12 +153,6 @@ export const ROUTE_PERMISSION_REQUIREMENTS: Readonly<Record<string, RouteAccess>
   '/api/v1/organizations|POST': { access: 'permission', permissionKey: 'organizations:create' },
   '/api/v1/parties/[id]/verification-requests|POST': { access: 'permission', permissionKey: 'parties:request-verification' },
   '/api/v1/parties|POST': { access: 'permission', permissionKey: 'parties:create' },
-  // Founding a tenant creates the first workspace, which is what a grant is scoped to and what membership is
-  // resolved against — so requiring `workspaces:create` here would be a requirement no caller could ever
-  // satisfy, and a durable deployment could not be started at all. What makes it safe is that the tenant is
-  // minted server-side and cannot be named by the caller, so the scope the route enters is empty by
-  // construction and the caller becomes its owner. See the route and
-  // `docs/persistence/DOMAIN_STORE_RETIREMENT.md`.
   '/api/v1/tenants|POST': { access: 'identity' },
   '/api/v1/payment-eligibilities|POST': { access: 'permission', permissionKey: 'payment-eligibilities:create' },
   '/api/v1/payment-eligibility/[id]/blockers|GET': { access: 'permission', permissionKey: 'payment-eligibility:blockers' },
@@ -263,7 +197,6 @@ export const ROUTE_PERMISSION_REQUIREMENTS: Readonly<Record<string, RouteAccess>
   '/api/v1/workspaces|POST': { access: 'permission', permissionKey: 'workspaces:create' },
 };
 
-/** Templates split once, so resolution is a comparison rather than a re-parse. */
 const TEMPLATES = Object.keys(ROUTE_PERMISSION_REQUIREMENTS).map((key) => {
   const [template, method] = key.split('|');
   return { key, method, segments: template.split('/').filter(Boolean) };
@@ -273,14 +206,6 @@ function segmentsOf(pathname: string): string[] {
   return pathname.split('?')[0].split('/').filter(Boolean);
 }
 
-/**
- * Resolves the policy for a request, or throws.
- *
- * Matching is exact on segment count and on every literal segment; a bracketed
- * template segment matches one non-empty segment. A known path with an unmapped
- * method is reported distinctly from an entirely unknown path, because the two
- * mean different things to whoever has to fix it.
- */
 export function requirementForRoute(pathname: string, method: string): RouteAccess {
   const segments = segmentsOf(pathname);
   const verb = method.toUpperCase();
@@ -288,18 +213,14 @@ export function requirementForRoute(pathname: string, method: string): RouteAcce
 
   for (const template of TEMPLATES) {
     if (template.segments.length !== segments.length) continue;
-
     const matches = template.segments.every(
       (segment, index) =>
         (segment.startsWith('[') && segment.endsWith(']') && segments[index].length > 0) ||
         segment === segments[index],
     );
     if (!matches) continue;
-
     pathMatched = true;
-    if (template.method === verb) {
-      return ROUTE_PERMISSION_REQUIREMENTS[template.key];
-    }
+    if (template.method === verb) return ROUTE_PERMISSION_REQUIREMENTS[template.key];
   }
 
   throw new RouteAccessError(
@@ -308,7 +229,6 @@ export function requirementForRoute(pathname: string, method: string): RouteAcce
   );
 }
 
-/** Every distinct permission key the HTTP surface requires. */
 export function routePermissionKeys(): string[] {
   return [
     ...new Set(
