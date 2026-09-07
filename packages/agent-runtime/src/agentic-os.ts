@@ -8,6 +8,10 @@ const workspaceId = (context: RequestContext) => {
   requireActiveWorkspace(context);
   return context.activeWorkspaceId;
 };
+const tenantId = (context: RequestContext) => {
+  if (!context.tenantId) throw new Error('TENANT_CONTEXT_REQUIRED');
+  return context.tenantId;
+};
 
 export const ASSURA_PERSONAS = [
   'BUYER',
@@ -44,6 +48,7 @@ export type AgentActionClass =
 
 export interface PersonaAgentProfile {
   id: string;
+  tenantId: string;
   workspaceId: string;
   persona: AssuraPersona;
   name: string;
@@ -103,7 +108,7 @@ export class PersonaAgentRegistryEngine {
     context: RequestContext,
     input: Omit<
       PersonaAgentProfile,
-      'id' | 'workspaceId' | 'active' | 'version' | 'createdAt'
+      'id' | 'tenantId' | 'workspaceId' | 'active' | 'version' | 'createdAt'
     >,
   ) {
     if (!ASSURA_PERSONAS.includes(input.persona)) throw new Error('PERSONA_INVALID');
@@ -121,6 +126,7 @@ export class PersonaAgentRegistryEngine {
 
     const profile: PersonaAgentProfile = {
       id: randomUUID(),
+      tenantId: tenantId(context),
       workspaceId: workspaceId(context),
       ...input,
       allowedRoles: [...new Set(input.allowedRoles)].sort(),
@@ -131,6 +137,21 @@ export class PersonaAgentRegistryEngine {
     };
 
     await this.store.append('personaAgentProfiles', profile);
+    await this.store.audit({
+      tenantId: context.tenantId,
+      workspaceId: context.activeWorkspaceId,
+      actorId: context.actorUserId,
+      eventType: 'PersonaAgentProfileRegistered',
+      aggregateType: 'PersonaAgentProfile',
+      aggregateId: profile.id,
+      correlationId: context.correlationId,
+      metadata: {
+        persona: profile.persona,
+        version: profile.version,
+        autonomyLevel: profile.autonomyLevel,
+        maxRisk: profile.maxRisk,
+      },
+    });
     return profile;
   }
 
@@ -152,6 +173,21 @@ export class PersonaAgentRegistryEngine {
 
     const active = { ...target, active: true };
     await this.store.replace('personaAgentProfiles', active);
+    await this.store.audit({
+      tenantId: context.tenantId,
+      workspaceId: context.activeWorkspaceId,
+      actorId: context.actorUserId,
+      eventType: 'PersonaAgentProfileActivated',
+      aggregateType: 'PersonaAgentProfile',
+      aggregateId: active.id,
+      correlationId: context.correlationId,
+      metadata: {
+        persona: active.persona,
+        version: active.version,
+        autonomyLevel: active.autonomyLevel,
+        maxRisk: active.maxRisk,
+      },
+    });
     return active;
   }
 
