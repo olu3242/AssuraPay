@@ -19,6 +19,14 @@ function event(eventId: string, eventType: string) {
 describe('canonical AssuraPay domain-event chain', () => {
   it('advances only from authoritative events and requires enhanced approval when assurance demands it', async () => {
     const store = new InMemoryTrustStore();
+    await store.append('memberships', {
+      id: 'm-operator-w-release-approver',
+      workspaceId: 'w',
+      userId: context.actorUserId,
+      membershipType: 'RELEASE_APPROVER',
+      role: 'RELEASE_APPROVER',
+      status: 'ACTIVE',
+    });
     const registry = new FlowRegistry();
     registry.register(COMMERCIAL_COMMITMENT_FLOW_V1);
     const flows = new FlowOrchestrator(store, registry);
