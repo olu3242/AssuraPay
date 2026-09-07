@@ -1,0 +1,247 @@
+export type CurrencyCode =
+  | 'USD'
+  | 'CAD'
+  | 'GBP'
+  | 'EUR'
+  | 'NGN'
+  | 'GHS'
+  | 'KES'
+  | 'ZAR'
+  | 'JPY'
+  | 'BHD';
+
+export type CurrencyDefinition = {
+  code: CurrencyCode;
+  exponent: 0 | 2 | 3;
+  status: 'ACTIVE' | 'RESTRICTED' | 'INACTIVE';
+  symbol: string;
+  name: string;
+};
+
+export type Money = Readonly<{
+  amountMinor: bigint;
+  currency: CurrencyCode;
+}>;
+
+const CURRENCIES: Readonly<Record<CurrencyCode, CurrencyDefinition>> = Object.freeze({
+  USD: { code: 'USD', exponent: 2, status: 'ACTIVE', symbol: '$', name: 'US Dollar' },
+  CAD: { code: 'CAD', exponent: 2, status: 'ACTIVE', symbol: '$', name: 'Canadian Dollar' },
+  GBP: { code: 'GBP', exponent: 2, status: 'ACTIVE', symbol: '£', name: 'Pound Sterling' },
+  EUR: { code: 'EUR', exponent: 2, status: 'ACTIVE', symbol: '€', name: 'Euro' },
+  NGN: { code: 'NGN', exponent: 2, status: 'ACTIVE', symbol: '₦', name: 'Nigerian Naira' },
+  GHS: { code: 'GHS', exponent: 2, status: 'ACTIVE', symbol: '₵', name: 'Ghanaian Cedi' },
+  KES: { code: 'KES', exponent: 2, status: 'ACTIVE', symbol: 'KSh', name: 'Kenyan Shilling' },
+  ZAR: { code: 'ZAR', exponent: 2, status: 'ACTIVE', symbol: 'R', name: 'South African Rand' },
+  JPY: { code: 'JPY', exponent: 0, status: 'ACTIVE', symbol: '¥', name: 'Japanese Yen' },
+  BHD: { code: 'BHD', exponent: 3, status: 'ACTIVE', symbol: 'BD', name: 'Bahraini Dinar' },
+});
+
+export class CurrencyRegistryEngine {
+  listSupportedCurrencies(): CurrencyDefinition[] {
+    return Object.values(CURRENCIES).filter((currency) => currency.status === 'ACTIVE');
+  }
+
+  getCurrency(code: string): CurrencyDefinition {
+    const currency = CURRENCIES[code as CurrencyCode];
+    if (!currency || currency.status !== 'ACTIVE') throw new Error('CURRENCY_UNSUPPORTED');
+    return currency;
+  }
+
+  getMinorUnitExponent(code: string): number {
+    return this.getCurrency(code).exponent;
+  }
+
+  validateMoney(input: { amountMinor: bigint; currency: string }): Money {
+    const currency = this.getCurrency(input.currency).code;
+    if (input.amountMinor < 0n) throw new Error('MONEY_NEGATIVE_BASE_AMOUNT');
+    return Object.freeze({ amountMinor: input.amountMinor, currency });
+  }
+}
+
+export type ExactRate = Readonly<{
+  numerator: bigint;
+  denominator: bigint;
+}>;
+
+export function exactRate(numerator: bigint, denominator: bigint): ExactRate {
+  if (numerator <= 0n || denominator <= 0n) throw new Error('FX_RATE_INVALID');
+  return Object.freeze({ numerator, denominator });
+}
+
+export type RoundingMode = 'HALF_UP' | 'DOWN';
+
+export type ConversionResult = Readonly<{
+  source: Money;
+  target: Money;
+  rate: ExactRate;
+  roundingMode: RoundingMode;
+  remainderNumerator: bigint;
+}>;
+
+export function convertMoney(source: Money, targetCurrency: CurrencyCode, rate: ExactRate, roundingMode: RoundingMode = 'HALF_UP'): ConversionResult {
+  if (source.currency === targetCurrency) {
+    if (rate.numerator !== rate.denominator) throw new Error('FX_SAME_CURRENCY_RATE_MUST_BE_ONE');
+    return Object.freeze({
+      source,
+      target: Object.freeze({ amountMinor: source.amountMinor, currency: targetCurrency }),
+      rate,
+      roundingMode,
+      remainderNumerator: 0n,
+    });
+  }
+
+  const rawNumerator = source.amountMinor * rate.numerator;
+  const quotient = rawNumerator / rate.denominator;
+  const remainder = rawNumerator % rate.denominator;
+  const rounded = roundingMode === 'HALF_UP' && remainder * 2n >= rate.denominator ? quotient + 1n : quotient;
+
+  return Object.freeze({
+    source,
+    target: Object.freeze({ amountMinor: rounded, currency: targetCurrency }),
+    rate,
+    roundingMode,
+    remainderNumerator: remainder,
+  });
+}
+
+export type FxQuoteStatus = 'QUOTED' | 'ACCEPTED' | 'AUTHORIZED' | 'EXPIRED' | 'REJECTED';
+
+export type FxQuote = Readonly<{
+  id: string;
+  tenantId: string;
+  workspaceId: string;
+  providerId: string;
+  source: Money;
+  target: Money;
+  rate: ExactRate;
+  rateSource: string;
+  observedAt: string;
+  expiresAt: string;
+  status: FxQuoteStatus;
+  idempotencyKey: string;
+  semanticDigest: string;
+  acceptedBy?: string;
+  authorizedBy?: string;
+}>;
+
+export type FxConversionStatus = 'INSTRUCTED' | 'CONFIRMED' | 'FAILED' | 'REVERSED';
+
+export type FxConversion = Readonly<{
+  id: string;
+  tenantId: string;
+  workspaceId: string;
+  quoteId: string;
+  providerId: string;
+  source: Money;
+  target: Money;
+  rate: ExactRate;
+  rateSource: string;
+  rateTimestamp: string;
+  roundingMode: RoundingMode;
+  status: FxConversionStatus;
+  providerReference?: string;
+  confirmedAt?: string;
+}>;
+
+export class ForeignExchangeEngine {
+  quote(input: Omit<FxQuote, 'target' | 'status'> & { targetCurrency: CurrencyCode; roundingMode?: RoundingMode }): FxQuote {
+    if (new Date(input.expiresAt).getTime() <= new Date(input.observedAt).getTime()) throw new Error('FX_QUOTE_EXPIRY_INVALID');
+    const conversion = convertMoney(input.source, input.targetCurrency, input.rate, input.roundingMode ?? 'HALF_UP');
+    return Object.freeze({
+      id: input.id,
+      tenantId: input.tenantId,
+      workspaceId: input.workspaceId,
+      providerId: input.providerId,
+      source: input.source,
+      target: conversion.target,
+      rate: input.rate,
+      rateSource: input.rateSource,
+      observedAt: input.observedAt,
+      expiresAt: input.expiresAt,
+      status: 'QUOTED',
+      idempotencyKey: input.idempotencyKey,
+      semanticDigest: input.semanticDigest,
+    });
+  }
+
+  accept(quote: FxQuote, actorId: string, at = new Date().toISOString()): FxQuote {
+    if (quote.status !== 'QUOTED') throw new Error('FX_QUOTE_NOT_ACCEPTABLE');
+    if (new Date(at).getTime() >= new Date(quote.expiresAt).getTime()) return Object.freeze({ ...quote, status: 'EXPIRED' });
+    return Object.freeze({ ...quote, status: 'ACCEPTED', acceptedBy: actorId });
+  }
+
+  authorize(quote: FxQuote, actorId: string): FxQuote {
+    if (quote.status !== 'ACCEPTED') throw new Error('FX_QUOTE_NOT_AUTHORIZABLE');
+    if (quote.acceptedBy === actorId) throw new Error('FX_SEGREGATION_OF_DUTIES_REQUIRED');
+    return Object.freeze({ ...quote, status: 'AUTHORIZED', authorizedBy: actorId });
+  }
+
+  instruct(quote: FxQuote, conversionId: string, roundingMode: RoundingMode = 'HALF_UP'): FxConversion {
+    if (quote.status !== 'AUTHORIZED') throw new Error('FX_QUOTE_NOT_AUTHORIZED');
+    return Object.freeze({
+      id: conversionId,
+      tenantId: quote.tenantId,
+      workspaceId: quote.workspaceId,
+      quoteId: quote.id,
+      providerId: quote.providerId,
+      source: quote.source,
+      target: quote.target,
+      rate: quote.rate,
+      rateSource: quote.rateSource,
+      rateTimestamp: quote.observedAt,
+      roundingMode,
+      status: 'INSTRUCTED',
+    });
+  }
+
+  confirm(conversion: FxConversion, providerReference: string, confirmedAt = new Date().toISOString()): FxConversion {
+    if (conversion.status !== 'INSTRUCTED') throw new Error('FX_CONVERSION_NOT_CONFIRMABLE');
+    if (!providerReference.trim()) throw new Error('FX_PROVIDER_REFERENCE_REQUIRED');
+    return Object.freeze({ ...conversion, status: 'CONFIRMED', providerReference, confirmedAt });
+  }
+}
+
+export type CurrencyPair = `${CurrencyCode}/${CurrencyCode}`;
+
+export type ProviderCurrencyCapability = Readonly<{
+  providerId: string;
+  supportedSourceCurrencies: readonly CurrencyCode[];
+  supportedDestinationCurrencies: readonly CurrencyCode[];
+  supportedPairs: readonly CurrencyPair[];
+  settlementRails: readonly string[];
+  supportsFx: boolean;
+  quoteCapability: boolean;
+}>;
+
+export class ProviderCurrencyRouter {
+  select(input: {
+    sourceCurrency: CurrencyCode;
+    destinationCurrency: CurrencyCode;
+    requiredRail?: string;
+    providers: readonly ProviderCurrencyCapability[];
+  }): ProviderCurrencyCapability {
+    const pair = `${input.sourceCurrency}/${input.destinationCurrency}` as CurrencyPair;
+    const candidates = input.providers.filter((provider) => {
+      const sourceSupported = provider.supportedSourceCurrencies.includes(input.sourceCurrency);
+      const destinationSupported = provider.supportedDestinationCurrencies.includes(input.destinationCurrency);
+      const pairSupported = input.sourceCurrency === input.destinationCurrency || provider.supportedPairs.includes(pair);
+      const fxSupported = input.sourceCurrency === input.destinationCurrency || provider.supportsFx;
+      const railSupported = !input.requiredRail || provider.settlementRails.includes(input.requiredRail);
+      return sourceSupported && destinationSupported && pairSupported && fxSupported && railSupported;
+    });
+    if (candidates.length === 0) throw new Error('FX_PROVIDER_CAPABILITY_NOT_FOUND');
+    return [...candidates].sort((a, b) => a.providerId.localeCompare(b.providerId))[0];
+  }
+}
+
+export type MultiCurrencyObligation = Readonly<{
+  id: string;
+  amounts: readonly Money[];
+}>;
+
+export function sumSameCurrency(amounts: readonly Money[]): Money {
+  if (amounts.length === 0) throw new Error('MONEY_SUM_EMPTY');
+  const currency = amounts[0].currency;
+  if (amounts.some((money) => money.currency !== currency)) throw new Error('CROSS_CURRENCY_SUM_REQUIRES_CONVERSION');
+  return Object.freeze({ currency, amountMinor: amounts.reduce((sum, money) => sum + money.amountMinor, 0n) });
+}
