@@ -57,6 +57,30 @@ describe('governPaymentIssueRequest', () => {
     });
   });
 
+  it('handles different minor-unit exponents without floating point', () => {
+    const result = governPaymentIssueRequest(
+      {
+        ...base,
+        amountMinor: 100,
+        settlementCurrency: 'JPY',
+        fxQuote: {
+          id: 'fx-jpy',
+          status: 'AUTHORIZED',
+          providerId: 'provider-a',
+          sourceAmountMinor: 100,
+          sourceCurrency: 'USD',
+          targetAmountMinor: 150,
+          targetCurrency: 'JPY',
+          rateNumerator: '150',
+          rateDenominator: '1',
+          expiresAt: '2026-09-07T22:00:00.000Z',
+        },
+      },
+      '2026-09-07T20:00:00.000Z',
+    );
+    expect(result.paymentInput).toMatchObject({ amountMinor: 150, currency: 'JPY' });
+  });
+
   it('rejects cross-currency payments without an FX quote', () => {
     expect(() =>
       governPaymentIssueRequest(
