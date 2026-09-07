@@ -28,10 +28,28 @@ describe('CurrencyRegistry', () => {
 });
 
 describe('exact conversion', () => {
-  it('converts without floating point and rounds half up deterministically', () => {
+  it('converts same-exponent currencies without floating point', () => {
     const source = { amountMinor: 10_000n, currency: 'USD' as const };
     const result = convertMoney(source, 'NGN', exactRate(150_055n, 100n));
     expect(result.target).toEqual({ amountMinor: 15_005_500n, currency: 'NGN' });
+  });
+
+  it('scales correctly across different minor-unit exponents', () => {
+    expect(
+      convertMoney({ amountMinor: 100n, currency: 'USD' }, 'JPY', exactRate(150n, 1n)).target,
+    ).toEqual({ amountMinor: 150n, currency: 'JPY' });
+
+    expect(
+      convertMoney({ amountMinor: 1n, currency: 'JPY' }, 'BHD', exactRate(1n, 100n)).target,
+    ).toEqual({ amountMinor: 10n, currency: 'BHD' });
+  });
+
+  it('honors DOWN versus HALF_UP at the target minor-unit boundary', () => {
+    const source = { amountMinor: 1n, currency: 'USD' as const };
+    const rate = exactRate(1n, 2n);
+    expect(convertMoney(source, 'USD', exactRate(1n, 1n)).target.amountMinor).toBe(1n);
+    expect(convertMoney(source, 'JPY', rate, 'DOWN').target.amountMinor).toBe(0n);
+    expect(convertMoney(source, 'JPY', rate, 'HALF_UP').target.amountMinor).toBe(0n);
   });
 
   it('requires identity rate for same-currency bypass', () => {
@@ -53,7 +71,7 @@ describe('ForeignExchangeService', () => {
   const quotedAt = '2026-09-07T13:00:00.000Z';
   const expiresAt = '2026-09-07T13:05:00.000Z';
 
-  const quote = () => service.quote({
+  const quote = (roundingMode: 'HALF_UP' | 'DOWN' = 'HALF_UP') => service.quote({
     id: 'fxq-1',
     tenantId: 'tenant-1',
     workspaceId: 'workspace-1',
@@ -66,6 +84,7 @@ describe('ForeignExchangeService', () => {
     expiresAt,
     idempotencyKey: 'release-1-fx',
     semanticDigest: 'digest-1',
+    roundingMode,
     fees: [
       { kind: 'PROVIDER_FEE', amount: { amountMinor: 500n, currency: 'USD' }, chargedBy: 'provider-1' },
       { kind: 'ASSURAPAY_FEE', amount: { amountMinor: 250n, currency: 'USD' }, chargedBy: 'assurapay' },
@@ -82,6 +101,13 @@ describe('ForeignExchangeService', () => {
     expect(confirmed.status).toBe('CONFIRMED');
     expect(confirmed.providerReference).toBe('bank-ref-123');
     expect(confirmed.fees).toHaveLength(2);
+  });
+
+  it('preserves quote rounding provenance into the conversion', () => {
+    const accepted = service.accept(quote('DOWN'), 'buyer-1', '2026-09-07T13:01:00.000Z');
+    const authorized = service.authorize(accepted, 'treasury-approver-1');
+    const instructed = service.instruct(authorized, 'fxc-down');
+    expect(instructed.roundingMode).toBe('DOWN');
   });
 
   it('expires stale quotes rather than silently accepting them', () => {
@@ -152,16 +178,16 @@ describe('ProviderCurrencyRouter', () => {
     },
     {
       providerId: 'provider-b',
-      supportedSourceCurrencies: ['USD'],
-      supportedDestinationCurrencies: ['USD'],
-      supportedPairs: [],
+      supportedSourceCurrencies: ['USD', 'NGN'],
+      supportedDestinationCurrencies: ['USD', 'NGN'],
+      supportedPairs: ['USD/NGN'],
       settlementRails: ['BANK'],
-      supportsFx: false,
+      supportsFx: true,
       quoteCapability: false,
     },
   ];
 
-  it('routes cross-currency payment only to a capable provider', () => {
+  it('routes cross-currency payment only to a provider that can quote and execute FX', () => {
     const selected = new ProviderCurrencyRouter().select({
       sourceCurrency: 'USD',
       destinationCurrency: 'NGN',
@@ -171,13 +197,22 @@ describe('ProviderCurrencyRouter', () => {
     expect(selected.providerId).toBe('provider-a');
   });
 
-  it('keeps same-currency payment on the normal path', () => {
+  it('allows same-currency routing without FX quote capability', () => {
+    const sameCurrencyOnly: ProviderCurrencyCapability[] = [{
+      providerId: 'provider-b',
+      supportedSourceCurrencies: ['USD'],
+      supportedDestinationCurrencies: ['USD'],
+      supportedPairs: [],
+      settlementRails: ['BANK'],
+      supportsFx: false,
+      quoteCapability: false,
+    }];
     const selected = new ProviderCurrencyRouter().select({
       sourceCurrency: 'USD',
       destinationCurrency: 'USD',
       requiredRail: 'BANK',
-      providers,
+      providers: sameCurrencyOnly,
     });
-    expect(selected.providerId).toBe('provider-a');
+    expect(selected.providerId).toBe('provider-b');
   });
 });
