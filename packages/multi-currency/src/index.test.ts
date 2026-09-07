@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
-  CurrencyRegistryEngine,
-  ForeignExchangeEngine,
+  CurrencyRegistry,
+  ForeignExchangeService,
   ProviderCurrencyRouter,
   convertMoney,
   exactRate,
@@ -9,8 +9,8 @@ import {
   type ProviderCurrencyCapability,
 } from './index';
 
-describe('CurrencyRegistryEngine', () => {
-  const registry = new CurrencyRegistryEngine();
+describe('CurrencyRegistry', () => {
+  const registry = new CurrencyRegistry();
 
   it('returns governed precision for 0, 2 and 3 decimal currencies', () => {
     expect(registry.getMinorUnitExponent('JPY')).toBe(0);
@@ -46,12 +46,12 @@ describe('exact conversion', () => {
   });
 });
 
-describe('ForeignExchangeEngine', () => {
-  const engine = new ForeignExchangeEngine();
+describe('ForeignExchangeService', () => {
+  const service = new ForeignExchangeService();
   const quotedAt = '2026-09-07T13:00:00.000Z';
   const expiresAt = '2026-09-07T13:05:00.000Z';
 
-  const quote = () => engine.quote({
+  const quote = () => service.quote({
     id: 'fxq-1',
     tenantId: 'tenant-1',
     workspaceId: 'workspace-1',
@@ -67,18 +67,18 @@ describe('ForeignExchangeEngine', () => {
   });
 
   it('enforces quote lifecycle and maker-checker authorization', () => {
-    const accepted = engine.accept(quote(), 'buyer-1', '2026-09-07T13:01:00.000Z');
+    const accepted = service.accept(quote(), 'buyer-1', '2026-09-07T13:01:00.000Z');
     expect(accepted.status).toBe('ACCEPTED');
-    expect(() => engine.authorize(accepted, 'buyer-1')).toThrow('FX_SEGREGATION_OF_DUTIES_REQUIRED');
-    const authorized = engine.authorize(accepted, 'treasury-approver-1');
-    const instructed = engine.instruct(authorized, 'fxc-1');
-    const confirmed = engine.confirm(instructed, 'bank-ref-123', '2026-09-07T13:03:00.000Z');
+    expect(() => service.authorize(accepted, 'buyer-1')).toThrow('FX_SEGREGATION_OF_DUTIES_REQUIRED');
+    const authorized = service.authorize(accepted, 'treasury-approver-1');
+    const instructed = service.instruct(authorized, 'fxc-1');
+    const confirmed = service.confirm(instructed, 'bank-ref-123', '2026-09-07T13:03:00.000Z');
     expect(confirmed.status).toBe('CONFIRMED');
     expect(confirmed.providerReference).toBe('bank-ref-123');
   });
 
   it('expires stale quotes rather than silently accepting them', () => {
-    const expired = engine.accept(quote(), 'buyer-1', '2026-09-07T13:06:00.000Z');
+    const expired = service.accept(quote(), 'buyer-1', '2026-09-07T13:06:00.000Z');
     expect(expired.status).toBe('EXPIRED');
   });
 });
