@@ -3,8 +3,10 @@ import {
   CurrencyRegistry,
   ForeignExchangeService,
   ProviderCurrencyRouter,
+  convertForReporting,
   convertMoney,
   exactRate,
+  reconcileFxSettlement,
   sumSameCurrency,
   type ProviderCurrencyCapability,
 } from './index';
@@ -64,6 +66,10 @@ describe('ForeignExchangeService', () => {
     expiresAt,
     idempotencyKey: 'release-1-fx',
     semanticDigest: 'digest-1',
+    fees: [
+      { kind: 'PROVIDER_FEE', amount: { amountMinor: 500n, currency: 'USD' }, chargedBy: 'provider-1' },
+      { kind: 'ASSURAPAY_FEE', amount: { amountMinor: 250n, currency: 'USD' }, chargedBy: 'assurapay' },
+    ],
   });
 
   it('enforces quote lifecycle and maker-checker authorization', () => {
@@ -75,11 +81,61 @@ describe('ForeignExchangeService', () => {
     const confirmed = service.confirm(instructed, 'bank-ref-123', '2026-09-07T13:03:00.000Z');
     expect(confirmed.status).toBe('CONFIRMED');
     expect(confirmed.providerReference).toBe('bank-ref-123');
+    expect(confirmed.fees).toHaveLength(2);
   });
 
   it('expires stale quotes rather than silently accepting them', () => {
     const expired = service.accept(quote(), 'buyer-1', '2026-09-07T13:06:00.000Z');
     expect(expired.status).toBe('EXPIRED');
+  });
+});
+
+describe('cross-currency reconciliation', () => {
+  it('matches currency-qualified provider settlement exactly', () => {
+    const result = reconcileFxSettlement({
+      expectedSource: { amountMinor: 10_000n, currency: 'USD' },
+      actualSource: { amountMinor: 10_000n, currency: 'USD' },
+      expectedTarget: { amountMinor: 16_000_000n, currency: 'NGN' },
+      actualTarget: { amountMinor: 16_000_000n, currency: 'NGN' },
+    });
+    expect(result.matched).toBe(true);
+    expect(result.mismatches).toEqual([]);
+  });
+
+  it('flags wrong currency and amount variance instead of certifying it', () => {
+    const wrongCurrency = reconcileFxSettlement({
+      expectedSource: { amountMinor: 10_000n, currency: 'USD' },
+      actualSource: { amountMinor: 10_000n, currency: 'USD' },
+      expectedTarget: { amountMinor: 16_000_000n, currency: 'NGN' },
+      actualTarget: { amountMinor: 16_000_000n, currency: 'GHS' },
+    });
+    expect(wrongCurrency.matched).toBe(false);
+    expect(wrongCurrency.mismatches).toContain('TARGET_CURRENCY_MISMATCH');
+
+    const variance = reconcileFxSettlement({
+      expectedSource: { amountMinor: 10_000n, currency: 'USD' },
+      actualSource: { amountMinor: 10_000n, currency: 'USD' },
+      expectedTarget: { amountMinor: 16_000_000n, currency: 'NGN' },
+      actualTarget: { amountMinor: 15_999_000n, currency: 'NGN' },
+    });
+    expect(variance.matched).toBe(false);
+    expect(variance.targetVarianceMinor).toBe(-1_000n);
+  });
+});
+
+describe('reporting currency', () => {
+  it('preserves source fact and historical rate provenance', () => {
+    const result = convertForReporting({
+      source: { amountMinor: 10_000n, currency: 'USD' },
+      reportingCurrency: 'NGN',
+      rate: exactRate(160_000n, 100n),
+      rateSource: 'historical-provider-snapshot',
+      rateDate: '2026-09-07',
+      policy: 'TRANSACTION_DATE',
+    });
+    expect(result.source).toEqual({ amountMinor: 10_000n, currency: 'USD' });
+    expect(result.reporting.currency).toBe('NGN');
+    expect(result.rateDate).toBe('2026-09-07');
   });
 });
 
