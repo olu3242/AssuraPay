@@ -2,7 +2,7 @@
   "name": "@assurapay/flow-orchestration",
   "version": "0.1.0",
   "private": true,
-  "main": "src/public.ts",
+  "main": "src/index.ts",
   "dependencies": {
     "@assurapay/database": "workspace:*",
     "@assurapay/shared": "workspace:*"

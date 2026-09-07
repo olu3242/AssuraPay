@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { InMemoryTrustStore } from '@assurapay/database';
-import { FlowOrchestrationEngine, FlowRegistry } from './index';
+import { FlowOrchestrator, FlowRegistry } from './index';
 import { COMMERCIAL_COMMITMENT_FLOW_V1 } from './canonical-chain';
 import { DomainEventFlowBridge } from './domain-event-bridge';
 
@@ -21,7 +21,7 @@ describe('canonical AssuraPay domain-event chain', () => {
     const store = new InMemoryTrustStore();
     const registry = new FlowRegistry();
     registry.register(COMMERCIAL_COMMITMENT_FLOW_V1);
-    const flows = new FlowOrchestrationEngine(store, registry);
+    const flows = new FlowOrchestrator(store, registry);
     const bridge = new DomainEventFlowBridge(flows);
     const flow = await flows.start(context, {
       flowDefinitionId: COMMERCIAL_COMMITMENT_FLOW_V1.id,
@@ -67,7 +67,7 @@ describe('canonical AssuraPay domain-event chain', () => {
     const store = new InMemoryTrustStore();
     const registry = new FlowRegistry();
     registry.register(COMMERCIAL_COMMITMENT_FLOW_V1);
-    const flows = new FlowOrchestrationEngine(store, registry);
+    const flows = new FlowOrchestrator(store, registry);
     const bridge = new DomainEventFlowBridge(flows);
     const flow = await flows.start(context, {
       flowDefinitionId: COMMERCIAL_COMMITMENT_FLOW_V1.id, flowVersion: 1,

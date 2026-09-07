@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { PostgresTrustStore, createPostgresPool } from '../../database/src/index';
 import { createTestDatabase, requireTestDatabaseUrl } from '../../database-testing/src/index';
 import type { TestDatabase } from '../../database-testing/src/index';
-import { FlowOrchestrationEngine, FlowRegistry, type FlowDefinition } from './index';
+import { FlowOrchestrator, FlowRegistry, type FlowDefinition } from './index';
 
 requireTestDatabaseUrl();
 
@@ -47,7 +47,7 @@ describe('Flow OS PostgreSQL restart recovery', () => {
     databases.push(database);
 
     const firstStore = new PostgresTrustStore(database.sql);
-    const firstEngine = new FlowOrchestrationEngine(firstStore, registry());
+    const firstEngine = new FlowOrchestrator(firstStore, registry());
     const started = await firstEngine.start(context, {
       flowDefinitionId: RESTART_FLOW.id,
       flowVersion: RESTART_FLOW.version,
@@ -60,7 +60,7 @@ describe('Flow OS PostgreSQL restart recovery', () => {
     expect((await firstEngine.get(context, started.id)).state).toBe('WAITING_EVENT');
 
     // Simulate a replacement process: a fresh PostgreSQL pool, fresh store, fresh registry,
-    // and fresh FlowOrchestrationEngine. No state is transferred in memory.
+    // and fresh FlowOrchestrator. No state is transferred in memory.
     const replacementPool = createPostgresPool({
       databaseUrl: database.url,
       max: 2,
@@ -70,7 +70,7 @@ describe('Flow OS PostgreSQL restart recovery', () => {
 
     let irreversibleEffects = 0;
     const replacementStore = new PostgresTrustStore(replacementPool.sql);
-    const replacementEngine = new FlowOrchestrationEngine(replacementStore, registry(), {
+    const replacementEngine = new FlowOrchestrator(replacementStore, registry(), {
       effect: async () => {
         irreversibleEffects += 1;
         return 'COMPLETED';

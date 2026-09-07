@@ -166,7 +166,7 @@ async function transition(
   });
 }
 
-export class AssuranceRoutingEngine {
+export class AssuranceRouter {
   evaluate(input: {
     transactionAmountMinor: number;
     activeExposureMinor: number;
@@ -194,7 +194,7 @@ export class AssuranceRoutingEngine {
   }
 }
 
-export class FlowOrchestrationEngine {
+export class FlowOrchestrator {
   constructor(
     private readonly store: TrustPersistence,
     private readonly registry: FlowRegistry,
@@ -506,7 +506,7 @@ export class FlowOrchestrationEngine {
   }
 }
 
-export const COMMERCIAL_COMMITMENT_FLOW_V1: FlowDefinition = {
+export const BASIC_COMMERCIAL_COMMITMENT_FLOW_V1: FlowDefinition = {
   id: 'COMMERCIAL_COMMITMENT_FLOW',
   version: 1,
   name: 'Commercial Commitment Flow',
@@ -527,3 +527,4 @@ export const COMMERCIAL_COMMITMENT_FLOW_V1: FlowDefinition = {
     { id: 'trust_update', title: 'Update progressive trust', handler: 'trustUpdate', dependencies: ['milestone_closure'] },
   ],
 };
+export { COMMERCIAL_COMMITMENT_FLOW_V1 } from './canonical-chain';

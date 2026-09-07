@@ -1,5 +1,5 @@
 import type { RequestContext } from '@assurapay/shared';
-import type { FlowOrchestrationEngine } from './index';
+import type { FlowOrchestrator } from './index';
 import { CANONICAL_DOMAIN_EVENTS } from './canonical-chain';
 
 export type AuthoritativeDomainEvent = {
@@ -20,7 +20,7 @@ export type AuthoritativeDomainEvent = {
  * delivery cannot advance the same waiting step twice.
  */
 export class DomainEventFlowBridge {
-  constructor(private readonly flows: FlowOrchestrationEngine) {}
+  constructor(private readonly flows: FlowOrchestrator) {}
 
   async apply(context: RequestContext, flowId: string, event: AuthoritativeDomainEvent) {
     if (event.workspaceId !== context.activeWorkspaceId) throw new Error('FLOW_EVENT_WORKSPACE_MISMATCH');

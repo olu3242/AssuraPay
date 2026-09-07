@@ -1,7 +1,7 @@
 import {
-  AssuranceRoutingEngine,
+  AssuranceRouter,
   COMMERCIAL_COMMITMENT_FLOW_V1,
-  FlowOrchestrationEngine,
+  FlowOrchestrator,
   FlowRegistry,
 } from '@assurapay/flow-orchestration';
 import { trustStore } from './persistence';
@@ -15,9 +15,9 @@ import { trustStore } from './persistence';
 export const flowRegistry = new FlowRegistry();
 flowRegistry.register(COMMERCIAL_COMMITMENT_FLOW_V1);
 
-export const assuranceRouting = new AssuranceRoutingEngine();
+export const assuranceRouting = new AssuranceRouter();
 
-export const flowOrchestration = new FlowOrchestrationEngine(
+export const flowOrchestration = new FlowOrchestrator(
   trustStore,
   flowRegistry,
 );

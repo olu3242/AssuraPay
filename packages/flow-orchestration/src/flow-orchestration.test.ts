@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { InMemoryTrustStore } from '@assurapay/database';
 import {
-  AssuranceRoutingEngine,
-  FlowOrchestrationEngine,
+  AssuranceRouter,
+  FlowOrchestrator,
   FlowRegistry,
   type FlowDefinition,
 } from './index';
@@ -34,11 +34,16 @@ function setup() {
   const store = new InMemoryTrustStore();
   const registry = new FlowRegistry();
   registry.register(definition);
-  const engine = new FlowOrchestrationEngine(store, registry, {
+  const engine = new FlowOrchestrator(store, registry, {
     prepare: async () => 'COMPLETED',
     finish: async () => 'COMPLETED',
   });
   return { store, engine };
+}
+
+function asFlow(result: Awaited<ReturnType<FlowOrchestrator['dispatch']>>) {
+  if ('status' in result) throw new Error('EXPECTED_FLOW_INSTANCE');
+  return result;
 }
 
 async function grantReviewer(store: InMemoryTrustStore) {
@@ -51,7 +56,7 @@ async function grantReviewer(store: InMemoryTrustStore) {
   });
 }
 
-async function start(engine: FlowOrchestrationEngine, assuranceLevel: 'STANDARD' | 'ENHANCED') {
+async function start(engine: FlowOrchestrator, assuranceLevel: 'STANDARD' | 'ENHANCED') {
   return engine.start(context, {
     flowDefinitionId: 'TEST_FLOW',
     flowVersion: 1,
@@ -77,7 +82,7 @@ describe('Flow Orchestration OS', () => {
     expect(flow.state).toBe('RUNNING');
 
     await engine.dispatch(context, flow.id, 'prepare');
-    flow = await engine.dispatch(context, flow.id, 'evidence');
+    flow = asFlow(await engine.dispatch(context, flow.id, 'evidence'));
     expect(flow.state).toBe('WAITING_EVENT');
 
     flow = await engine.signal(context, {
@@ -88,7 +93,7 @@ describe('Flow Orchestration OS', () => {
     expect(flow.state).toBe('RUNNING');
     expect((await engine.steps(context, flow.id)).find((step) => step.stepDefinitionId === 'approval')?.state).toBe('SKIPPED');
 
-    flow = await engine.dispatch(context, flow.id, 'finish');
+    flow = asFlow(await engine.dispatch(context, flow.id, 'finish'));
     expect(flow.state).toBe('COMPLETED');
   });
 
@@ -119,7 +124,7 @@ describe('Flow Orchestration OS', () => {
     if (!('id' in task)) throw new Error('TASK_ID_MISSING');
     flow = await engine.decide(context, task.id, 'APPROVE');
     expect(flow.state).toBe('RUNNING');
-    flow = await engine.dispatch(context, flow.id, 'finish');
+    flow = asFlow(await engine.dispatch(context, flow.id, 'finish'));
     expect(flow.state).toBe('COMPLETED');
     expect((await store.list('humanTasks')).length).toBe(1);
   });
@@ -144,20 +149,20 @@ describe('Flow Orchestration OS', () => {
       id: 'RETRY_FLOW', version: 1, name: 'Retry', description: 'Retry proof',
       steps: [{ id: 'unstable', title: 'Unstable', handler: 'unstable', retry: { maxAttempts: 2, backoffSeconds: 1 } }],
     });
-    const engine = new FlowOrchestrationEngine(store, registry, { unstable: async () => { throw new Error('PROVIDER_DOWN'); } });
+    const engine = new FlowOrchestrator(store, registry, { unstable: async () => { throw new Error('PROVIDER_DOWN'); } });
     let flow = await engine.start(context, {
       flowDefinitionId: 'RETRY_FLOW', flowVersion: 1, organizationId: 'org', transactionId: 'tx-retry', idempotencyKey: 'retry-flow',
     });
-    flow = await engine.dispatch(context, flow.id, 'unstable');
+    flow = asFlow(await engine.dispatch(context, flow.id, 'unstable'));
     expect(flow.state).toBe('RETRY_PENDING');
-    flow = await engine.dispatch(context, flow.id, 'unstable');
+    flow = asFlow(await engine.dispatch(context, flow.id, 'unstable'));
     expect(flow.state).toBe('FAILED');
   });
 });
 
 describe('Adaptive Assurance Routing', () => {
   it('raises assurance for high-value, low-confidence, high-risk transactions', () => {
-    const engine = new AssuranceRoutingEngine();
+    const engine = new AssuranceRouter();
     expect(engine.evaluate({
       transactionAmountMinor: 150_000_000,
       activeExposureMinor: 300_000_000,
