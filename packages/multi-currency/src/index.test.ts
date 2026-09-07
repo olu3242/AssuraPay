@@ -1,0 +1,127 @@
+import { describe, expect, it } from 'vitest';
+import {
+  CurrencyRegistryEngine,
+  ForeignExchangeEngine,
+  ProviderCurrencyRouter,
+  convertMoney,
+  exactRate,
+  sumSameCurrency,
+  type ProviderCurrencyCapability,
+} from './index';
+
+describe('CurrencyRegistryEngine', () => {
+  const registry = new CurrencyRegistryEngine();
+
+  it('returns governed precision for 0, 2 and 3 decimal currencies', () => {
+    expect(registry.getMinorUnitExponent('JPY')).toBe(0);
+    expect(registry.getMinorUnitExponent('USD')).toBe(2);
+    expect(registry.getMinorUnitExponent('NGN')).toBe(2);
+    expect(registry.getMinorUnitExponent('BHD')).toBe(3);
+  });
+
+  it('rejects unsupported currencies and negative base amounts', () => {
+    expect(() => registry.getCurrency('BTC')).toThrow('CURRENCY_UNSUPPORTED');
+    expect(() => registry.validateMoney({ amountMinor: -1n, currency: 'USD' })).toThrow('MONEY_NEGATIVE_BASE_AMOUNT');
+  });
+});
+
+describe('exact conversion', () => {
+  it('converts without floating point and rounds half up deterministically', () => {
+    const source = { amountMinor: 10_000n, currency: 'USD' as const };
+    const result = convertMoney(source, 'NGN', exactRate(150_055n, 100n));
+    expect(result.target).toEqual({ amountMinor: 15_005_500n, currency: 'NGN' });
+  });
+
+  it('requires identity rate for same-currency bypass', () => {
+    const source = { amountMinor: 10_000n, currency: 'USD' as const };
+    expect(convertMoney(source, 'USD', exactRate(1n, 1n)).target.amountMinor).toBe(10_000n);
+    expect(() => convertMoney(source, 'USD', exactRate(2n, 1n))).toThrow('FX_SAME_CURRENCY_RATE_MUST_BE_ONE');
+  });
+
+  it('refuses direct mixed-currency totals', () => {
+    expect(() => sumSameCurrency([
+      { amountMinor: 100n, currency: 'USD' },
+      { amountMinor: 100n, currency: 'NGN' },
+    ])).toThrow('CROSS_CURRENCY_SUM_REQUIRES_CONVERSION');
+  });
+});
+
+describe('ForeignExchangeEngine', () => {
+  const engine = new ForeignExchangeEngine();
+  const quotedAt = '2026-09-07T13:00:00.000Z';
+  const expiresAt = '2026-09-07T13:05:00.000Z';
+
+  const quote = () => engine.quote({
+    id: 'fxq-1',
+    tenantId: 'tenant-1',
+    workspaceId: 'workspace-1',
+    providerId: 'provider-1',
+    source: { amountMinor: 25_000_00n, currency: 'USD' },
+    targetCurrency: 'NGN',
+    rate: exactRate(160_000n, 100n),
+    rateSource: 'provider-1',
+    observedAt: quotedAt,
+    expiresAt,
+    idempotencyKey: 'release-1-fx',
+    semanticDigest: 'digest-1',
+  });
+
+  it('enforces quote lifecycle and maker-checker authorization', () => {
+    const accepted = engine.accept(quote(), 'buyer-1', '2026-09-07T13:01:00.000Z');
+    expect(accepted.status).toBe('ACCEPTED');
+    expect(() => engine.authorize(accepted, 'buyer-1')).toThrow('FX_SEGREGATION_OF_DUTIES_REQUIRED');
+    const authorized = engine.authorize(accepted, 'treasury-approver-1');
+    const instructed = engine.instruct(authorized, 'fxc-1');
+    const confirmed = engine.confirm(instructed, 'bank-ref-123', '2026-09-07T13:03:00.000Z');
+    expect(confirmed.status).toBe('CONFIRMED');
+    expect(confirmed.providerReference).toBe('bank-ref-123');
+  });
+
+  it('expires stale quotes rather than silently accepting them', () => {
+    const expired = engine.accept(quote(), 'buyer-1', '2026-09-07T13:06:00.000Z');
+    expect(expired.status).toBe('EXPIRED');
+  });
+});
+
+describe('ProviderCurrencyRouter', () => {
+  const providers: ProviderCurrencyCapability[] = [
+    {
+      providerId: 'provider-a',
+      supportedSourceCurrencies: ['USD', 'NGN'],
+      supportedDestinationCurrencies: ['USD', 'NGN'],
+      supportedPairs: ['USD/NGN', 'NGN/USD'],
+      settlementRails: ['BANK'],
+      supportsFx: true,
+      quoteCapability: true,
+    },
+    {
+      providerId: 'provider-b',
+      supportedSourceCurrencies: ['USD'],
+      supportedDestinationCurrencies: ['USD'],
+      supportedPairs: [],
+      settlementRails: ['BANK'],
+      supportsFx: false,
+      quoteCapability: false,
+    },
+  ];
+
+  it('routes cross-currency payment only to a capable provider', () => {
+    const selected = new ProviderCurrencyRouter().select({
+      sourceCurrency: 'USD',
+      destinationCurrency: 'NGN',
+      requiredRail: 'BANK',
+      providers,
+    });
+    expect(selected.providerId).toBe('provider-a');
+  });
+
+  it('keeps same-currency payment on the normal path', () => {
+    const selected = new ProviderCurrencyRouter().select({
+      sourceCurrency: 'USD',
+      destinationCurrency: 'USD',
+      requiredRail: 'BANK',
+      providers,
+    });
+    expect(selected.providerId).toBe('provider-a');
+  });
+});
