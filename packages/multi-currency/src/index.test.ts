@@ -45,11 +45,10 @@ describe('exact conversion', () => {
   });
 
   it('honors DOWN versus HALF_UP at the target minor-unit boundary', () => {
-    const source = { amountMinor: 1n, currency: 'USD' as const };
+    const source = { amountMinor: 100n, currency: 'USD' as const };
     const rate = exactRate(1n, 2n);
-    expect(convertMoney(source, 'USD', exactRate(1n, 1n)).target.amountMinor).toBe(1n);
     expect(convertMoney(source, 'JPY', rate, 'DOWN').target.amountMinor).toBe(0n);
-    expect(convertMoney(source, 'JPY', rate, 'HALF_UP').target.amountMinor).toBe(0n);
+    expect(convertMoney(source, 'JPY', rate, 'HALF_UP').target.amountMinor).toBe(1n);
   });
 
   it('requires identity rate for same-currency bypass', () => {
