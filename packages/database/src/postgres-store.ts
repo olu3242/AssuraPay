@@ -26,1293 +26,146 @@ import { PostgresStoreError } from './store-error';
 export { PostgresStoreError } from './store-error';
 export type { PostgresStoreErrorCode } from './store-error';
 
-/**
- * The durable `TrustPersistence` implementation.
- *
- * Every method executes parameterized SQL against a real PostgreSQL connection.
- * There is no in-memory path, no file path, and no method that reports success
- * without a row having been written — a store that falls back to memory when the
- * database is unreachable is worse than one that fails, because the caller is told
- * its write survived.
- *
- * Collections are routed explicitly. Entities whose invariants CLAUDE.md depends on
- * have their own tables with real foreign keys and real uniqueness; the remaining
- * trust collections share `trust_records`, which still carries every dimension the
- * platform filters or scopes on as a column. A collection this store does not know
- * is refused: silently accepting it would persist authorization-relevant state
- * somewhere nothing reads, which is indistinguishable from losing it.
- */
-
-/** PostgreSQL SQLSTATE classes the store translates into its own vocabulary. */
 const SQLSTATE = {
-  uniqueViolation: '23505',
-  foreignKeyViolation: '23503',
-  checkViolation: '23514',
-  notNullViolation: '23502',
-  serializationFailure: '40001',
-  deadlockDetected: '40P01',
-  queryCanceled: '57014',
-  adminShutdown: '57P01',
-  cannotConnectNow: '57P03',
-  connectionFailure: '08006',
-  connectionDoesNotExist: '08003',
-  invalidPassword: '28P01',
-  insufficientPrivilege: '42501',
-  undefinedTable: '42P01',
+  uniqueViolation: '23505', foreignKeyViolation: '23503', checkViolation: '23514', notNullViolation: '23502',
+  serializationFailure: '40001', deadlockDetected: '40P01', queryCanceled: '57014', adminShutdown: '57P01',
+  cannotConnectNow: '57P03', connectionFailure: '08006', connectionDoesNotExist: '08003', invalidPassword: '28P01',
+  insufficientPrivilege: '42501', undefinedTable: '42P01',
 } as const;
 
-/**
- * Translates a driver failure into a stable store code.
- *
- * The raw error never escapes: it carries the failing statement's parameter values,
- * which for this store include tenant ids, principal ids and permission keys.
- */
 function translate(error: unknown): PostgresStoreError {
   const code = (error as { code?: string } | null)?.code;
   const detail = sanitizeDatabaseFailure(error);
-
-  // The append-only trigger raises a bare exception with a recognizable prefix.
-  if (detail.includes('TRUST_HISTORY_IS_APPEND_ONLY'))
+  if (detail.includes('TRUST_HISTORY_IS_APPEND_ONLY')) return new PostgresStoreError('PERSISTENCE_HISTORY_IMMUTABLE', detail);
+  if (detail.includes('LEDGER_JOURNAL_DOES_NOT_BALANCE')) return new PostgresStoreError('PERSISTENCE_LEDGER_UNBALANCED', detail);
+  if (detail.includes('ACTIVE_DISPUTE_HOLD')) return new PostgresStoreError('PERSISTENCE_RELEASE_HELD', detail);
+  if (detail.includes('AGGREGATE_ROW_IS_NOT_DELETABLE') || detail.includes('AGGREGATE_FACT_IS_IMMUTABLE') || detail.includes('AGGREGATE_STATE_IS_TERMINAL') || detail.includes('AGGREGATE_VERSION_MUST_ADVANCE') || detail.includes('append-only table'))
     return new PostgresStoreError('PERSISTENCE_HISTORY_IMMUTABLE', detail);
-
-  // Double entry. Raised by the deferred constraint trigger at COMMIT, so it arrives through the
-  // transaction boundary rather than from the `append` that caused it — the unbalanced journal is
-  // only visible once the posting is complete. It must not read as an outage: retrying an
-  // unbalanced posting cannot succeed.
-  if (detail.includes('LEDGER_JOURNAL_DOES_NOT_BALANCE'))
-    return new PostgresStoreError('PERSISTENCE_LEDGER_UNBALANCED', detail);
-
-  // An active dispute hold refused a release-bearing write. Its own code, because it is neither an
-  // outage nor a conflict nor corruption: it is the platform's second hard constraint holding, and a
-  // caller must be able to tell it apart from a failure in order to report "held" rather than "error".
-  if (detail.includes('ACTIVE_DISPUTE_HOLD'))
-    return new PostgresStoreError('PERSISTENCE_RELEASE_HELD', detail);
-
-  // The domain aggregates' mutation boundaries. `append-only table` is the message
-  // `prevent_append_only_mutation()` has raised since `202608020006`; the three prefixed
-  // codes come from the governed-transition and terminal-state functions
-  // `202608100001` added. All four mean the same thing to a caller — the database refused to
-  // change something it holds immutable — and they must not surface as
-  // PERSISTENCE_UNAVAILABLE, which reads as an outage and invites a retry that can never
-  // succeed.
-  if (
-    detail.includes('AGGREGATE_ROW_IS_NOT_DELETABLE') ||
-    detail.includes('AGGREGATE_FACT_IS_IMMUTABLE') ||
-    detail.includes('AGGREGATE_STATE_IS_TERMINAL') ||
-    detail.includes('AGGREGATE_VERSION_MUST_ADVANCE') ||
-    detail.includes('append-only table')
-  )
-    return new PostgresStoreError('PERSISTENCE_HISTORY_IMMUTABLE', detail);
-
-  // A write a row-level security policy refused. `42501` covers two different faults and they must not
-  // share a code. A policy refusal means the caller named a scope it does not hold: no retry will ever
-  // succeed, and the operator's problem is the scope, not the database. `permission denied for table` is
-  // a missing grant on the runtime role, which *is* an operational fault and stays where it was.
-  // PostgreSQL separates them in the message, the same signal the trigger translations above key on.
-  //
-  // This mattered: founding a workspace failed with
-  // `PERSISTENCE_UNAVAILABLE: 42501: new row violates row-level security policy for table
-  // "trust_tenants"`, so the one defect that made a durable deployment unbootstrappable reported itself
-  // as an outage. See `docs/persistence/DOMAIN_STORE_RETIREMENT.md`.
   if (code === SQLSTATE.insufficientPrivilege && detail.includes('row-level security policy'))
     return new PostgresStoreError('PERSISTENCE_SCOPE_INVALID', detail);
-
   switch (code) {
-    case SQLSTATE.uniqueViolation:
-      return new PostgresStoreError('PERSISTENCE_DUPLICATE_RECORD', detail);
-    case SQLSTATE.foreignKeyViolation:
-      return new PostgresStoreError('PERSISTENCE_SCOPE_INVALID', detail);
+    case SQLSTATE.uniqueViolation: return new PostgresStoreError('PERSISTENCE_DUPLICATE_RECORD', detail);
+    case SQLSTATE.foreignKeyViolation: return new PostgresStoreError('PERSISTENCE_SCOPE_INVALID', detail);
     case SQLSTATE.checkViolation:
-    case SQLSTATE.notNullViolation:
-      return new PostgresStoreError('PERSISTENCE_CORRUPT_RECORD', detail);
+    case SQLSTATE.notNullViolation: return new PostgresStoreError('PERSISTENCE_CORRUPT_RECORD', detail);
     case SQLSTATE.serializationFailure:
-    case SQLSTATE.deadlockDetected:
-      return new PostgresStoreError('PERSISTENCE_CONFLICT', detail);
-    case SQLSTATE.queryCanceled:
-      return new PostgresStoreError('PERSISTENCE_TIMEOUT', detail);
+    case SQLSTATE.deadlockDetected: return new PostgresStoreError('PERSISTENCE_CONFLICT', detail);
+    case SQLSTATE.queryCanceled: return new PostgresStoreError('PERSISTENCE_TIMEOUT', detail);
     case SQLSTATE.adminShutdown:
     case SQLSTATE.cannotConnectNow:
     case SQLSTATE.connectionFailure:
     case SQLSTATE.connectionDoesNotExist:
     case SQLSTATE.invalidPassword:
     case SQLSTATE.insufficientPrivilege:
-    case SQLSTATE.undefinedTable:
-      return new PostgresStoreError('PERSISTENCE_UNAVAILABLE', detail);
-    default:
-      return error instanceof PostgresStoreError
-        ? error
-        : new PostgresStoreError('PERSISTENCE_UNAVAILABLE', detail);
+    case SQLSTATE.undefinedTable: return new PostgresStoreError('PERSISTENCE_UNAVAILABLE', detail);
+    default: return error instanceof PostgresStoreError ? error : new PostgresStoreError('PERSISTENCE_UNAVAILABLE', detail);
   }
 }
+function fail(error: unknown): never { throw error instanceof PostgresStoreError ? error : translate(error); }
 
-/** Rethrows as a store error, preserving one that is already translated. */
-function fail(error: unknown): never {
-  throw error instanceof PostgresStoreError ? error : translate(error);
-}
-
-/**
- * Collections with a dedicated table.
- *
- * Each entry names the table and the columns lifted out of the record, so the
- * invariants in the schema — foreign keys, partial unique indexes, lifecycle checks —
- * apply to real columns rather than to JSON.
- */
-type DedicatedMapping = {
-  table: string;
-  idColumn: string;
-  /** Record field → column, for fields promoted out of the payload. */
-  columns: Record<string, string>;
-};
-
+type DedicatedMapping = { table: string; idColumn: string; columns: Record<string, string> };
 const DEDICATED: Record<string, DedicatedMapping> = {
-  trustWorkspaces: {
-    table: 'trust_workspaces',
-    idColumn: 'workspace_id',
-    columns: { tenantId: 'tenant_id', status: 'status', version: 'version' },
-  },
-  memberships: {
-    table: 'trust_memberships',
-    idColumn: 'membership_id',
-    columns: {
-      workspaceId: 'workspace_id',
-      userId: 'user_id',
-      status: 'status',
-      role: 'role',
-      effectiveFrom: 'effective_from',
-      effectiveTo: 'effective_to',
-      revokedAt: 'revoked_at',
-      version: 'version',
-    },
-  },
-  permissionGrants: {
-    table: 'trust_permission_grants',
-    idColumn: 'grant_id',
-    columns: {
-      workspaceId: 'workspace_id',
-      userId: 'user_id',
-      permissionKey: 'permission_key',
-      effect: 'effect',
-      scopeType: 'scope_type',
-      scopeId: 'scope_id',
-      sourceType: 'source_type',
-      sourceId: 'source_id',
-      effectiveFrom: 'effective_from',
-      effectiveTo: 'effective_to',
-      revokedAt: 'revoked_at',
-    },
-  },
+  trustWorkspaces: { table: 'trust_workspaces', idColumn: 'workspace_id', columns: { tenantId: 'tenant_id', status: 'status', version: 'version' } },
+  memberships: { table: 'trust_memberships', idColumn: 'membership_id', columns: { workspaceId: 'workspace_id', userId: 'user_id', status: 'status', role: 'role', effectiveFrom: 'effective_from', effectiveTo: 'effective_to', revokedAt: 'revoked_at', version: 'version' } },
+  permissionGrants: { table: 'trust_permission_grants', idColumn: 'grant_id', columns: { workspaceId: 'workspace_id', userId: 'user_id', permissionKey: 'permission_key', effect: 'effect', scopeType: 'scope_type', scopeId: 'scope_id', sourceType: 'source_type', sourceId: 'source_id', effectiveFrom: 'effective_from', effectiveTo: 'effective_to', revokedAt: 'revoked_at' } },
 };
 
-/**
- * Collections stored in the governed document table.
- *
- * Listed explicitly rather than accepted by default. An unlisted collection is a
- * caller persisting something this store was not built to hold, and the honest answer
- * is a refusal — not a row nothing will ever read.
- */
 const GOVERNED_DOCUMENTS = Object.freeze([
-  'authenticationMethods',
-  'beneficiaryAccounts',
-  'consents',
-  'delegations',
-  'devices',
-  'evidenceLedgerEntries',
-  'fieldPermissions',
-  'authorityRules',
-  'invitations',
-  'identities',
-  'legalHolds',
-  'legalPolicies',
-  'legalPolicyVersions',
-  'organizationUnits',
-  'parties',
-  'policyAcceptances',
-  'policyAssignments',
-  'segregationRules',
-  'sessions',
-  'signaturePolicies',
-  'stepUpChallenges',
-  'trustOrganizations',
-  'verificationRequests',
-  'verificationResults',
+  'authenticationMethods','beneficiaryAccounts','consents','delegations','devices','evidenceLedgerEntries','fieldPermissions','authorityRules','invitations','identities','legalHolds','legalPolicies','legalPolicyVersions','organizationUnits','parties','policyAcceptances','policyAssignments','segregationRules','sessions','signaturePolicies','stepUpChallenges','trustOrganizations','verificationRequests','verificationResults',
+  // Flow OS durable documents. These are intentionally explicit: a durable store still refuses every unknown collection.
+  'flowInstances','flowStepInstances','flowSignals','humanTasks',
 ]);
 
-/**
- * The identity plane: collections guarded by the identity gateway rather than by tenancy.
- *
- * These are the collections a caller reaches *before* it has a tenant, and they are the reason
- * `trust_records_scope` has a branch keyed on the collection rather than on the scope columns.
- * The identity plane is what establishes scope, so it cannot be guarded by scope — registration
- * has no tenant to be checked against, and session resolution is how a tenant is discovered in
- * the first place. `202608110020_identity_plane_is_reachable_without_a_tenant.sql` states the
- * argument in full, along with the defect that made registration impossible before it.
- *
- * The membership is derived, not chosen. `UserIdentity`, `AuthenticationMethod`, `TrustedDevice`
- * and `StepUpChallenge` are the only trust types carrying neither `tenantId` nor `workspaceId`;
- * `UserSession` carries `workspaceId`, but as an activation *result* rather than an ownership
- * scope, which is why an activated session must still be readable by the unscoped resolver.
- *
- * `trust_collection_is_identity_plane()` in that migration holds the same five, and
- * `identity-plane-rls.postgres.test.ts` asserts the two sets are equal — so a sixth collection
- * added on one side alone fails certification instead of silently diverging from the policy that
- * decides whether its rows are visible.
- */
-export const POSTGRES_IDENTITY_PLANE_COLLECTIONS: readonly string[] = Object.freeze([
-  'authenticationMethods',
-  'devices',
-  'identities',
-  'sessions',
-  'stepUpChallenges',
-]);
+export const POSTGRES_IDENTITY_PLANE_COLLECTIONS: readonly string[] = Object.freeze(['authenticationMethods','devices','identities','sessions','stepUpChallenges']);
+const HISTORY_COLLECTIONS = Object.freeze(['auditRecords','outboxEvents']);
+export const POSTGRES_TRUST_COLLECTIONS: readonly string[] = Object.freeze([
+  ...Object.keys(DEDICATED), ...GOVERNED_DOCUMENTS, ...HISTORY_COLLECTIONS,
+  ...Object.keys(BATCH_A_RELATIONS), ...Object.keys(BATCH_B_RELATIONS), ...Object.keys(BATCH_C_RELATIONS), ...Object.keys(BATCH_D_RELATIONS),
+  ...Object.keys(BATCH_E_RELATIONS), ...Object.keys(BATCH_F_RELATIONS), ...Object.keys(BATCH_G_RELATIONS), ...Object.keys(BATCH_H_RELATIONS),
+  ...Object.keys(BATCH_I_RELATIONS), ...Object.keys(BATCH_K_RELATIONS), ...Object.keys(BATCH_L_RELATIONS), ...Object.keys(BATCH_M_RELATIONS),
+].sort());
+export const POSTGRES_ROUTED_TABLES: readonly string[] = Object.freeze([...new Set([
+  ...Object.values(DEDICATED).map((mapping) => mapping.table), 'trust_records',
+  ...Object.values(BATCH_A_RELATIONS).map((relation) => relation.table), ...Object.values(BATCH_B_RELATIONS).map((relation) => relation.table),
+  ...Object.values(BATCH_C_RELATIONS).map((relation) => relation.table), ...Object.values(BATCH_D_RELATIONS).map((relation) => relation.table),
+  ...Object.values(BATCH_E_RELATIONS).map((relation) => relation.table), ...Object.values(BATCH_F_RELATIONS).map((relation) => relation.table),
+  ...Object.values(BATCH_G_RELATIONS).map((relation) => relation.table), ...Object.values(BATCH_H_RELATIONS).map((relation) => relation.table),
+  ...Object.values(BATCH_I_RELATIONS).map((relation) => relation.table), ...Object.values(BATCH_K_RELATIONS).map((relation) => relation.table),
+  ...Object.values(BATCH_L_RELATIONS).map((relation) => relation.table), ...Object.values(BATCH_M_RELATIONS).map((relation) => relation.table),
+])].sort());
 
-/** Collections with bespoke handling, reached through `audit` and `emit` only. */
-const HISTORY_COLLECTIONS = Object.freeze(['auditRecords', 'outboxEvents']);
-
-/** Every collection this store can serve. */
-export const POSTGRES_TRUST_COLLECTIONS: readonly string[] = Object.freeze(
-  [
-    ...Object.keys(DEDICATED),
-    ...GOVERNED_DOCUMENTS,
-    ...HISTORY_COLLECTIONS,
-    // Batch A. Sixteen collections that were refused outright until this capability: Engines
-    // 31-40 could not persist on the durable path at all, only against the in-memory store.
-    ...Object.keys(BATCH_A_RELATIONS),
-    // Batch B. Seven more, refused the same way: Engines 41-46 could not persist an entitlement,
-    // an invoice, a release request or an authorization to PostgreSQL at all.
-    ...Object.keys(BATCH_B_RELATIONS),
-    // Batch C. Seven more, and the last of the settlement path: Engines 44 and 47-50 could not
-    // persist a funding commitment, a payment instruction, a ledger posting, a reconciliation or a
-    // closure certificate to PostgreSQL at all.
-    ...Object.keys(BATCH_C_RELATIONS),
-    // Batch D. The last five. Engine 49 could not persist a dispute or, more consequentially, a
-    // dispute *hold* — the record CLAUDE.md's second hard constraint requires to block a release had
-    // no durable home at all.
-    ...Object.keys(BATCH_D_RELATIONS),
-    // Batch E. The first six of the sixty-seven the durability gap analysis registers, and the batch
-    // that repairs three canonical chain links: a blueprint, its milestones and their definitions of
-    // done had no durable home, so the durable half of the chain referenced a half that did not exist.
-    ...Object.keys(BATCH_E_RELATIONS),
-    // Batch F. Fifteen more, the largest in the register, and the batch that closes the canonical
-    // chain: `agreements` is its eleventh and last link. Two of the fifteen — `contractComments` and
-    // `signatureCallbacks` — had no table at all until `202608110005`, so a comment on a contract and a
-    // consumed provider callback could not be stored anywhere.
-    ...Object.keys(BATCH_F_RELATIONS),
-    // Batch G. Six more, and the batch that makes a payment trigger rule storable at all — the record
-    // `paymentEligibility` names as the authority a release rests on. Three of the six could not even be
-    // transitioned before `202608110009`, so the engines that confirm a criterion, confirm a metric and
-    // activate a rule all refused on the durable path.
-    ...Object.keys(BATCH_G_RELATIONS),
-    // Batch H. Eleven more, the governance core, and the batch that gives the release-authorisation chain a
-    // boundary: eight of its eleven tables had none at all, including the payment authorization proposal
-    // `createEscrowReleaseIntent` reads before instructing a provider.
-    ...Object.keys(BATCH_H_RELATIONS),
-    // Batch I. Six more, the agreement-intelligence engines. Six rather than the five the register
-    // predicted: `contractVersionsV2` is written by `ContractVersionEngine` and the coverage scan's name
-    // pattern excluded digits, so it had been invisible to the gate as well as undurable. A contract's
-    // version history, the analyses run over it and the risk assessments derived from them are the
-    // evidence a completion certificate is later argued from.
-    ...Object.keys(BATCH_I_RELATIONS),
-    // Batch K. Six more, the enterprise-intelligence engines, and the first of the group the accepted
-    // decision deferred until the persistence boundary was resolved. Two of the six could not be transitioned
-    // before `202608110014` — a KPI definition could never be retired, and a forecast could never be
-    // reviewed, which made the human-in-the-loop step that package's AI governance rests on unperformable.
-    ...Object.keys(BATCH_K_RELATIONS),
-    // Batch L. The last nine, and the batch that frees the three trust-domain compatibility tables. Four of
-    // the nine are transitioned, and every one of them was broken: three refused by a blanket append-only
-    // trigger — a financial forecast could not be reviewed, a drifting model could not be deprecated, an AI
-    // recommendation could not be accepted or dismissed — while `drift_alerts`, the evidence that a model had
-    // gone wrong, had no mutation boundary at all.
-    ...Object.keys(BATCH_L_RELATIONS),
-    // Batch M. The last nine, the governed agent surface, and the only batch since Batch A that creates its
-    // tables rather than converging them — but not for want of prior art. `202608030012` had put all nine
-    // aggregates in one untyped envelope in a schema of its own, where no gate in the repository could see it:
-    // a capability record there could be edited into executing a protected-state change, and an execution
-    // record could not transition at all. `202608110017` creates the nine typed tables and retires it.
-    ...Object.keys(BATCH_M_RELATIONS),
-  ].sort(),
-);
-
-/**
- * Every table any routing path in this store can reach.
- *
- * Derived from the routes themselves rather than listed, because a list would be the thing it is meant
- * to check. Readiness verifies `REQUIRED_STORE_TABLES` exists before the host reports itself ready, and
- * a table that is routed but not required is discovered on the first write instead — after the caller
- * was told the host was healthy. `store-boundary.postgres.test.ts` asserts the containment this exists
- * to make assertable.
- */
-export const POSTGRES_ROUTED_TABLES: readonly string[] = Object.freeze(
-  [
-    ...new Set([
-      ...Object.values(DEDICATED).map((mapping) => mapping.table),
-      // The governed documents, the history collections and everything the batches do not own are served
-      // by `trust_records` through the generic statements.
-      'trust_records',
-      ...Object.values(BATCH_A_RELATIONS).map((relation) => relation.table),
-      ...Object.values(BATCH_B_RELATIONS).map((relation) => relation.table),
-      ...Object.values(BATCH_C_RELATIONS).map((relation) => relation.table),
-      ...Object.values(BATCH_D_RELATIONS).map((relation) => relation.table),
-      ...Object.values(BATCH_E_RELATIONS).map((relation) => relation.table),
-      ...Object.values(BATCH_F_RELATIONS).map((relation) => relation.table),
-      ...Object.values(BATCH_G_RELATIONS).map((relation) => relation.table),
-      ...Object.values(BATCH_H_RELATIONS).map((relation) => relation.table),
-      ...Object.values(BATCH_I_RELATIONS).map((relation) => relation.table),
-      ...Object.values(BATCH_K_RELATIONS).map((relation) => relation.table),
-      ...Object.values(BATCH_L_RELATIONS).map((relation) => relation.table),
-      ...Object.values(BATCH_M_RELATIONS).map((relation) => relation.table),
-    ]),
-  ].sort(),
-);
-
-/** Scope fields promoted to columns in `trust_records`, in priority order. */
-const SCOPE_FIELDS = {
-  tenantId: ['tenantId'],
-  workspaceId: ['workspaceId'],
-  principalId: ['userId', 'principalId', 'partyId', 'actorId'],
-  status: ['status'],
-  effectiveFrom: ['effectiveFrom', 'issuedAt', 'createdAt'],
-  effectiveTo: ['effectiveTo', 'expiresAt'],
-  revokedAt: ['revokedAt'],
-} as const;
-
-function firstString(record: Record<string, unknown>, keys: readonly string[]): string | null {
-  for (const key of keys) {
-    const value = record[key];
-    if (typeof value === 'string' && value.length > 0) return value;
-  }
-  return null;
-}
-
-function firstTimestamp(record: Record<string, unknown>, keys: readonly string[]): Date | null {
-  for (const key of keys) {
-    const value = record[key];
-    if (typeof value !== 'string') continue;
-    const parsed = Date.parse(value);
-    if (!Number.isNaN(parsed)) return new Date(parsed);
-  }
-  return null;
-}
-
-/**
- * A digest over the record as stored.
- *
- * Keys are sorted so the digest depends on content rather than on property order,
- * which JSON round-trips do not preserve.
- */
-export function payloadDigest(value: unknown): string {
-  return createHash('sha256').update(canonicalJson(value)).digest('hex');
-}
-
-function requireRecordId(value: unknown): string {
-  const id = (value as { id?: unknown } | null)?.id;
-  if (typeof id !== 'string' || id.length === 0)
-    throw new PostgresStoreError(
-      'PERSISTENCE_RECORD_ID_REQUIRED',
-      'every persisted record needs a string id',
-    );
-  return id;
-}
-
-function asRecord(value: unknown): Record<string, unknown> {
-  if (value === null || typeof value !== 'object' || Array.isArray(value))
-    throw new PostgresStoreError('PERSISTENCE_CORRUPT_RECORD', 'expected an object record');
-  return value as Record<string, unknown>;
-}
-
-/**
- * Reconstructs the domain record from a stored row.
- *
- * The payload holds the record verbatim, so the promoted columns are not merged back
- * in — doing so would let a column edited out of band silently replace the value the
- * digest was computed over, and the tamper check would still pass.
- */
-function rowToRecord<T>(row: { payload: unknown; payload_digest: string }): T {
-  const payload = row.payload;
-  if (payload === null || typeof payload !== 'object')
-    throw new PostgresStoreError('PERSISTENCE_CORRUPT_RECORD', 'stored payload is not an object');
-  if (payloadDigest(payload) !== row.payload_digest)
-    throw new PostgresStoreError(
-      'PERSISTENCE_CORRUPT_RECORD',
-      'stored payload does not match its digest',
-    );
-  return payload as T;
-}
-
-export type PostgresTrustStoreOptions = {
-  /**
-   * Clock, injected so a test can assert timestamps without sleeping. Production
-   * leaves it unset and gets the real one.
-   */
-  now?: () => Date;
-  /**
-   * Set when this store is bound to an open transaction.
-   *
-   * Read by `transaction` so a nested call joins the outer one instead of opening a
-   * savepoint. Not a public knob: the only caller that sets it is `transaction`
-   * itself, constructing the store it hands to the callback.
-   */
-  withinTransaction?: boolean;
-};
-
-/**
- * Collections whose rows are locked when they are read inside a transaction.
- *
- * Membership is not a performance decision but a correctness one: it names the aggregates an engine
- * reads, derives a new value from, and writes back, where two concurrent writers would otherwise each
- * compute from the same stale read and the later write would erase the earlier one. Adding a collection
- * here is only sound if its engine performs that whole sequence inside one `transaction`.
- */
-const LOCK_ON_TRANSACTIONAL_READ = new Set<string>(['signaturePackages']);
-
-/**
- * The one capability `replace` needs from a batch repository: an UPDATE that reports how many rows it
- * changed. Each batch's relation type is its own, and none of them is assignable to another, but every
- * one of them satisfies this — so `replace` can dispatch over all nine batches without a chain of
- * ternaries that grows by a branch per batch and puts the newest batch behind the longest path.
- */
-type RelationalUpdate = {
-  update(sql: SqlClient, record: Record<string, unknown>): Promise<number>;
-};
-
-/**
- * The batch repository that owns a collection's UPDATE, or `undefined` when no batch owns it.
- *
- * Ordered by batch because the predicates are disjoint — a collection belongs to at most one batch, and
- * `BATCH_*_RELATION_COUNT` in each repository asserts the registry it is derived from is complete — so
- * the order is documentation rather than precedence.
- */
-function relationalUpdateTarget(collection: string): RelationalUpdate | undefined {
-  if (isBatchACollection(collection)) return batchARelation(collection);
-  if (isBatchBCollection(collection)) return batchBRelation(collection);
-  if (isBatchCCollection(collection)) return batchCRelation(collection);
-  if (isBatchDCollection(collection)) return batchDRelation(collection);
-  if (isBatchECollection(collection)) return batchERelation(collection);
-  if (isBatchFCollection(collection)) return batchFRelation(collection);
-  if (isBatchGCollection(collection)) return batchGRelation(collection);
-  if (isBatchHCollection(collection)) return batchHRelation(collection);
-  if (isBatchICollection(collection)) return batchIRelation(collection);
-  if (isBatchKCollection(collection)) return batchKRelation(collection);
-  if (isBatchLCollection(collection)) return batchLRelation(collection);
-  if (isBatchMCollection(collection)) return batchMRelation(collection);
-  return undefined;
-}
+const SCOPE_FIELDS = { tenantId: ['tenantId'], workspaceId: ['workspaceId'], principalId: ['userId','principalId','partyId','actorId'], status: ['status'], effectiveFrom: ['effectiveFrom','issuedAt','createdAt'], effectiveTo: ['effectiveTo','expiresAt'], revokedAt: ['revokedAt'] } as const;
+function firstString(record: Record<string, unknown>, keys: readonly string[]): string | null { for (const key of keys) { const value = record[key]; if (typeof value === 'string' && value.length > 0) return value; } return null; }
+function firstTimestamp(record: Record<string, unknown>, keys: readonly string[]): Date | null { for (const key of keys) { const value = record[key]; if (typeof value !== 'string') continue; const parsed = Date.parse(value); if (!Number.isNaN(parsed)) return new Date(parsed); } return null; }
+export function payloadDigest(value: unknown): string { return createHash('sha256').update(canonicalJson(value)).digest('hex'); }
+function requireRecordId(value: unknown): string { const id=(value as {id?:unknown}|null)?.id; if(typeof id!=='string'||id.length===0) throw new PostgresStoreError('PERSISTENCE_RECORD_ID_REQUIRED','every persisted record needs a string id'); return id; }
+function asRecord(value: unknown): Record<string, unknown> { if(value===null||typeof value!=='object'||Array.isArray(value)) throw new PostgresStoreError('PERSISTENCE_CORRUPT_RECORD','expected an object record'); return value as Record<string,unknown>; }
+function rowToRecord<T>(row:{payload:unknown;payload_digest:string}):T { const payload=row.payload; if(payload===null||typeof payload!=='object') throw new PostgresStoreError('PERSISTENCE_CORRUPT_RECORD','stored payload is not an object'); if(payloadDigest(payload)!==row.payload_digest) throw new PostgresStoreError('PERSISTENCE_CORRUPT_RECORD','stored payload does not match its digest'); return payload as T; }
+export type PostgresTrustStoreOptions={now?:()=>Date;withinTransaction?:boolean};
+const LOCK_ON_TRANSACTIONAL_READ=new Set<string>(['signaturePackages']);
+type RelationalUpdate={update(sql:SqlClient,record:Record<string,unknown>):Promise<number>};
+function relationalUpdateTarget(collection:string):RelationalUpdate|undefined { if(isBatchACollection(collection))return batchARelation(collection); if(isBatchBCollection(collection))return batchBRelation(collection); if(isBatchCCollection(collection))return batchCRelation(collection); if(isBatchDCollection(collection))return batchDRelation(collection); if(isBatchECollection(collection))return batchERelation(collection); if(isBatchFCollection(collection))return batchFRelation(collection); if(isBatchGCollection(collection))return batchGRelation(collection); if(isBatchHCollection(collection))return batchHRelation(collection); if(isBatchICollection(collection))return batchIRelation(collection); if(isBatchKCollection(collection))return batchKRelation(collection); if(isBatchLCollection(collection))return batchLRelation(collection); if(isBatchMCollection(collection))return batchMRelation(collection); return undefined; }
 
 export class PostgresTrustStore implements TrustPersistence {
-  private readonly now: () => Date;
-  private readonly withinTransaction: boolean;
+  private readonly now:()=>Date; private readonly withinTransaction:boolean;
+  constructor(private readonly sql:SqlClient,options:PostgresTrustStoreOptions={}){this.now=options.now??(()=>new Date());this.withinTransaction=options.withinTransaction??false;}
+  private async inScope<T>(run:(store:PostgresTrustStore)=>Promise<T>):Promise<T>{if(this.withinTransaction)return await run(this);const scope=currentTrustScope();if(!isScopeBearing(scope))return await run(this);try{return await this.sql.begin(async(tx)=>{await applyTrustScope(tx,scope);return await run(new PostgresTrustStore(tx,{now:this.now,withinTransaction:true}));});}catch(error){fail(error);}}
+  async list<T>(collection:string):Promise<T[]>{return await this.inScope((store)=>store.listScoped<T>(collection));}
+  async append<T>(collection:string,value:T):Promise<void>{await this.inScope((store)=>store.appendScoped(collection,value));}
+  async replace<T extends {id:string}>(collection:string,value:T):Promise<void>{await this.inScope((store)=>store.replaceScoped(collection,value));}
+  async audit(input:Omit<AuditRecord,'id'|'createdAt'|'integrityHash'|'previousHash'>):Promise<AuditRecord>{return await this.inScope((store)=>store.auditScoped(input));}
+  async emit(input:Omit<OutboxEvent,'id'|'occurredAt'>):Promise<OutboxEvent>{return await this.inScope((store)=>store.emitScoped(input));}
 
-  constructor(
-    private readonly sql: SqlClient,
-    options: PostgresTrustStoreOptions = {},
-  ) {
-    this.now = options.now ?? (() => new Date());
-    this.withinTransaction = options.withinTransaction ?? false;
-  }
+  private async listScoped<T>(collection:string):Promise<T[]>{const dedicated=DEDICATED[collection];try{
+    if(collection==='auditRecords'){const rows=await this.sql<AuditRow[]>`SELECT * FROM trust_audit_records ORDER BY coalesce(tenant_id, '') ASC, chain_position ASC`;return rows.map(auditRowToRecord) as unknown as T[];}
+    if(collection==='outboxEvents'){const rows=await this.sql<OutboxRow[]>`SELECT * FROM trust_outbox_events ORDER BY occurred_at ASC, event_id ASC`;return rows.map(outboxRowToRecord) as unknown as T[];}
+    if(dedicated)return await this.listDedicated<T>(collection);
+    if(isBatchACollection(collection))return(await batchARelation(collection).list(this.sql))as unknown as T[];
+    if(isBatchBCollection(collection))return(await batchBRelation(collection).list(this.sql))as unknown as T[];
+    if(isBatchCCollection(collection))return(await batchCRelation(collection).list(this.sql))as unknown as T[];
+    if(isBatchDCollection(collection))return(await batchDRelation(collection).list(this.sql))as unknown as T[];
+    if(isBatchECollection(collection))return(await batchERelation(collection).list(this.sql))as unknown as T[];
+    if(isBatchFCollection(collection))return(await batchFRelation(collection).list(this.sql,{lock:this.withinTransaction&&LOCK_ON_TRANSACTIONAL_READ.has(collection)}))as unknown as T[];
+    if(isBatchGCollection(collection))return(await batchGRelation(collection).list(this.sql))as unknown as T[];
+    if(isBatchHCollection(collection))return(await batchHRelation(collection).list(this.sql))as unknown as T[];
+    if(isBatchICollection(collection))return(await batchIRelation(collection).list(this.sql))as unknown as T[];
+    if(isBatchKCollection(collection))return(await batchKRelation(collection).list(this.sql))as unknown as T[];
+    if(isBatchLCollection(collection))return(await batchLRelation(collection).list(this.sql))as unknown as T[];
+    if(isBatchMCollection(collection))return(await batchMRelation(collection).list(this.sql))as unknown as T[];
+    this.requireGoverned(collection);const rows=await this.sql<StoredRow[]>`SELECT payload, payload_digest FROM trust_records WHERE collection = ${collection} ORDER BY created_at ASC, record_id ASC`;return rows.map((row)=>rowToRecord<T>(row));
+  }catch(error){fail(error);}}
 
-  /**
-   * Runs an operation with the ambient tenancy scope applied to its connection.
-   *
-   * Row Level Security reads `app.tenant_id` and `app.workspace_id`, and those are session
-   * variables — so they must be set on the same connection that runs the statement, and
-   * only for its duration. `set_config(..., true)` is transaction-local, which is why every
-   * scoped operation opens a transaction: a value set without one would persist on the
-   * pooled connection and become the next request's scope, which is a cross-tenant read
-   * with no bug in any policy.
-   *
-   * Three cases, and the third is the one that matters:
-   *
-   *   Already inside a transaction — the scope was applied when it opened.
-   *   An ambient scope exists — open a transaction, set it, run.
-   *   No ambient scope at all — run unscoped. Under forced RLS that reads nothing and writes
-   *     nothing, which is the correct outcome: an unscoped governed operation must not
-   *     quietly see every tenant. It fails at the database rather than at the type level,
-   *     which is the cost of carrying scope ambiently and is why scope is established at
-   *     the funnel every protected route passes through.
-   *
-   * ## Why the second case is not gated on the tenant
-   *
-   * It was, and that made membership discovery impossible. `isTenantScoped` decided whether to apply
-   * the scope at all, so a caller who knew its actor but not yet its tenant — every caller between
-   * signing in and activating a workspace — ran with no `app.actor_id` set either, and the
-   * actor-keyed branches `202608110021` adds to the membership and workspace policies could never
-   * match. The condition is now "the scope carries anything", because whether a *policy* is satisfied
-   * is the database's decision and not this method's to pre-empt.
-   *
-   * This widens nothing on its own. Applying a tenant-less scope sets `app.actor_id` and leaves
-   * `app.tenant_id` empty, so every tenant-keyed policy still matches nothing — the only predicates
-   * that become satisfiable are the ones written to be satisfied by an actor alone.
-   */
-  private async inScope<T>(run: (store: PostgresTrustStore) => Promise<T>): Promise<T> {
-    if (this.withinTransaction) return await run(this);
+  private async listDedicated<T>(collection:string):Promise<T[]>{if(collection==='trustWorkspaces'){const rows=await this.sql<StoredRow[]>`SELECT payload, payload_digest FROM trust_workspaces ORDER BY created_at ASC, workspace_id ASC`;return rows.map((row)=>rowToRecord<T>(row));}if(collection==='memberships'){const rows=await this.sql<StoredRow[]>`SELECT payload, payload_digest FROM trust_memberships ORDER BY created_at ASC, membership_id ASC`;return rows.map((row)=>rowToRecord<T>(row));}const rows=await this.sql<StoredRow[]>`SELECT payload, payload_digest FROM trust_permission_grants ORDER BY created_at ASC, grant_id ASC`;return rows.map((row)=>rowToRecord<T>(row));}
 
-    const scope = currentTrustScope();
-    if (!isScopeBearing(scope)) return await run(this);
+  private async appendScoped<T>(collection:string,value:T):Promise<void>{const record=asRecord(value);const id=requireRecordId(value);const digest=payloadDigest(record);try{
+    if(isBatchACollection(collection)){await batchARelation(collection).insert(this.sql,record,this.requireRelationalTenant(collection,record));return;}if(isBatchBCollection(collection)){await batchBRelation(collection).insert(this.sql,record,this.requireRelationalTenant(collection,record));return;}if(isBatchCCollection(collection)){await batchCRelation(collection).insert(this.sql,record,this.requireRelationalTenant(collection,record));return;}if(isBatchDCollection(collection)){await batchDRelation(collection).insert(this.sql,record,this.requireRelationalTenant(collection,record));return;}if(isBatchECollection(collection)){await batchERelation(collection).insert(this.sql,record,this.requireRelationalTenant(collection,record));return;}if(isBatchFCollection(collection)){await batchFRelation(collection).insert(this.sql,record,this.requireRelationalTenant(collection,record));return;}if(isBatchGCollection(collection)){await batchGRelation(collection).insert(this.sql,record,this.requireRelationalTenant(collection,record));return;}if(isBatchHCollection(collection)){await batchHRelation(collection).insert(this.sql,record,this.requireRelationalTenant(collection,record));return;}if(isBatchICollection(collection)){await batchIRelation(collection).insert(this.sql,record,this.requireRelationalTenant(collection,record));return;}if(isBatchKCollection(collection)){await batchKRelation(collection).insert(this.sql,record,this.requireRelationalTenant(collection,record));return;}if(isBatchLCollection(collection)){await batchLRelation(collection).insert(this.sql,record,this.requireRelationalTenant(collection,record));return;}if(isBatchMCollection(collection)){await batchMRelation(collection).insert(this.sql,record,this.requireRelationalTenant(collection,record));return;}
+    if(collection==='trustWorkspaces'){const tenantId=firstString(record,['tenantId']);if(!tenantId)throw new PostgresStoreError('PERSISTENCE_SCOPE_INVALID','a workspace must name its tenant');await this.sql`INSERT INTO trust_tenants (tenant_id) VALUES (${tenantId}) ON CONFLICT (tenant_id) DO NOTHING`;await this.sql`INSERT INTO trust_workspaces (workspace_id, tenant_id, status, payload, payload_digest, version) VALUES (${id}, ${tenantId}, ${firstString(record,['status'])??'ACTIVE'}, ${this.sql.json(record)}, ${digest}, ${asVersion(record)})`;return;}
+    if(collection==='memberships'){const membershipWorkspaceId=requireScope(record,'workspaceId');const[membershipWorkspace]=await this.sql<{tenantId:string}[]>`SELECT tenant_id AS "tenantId" FROM trust_workspaces WHERE workspace_id = ${membershipWorkspaceId}`;if(!membershipWorkspace)throw new PostgresStoreError('PERSISTENCE_SCOPE_INVALID',`membership names workspace ${membershipWorkspaceId}, which does not exist or is outside this scope`);await this.sql`INSERT INTO trust_memberships (membership_id, workspace_id, tenant_id, user_id, status, role, effective_from, effective_to, revoked_at, payload, payload_digest, version) VALUES (${id}, ${membershipWorkspaceId}, ${membershipWorkspace.tenantId}, ${requireScope(record,'userId')}, ${firstString(record,['status'])??'ACTIVE'}, ${firstString(record,['role'])}, ${firstTimestamp(record,['effectiveFrom','createdAt'])}, ${firstTimestamp(record,['effectiveTo'])}, ${firstTimestamp(record,['revokedAt'])}, ${this.sql.json(record)}, ${digest}, ${asVersion(record)})`;return;}
+    if(collection==='permissionGrants'){await this.sql`INSERT INTO trust_permission_grants (grant_id, workspace_id, user_id, permission_key, effect, scope_type, scope_id, source_type, source_id, effective_from, effective_to, revoked_at, payload, payload_digest) VALUES (${id}, ${requireScope(record,'workspaceId')}, ${requireScope(record,'userId')}, ${requireScope(record,'permissionKey')}, ${firstString(record,['effect'])??'ALLOW'}, ${firstString(record,['scopeType'])??'WORKSPACE'}, ${firstString(record,['scopeId'])}, ${firstString(record,['sourceType'])??'ROLE'}, ${firstString(record,['sourceId'])??'unspecified'}, ${firstTimestamp(record,['effectiveFrom','createdAt'])??this.now()}, ${firstTimestamp(record,['effectiveTo'])}, ${firstTimestamp(record,['revokedAt'])}, ${this.sql.json(record)}, ${digest})`;return;}
+    this.requireGoverned(collection);await this.sql`INSERT INTO trust_records (collection, record_id, tenant_id, workspace_id, principal_id, status, effective_from, effective_to, revoked_at, version, payload, payload_digest) VALUES (${collection}, ${id}, ${firstString(record,SCOPE_FIELDS.tenantId)}, ${firstString(record,SCOPE_FIELDS.workspaceId)}, ${firstString(record,SCOPE_FIELDS.principalId)}, ${firstString(record,SCOPE_FIELDS.status)}, ${firstTimestamp(record,SCOPE_FIELDS.effectiveFrom)}, ${firstTimestamp(record,SCOPE_FIELDS.effectiveTo)}, ${firstTimestamp(record,SCOPE_FIELDS.revokedAt)}, ${asVersion(record)}, ${this.sql.json(record)}, ${digest})`;
+  }catch(error){fail(error);}}
 
-    try {
-      return await this.sql.begin(async (tx) => {
-        await applyTrustScope(tx, scope);
-        return await run(new PostgresTrustStore(tx, { now: this.now, withinTransaction: true }));
-      });
-    } catch (error) {
-      fail(error);
-    }
-  }
+  private async replaceScoped<T extends {id:string}>(collection:string,value:T):Promise<void>{const record=asRecord(value);const id=requireRecordId(value);const digest=payloadDigest(record);const updatedAt=this.now();try{const relation=relationalUpdateTarget(collection);if(relation){this.requireRelationalTenant(collection,record);const affected=await relation.update(this.sql,record);this.requireAffected(affected,collection,id);return;}
+    if(collection==='trustWorkspaces'){const rows=await this.sql<{workspace_id:string}[]>`UPDATE trust_workspaces SET status=${firstString(record,['status'])??'ACTIVE'}, payload=${this.sql.json(record)}, payload_digest=${digest}, version=${asVersion(record)}, updated_at=${updatedAt} WHERE workspace_id=${id} RETURNING workspace_id`;this.requireAffected(rows.length,collection,id);return;}
+    if(collection==='memberships'){const rows=await this.sql<{membership_id:string}[]>`UPDATE trust_memberships SET status=${firstString(record,['status'])??'ACTIVE'}, role=${firstString(record,['role'])}, effective_from=${firstTimestamp(record,['effectiveFrom','createdAt'])}, effective_to=${firstTimestamp(record,['effectiveTo'])}, revoked_at=${firstTimestamp(record,['revokedAt'])}, payload=${this.sql.json(record)}, payload_digest=${digest}, version=${asVersion(record)}, updated_at=${updatedAt} WHERE membership_id=${id} RETURNING membership_id`;this.requireAffected(rows.length,collection,id);return;}
+    if(collection==='permissionGrants'){const rows=await this.sql<{grant_id:string}[]>`UPDATE trust_permission_grants SET effect=${firstString(record,['effect'])??'ALLOW'}, scope_id=${firstString(record,['scopeId'])}, effective_to=${firstTimestamp(record,['effectiveTo'])}, revoked_at=${firstTimestamp(record,['revokedAt'])}, payload=${this.sql.json(record)}, payload_digest=${digest} WHERE grant_id=${id} RETURNING grant_id`;this.requireAffected(rows.length,collection,id);return;}
+    this.requireGoverned(collection);const rows=await this.sql<{record_id:string}[]>`UPDATE trust_records SET tenant_id=${firstString(record,SCOPE_FIELDS.tenantId)}, workspace_id=${firstString(record,SCOPE_FIELDS.workspaceId)}, principal_id=${firstString(record,SCOPE_FIELDS.principalId)}, status=${firstString(record,SCOPE_FIELDS.status)}, effective_from=${firstTimestamp(record,SCOPE_FIELDS.effectiveFrom)}, effective_to=${firstTimestamp(record,SCOPE_FIELDS.effectiveTo)}, revoked_at=${firstTimestamp(record,SCOPE_FIELDS.revokedAt)}, version=${asVersion(record)}, payload=${this.sql.json(record)}, payload_digest=${digest}, updated_at=${updatedAt} WHERE collection=${collection} AND record_id=${id} RETURNING record_id`;this.requireAffected(rows.length,collection,id);
+  }catch(error){fail(error);}}
 
-  async list<T>(collection: string): Promise<T[]> {
-    return await this.inScope((store) => store.listScoped<T>(collection));
-  }
-
-  async append<T>(collection: string, value: T): Promise<void> {
-    await this.inScope((store) => store.appendScoped(collection, value));
-  }
-
-  async replace<T extends { id: string }>(collection: string, value: T): Promise<void> {
-    await this.inScope((store) => store.replaceScoped(collection, value));
-  }
-
-  async audit(
-    input: Omit<AuditRecord, 'id' | 'createdAt' | 'integrityHash' | 'previousHash'>,
-  ): Promise<AuditRecord> {
-    return await this.inScope((store) => store.auditScoped(input));
-  }
-
-  async emit(input: Omit<OutboxEvent, 'id' | 'occurredAt'>): Promise<OutboxEvent> {
-    return await this.inScope((store) => store.emitScoped(input));
-  }
-
-  /**
-   * Reads a collection.
-   *
-   * Returns rows in insertion order, which the audit chain depends on and which every
-   * engine that takes `records[records.length - 1]` as "the latest" assumes. An
-   * unordered read would make those engines non-deterministic under any plan change.
-   */
-  private async listScoped<T>(collection: string): Promise<T[]> {
-    const dedicated = DEDICATED[collection];
-    try {
-      if (collection === 'auditRecords') {
-        // Ordered by position within the tenant. Under RLS a caller sees only its own
-        // records, and those form a complete chain from position 1 — which is exactly what
-        // `verifyAuditChain` needs and what a global chain could not provide.
-        const rows = await this.sql<AuditRow[]>`
-          SELECT * FROM trust_audit_records
-          ORDER BY coalesce(tenant_id, '') ASC, chain_position ASC
-        `;
-        return rows.map(auditRowToRecord) as unknown as T[];
-      }
-      if (collection === 'outboxEvents') {
-        const rows = await this.sql<OutboxRow[]>`
-          SELECT * FROM trust_outbox_events ORDER BY occurred_at ASC, event_id ASC
-        `;
-        return rows.map(outboxRowToRecord) as unknown as T[];
-      }
-      // Table identifiers cannot be bound, so each dedicated table is read through
-      // its own statement rather than through an interpolated name.
-      if (dedicated) return await this.listDedicated<T>(collection);
-      // Batches A, B and C each read their own table, rebuild the record from columns, and
-      // validate it against the aggregate's canonical schema before any engine sees it.
-      if (isBatchACollection(collection))
-        return (await batchARelation(collection).list(this.sql)) as unknown as T[];
-      if (isBatchBCollection(collection))
-        return (await batchBRelation(collection).list(this.sql)) as unknown as T[];
-      if (isBatchCCollection(collection))
-        return (await batchCRelation(collection).list(this.sql)) as unknown as T[];
-      if (isBatchDCollection(collection))
-        return (await batchDRelation(collection).list(this.sql)) as unknown as T[];
-      if (isBatchECollection(collection))
-        return (await batchERelation(collection).list(this.sql)) as unknown as T[];
-      if (isBatchFCollection(collection))
-        return (await batchFRelation(collection).list(this.sql, {
-          // Only inside a transaction, where a lock has a scope to be held for. A read-modify-write
-          // that is not wrapped in one cannot be made safe by locking, and asking for a lock outside
-          // a transaction would hold rows until the statement ended and imply a safety it lacks.
-          lock: this.withinTransaction && LOCK_ON_TRANSACTIONAL_READ.has(collection),
-        })) as unknown as T[];
-      if (isBatchGCollection(collection))
-        return (await batchGRelation(collection).list(this.sql)) as unknown as T[];
-      if (isBatchHCollection(collection))
-        return (await batchHRelation(collection).list(this.sql)) as unknown as T[];
-      if (isBatchICollection(collection))
-        return (await batchIRelation(collection).list(this.sql)) as unknown as T[];
-      if (isBatchKCollection(collection))
-        return (await batchKRelation(collection).list(this.sql)) as unknown as T[];
-      if (isBatchLCollection(collection))
-        return (await batchLRelation(collection).list(this.sql)) as unknown as T[];
-      if (isBatchMCollection(collection))
-        return (await batchMRelation(collection).list(this.sql)) as unknown as T[];
-      this.requireGoverned(collection);
-      const rows = await this.sql<StoredRow[]>`
-        SELECT payload, payload_digest FROM trust_records
-        WHERE collection = ${collection}
-        ORDER BY created_at ASC, record_id ASC
-      `;
-      return rows.map((row) => rowToRecord<T>(row));
-    } catch (error) {
-      fail(error);
-    }
-  }
-
-  /** Dedicated tables, each with its own statement so no identifier is interpolated. */
-  private async listDedicated<T>(collection: string): Promise<T[]> {
-    if (collection === 'trustWorkspaces') {
-      const rows = await this.sql<StoredRow[]>`
-        SELECT payload, payload_digest FROM trust_workspaces
-        ORDER BY created_at ASC, workspace_id ASC
-      `;
-      return rows.map((row) => rowToRecord<T>(row));
-    }
-    if (collection === 'memberships') {
-      const rows = await this.sql<StoredRow[]>`
-        SELECT payload, payload_digest FROM trust_memberships
-        ORDER BY created_at ASC, membership_id ASC
-      `;
-      return rows.map((row) => rowToRecord<T>(row));
-    }
-    const rows = await this.sql<StoredRow[]>`
-      SELECT payload, payload_digest FROM trust_permission_grants
-      ORDER BY created_at ASC, grant_id ASC
-    `;
-    return rows.map((row) => rowToRecord<T>(row));
-  }
-
-  private async appendScoped<T>(collection: string, value: T): Promise<void> {
-    const record = asRecord(value);
-    const id = requireRecordId(value);
-    const digest = payloadDigest(record);
-
-    try {
-      if (isBatchACollection(collection)) {
-        await batchARelation(collection).insert(
-          this.sql,
-          record,
-          this.requireRelationalTenant(collection, record),
-        );
-        return;
-      }
-
-      if (isBatchBCollection(collection)) {
-        await batchBRelation(collection).insert(
-          this.sql,
-          record,
-          this.requireRelationalTenant(collection, record),
-        );
-        return;
-      }
-
-      if (isBatchCCollection(collection)) {
-        await batchCRelation(collection).insert(
-          this.sql,
-          record,
-          this.requireRelationalTenant(collection, record),
-        );
-        return;
-      }
-
-      if (isBatchDCollection(collection)) {
-        await batchDRelation(collection).insert(
-          this.sql,
-          record,
-          this.requireRelationalTenant(collection, record),
-        );
-        return;
-      }
-
-      if (isBatchECollection(collection)) {
-        await batchERelation(collection).insert(
-          this.sql,
-          record,
-          this.requireRelationalTenant(collection, record),
-        );
-        return;
-      }
-
-      if (isBatchFCollection(collection)) {
-        await batchFRelation(collection).insert(
-          this.sql,
-          record,
-          this.requireRelationalTenant(collection, record),
-        );
-        return;
-      }
-
-      if (isBatchGCollection(collection)) {
-        await batchGRelation(collection).insert(
-          this.sql,
-          record,
-          this.requireRelationalTenant(collection, record),
-        );
-        return;
-      }
-
-      if (isBatchHCollection(collection)) {
-        await batchHRelation(collection).insert(
-          this.sql,
-          record,
-          this.requireRelationalTenant(collection, record),
-        );
-        return;
-      }
-
-      if (isBatchICollection(collection)) {
-        await batchIRelation(collection).insert(
-          this.sql,
-          record,
-          this.requireRelationalTenant(collection, record),
-        );
-        return;
-      }
-
-      if (isBatchKCollection(collection)) {
-        await batchKRelation(collection).insert(
-          this.sql,
-          record,
-          this.requireRelationalTenant(collection, record),
-        );
-        return;
-      }
-
-      if (isBatchLCollection(collection)) {
-        await batchLRelation(collection).insert(
-          this.sql,
-          record,
-          this.requireRelationalTenant(collection, record),
-        );
-        return;
-      }
-
-      if (isBatchMCollection(collection)) {
-        await batchMRelation(collection).insert(
-          this.sql,
-          record,
-          this.requireRelationalTenant(collection, record),
-        );
-        return;
-      }
-
-      if (collection === 'trustWorkspaces') {
-        const tenantId = firstString(record, ['tenantId']);
-        if (!tenantId)
-          throw new PostgresStoreError(
-            'PERSISTENCE_SCOPE_INVALID',
-            'a workspace must name its tenant',
-          );
-        // The tenant row is created on demand: tenancy has no engine that owns a
-        // tenant lifecycle yet, and a foreign key with nothing to point at would make
-        // every workspace write fail.
-        await this.sql`
-          INSERT INTO trust_tenants (tenant_id) VALUES (${tenantId})
-          ON CONFLICT (tenant_id) DO NOTHING
-        `;
-        await this.sql`
-          INSERT INTO trust_workspaces (workspace_id, tenant_id, status, payload, payload_digest, version)
-          VALUES (
-            ${id}, ${tenantId}, ${firstString(record, ['status']) ?? 'ACTIVE'},
-            ${this.sql.json(record)}, ${digest}, ${asVersion(record)}
-          )
-        `;
-        return;
-      }
-
-      if (collection === 'memberships') {
-        // `tenant_id` is derived from the membership's own workspace, never from the record and never
-        // from the ambient scope.
-        //
-        // `Membership` carries no tenant and must not start carrying one from a caller. The workspace
-        // is the authoritative source — a membership's tenant *is* its workspace's tenant, which is
-        // what `202608110021` backfilled from — so resolving it here cannot disagree with the row it
-        // belongs to. The scope is not bypassed: this read goes through `trust_workspaces`' own policy,
-        // so a workspace outside the caller's reach resolves nothing.
-        //
-        // Resolved in its own statement rather than as a subquery in the INSERT, and the reason is the
-        // error a caller gets. As a subquery, a workspace that does not exist yields NULL, PostgreSQL
-        // checks NOT NULL before the foreign key, and the failure arrives as
-        // `PERSISTENCE_CORRUPT_RECORD: 23502` — corruption, for what is actually a caller naming a
-        // workspace it cannot reach. One extra read on a path that runs at founding and invitation
-        // time buys an error that says what happened.
-        const membershipWorkspaceId = requireScope(record, 'workspaceId');
-        const [membershipWorkspace] = await this.sql<{ tenantId: string }[]>`
-          SELECT tenant_id AS "tenantId" FROM trust_workspaces WHERE workspace_id = ${membershipWorkspaceId}
-        `;
-        if (!membershipWorkspace)
-          throw new PostgresStoreError(
-            'PERSISTENCE_SCOPE_INVALID',
-            `membership names workspace ${membershipWorkspaceId}, which does not exist or is outside this scope`,
-          );
-
-        await this.sql`
-          INSERT INTO trust_memberships (
-            membership_id, workspace_id, tenant_id, user_id, status, role,
-            effective_from, effective_to, revoked_at, payload, payload_digest, version
-          ) VALUES (
-            ${id},
-            ${membershipWorkspaceId},
-            ${membershipWorkspace.tenantId},
-            ${requireScope(record, 'userId')},
-            ${firstString(record, ['status']) ?? 'ACTIVE'},
-            ${firstString(record, ['role'])},
-            ${firstTimestamp(record, ['effectiveFrom', 'createdAt'])},
-            ${firstTimestamp(record, ['effectiveTo'])},
-            ${firstTimestamp(record, ['revokedAt'])},
-            ${this.sql.json(record)}, ${digest}, ${asVersion(record)}
-          )
-        `;
-        return;
-      }
-
-      if (collection === 'permissionGrants') {
-        await this.sql`
-          INSERT INTO trust_permission_grants (
-            grant_id, workspace_id, user_id, permission_key, effect, scope_type, scope_id,
-            source_type, source_id, effective_from, effective_to, revoked_at, payload, payload_digest
-          ) VALUES (
-            ${id},
-            ${requireScope(record, 'workspaceId')},
-            ${requireScope(record, 'userId')},
-            ${requireScope(record, 'permissionKey')},
-            ${firstString(record, ['effect']) ?? 'ALLOW'},
-            ${firstString(record, ['scopeType']) ?? 'WORKSPACE'},
-            ${firstString(record, ['scopeId'])},
-            ${firstString(record, ['sourceType']) ?? 'ROLE'},
-            ${firstString(record, ['sourceId']) ?? 'unspecified'},
-            ${firstTimestamp(record, ['effectiveFrom', 'createdAt']) ?? this.now()},
-            ${firstTimestamp(record, ['effectiveTo'])},
-            ${firstTimestamp(record, ['revokedAt'])},
-            ${this.sql.json(record)}, ${digest}
-          )
-        `;
-        return;
-      }
-
-      this.requireGoverned(collection);
-      await this.sql`
-        INSERT INTO trust_records (
-          collection, record_id, tenant_id, workspace_id, principal_id, status,
-          effective_from, effective_to, revoked_at, version, payload, payload_digest
-        ) VALUES (
-          ${collection}, ${id},
-          ${firstString(record, SCOPE_FIELDS.tenantId)},
-          ${firstString(record, SCOPE_FIELDS.workspaceId)},
-          ${firstString(record, SCOPE_FIELDS.principalId)},
-          ${firstString(record, SCOPE_FIELDS.status)},
-          ${firstTimestamp(record, SCOPE_FIELDS.effectiveFrom)},
-          ${firstTimestamp(record, SCOPE_FIELDS.effectiveTo)},
-          ${firstTimestamp(record, SCOPE_FIELDS.revokedAt)},
-          ${asVersion(record)}, ${this.sql.json(record)}, ${digest}
-        )
-      `;
-    } catch (error) {
-      fail(error);
-    }
-  }
-
-  /**
-   * Replaces a record in place, by id.
-   *
-   * A missing row is an error rather than an insert. `replace` is how an engine
-   * commits a state transition it has already validated against the record it read;
-   * turning that into a create would resurrect a deleted aggregate and skip every
-   * precondition the engine checked.
-   */
-  private async replaceScoped<T extends { id: string }>(collection: string, value: T): Promise<void> {
-    const record = asRecord(value);
-    const id = requireRecordId(value);
-    const digest = payloadDigest(record);
-    const updatedAt = this.now();
-
-    try {
-      const relation = relationalUpdateTarget(collection);
-      if (relation) {
-        // The tenant is re-derived and checked even though the UPDATE does not write it: a
-        // caller replacing a record outside its scope must be refused for that reason, not
-        // discover it as a row that mysteriously does not exist.
-        this.requireRelationalTenant(collection, record);
-        const affected = await relation.update(this.sql, record);
-        this.requireAffected(affected, collection, id);
-        return;
-      }
-
-      if (collection === 'trustWorkspaces') {
-        const rows = await this.sql<{ workspace_id: string }[]>`
-          UPDATE trust_workspaces SET
-            status = ${firstString(record, ['status']) ?? 'ACTIVE'},
-            payload = ${this.sql.json(record)},
-            payload_digest = ${digest},
-            version = ${asVersion(record)},
-            updated_at = ${updatedAt}
-          WHERE workspace_id = ${id}
-          RETURNING workspace_id
-        `;
-        this.requireAffected(rows.length, collection, id);
-        return;
-      }
-
-      if (collection === 'memberships') {
-        const rows = await this.sql<{ membership_id: string }[]>`
-          UPDATE trust_memberships SET
-            status = ${firstString(record, ['status']) ?? 'ACTIVE'},
-            role = ${firstString(record, ['role'])},
-            effective_from = ${firstTimestamp(record, ['effectiveFrom', 'createdAt'])},
-            effective_to = ${firstTimestamp(record, ['effectiveTo'])},
-            revoked_at = ${firstTimestamp(record, ['revokedAt'])},
-            payload = ${this.sql.json(record)},
-            payload_digest = ${digest},
-            version = ${asVersion(record)},
-            updated_at = ${updatedAt}
-          WHERE membership_id = ${id}
-          RETURNING membership_id
-        `;
-        this.requireAffected(rows.length, collection, id);
-        return;
-      }
-
-      if (collection === 'permissionGrants') {
-        const rows = await this.sql<{ grant_id: string }[]>`
-          UPDATE trust_permission_grants SET
-            effect = ${firstString(record, ['effect']) ?? 'ALLOW'},
-            scope_id = ${firstString(record, ['scopeId'])},
-            effective_to = ${firstTimestamp(record, ['effectiveTo'])},
-            revoked_at = ${firstTimestamp(record, ['revokedAt'])},
-            payload = ${this.sql.json(record)},
-            payload_digest = ${digest}
-          WHERE grant_id = ${id}
-          RETURNING grant_id
-        `;
-        this.requireAffected(rows.length, collection, id);
-        return;
-      }
-
-      this.requireGoverned(collection);
-      const rows = await this.sql<{ record_id: string }[]>`
-        UPDATE trust_records SET
-          tenant_id = ${firstString(record, SCOPE_FIELDS.tenantId)},
-          workspace_id = ${firstString(record, SCOPE_FIELDS.workspaceId)},
-          principal_id = ${firstString(record, SCOPE_FIELDS.principalId)},
-          status = ${firstString(record, SCOPE_FIELDS.status)},
-          effective_from = ${firstTimestamp(record, SCOPE_FIELDS.effectiveFrom)},
-          effective_to = ${firstTimestamp(record, SCOPE_FIELDS.effectiveTo)},
-          revoked_at = ${firstTimestamp(record, SCOPE_FIELDS.revokedAt)},
-          version = ${asVersion(record)},
-          payload = ${this.sql.json(record)},
-          payload_digest = ${digest},
-          updated_at = ${updatedAt}
-        WHERE collection = ${collection} AND record_id = ${id}
-        RETURNING record_id
-      `;
-      this.requireAffected(rows.length, collection, id);
-    } catch (error) {
-      fail(error);
-    }
-  }
-
-  /**
-   * Appends an audit record, linked to its predecessor.
-   *
-   * The chain position and predecessor are read and written in one transaction with
-   * `FOR UPDATE` on the tail. Two concurrent appends would otherwise both read the
-   * same predecessor and both claim it, forking the chain — the exact defect the
-   * in-memory store's sequential grant issuance was changed to avoid, except that a
-   * database has genuinely concurrent writers and cannot be fixed by ordering calls.
-   */
-  private async auditScoped(
-    input: Omit<AuditRecord, 'id' | 'createdAt' | 'integrityHash' | 'previousHash'>,
-  ): Promise<AuditRecord> {
-    try {
-      // Inside an open transaction the append joins it, so the caller's mutation and
-      // its audit record commit or roll back together. Opening a second transaction
-      // here would let the audit survive a rolled-back mutation.
-      if (this.withinTransaction) return await this.appendAudit(this.sql, input);
-      return await this.sql.begin(async (tx) => this.appendAudit(tx, input));
-    } catch (error) {
-      fail(error);
-    }
-  }
-
-  /**
-   * Appends one link to the chain, on the given connection.
-   *
-   * The table lock is what makes the read-then-write atomic. A row lock on the tail
-   * cannot serialize it: the second writer must be blocked *before* it reads, and at
-   * position 1 there is no row for it to wait on. The lock is held only for the
-   * duration of the enclosing statement pair, and the chain is the one structure in
-   * the system that is inherently sequential — its whole purpose is that link N+1
-   * commits to exactly what link N said.
-   */
-  private async appendAudit(
-    sql: SqlClient,
-    input: Omit<AuditRecord, 'id' | 'createdAt' | 'integrityHash' | 'previousHash'>,
-  ): Promise<AuditRecord> {
-    await sql`LOCK TABLE trust_audit_records IN EXCLUSIVE MODE`;
-    // The tail of *this tenant's* chain. Read globally, this returns whatever row happened to
-    // be last across all tenants — and under Row Level Security it returns nothing at all for
-    // the second tenant, because the policy hides the first tenant's rows. The caller then
-    // computes position 1 and collides. One chain per tenant is what makes the position
-    // allocatable and the chain verifiable from inside a tenant scope.
-    const tenantId = input.tenantId ?? '';
-    const [tail] = await sql<{ chain_position: string; integrity_hash: string }[]>`
-      SELECT chain_position, integrity_hash FROM trust_audit_records
-      WHERE coalesce(tenant_id, '') = ${tenantId}
-      ORDER BY chain_position DESC LIMIT 1
-    `;
-
-    const chainPosition = tail ? Number(tail.chain_position) + 1 : 1;
-    const previousHash = tail?.integrity_hash;
-    const createdAt = this.now().toISOString();
-    // Redacted before hashing, never after: history is append-only, so a secret
-    // written into it is permanent.
-    const metadata = redactAuditMetadata(input.metadata);
-    const integrityHash = sharedAuditIntegrityHash(
-      { ...input, metadata, createdAt, previousHash },
-      (value) => createHash('sha256').update(value).digest('hex'),
-    );
-
-    const record: AuditRecord = {
-      id: randomUUID(),
-      ...input,
-      metadata,
-      createdAt,
-      integrityHash,
-      previousHash,
-    };
-
-    await sql`
-      INSERT INTO trust_audit_records (
-        audit_id, chain_position, tenant_id, workspace_id, actor_id, event_type,
-        aggregate_type, aggregate_id, correlation_id, metadata, previous_hash,
-        integrity_hash, created_at
-      ) VALUES (
-        ${record.id}, ${chainPosition}, ${record.tenantId ?? null}, ${record.workspaceId ?? null},
-        ${record.actorId}, ${record.eventType}, ${record.aggregateType}, ${record.aggregateId},
-        ${record.correlationId}, ${sql.json(metadata)}, ${previousHash ?? null},
-        ${integrityHash}, ${createdAt}
-      )
-    `;
-    return record;
-  }
-
-  private async emitScoped(input: Omit<OutboxEvent, 'id' | 'occurredAt'>): Promise<OutboxEvent> {
-    const event: OutboxEvent = {
-      ...input,
-      id: randomUUID(),
-      occurredAt: this.now().toISOString(),
-    };
-    try {
-      await this.sql`
-        INSERT INTO trust_outbox_events (
-          event_id, tenant_id, workspace_id, aggregate_type, aggregate_id, event_type,
-          event_version, payload, correlation_id, occurred_at, published_at
-        ) VALUES (
-          ${event.id}, ${event.tenantId ?? null}, ${event.workspaceId ?? null},
-          ${event.aggregateType}, ${event.aggregateId}, ${event.eventType},
-          ${event.eventVersion}, ${this.sql.json(event.payload)}, ${event.correlationId},
-          ${event.occurredAt}, ${event.publishedAt ?? null}
-        )
-      `;
-      return event;
-    } catch (error) {
-      fail(error);
-    }
-  }
-
-  /**
-   * Runs `operation` inside a real database transaction.
-   *
-   * BEGIN before, COMMIT after resolution, ROLLBACK on rejection — the driver's own,
-   * not a snapshot-and-restore simulation. The callback receives a store bound to the
-   * transaction's connection; writes through the outer store are not part of it,
-   * which is why it is passed rather than assumed.
-   *
-   * Nested calls join the outer transaction rather than opening a savepoint. A nested
-   * rollback that undid only inner writes would leave the outer transaction partially
-   * applied while reporting that it had been undone.
-   */
-  async transaction<T>(operation: (tx: TrustPersistence) => Promise<T>): Promise<T> {
-    // Already inside one: join it. Opening a savepoint here would let an inner
-    // rollback report that its writes were undone while the outer transaction went
-    // on to commit the rest, which is a partially applied transaction reported as a
-    // clean one.
-    if (this.withinTransaction) return await operation(this);
-
-    try {
-      return await this.sql.begin(async (tx) => {
-        // Once, for the whole transaction. Every operation inside it then runs on this
-        // connection with this scope, and `inScope` sees `withinTransaction` and does not
-        // reapply it.
-        const scope = currentTrustScope();
-        // Applied whenever the scope carries anything, matching `inScope`. A transaction opened by a
-        // caller that knows only its actor still needs `app.actor_id` set, or the actor-keyed
-        // policies see NULL and the transaction reads nothing.
-        if (isScopeBearing(scope)) await applyTrustScope(tx, scope);
-        return await operation(
-          new PostgresTrustStore(tx, { now: this.now, withinTransaction: true }),
-        );
-      });
-    } catch (error) {
-      if (error instanceof PostgresStoreError) throw error;
-      // Deferred constraint triggers fire at COMMIT, which is inside `sql.begin` but outside every
-      // statement, so their failures arrive here raw. Translating rather than blanket-wrapping keeps
-      // the journal-balance refusal distinguishable from an actual transaction failure.
-      const translated = translate(error);
-      if (translated.code !== 'PERSISTENCE_UNAVAILABLE') throw translated;
-      throw new PostgresStoreError('PERSISTENCE_TRANSACTION_FAILED', sanitizeDatabaseFailure(error));
-    }
-  }
-
-  private requireGoverned(collection: string): void {
-    if (!GOVERNED_DOCUMENTS.includes(collection))
-      throw new PostgresStoreError(
-        'PERSISTENCE_COLLECTION_NOT_MAPPED',
-        `${collection} has no mapping in the durable trust store`,
-      );
-  }
-
-  /**
-   * The tenant a relational domain row belongs to, taken from the ambient scope.
-   *
-   * Shared by Batch A and Batch B, because the reason is the same for both: none of their
-   * twenty-three domain types has a `tenantId` — they carry `workspaceId` only, which was
-   * sufficient while `workspaces` was the authority and is not sufficient now that
-   * `tenant_id NOT NULL REFERENCES trust_tenants` is. The tenant therefore comes from the same
-   * scope the policies read, which is the only source that cannot disagree with them.
-   *
-   * The workspace is cross-checked rather than trusted. A record naming a different workspace
-   * than the caller's scope would be refused by the policy's `WITH CHECK` anyway, but as a
-   * bare row-level-security rejection that names no cause; and on a *read* path the row would
-   * simply be invisible, which reads as absence rather than as a boundary violation. Refusing
-   * here names it.
-   */
-  private requireRelationalTenant(collection: string, record: Record<string, unknown>): string {
-    const scope = currentTrustScope();
-    if (!scope?.tenantId)
-      throw new PostgresStoreError(
-        'PERSISTENCE_SCOPE_INVALID',
-        `${collection} requires an established tenant scope; the aggregate carries no tenant of its own`,
-      );
-
-    const workspaceId = record.workspaceId;
-    if (typeof workspaceId !== 'string' || workspaceId.length === 0)
-      throw new PostgresStoreError(
-        'PERSISTENCE_SCOPE_INVALID',
-        `${collection} record names no workspace`,
-      );
-    if (scope.workspaceId && scope.workspaceId !== workspaceId)
-      throw new PostgresStoreError(
-        'PERSISTENCE_SCOPE_INVALID',
-        `${collection} record belongs to a workspace other than the caller's scope`,
-      );
-
-    return scope.tenantId;
-  }
-
-  private requireAffected(affected: number, collection: string, id: string): void {
-    if (affected === 0)
-      throw new PostgresStoreError(
-        'PERSISTENCE_RECORD_NOT_FOUND',
-        `${collection}/${id} does not exist; replace does not create`,
-      );
-  }
+  private async auditScoped(input:Omit<AuditRecord,'id'|'createdAt'|'integrityHash'|'previousHash'>):Promise<AuditRecord>{try{if(this.withinTransaction)return await this.appendAudit(this.sql,input);return await this.sql.begin(async(tx)=>this.appendAudit(tx,input));}catch(error){fail(error);}}
+  private async appendAudit(sql:SqlClient,input:Omit<AuditRecord,'id'|'createdAt'|'integrityHash'|'previousHash'>):Promise<AuditRecord>{await sql`LOCK TABLE trust_audit_records IN EXCLUSIVE MODE`;const tenantId=input.tenantId??'';const[tail]=await sql<{chain_position:string;integrity_hash:string}[]>`SELECT chain_position, integrity_hash FROM trust_audit_records WHERE coalesce(tenant_id, '')=${tenantId} ORDER BY chain_position DESC LIMIT 1`;const chainPosition=tail?Number(tail.chain_position)+1:1;const previousHash=tail?.integrity_hash;const createdAt=this.now().toISOString();const metadata=redactAuditMetadata(input.metadata);const integrityHash=sharedAuditIntegrityHash({...input,metadata,createdAt,previousHash},(value)=>createHash('sha256').update(value).digest('hex'));const record:AuditRecord={id:randomUUID(),...input,metadata,createdAt,integrityHash,previousHash};await sql`INSERT INTO trust_audit_records (audit_id, chain_position, tenant_id, workspace_id, actor_id, event_type, aggregate_type, aggregate_id, correlation_id, metadata, previous_hash, integrity_hash, created_at) VALUES (${record.id}, ${chainPosition}, ${record.tenantId??null}, ${record.workspaceId??null}, ${record.actorId}, ${record.eventType}, ${record.aggregateType}, ${record.aggregateId}, ${record.correlationId}, ${sql.json(metadata)}, ${previousHash??null}, ${integrityHash}, ${createdAt})`;return record;}
+  private async emitScoped(input:Omit<OutboxEvent,'id'|'occurredAt'>):Promise<OutboxEvent>{const event:OutboxEvent={...input,id:randomUUID(),occurredAt:this.now().toISOString()};try{await this.sql`INSERT INTO trust_outbox_events (event_id, tenant_id, workspace_id, aggregate_type, aggregate_id, event_type, event_version, payload, correlation_id, occurred_at, published_at) VALUES (${event.id}, ${event.tenantId??null}, ${event.workspaceId??null}, ${event.aggregateType}, ${event.aggregateId}, ${event.eventType}, ${event.eventVersion}, ${this.sql.json(event.payload)}, ${event.correlationId}, ${event.occurredAt}, ${event.publishedAt??null})`;return event;}catch(error){fail(error);}}
+  async transaction<T>(operation:(tx:TrustPersistence)=>Promise<T>):Promise<T>{if(this.withinTransaction)return await operation(this);try{return await this.sql.begin(async(tx)=>{const scope=currentTrustScope();if(isScopeBearing(scope))await applyTrustScope(tx,scope);return await operation(new PostgresTrustStore(tx,{now:this.now,withinTransaction:true}));});}catch(error){if(error instanceof PostgresStoreError)throw error;const translated=translate(error);if(translated.code!=='PERSISTENCE_UNAVAILABLE')throw translated;throw new PostgresStoreError('PERSISTENCE_TRANSACTION_FAILED',sanitizeDatabaseFailure(error));}}
+  private requireGoverned(collection:string):void{if(!GOVERNED_DOCUMENTS.includes(collection))throw new PostgresStoreError('PERSISTENCE_COLLECTION_NOT_MAPPED',`${collection} has no mapping in the durable trust store`);}
+  private requireRelationalTenant(collection:string,record:Record<string,unknown>):string{const scope=currentTrustScope();if(!scope?.tenantId)throw new PostgresStoreError('PERSISTENCE_SCOPE_INVALID',`${collection} requires an established tenant scope; the aggregate carries no tenant of its own`);const workspaceId=record.workspaceId;if(typeof workspaceId!=='string'||workspaceId.length===0)throw new PostgresStoreError('PERSISTENCE_SCOPE_INVALID',`${collection} record names no workspace`);if(scope.workspaceId&&scope.workspaceId!==workspaceId)throw new PostgresStoreError('PERSISTENCE_SCOPE_INVALID',`${collection} record belongs to a workspace other than the caller's scope`);return scope.tenantId;}
+  private requireAffected(affected:number,collection:string,id:string):void{if(affected===0)throw new PostgresStoreError('PERSISTENCE_RECORD_NOT_FOUND',`${collection}/${id} does not exist; replace does not create`);}
 }
 
-type StoredRow = { payload: unknown; payload_digest: string };
-
-type AuditRow = {
-  audit_id: string;
-  chain_position: string;
-  tenant_id: string | null;
-  workspace_id: string | null;
-  actor_id: string;
-  event_type: string;
-  aggregate_type: string;
-  aggregate_id: string;
-  correlation_id: string;
-  metadata: Record<string, unknown>;
-  previous_hash: string | null;
-  integrity_hash: string;
-  created_at: Date;
-};
-
-type OutboxRow = {
-  event_id: string;
-  tenant_id: string | null;
-  workspace_id: string | null;
-  aggregate_type: string;
-  aggregate_id: string;
-  event_type: string;
-  event_version: number;
-  payload: Record<string, unknown>;
-  correlation_id: string;
-  occurred_at: Date;
-  published_at: Date | null;
-};
-
-/**
- * Rebuilds the audit record from its row.
- *
- * Optional fields are omitted rather than set to null, because the integrity hash is
- * computed over the record's own keys and a present-but-null key changes it.
- */
-function auditRowToRecord(row: AuditRow): AuditRecord {
-  const record: AuditRecord = {
-    id: row.audit_id,
-    actorId: row.actor_id,
-    eventType: row.event_type,
-    aggregateType: row.aggregate_type,
-    aggregateId: row.aggregate_id,
-    correlationId: row.correlation_id,
-    metadata: row.metadata,
-    createdAt: row.created_at.toISOString(),
-    integrityHash: row.integrity_hash,
-  };
-  if (row.tenant_id !== null) record.tenantId = row.tenant_id;
-  if (row.workspace_id !== null) record.workspaceId = row.workspace_id;
-  if (row.previous_hash !== null) record.previousHash = row.previous_hash;
-  return record;
-}
-
-function outboxRowToRecord(row: OutboxRow): OutboxEvent {
-  const event: OutboxEvent = {
-    id: row.event_id,
-    aggregateType: row.aggregate_type,
-    aggregateId: row.aggregate_id,
-    eventType: row.event_type,
-    eventVersion: row.event_version,
-    payload: row.payload,
-    correlationId: row.correlation_id,
-    occurredAt: row.occurred_at.toISOString(),
-  };
-  if (row.tenant_id !== null) event.tenantId = row.tenant_id;
-  if (row.workspace_id !== null) event.workspaceId = row.workspace_id;
-  if (row.published_at !== null) event.publishedAt = row.published_at.toISOString();
-  return event;
-}
-
-function requireScope(record: Record<string, unknown>, field: string): string {
-  const value = record[field];
-  if (typeof value !== 'string' || value.length === 0)
-    throw new PostgresStoreError('PERSISTENCE_SCOPE_INVALID', `${field} is required`);
-  return value;
-}
-
-
-/**
- * Sets the session variables the policies read, transaction-locally.
- *
- * `true` is the `is_local` argument: the value reverts when the transaction ends. A global
- * `set_config` would leave the scope on the pooled connection for whatever request it serves
- * next — the failure mode being guarded against here is not a policy bug but a scope that
- * outlives its request.
- *
- * Absent parts are set to the empty string rather than left alone, so a connection cannot
- * inherit a previous transaction's value through a variable this one did not mention.
- */
-export async function applyTrustScope(sql: SqlClient, scope: TrustScope): Promise<void> {
-  await sql`SELECT
-    set_config('app.tenant_id', ${scope.tenantId ?? ''}, true),
-    set_config('app.workspace_id', ${scope.workspaceId ?? ''}, true),
-    set_config('app.actor_id', ${scope.actorId ?? ''}, true)
-  `;
-}
-
-function asVersion(record: Record<string, unknown>): number {
-  const value = record.version;
-  return typeof value === 'number' && Number.isInteger(value) && value >= 1 ? value : 1;
-}
+type StoredRow={payload:unknown;payload_digest:string};
+type AuditRow={audit_id:string;chain_position:string;tenant_id:string|null;workspace_id:string|null;actor_id:string;event_type:string;aggregate_type:string;aggregate_id:string;correlation_id:string;metadata:Record<string,unknown>;previous_hash:string|null;integrity_hash:string;created_at:Date};
+type OutboxRow={event_id:string;tenant_id:string|null;workspace_id:string|null;aggregate_type:string;aggregate_id:string;event_type:string;event_version:number;payload:Record<string,unknown>;correlation_id:string;occurred_at:Date;published_at:Date|null};
+function auditRowToRecord(row:AuditRow):AuditRecord{const record:AuditRecord={id:row.audit_id,actorId:row.actor_id,eventType:row.event_type,aggregateType:row.aggregate_type,aggregateId:row.aggregate_id,correlationId:row.correlation_id,metadata:row.metadata,createdAt:row.created_at.toISOString(),integrityHash:row.integrity_hash};if(row.tenant_id!==null)record.tenantId=row.tenant_id;if(row.workspace_id!==null)record.workspaceId=row.workspace_id;if(row.previous_hash!==null)record.previousHash=row.previous_hash;return record;}
+function outboxRowToRecord(row:OutboxRow):OutboxEvent{const event:OutboxEvent={id:row.event_id,aggregateType:row.aggregate_type,aggregateId:row.aggregate_id,eventType:row.event_type,eventVersion:row.event_version,payload:row.payload,correlationId:row.correlation_id,occurredAt:row.occurred_at.toISOString()};if(row.tenant_id!==null)event.tenantId=row.tenant_id;if(row.workspace_id!==null)event.workspaceId=row.workspace_id;if(row.published_at!==null)event.publishedAt=row.published_at.toISOString();return event;}
+function requireScope(record:Record<string,unknown>,field:string):string{const value=record[field];if(typeof value!=='string'||value.length===0)throw new PostgresStoreError('PERSISTENCE_SCOPE_INVALID',`${field} is required`);return value;}
+export async function applyTrustScope(sql:SqlClient,scope:TrustScope):Promise<void>{await sql`SELECT set_config('app.tenant_id', ${scope.tenantId??''}, true), set_config('app.workspace_id', ${scope.workspaceId??''}, true), set_config('app.actor_id', ${scope.actorId??''}, true)`;}
+function asVersion(record:Record<string,unknown>):number{const value=record.version;return typeof value==='number'&&Number.isInteger(value)&&value>=1?value:1;}
