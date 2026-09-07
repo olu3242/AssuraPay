@@ -76,9 +76,21 @@ export type ConversionResult = Readonly<{
   rate: ExactRate;
   roundingMode: RoundingMode;
   remainderNumerator: bigint;
+  scaledDenominator: bigint;
 }>;
 
-export function convertMoney(source: Money, targetCurrency: CurrencyCode, rate: ExactRate, roundingMode: RoundingMode = 'HALF_UP'): ConversionResult {
+const registry = new CurrencyRegistry();
+const pow10 = (exponent: number) => 10n ** BigInt(exponent);
+
+export function convertMoney(
+  source: Money,
+  targetCurrency: CurrencyCode,
+  rate: ExactRate,
+  roundingMode: RoundingMode = 'HALF_UP',
+): ConversionResult {
+  const sourceExponent = registry.getMinorUnitExponent(source.currency);
+  const targetExponent = registry.getMinorUnitExponent(targetCurrency);
+
   if (source.currency === targetCurrency) {
     if (rate.numerator !== rate.denominator) throw new Error('FX_SAME_CURRENCY_RATE_MUST_BE_ONE');
     return Object.freeze({
@@ -87,13 +99,20 @@ export function convertMoney(source: Money, targetCurrency: CurrencyCode, rate: 
       rate,
       roundingMode,
       remainderNumerator: 0n,
+      scaledDenominator: 1n,
     });
   }
 
-  const rawNumerator = source.amountMinor * rate.numerator;
-  const quotient = rawNumerator / rate.denominator;
-  const remainder = rawNumerator % rate.denominator;
-  const rounded = roundingMode === 'HALF_UP' && remainder * 2n >= rate.denominator ? quotient + 1n : quotient;
+  // FX rates are quoted in major currency units. Canonical money is stored in minor units,
+  // so convert source minor -> source major conceptually, apply the exact rate, then scale
+  // to target minor units. Keeping the powers of ten inside the rational avoids floats.
+  const rawNumerator = source.amountMinor * rate.numerator * pow10(targetExponent);
+  const scaledDenominator = rate.denominator * pow10(sourceExponent);
+  const quotient = rawNumerator / scaledDenominator;
+  const remainder = rawNumerator % scaledDenominator;
+  const rounded = roundingMode === 'HALF_UP' && remainder * 2n >= scaledDenominator
+    ? quotient + 1n
+    : quotient;
 
   return Object.freeze({
     source,
@@ -101,6 +120,7 @@ export function convertMoney(source: Money, targetCurrency: CurrencyCode, rate: 
     rate,
     roundingMode,
     remainderNumerator: remainder,
+    scaledDenominator,
   });
 }
 
@@ -125,6 +145,7 @@ export type FxQuote = Readonly<{
   rateSource: string;
   observedAt: string;
   expiresAt: string;
+  roundingMode: RoundingMode;
   status: FxQuoteStatus;
   idempotencyKey: string;
   semanticDigest: string;
@@ -154,9 +175,17 @@ export type FxConversion = Readonly<{
 }>;
 
 export class ForeignExchangeService {
-  quote(input: Omit<FxQuote, 'target' | 'status' | 'fees'> & { targetCurrency: CurrencyCode; roundingMode?: RoundingMode; fees?: readonly FxFee[] }): FxQuote {
-    if (new Date(input.expiresAt).getTime() <= new Date(input.observedAt).getTime()) throw new Error('FX_QUOTE_EXPIRY_INVALID');
-    const conversion = convertMoney(input.source, input.targetCurrency, input.rate, input.roundingMode ?? 'HALF_UP');
+  quote(
+    input: Omit<FxQuote, 'target' | 'status' | 'fees' | 'roundingMode'> & {
+      targetCurrency: CurrencyCode;
+      roundingMode?: RoundingMode;
+      fees?: readonly FxFee[];
+    },
+  ): FxQuote {
+    if (new Date(input.expiresAt).getTime() <= new Date(input.observedAt).getTime())
+      throw new Error('FX_QUOTE_EXPIRY_INVALID');
+    const roundingMode = input.roundingMode ?? 'HALF_UP';
+    const conversion = convertMoney(input.source, input.targetCurrency, input.rate, roundingMode);
     for (const fee of input.fees ?? []) {
       if (fee.amount.amountMinor < 0n) throw new Error('FX_FEE_NEGATIVE');
     }
@@ -171,6 +200,7 @@ export class ForeignExchangeService {
       rateSource: input.rateSource,
       observedAt: input.observedAt,
       expiresAt: input.expiresAt,
+      roundingMode,
       status: 'QUOTED',
       idempotencyKey: input.idempotencyKey,
       semanticDigest: input.semanticDigest,
@@ -180,7 +210,8 @@ export class ForeignExchangeService {
 
   accept(quote: FxQuote, actorId: string, at = new Date().toISOString()): FxQuote {
     if (quote.status !== 'QUOTED') throw new Error('FX_QUOTE_NOT_ACCEPTABLE');
-    if (new Date(at).getTime() >= new Date(quote.expiresAt).getTime()) return Object.freeze({ ...quote, status: 'EXPIRED' });
+    if (new Date(at).getTime() >= new Date(quote.expiresAt).getTime())
+      return Object.freeze({ ...quote, status: 'EXPIRED' });
     return Object.freeze({ ...quote, status: 'ACCEPTED', acceptedBy: actorId });
   }
 
@@ -190,7 +221,7 @@ export class ForeignExchangeService {
     return Object.freeze({ ...quote, status: 'AUTHORIZED', authorizedBy: actorId });
   }
 
-  instruct(quote: FxQuote, conversionId: string, roundingMode: RoundingMode = 'HALF_UP'): FxConversion {
+  instruct(quote: FxQuote, conversionId: string): FxConversion {
     if (quote.status !== 'AUTHORIZED') throw new Error('FX_QUOTE_NOT_AUTHORIZED');
     return Object.freeze({
       id: conversionId,
@@ -203,13 +234,17 @@ export class ForeignExchangeService {
       rate: quote.rate,
       rateSource: quote.rateSource,
       rateTimestamp: quote.observedAt,
-      roundingMode,
+      roundingMode: quote.roundingMode,
       fees: quote.fees,
       status: 'INSTRUCTED',
     });
   }
 
-  confirm(conversion: FxConversion, providerReference: string, confirmedAt = new Date().toISOString()): FxConversion {
+  confirm(
+    conversion: FxConversion,
+    providerReference: string,
+    confirmedAt = new Date().toISOString(),
+  ): FxConversion {
     if (conversion.status !== 'INSTRUCTED') throw new Error('FX_CONVERSION_NOT_CONFIRMABLE');
     if (!providerReference.trim()) throw new Error('FX_PROVIDER_REFERENCE_REQUIRED');
     return Object.freeze({ ...conversion, status: 'CONFIRMED', providerReference, confirmedAt });
@@ -236,13 +271,15 @@ export class ProviderCurrencyRouter {
     providers: readonly ProviderCurrencyCapability[];
   }): ProviderCurrencyCapability {
     const pair = `${input.sourceCurrency}/${input.destinationCurrency}` as CurrencyPair;
+    const sameCurrency = input.sourceCurrency === input.destinationCurrency;
     const candidates = input.providers.filter((provider) => {
       const sourceSupported = provider.supportedSourceCurrencies.includes(input.sourceCurrency);
       const destinationSupported = provider.supportedDestinationCurrencies.includes(input.destinationCurrency);
-      const pairSupported = input.sourceCurrency === input.destinationCurrency || provider.supportedPairs.includes(pair);
-      const fxSupported = input.sourceCurrency === input.destinationCurrency || provider.supportsFx;
+      const pairSupported = sameCurrency || provider.supportedPairs.includes(pair);
+      const fxSupported = sameCurrency || provider.supportsFx;
+      const quoteSupported = sameCurrency || provider.quoteCapability;
       const railSupported = !input.requiredRail || provider.settlementRails.includes(input.requiredRail);
-      return sourceSupported && destinationSupported && pairSupported && fxSupported && railSupported;
+      return sourceSupported && destinationSupported && pairSupported && fxSupported && quoteSupported && railSupported;
     });
     if (candidates.length === 0) throw new Error('FX_PROVIDER_CAPABILITY_NOT_FOUND');
     return [...candidates].sort((a, b) => a.providerId.localeCompare(b.providerId))[0];
@@ -272,10 +309,14 @@ export function reconcileFxSettlement(input: {
   actualTarget: Money;
 }): FxReconciliationResult {
   const mismatches: ReconciliationMismatch[] = [];
-  if (input.expectedSource.currency !== input.actualSource.currency) mismatches.push('SOURCE_CURRENCY_MISMATCH');
-  else if (input.expectedSource.amountMinor !== input.actualSource.amountMinor) mismatches.push('SOURCE_AMOUNT_MISMATCH');
-  if (input.expectedTarget.currency !== input.actualTarget.currency) mismatches.push('TARGET_CURRENCY_MISMATCH');
-  else if (input.expectedTarget.amountMinor !== input.actualTarget.amountMinor) mismatches.push('TARGET_AMOUNT_MISMATCH');
+  if (input.expectedSource.currency !== input.actualSource.currency)
+    mismatches.push('SOURCE_CURRENCY_MISMATCH');
+  else if (input.expectedSource.amountMinor !== input.actualSource.amountMinor)
+    mismatches.push('SOURCE_AMOUNT_MISMATCH');
+  if (input.expectedTarget.currency !== input.actualTarget.currency)
+    mismatches.push('TARGET_CURRENCY_MISMATCH');
+  else if (input.expectedTarget.amountMinor !== input.actualTarget.amountMinor)
+    mismatches.push('TARGET_AMOUNT_MISMATCH');
 
   return Object.freeze({
     matched: mismatches.length === 0,
@@ -291,7 +332,11 @@ export function reconcileFxSettlement(input: {
   });
 }
 
-export type ReportingRatePolicy = 'TRANSACTION_DATE' | 'SETTLEMENT_DATE' | 'PERIOD_END' | 'PERIOD_AVERAGE';
+export type ReportingRatePolicy =
+  | 'TRANSACTION_DATE'
+  | 'SETTLEMENT_DATE'
+  | 'PERIOD_END'
+  | 'PERIOD_AVERAGE';
 
 export type ReportingConversion = Readonly<{
   source: Money;
@@ -310,7 +355,8 @@ export function convertForReporting(input: {
   rateDate: string;
   policy: ReportingRatePolicy;
 }): ReportingConversion {
-  if (!input.rateSource.trim() || !input.rateDate.trim()) throw new Error('REPORTING_RATE_PROVENANCE_REQUIRED');
+  if (!input.rateSource.trim() || !input.rateDate.trim())
+    throw new Error('REPORTING_RATE_PROVENANCE_REQUIRED');
   const result = convertMoney(input.source, input.reportingCurrency, input.rate);
   return Object.freeze({
     source: input.source,
@@ -330,6 +376,10 @@ export type MultiCurrencyObligation = Readonly<{
 export function sumSameCurrency(amounts: readonly Money[]): Money {
   if (amounts.length === 0) throw new Error('MONEY_SUM_EMPTY');
   const currency = amounts[0].currency;
-  if (amounts.some((money) => money.currency !== currency)) throw new Error('CROSS_CURRENCY_SUM_REQUIRES_CONVERSION');
-  return Object.freeze({ currency, amountMinor: amounts.reduce((sum, money) => sum + money.amountMinor, 0n) });
+  if (amounts.some((money) => money.currency !== currency))
+    throw new Error('CROSS_CURRENCY_SUM_REQUIRES_CONVERSION');
+  return Object.freeze({
+    currency,
+    amountMinor: amounts.reduce((sum, money) => sum + money.amountMinor, 0n),
+  });
 }
