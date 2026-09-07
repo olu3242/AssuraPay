@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { InMemoryTrustStore } from '@assurapay/database';
 import { FlowOrchestrationEngine, FlowRegistry } from './index';
-import { COMMERCIAL_COMMITMENT_FLOW_V1 } from './canonical-chain';
+import { COMMERCIAL_COMMITMENT_FLOW_V1, COMMERCIAL_COMMITMENT_FLOW_V2 } from './canonical-chain';
 import { DomainEventFlowBridge } from './domain-event-bridge';
 
 const context = {
@@ -16,16 +16,43 @@ function event(eventId: string, eventType: string) {
   };
 }
 
+function registryWithBothVersions() {
+  const registry = new FlowRegistry();
+  registry.register(COMMERCIAL_COMMITMENT_FLOW_V1);
+  registry.register(COMMERCIAL_COMMITMENT_FLOW_V2);
+  return registry;
+}
+
 describe('canonical AssuraPay domain-event chain', () => {
-  it('advances only from authoritative events and requires enhanced approval when assurance demands it', async () => {
+  it('keeps V1 immutable so persisted flows do not acquire a missing currency-route dependency', () => {
+    expect(COMMERCIAL_COMMITMENT_FLOW_V1.version).toBe(1);
+    expect(COMMERCIAL_COMMITMENT_FLOW_V1.steps.some((step) => step.id === 'currency-route')).toBe(false);
+    expect(COMMERCIAL_COMMITMENT_FLOW_V1.steps.find((step) => step.id === 'payment')?.dependencies)
+      .toEqual(['enhanced-approval']);
+  });
+
+  it('publishes currency-aware execution as V2', () => {
+    expect(COMMERCIAL_COMMITMENT_FLOW_V2.version).toBe(2);
+    expect(COMMERCIAL_COMMITMENT_FLOW_V2.steps.find((step) => step.id === 'currency-route')?.dependencies)
+      .toEqual(['enhanced-approval']);
+    expect(COMMERCIAL_COMMITMENT_FLOW_V2.steps.find((step) => step.id === 'payment')?.dependencies)
+      .toEqual(['currency-route']);
+  });
+
+  it('advances V2 only from authoritative events and requires a governed currency route before payment', async () => {
     const store = new InMemoryTrustStore();
-    const registry = new FlowRegistry();
-    registry.register(COMMERCIAL_COMMITMENT_FLOW_V1);
-    const flows = new FlowOrchestrationEngine(store, registry);
+    await store.append('memberships', {
+      id: 'membership-release-approver',
+      workspaceId: 'w',
+      userId: 'operator',
+      status: 'ACTIVE',
+      role: 'RELEASE_APPROVER',
+    });
+    const flows = new FlowOrchestrationEngine(store, registryWithBothVersions());
     const bridge = new DomainEventFlowBridge(flows);
     const flow = await flows.start(context, {
-      flowDefinitionId: COMMERCIAL_COMMITMENT_FLOW_V1.id,
-      flowVersion: 1,
+      flowDefinitionId: COMMERCIAL_COMMITMENT_FLOW_V2.id,
+      flowVersion: 2,
       organizationId: 'org', transactionId: 'tx', agreementId: 'agreement',
       assuranceLevel: 'ENHANCED', idempotencyKey: 'start:tx',
     });
@@ -53,21 +80,21 @@ describe('canonical AssuraPay domain-event chain', () => {
     expect('status' in approval && approval.status).toBe('OPEN');
     await flows.decide(context, approval.id, 'APPROVE');
 
+    await flows.dispatch(context, flow.id, 'currency-route');
+    await bridge.apply(context, flow.id, event('e11', 'SettlementCurrencyRouteAuthorized'));
     await flows.dispatch(context, flow.id, 'payment');
-    await bridge.apply(context, flow.id, event('e11', 'PaymentInstructionSubmitted'));
+    await bridge.apply(context, flow.id, event('e12', 'PaymentInstructionSubmitted'));
     await flows.dispatch(context, flow.id, 'reconciliation');
-    await bridge.apply(context, flow.id, event('e12', 'ReconciliationRecorded'));
+    await bridge.apply(context, flow.id, event('e13', 'ReconciliationRecorded'));
     await flows.dispatch(context, flow.id, 'closure');
-    await bridge.apply(context, flow.id, event('e13', 'FinalSettlementAccountClosed'));
+    await bridge.apply(context, flow.id, event('e14', 'FinalSettlementAccountClosed'));
 
     expect((await flows.get(context, flow.id)).state).toBe('COMPLETED');
   });
 
   it('deduplicates replayed domain events and rejects wrong-workspace delivery', async () => {
     const store = new InMemoryTrustStore();
-    const registry = new FlowRegistry();
-    registry.register(COMMERCIAL_COMMITMENT_FLOW_V1);
-    const flows = new FlowOrchestrationEngine(store, registry);
+    const flows = new FlowOrchestrationEngine(store, registryWithBothVersions());
     const bridge = new DomainEventFlowBridge(flows);
     const flow = await flows.start(context, {
       flowDefinitionId: COMMERCIAL_COMMITMENT_FLOW_V1.id, flowVersion: 1,

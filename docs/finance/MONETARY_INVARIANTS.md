@@ -1,112 +1,106 @@
 # Monetary invariants
 
-**Status: ACCEPTED.** Owner decision, recorded for
-`docs/architecture/WAVE_4_5_DOMAIN_STORE_DURABILITY_DECISION.md`. Governs settlement-related
-persistence for canonical Engines 41–50 unless a stricter constitutional rule applies.
-
-Nothing here is implemented yet. Wave 5 financial migration is deferred; this exists so that when
-it starts, the invariants are decided rather than discovered. Recording them now is what unblocks
-the Wave 4 batch from having to guess at a financial boundary it does not cross.
-
-## Why this document exists
-
-`docs/certification/ENGINES_31_50_CERTIFICATION_GAP_MATRIX.md` measured that the database
-currently enforces **no** monetary invariant for Engines 41–50. Amounts live inside a JSONB
-payload on `trust_records`, which has no amount column, no currency column, and no constraint.
-Every rule below is therefore a rule to be *established*, not one to be preserved.
+**Status: ACCEPTED AND ACTIVE.** Governs settlement-related persistence for canonical Engines 41–50 and the governed multi-currency/FX capability unless a stricter constitutional rule applies.
 
 ## Representation
 
 | Rule | Enforcement |
 |---|---|
-| Amounts are integer minor units | column type `bigint` |
-| No binary floating point, anywhere | column type; `numeric` also rejected for amounts |
-| Every amount carries an ISO 4217 currency code | `NOT NULL` currency column, `CHECK` against the governed list |
-| Amount and currency validate together | composite check; a row cannot hold one without the other |
+| Amounts are integer minor units | `bigint` / TypeScript `bigint` |
+| No binary floating point for canonical money | type and persistence boundary |
+| Every amount carries an ISO 4217 currency code | governed currency registry plus database checks |
+| Amount and currency validate together | money value object / schema constraints |
 | Scale derives from the governed currency definition | never from caller input |
-| Unsupported or ambiguous currency is rejected | `CHECK` on the supported set |
+| Unsupported or ambiguous currency is rejected | fail closed |
+| FX rates are exact | positive integer numerator/denominator; never binary floating point |
 
 ## Amount semantics
 
-Base contractual, claim, invoice, entitlement, funding, release and payment amounts are
-**non-negative** — `CHECK (amount_minor >= 0)`.
+Base contractual, claim, invoice, entitlement, funding, release and payment amounts are non-negative.
 
-A signed economic change is never a mutation of the original amount. Signed effects use an
-explicit record: adjustment, correction, reversal, refund, chargeback, write-off, or compensating
-entry. Consequences:
+A signed economic change is never a mutation of the original amount. Signed effects use an explicit record: adjustment, correction, reversal, refund, chargeback, write-off, or compensating entry.
 
-- Original posted monetary facts are **immutable**.
-- A correction preserves a foreign key to the fact it corrects.
-- A reversal preserves a foreign key to the posting it reverses.
-- A partial reversal is explicit and **bounded by the remaining reversible amount** — enforced,
-  not merely checked in the application, because the bound depends on other rows.
+Consequences:
+
+- Original posted monetary facts are immutable.
+- A correction preserves linkage to the fact it corrects.
+- A reversal preserves linkage to the posting it reverses.
+- A partial reversal is explicit and bounded by the remaining reversible amount.
 
 ## Currency consistency
 
-- A journal transaction balances **independently per currency**.
-- Amounts in different currencies are never summed into one balance without an explicit governed
-  conversion event.
-- FX is **out of scope** unless active canonical behaviour already requires it. Where a conversion
-  is recorded it must carry: source currency, source amount, target currency, target amount, rate,
-  rate source, rate timestamp, rounding result, and the actor or system authority.
+- A journal transaction balances independently per currency.
+- Amounts in different currencies are never summed into one balance without an explicit governed conversion event.
+- Contract currency, funding/payment currency, settlement currency and reporting currency are distinct concepts and must not be silently conflated.
+- Same-currency settlement uses the normal payment path and must not invoke an external FX operation.
+- Cross-currency settlement requires an authorized settlement currency route before a payment instruction may be submitted.
+
+## Governed FX
+
+FX is an active canonical capability through `@assurapay/multi-currency` and the durable FX schema.
+
+Every quote/conversion preserves at minimum:
+
+- source currency and source amount;
+- target currency and target amount;
+- exact rate numerator and denominator;
+- rate source;
+- observation timestamp;
+- quote expiry;
+- rounding mode/result provenance;
+- provider identity;
+- acceptance and independent authorization where required;
+- provider execution reference for confirmed conversion;
+- tenant/workspace scope and idempotency identity.
+
+An expired quote cannot be newly accepted. Acceptance and authorization are segregated. A provider instruction is not settlement evidence. Confirmation requires provider-originated evidence/reference according to the settlement execution boundary.
+
+## Reporting currency
+
+Reporting currency is a presentation/analytics policy. It never rewrites source contractual, ledger, payment or settlement facts.
+
+Historical reporting must preserve the chosen rate policy, such as transaction date, settlement date, period end or period average. Recomputing history with today's rate is not an implicit default.
 
 ## Identity and idempotency
 
-- Monetary commands require **tenant-scoped** idempotency keys.
-- Uniqueness includes tenant and operation scope — a unique index on
-  `(tenant_id, operation, idempotency_key)`, not on the key alone.
-- Reusing a key with a different semantic payload **fails**. This needs a stored payload digest to
-  compare against; a key alone cannot detect it.
-- A retried payment, release, posting, or reconciliation command creates **no duplicate economic
-  effect**.
+- Monetary commands require tenant-scoped idempotency keys.
+- Uniqueness includes tenant/workspace and operation scope.
+- Reusing an idempotency identity with a different semantic payload fails closed.
+- A retried quote, payment, release, posting, conversion confirmation or reconciliation command creates no duplicate economic effect.
 
 ## Authority and segregation
 
-Calculation, approval, authorization, release, execution, reconciliation and dispute resolution
-remain distinct authorities wherever the canonical engine model separates them. The actor who
-proposes or calculates a monetary effect does **not** thereby gain authority to approve or release
-it.
+Calculation, quote acceptance, FX authorization, release approval, payment execution, reconciliation and dispute resolution remain distinct authorities wherever the canonical engine model separates them.
 
-**No change under this decision may weaken the non-custody boundary.** AssuraPay instructs a
-licensed provider; it never holds, pools, or gains signing authority over end-user funds. The
-existing `settlement-*.non-custody.test.ts` suites remain the gate.
+The actor who accepts a governed FX quote does not thereby gain authority to authorize the same conversion when maker-checker separation is required.
+
+**No change under this decision may weaken the non-custody boundary.** AssuraPay may calculate, record, govern, orchestrate, instruct and reconcile. It never holds, pools, converts as principal, or gains signing authority over end-user funds. Licensed financial/payment providers perform regulated money movement and FX execution.
 
 ## Finality and correction
 
 - Posted ledger entries are immutable.
-- Finalised settlement records are never edited destructively.
+- Finalised settlement and conversion records are never edited destructively.
 - Corrections use linked compensating records.
 - Reconciliation outcomes are reproducible from persisted records.
-- Every final monetary state is explainable through an auditable chain of source facts and
-  postings.
+- Every final monetary state is explainable through an auditable chain of source facts, quotes, authorizations, provider evidence and postings.
 
-## What the database must enforce
+## Database enforcement
 
-An invariant that PostgreSQL can enforce must not exist only as an application check. At minimum:
+An invariant PostgreSQL can enforce must not exist only as an application check. At minimum:
 
-integer representation · required currency · amount bounds · valid state values · tenant-scoped
-uniqueness · foreign-key linkage · immutable posted records · reversal linkage · idempotency
-uniqueness · journal balancing · reconciliation uniqueness where canonical semantics permit.
+integer representation · required currency · supported currency · amount bounds · positive exact-rate components · valid lifecycle states · tenant/workspace uniqueness · immutable final records · segregation-compatible state · quote expiry validity · foreign-key linkage · idempotency uniqueness · journal balancing · reconciliation uniqueness where canonical semantics permit.
 
-## Affected tables
+## Multi-currency persistence
 
-From the gap matrix, the tables that will need work when Wave 5 starts. All already type money as
-`bigint` minor units — the representation rule is satisfied on the *dead* tables and must survive
-activation.
+The governed FX capability persists:
 
-| Table | Money columns | Missing today |
-|---|---|---|
-| `ledger_entries` | `amount_minor` | currency column, balance enforcement, live writers |
-| `payment_instructions` | `amount_minor` | live writers |
-| `financial_entitlements` | 6 × `*_amount_minor` | live writers |
-| `invoices` | `amount_minor` | live writers |
-| `reconciliation_records` | 2 × `*_amount_minor` | uniqueness, live writers |
-| `fund_reservations` | `reserved_amount_minor` | live writers |
-| `release_requests` | `requested_amount_minor` | live writers |
+- `fx_quotes`
+- `fx_conversions`
+- `provider_currency_capabilities`
+- `reporting_currency_preferences`
+
+Settlement-related tables continue to preserve their own currency-qualified monetary facts. Cross-currency settlement links those facts through an explicit FX quote/conversion rather than replacing or mutating the original denomination.
 
 ## Prohibited shortcuts
 
-Storing an amount as `numeric`, `real`, or a JSON number. Deriving scale from a caller. Mutating a
-posted amount. Representing a refund by negating an original. Enforcing balance only in
-TypeScript. Reusing an idempotency key across tenants. Granting one role both proposal and release
-authority.
+Storing canonical money as `numeric`, `real`, JavaScript `number`, or an untyped JSON number. Deriving currency scale from a caller. Mutating a posted amount. Silently converting currencies. Summing mixed currencies directly. Treating a reporting conversion as a source ledger fact. Reusing stale quotes. Hiding provider fees/spread inside an unexplained rate. Treating an AssuraPay instruction as proof that money moved. Reusing an idempotency identity across tenants. Granting one role incompatible proposal/authorization/release authority.

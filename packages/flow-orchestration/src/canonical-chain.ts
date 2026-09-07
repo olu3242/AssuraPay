@@ -1,12 +1,11 @@
 import type { FlowDefinition } from './index';
 
 /**
- * Canonical AssuraPay commercial execution journey.
+ * Canonical AssuraPay commercial execution journey V1.
  *
- * Protected domain state remains owned by the existing engines. The flow waits for
- * the domain events those engines emit and advances only after the authoritative
- * transition has happened. This prevents Flow OS from becoming a second source of
- * truth for certification, release, payment or settlement state.
+ * V1 is immutable because persisted flow instances bind to a definition version. It
+ * intentionally contains no currency-route step so in-flight V1 instances remain
+ * resolvable after multi-currency support is introduced.
  */
 export const COMMERCIAL_COMMITMENT_FLOW_V1: FlowDefinition = {
   id: 'COMMERCIAL_COMMITMENT_FLOW',
@@ -31,6 +30,30 @@ export const COMMERCIAL_COMMITMENT_FLOW_V1: FlowDefinition = {
   ],
 };
 
+/**
+ * V2 adds governed settlement-currency routing before payment submission. The flow
+ * still observes authoritative domain events; it does not execute FX or move funds.
+ */
+export const COMMERCIAL_COMMITMENT_FLOW_V2: FlowDefinition = {
+  ...COMMERCIAL_COMMITMENT_FLOW_V1,
+  version: 2,
+  description: 'Coordinates agreement-to-settlement execution with governed settlement-currency routing while remaining non-custodial.',
+  steps: [
+    ...COMMERCIAL_COMMITMENT_FLOW_V1.steps.slice(0, 11),
+    {
+      id: 'currency-route',
+      title: 'Settlement currency route authorized',
+      dependencies: ['enhanced-approval'],
+      waitForEvent: 'SettlementCurrencyRouteAuthorized',
+    },
+    { id: 'payment', title: 'Payment instruction submitted', dependencies: ['currency-route'], waitForEvent: 'PaymentInstructionSubmitted' },
+    { id: 'reconciliation', title: 'Settlement reconciled', dependencies: ['payment'], waitForEvent: 'ReconciliationRecorded' },
+    { id: 'closure', title: 'Final settlement closed', dependencies: ['reconciliation'], waitForEvent: 'FinalSettlementAccountClosed' },
+  ],
+};
+
 export const CANONICAL_DOMAIN_EVENTS = new Set(
-  COMMERCIAL_COMMITMENT_FLOW_V1.steps.flatMap((step) => step.waitForEvent ? [step.waitForEvent] : []),
+  [COMMERCIAL_COMMITMENT_FLOW_V1, COMMERCIAL_COMMITMENT_FLOW_V2].flatMap((definition) =>
+    definition.steps.flatMap((step) => (step.waitForEvent ? [step.waitForEvent] : [])),
+  ),
 );
