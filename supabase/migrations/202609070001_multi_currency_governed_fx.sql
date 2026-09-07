@@ -22,7 +22,10 @@ CREATE TABLE IF NOT EXISTS fx_quotes (
   idempotency_key TEXT NOT NULL,
   semantic_digest TEXT NOT NULL CHECK (length(trim(semantic_digest)) > 0),
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  CHECK ((source_currency <> target_currency) OR rate_numerator = rate_denominator),
+  CHECK (
+    (source_currency <> target_currency)
+    OR (rate_numerator = rate_denominator AND source_amount_minor = target_amount_minor)
+  ),
   CHECK (authorized_by IS NULL OR accepted_by IS NULL OR authorized_by <> accepted_by),
   UNIQUE (tenant_id, workspace_id, idempotency_key)
 );
@@ -78,6 +81,9 @@ CREATE TABLE IF NOT EXISTS reporting_currency_preferences (
 CREATE OR REPLACE FUNCTION refuse_final_fx_mutation() RETURNS trigger
 LANGUAGE plpgsql AS $$
 BEGIN
+  IF TG_OP = 'DELETE' THEN
+    RAISE EXCEPTION 'FX_RECORD_DELETE_FORBIDDEN';
+  END IF;
   IF OLD.status IN ('AUTHORIZED','EXPIRED','REJECTED','CONFIRMED','FAILED','REVERSED') THEN
     RAISE EXCEPTION 'FINAL_FX_RECORD_IMMUTABLE';
   END IF;
