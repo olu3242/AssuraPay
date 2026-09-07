@@ -1,10 +1,9 @@
 import { flowOrchestration } from '../../../../lib/flow-app';
-import { FLOW_ROUTE_POLICY } from '../../../../lib/flow-route-policy';
-import { authorizedContext, errorResponse } from '../../../../lib/trust-app';
+import { authorizedContextForRoute, errorResponse } from '../../../../lib/trust-app';
 
 export async function POST(request: Request) {
   try {
-    const context = await authorizedContext(request, FLOW_ROUTE_POLICY.start);
+    const context = await authorizedContextForRoute(request);
     const body = await request.json();
     return Response.json(await flowOrchestration.start(context, {
       flowDefinitionId: body.flowDefinitionId ?? 'COMMERCIAL_COMMITMENT_FLOW',
