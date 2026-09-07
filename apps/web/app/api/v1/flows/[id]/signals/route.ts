@@ -1,10 +1,9 @@
 import { flowOrchestration } from '../../../../../../lib/flow-app';
-import { FLOW_ROUTE_POLICY } from '../../../../../../lib/flow-route-policy';
-import { authorizedContext, errorResponse } from '../../../../../../lib/trust-app';
+import { authorizedContextForRoute, errorResponse } from '../../../../../../lib/trust-app';
 
 export async function POST(request: Request, { params }: { params: { id: string } }) {
   try {
-    const context = await authorizedContext(request, FLOW_ROUTE_POLICY.signal);
+    const context = await authorizedContextForRoute(request);
     const body = await request.json();
     return Response.json(await flowOrchestration.signal(context, {
       flowId: params.id,
