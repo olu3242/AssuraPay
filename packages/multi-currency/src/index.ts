@@ -104,6 +104,14 @@ export function convertMoney(source: Money, targetCurrency: CurrencyCode, rate: 
   });
 }
 
+export type FxFeeKind = 'PROVIDER_FEE' | 'FX_SPREAD' | 'ASSURAPAY_FEE' | 'TAX_OR_LEVY';
+
+export type FxFee = Readonly<{
+  kind: FxFeeKind;
+  amount: Money;
+  chargedBy: string;
+}>;
+
 export type FxQuoteStatus = 'QUOTED' | 'ACCEPTED' | 'AUTHORIZED' | 'EXPIRED' | 'REJECTED';
 
 export type FxQuote = Readonly<{
@@ -120,6 +128,7 @@ export type FxQuote = Readonly<{
   status: FxQuoteStatus;
   idempotencyKey: string;
   semanticDigest: string;
+  fees: readonly FxFee[];
   acceptedBy?: string;
   authorizedBy?: string;
 }>;
@@ -138,15 +147,19 @@ export type FxConversion = Readonly<{
   rateSource: string;
   rateTimestamp: string;
   roundingMode: RoundingMode;
+  fees: readonly FxFee[];
   status: FxConversionStatus;
   providerReference?: string;
   confirmedAt?: string;
 }>;
 
 export class ForeignExchangeService {
-  quote(input: Omit<FxQuote, 'target' | 'status'> & { targetCurrency: CurrencyCode; roundingMode?: RoundingMode }): FxQuote {
+  quote(input: Omit<FxQuote, 'target' | 'status' | 'fees'> & { targetCurrency: CurrencyCode; roundingMode?: RoundingMode; fees?: readonly FxFee[] }): FxQuote {
     if (new Date(input.expiresAt).getTime() <= new Date(input.observedAt).getTime()) throw new Error('FX_QUOTE_EXPIRY_INVALID');
     const conversion = convertMoney(input.source, input.targetCurrency, input.rate, input.roundingMode ?? 'HALF_UP');
+    for (const fee of input.fees ?? []) {
+      if (fee.amount.amountMinor < 0n) throw new Error('FX_FEE_NEGATIVE');
+    }
     return Object.freeze({
       id: input.id,
       tenantId: input.tenantId,
@@ -161,6 +174,7 @@ export class ForeignExchangeService {
       status: 'QUOTED',
       idempotencyKey: input.idempotencyKey,
       semanticDigest: input.semanticDigest,
+      fees: Object.freeze([...(input.fees ?? [])]),
     });
   }
 
@@ -190,6 +204,7 @@ export class ForeignExchangeService {
       rateSource: quote.rateSource,
       rateTimestamp: quote.observedAt,
       roundingMode,
+      fees: quote.fees,
       status: 'INSTRUCTED',
     });
   }
@@ -232,6 +247,79 @@ export class ProviderCurrencyRouter {
     if (candidates.length === 0) throw new Error('FX_PROVIDER_CAPABILITY_NOT_FOUND');
     return [...candidates].sort((a, b) => a.providerId.localeCompare(b.providerId))[0];
   }
+}
+
+export type ReconciliationMismatch =
+  | 'SOURCE_CURRENCY_MISMATCH'
+  | 'SOURCE_AMOUNT_MISMATCH'
+  | 'TARGET_CURRENCY_MISMATCH'
+  | 'TARGET_AMOUNT_MISMATCH';
+
+export type FxReconciliationResult = Readonly<{
+  matched: boolean;
+  mismatches: readonly ReconciliationMismatch[];
+  expectedSource: Money;
+  actualSource: Money;
+  expectedTarget: Money;
+  actualTarget: Money;
+  targetVarianceMinor?: bigint;
+}>;
+
+export function reconcileFxSettlement(input: {
+  expectedSource: Money;
+  actualSource: Money;
+  expectedTarget: Money;
+  actualTarget: Money;
+}): FxReconciliationResult {
+  const mismatches: ReconciliationMismatch[] = [];
+  if (input.expectedSource.currency !== input.actualSource.currency) mismatches.push('SOURCE_CURRENCY_MISMATCH');
+  else if (input.expectedSource.amountMinor !== input.actualSource.amountMinor) mismatches.push('SOURCE_AMOUNT_MISMATCH');
+  if (input.expectedTarget.currency !== input.actualTarget.currency) mismatches.push('TARGET_CURRENCY_MISMATCH');
+  else if (input.expectedTarget.amountMinor !== input.actualTarget.amountMinor) mismatches.push('TARGET_AMOUNT_MISMATCH');
+
+  return Object.freeze({
+    matched: mismatches.length === 0,
+    mismatches: Object.freeze(mismatches),
+    expectedSource: input.expectedSource,
+    actualSource: input.actualSource,
+    expectedTarget: input.expectedTarget,
+    actualTarget: input.actualTarget,
+    targetVarianceMinor:
+      input.expectedTarget.currency === input.actualTarget.currency
+        ? input.actualTarget.amountMinor - input.expectedTarget.amountMinor
+        : undefined,
+  });
+}
+
+export type ReportingRatePolicy = 'TRANSACTION_DATE' | 'SETTLEMENT_DATE' | 'PERIOD_END' | 'PERIOD_AVERAGE';
+
+export type ReportingConversion = Readonly<{
+  source: Money;
+  reporting: Money;
+  rate: ExactRate;
+  rateSource: string;
+  rateDate: string;
+  policy: ReportingRatePolicy;
+}>;
+
+export function convertForReporting(input: {
+  source: Money;
+  reportingCurrency: CurrencyCode;
+  rate: ExactRate;
+  rateSource: string;
+  rateDate: string;
+  policy: ReportingRatePolicy;
+}): ReportingConversion {
+  if (!input.rateSource.trim() || !input.rateDate.trim()) throw new Error('REPORTING_RATE_PROVENANCE_REQUIRED');
+  const result = convertMoney(input.source, input.reportingCurrency, input.rate);
+  return Object.freeze({
+    source: input.source,
+    reporting: result.target,
+    rate: input.rate,
+    rateSource: input.rateSource,
+    rateDate: input.rateDate,
+    policy: input.policy,
+  });
 }
 
 export type MultiCurrencyObligation = Readonly<{
