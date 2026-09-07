@@ -14,8 +14,8 @@
  * durable, when the only store that exists is.
  *
  * What remains is one persistence surface, exported below: the trust store contract, the PostgreSQL client
- * and store, the migration runner, trust scoping, row-level-security certification, schema ownership, and the
- * nine batch repositories.
+ * and store, the migration runner, trust scoping, row-level-security certification, schema ownership, batch
+ * repositories, and the dedicated Agentic OS persona-profile repository.
  */
 
 export * from './trust-store';
@@ -38,3 +38,4 @@ export * from './batch-i-repository';
 export * from './batch-k-repository';
 export * from './batch-l-repository';
 export * from './batch-m-repository';
+export * from './persona-agent-repository';
