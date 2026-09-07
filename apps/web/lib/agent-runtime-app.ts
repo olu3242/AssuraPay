@@ -1,12 +1,10 @@
 import {
   loadAgentRuntimePolicy,
+  registerAgenticOs,
   sandboxModelProvider,
+  type AgenticOsRegistration,
   type ModelProvider,
 } from '@assurapay/agent-runtime';
-import {
-  registerAgenticOs,
-  type AgenticOsRegistration,
-} from '@assurapay/agent-runtime/agentic-registration';
 import { trustStore } from './trust-app';
 
 /**
