@@ -19,12 +19,33 @@ jobs:
       - name: TypeScript diagnostics
         continue-on-error: true
         run: pnpm typecheck
+      - name: REOS typecheck only
+        continue-on-error: true
+        run: pnpm repo:certify --only=typecheck
+      - name: REOS architecture only
+        continue-on-error: true
+        run: pnpm repo:certify --only=architecture
+      - name: REOS governance only
+        continue-on-error: true
+        run: pnpm repo:certify --only=governance
       - name: Flow and route diagnostics
         continue-on-error: true
         run: pnpm vitest run packages/flow-orchestration apps/web/lib/route-coverage.test.ts apps/web/lib/route-permissions.test.ts --reporter=verbose
+      - name: REOS unit only
+        continue-on-error: true
+        run: pnpm repo:certify --only=test:unit
+      - name: REOS integration only
+        continue-on-error: true
+        run: pnpm repo:certify --only=test:integration
+      - name: REOS e2e only
+        continue-on-error: true
+        run: pnpm repo:certify --only=test:e2e
       - name: Production build diagnostics
         continue-on-error: true
         run: pnpm build
+      - name: REOS build only
+        continue-on-error: true
+        run: pnpm repo:certify --only=build
 
   runtime-diagnostics:
     runs-on: ubuntu-latest
