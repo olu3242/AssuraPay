@@ -71,6 +71,9 @@
       "@assurapay/execution-orchestration": [
         "packages/execution-orchestration/src/index.ts"
       ],
+      "@assurapay/flow-orchestration": [
+        "packages/flow-orchestration/src/index.ts"
+      ],
       "@assurapay/completion-assurance": [
         "packages/completion-assurance/src/index.ts"
       ],

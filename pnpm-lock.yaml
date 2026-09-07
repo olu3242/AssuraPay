@@ -90,6 +90,9 @@ importers:
       '@assurapay/execution-orchestration':
         specifier: workspace:*
         version: link:../../packages/execution-orchestration
+      '@assurapay/flow-orchestration':
+        specifier: workspace:*
+        version: link:../../packages/flow-orchestration
       '@assurapay/governance-core':
         specifier: workspace:*
         version: link:../../packages/governance-core
@@ -297,6 +300,15 @@ importers:
       '@assurapay/domain-contracts':
         specifier: workspace:*
         version: link:../domain-contracts
+      '@assurapay/shared':
+        specifier: workspace:*
+        version: link:../shared
+
+  packages/flow-orchestration:
+    dependencies:
+      '@assurapay/database':
+        specifier: workspace:*
+        version: link:../database
       '@assurapay/shared':
         specifier: workspace:*
         version: link:../shared
