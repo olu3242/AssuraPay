@@ -58,7 +58,7 @@ describe('canonical AssuraPay domain-event chain', () => {
     await flows.dispatch(context, flow.id, 'reconciliation');
     await bridge.apply(context, flow.id, event('e12', 'ReconciliationRecorded'));
     await flows.dispatch(context, flow.id, 'closure');
-    await bridge.apply(context, flow.id, event('e13', 'FinalSettlementClosed'));
+    await bridge.apply(context, flow.id, event('e13', 'FinalSettlementAccountClosed'));
 
     expect((await flows.get(context, flow.id)).state).toBe('COMPLETED');
   });
