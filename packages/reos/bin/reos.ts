@@ -237,7 +237,6 @@ function main(): number {
     }
 
     case 'certify': {
-      // Planning first: the governance gate needs a manifest to judge.
       const planning = runPlanning(repoRoot);
       const report = runCertify(repoRoot, planning.discovery, {
         ...certifyOptions,
@@ -246,6 +245,12 @@ function main(): number {
       for (const step of report.steps) {
         const mark = step.skipped ? 'skip' : step.passed ? 'pass' : 'FAIL';
         process.stdout.write(`  [${mark}] ${step.id}\n`);
+        if (!step.skipped && !step.passed) {
+          for (const finding of step.findings)
+            process.stdout.write(`    [${finding.severity}] ${finding.rule} — ${finding.message}\n`);
+          for (const line of step.outputTail)
+            process.stdout.write(`    ${line}\n`);
+        }
       }
       process.stdout.write(
         `certify: ${report.passed ? 'PASSED' : 'FAILED'} — ` +
@@ -256,7 +261,6 @@ function main(): number {
 
     case 'report': {
       const { discovery, manifest, resolution } = runPlanning(repoRoot);
-      // Reuse the certification from an earlier `repo:certify` when present.
       const certification = readArtifact<CertificationReport>(
         repoRoot,
         artifactPaths().certificationJson,
