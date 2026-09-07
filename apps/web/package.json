@@ -18,6 +18,7 @@
     "@assurapay/enterprise-analytics": "workspace:*",
     "@assurapay/enterprise-intelligence": "workspace:*",
     "@assurapay/execution-orchestration": "workspace:*",
+    "@assurapay/flow-orchestration": "workspace:*",
     "@assurapay/governance-core": "workspace:*",
     "@assurapay/identity": "workspace:*",
     "@assurapay/legal": "workspace:*",
