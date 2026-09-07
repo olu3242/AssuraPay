@@ -74,6 +74,9 @@ const GOVERNED_DOCUMENTS = Object.freeze([
   'authenticationMethods','beneficiaryAccounts','consents','delegations','devices','evidenceLedgerEntries','fieldPermissions','authorityRules','invitations','identities','legalHolds','legalPolicies','legalPolicyVersions','organizationUnits','parties','policyAcceptances','policyAssignments','segregationRules','sessions','signaturePolicies','stepUpChallenges','trustOrganizations','verificationRequests','verificationResults',
   // Flow OS durable documents. These are intentionally explicit: a durable store still refuses every unknown collection.
   'flowInstances','flowStepInstances','flowSignals','humanTasks',
+  // Agentic OS persona assignments are versioned governed documents. Their tenant/workspace scope is projected
+  // into trust_records and protected by the same FORCE-RLS boundary as the rest of the governed document plane.
+  'personaAgentProfiles',
 ]);
 
 export const POSTGRES_IDENTITY_PLANE_COLLECTIONS: readonly string[] = Object.freeze(['authenticationMethods','devices','identities','sessions','stepUpChallenges']);
