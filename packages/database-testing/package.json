@@ -5,7 +5,6 @@
   "main": "src/index.ts",
   "dependencies": {
     "@assurapay/agreement-creation": "workspace:*",
-    "@assurapay/agent-runtime": "workspace:*",
     "@assurapay/database": "workspace:*",
     "@assurapay/domain-contracts": "workspace:*",
     "@assurapay/organizations": "workspace:*",
