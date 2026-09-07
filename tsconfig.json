@@ -33,7 +33,7 @@
       "@assurapay/performance-blueprint": ["packages/performance-blueprint/src/index.ts"],
       "@assurapay/performance-readiness": ["packages/performance-readiness/src/index.ts"],
       "@assurapay/execution-orchestration": ["packages/execution-orchestration/src/index.ts"],
-      "@assurapay/flow-orchestration": ["packages/flow-orchestration/src/index.ts"],
+      "@assurapay/flow-orchestration": ["packages/flow-orchestration/src/public.ts"],
       "@assurapay/completion-assurance": ["packages/completion-assurance/src/index.ts"],
       "@assurapay/settlement-assurance": ["packages/settlement-assurance/src/index.ts"],
       "@assurapay/settlement-execution": ["packages/settlement-execution/src/index.ts"],
