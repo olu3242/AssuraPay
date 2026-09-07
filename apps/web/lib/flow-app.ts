@@ -1,4 +1,5 @@
 import {
+  AssuranceRoutingEngine,
   FlowOrchestrationEngine,
   FlowRegistry,
 } from '../../../packages/flow-orchestration/src';
@@ -18,6 +19,12 @@ import { trustStore } from './persistence';
  */
 export const flowRegistry = new FlowRegistry();
 flowRegistry.register(COMMERCIAL_COMMITMENT_FLOW_V1);
+
+/**
+ * Adaptive assurance is a reachable runtime capability rather than a test-only exported engine.
+ * Keeping it at the composition root also makes REOS able to prove the exported engine is registered.
+ */
+export const assuranceRouting = new AssuranceRoutingEngine();
 
 export const flowOrchestration = new FlowOrchestrationEngine(
   trustStore,
