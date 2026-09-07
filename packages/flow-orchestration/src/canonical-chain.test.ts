@@ -41,6 +41,13 @@ describe('canonical AssuraPay domain-event chain', () => {
 
   it('advances V2 only from authoritative events and requires a governed currency route before payment', async () => {
     const store = new InMemoryTrustStore();
+    await store.append('memberships', {
+      id: 'membership-release-approver',
+      workspaceId: 'w',
+      userId: 'operator',
+      status: 'ACTIVE',
+      role: 'RELEASE_APPROVER',
+    });
     const flows = new FlowOrchestrationEngine(store, registryWithBothVersions());
     const bridge = new DomainEventFlowBridge(flows);
     const flow = await flows.start(context, {
