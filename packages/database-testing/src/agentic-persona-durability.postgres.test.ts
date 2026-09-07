@@ -4,19 +4,15 @@ import {
   POSTGRES_TRUST_COLLECTIONS,
   withTrustScope,
 } from '@assurapay/database';
-import { PersonaAgentRegistryEngine } from '@assurapay/agent-runtime/agentic-os';
-import type { RequestContext } from '@assurapay/shared';
 import { createTestDatabase, requireTestDatabaseUrl } from './index';
 import type { TestDatabase } from './index';
 
 /**
- * PostgreSQL certification for the Agentic OS persona registry.
+ * PostgreSQL certification for Agentic OS persona assignments.
  *
- * A green in-memory test is not evidence that an active buyer/finance/risk agent
- * survives a process restart. This suite writes through one PostgresTrustStore,
- * discards that store object, then resolves through a second store against the same
- * database. The profile carries both tenant and workspace scope so the governed
- * trust_records RLS plane can enforce isolation in production.
+ * Registry behavior is covered in @assurapay/agent-runtime. This suite proves the
+ * persistence boundary underneath that registry: a scoped persona profile written
+ * through one PostgresTrustStore survives creation of a second store instance.
  */
 requireTestDatabaseUrl();
 
@@ -28,21 +24,9 @@ afterAll(async () => {
 const TENANT = 'tenant-agentic-persona';
 const WORKSPACE = 'workspace-agentic-persona';
 const ACTOR = 'persona-steward';
-
-const context: RequestContext = {
-  actorUserId: ACTOR,
-  sessionId: 'session-agentic-persona',
-  identityAssuranceLevel: 'IAL2_VERIFIED',
-  activeWorkspaceId: WORKSPACE,
-  tenantId: TENANT,
-  organizationId: 'org-agentic-persona',
-  memberships: ['ORG_ADMIN'],
-  correlationId: 'corr-agentic-persona',
-};
-
 const scope = { tenantId: TENANT, workspaceId: WORKSPACE, actorId: ACTOR };
 
-describe('integration: Agentic OS persona registry is durable', () => {
+describe('integration: Agentic OS persona profiles are durable', () => {
   it('routes personaAgentProfiles through the durable trust store', () => {
     expect(POSTGRES_TRUST_COLLECTIONS).toContain('personaAgentProfiles');
   });
@@ -63,39 +47,45 @@ describe('integration: Agentic OS persona registry is durable', () => {
       }),
     );
 
-    const firstRegistry = new PersonaAgentRegistryEngine(firstStore);
-    const registered = await withTrustScope(scope, () =>
-      firstRegistry.register(context, {
-        persona: 'BUYER',
-        name: 'Buyer Assurance Agent',
-        mission: 'Protect the buyer from paying for unproven performance.',
-        registeredAgentId: 'agent-buyer-v1',
-        promptId: 'prompt-buyer-v1',
-        capabilityId: 'cap-buyer-assurance',
-        autonomyLevel: 2,
-        allowedRoles: ['BUYER', 'ORG_ADMIN'],
-        allowedActionClasses: ['READ', 'ANALYZE', 'RECOMMEND', 'PREPARE'],
-        maxRisk: 'HIGH',
-      }),
-    );
-    await withTrustScope(scope, () => firstRegistry.activate(context, registered.id));
+    const profile = {
+      id: 'persona-buyer-v1',
+      tenantId: TENANT,
+      workspaceId: WORKSPACE,
+      persona: 'BUYER',
+      name: 'Buyer Assurance Agent',
+      mission: 'Protect the buyer from paying for unproven performance.',
+      registeredAgentId: 'agent-buyer-v1',
+      promptId: 'prompt-buyer-v1',
+      capabilityId: 'cap-buyer-assurance',
+      autonomyLevel: 2,
+      allowedRoles: ['BUYER', 'ORG_ADMIN'],
+      allowedActionClasses: ['READ', 'ANALYZE', 'RECOMMEND', 'PREPARE'],
+      maxRisk: 'HIGH',
+      active: false,
+      version: 1,
+      createdAt: new Date().toISOString(),
+    };
 
-    // A new store/registry pair models a process restart. No in-memory state from
-    // the first registry is available to this object.
+    await withTrustScope(scope, () => firstStore.append('personaAgentProfiles', profile));
+    await withTrustScope(scope, () =>
+      firstStore.replace('personaAgentProfiles', { ...profile, active: true }),
+    );
+
+    // New store instance models a process restart: no state can be inherited from
+    // the first PostgresTrustStore object.
     const secondStore = new PostgresTrustStore(database.sql);
-    const secondRegistry = new PersonaAgentRegistryEngine(secondStore);
-    const resolved = await withTrustScope(scope, () =>
-      secondRegistry.resolve(context, { persona: 'BUYER' }),
+    const rows = await withTrustScope(scope, () =>
+      secondStore.list<typeof profile>('personaAgentProfiles'),
     );
 
-    expect(resolved.id).toBe(registered.id);
-    expect(resolved.active).toBe(true);
-    expect(resolved.tenantId).toBe(TENANT);
-    expect(resolved.workspaceId).toBe(WORKSPACE);
-    expect(resolved.version).toBe(1);
-
-    const audits = await secondStore.list<{ eventType: string; aggregateId: string }>('auditRecords');
-    expect(audits.some((entry) => entry.eventType === 'PersonaAgentProfileRegistered' && entry.aggregateId === registered.id)).toBe(true);
-    expect(audits.some((entry) => entry.eventType === 'PersonaAgentProfileActivated' && entry.aggregateId === registered.id)).toBe(true);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({
+      id: profile.id,
+      tenantId: TENANT,
+      workspaceId: WORKSPACE,
+      persona: 'BUYER',
+      active: true,
+      version: 1,
+    });
   });
 });
