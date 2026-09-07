@@ -99,6 +99,10 @@ export default defineConfig({
         __dirname,
         'packages/execution-orchestration/src/index.ts',
       ),
+      '@assurapay/flow-orchestration': path.resolve(
+        __dirname,
+        'packages/flow-orchestration/src/index.ts',
+      ),
       '@assurapay/completion-assurance': path.resolve(
         __dirname,
         'packages/completion-assurance/src/index.ts',
