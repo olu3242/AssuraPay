@@ -15,8 +15,8 @@ export type RlsFindingCode =
 export type RlsFinding = { code: RlsFindingCode; table?: string; detail: string };
 export type RlsCertification = { certified: boolean; checkedTables: string[]; findings: RlsFinding[] };
 
+/** Trust-core tables exist in the lightweight RLS fixture. */
 export const RLS_GOVERNED_TABLES: readonly string[] = Object.freeze([
-  'persona_agent_profiles',
   'trust_audit_records',
   'trust_tenants',
   'trust_bootstrap_state',
@@ -26,6 +26,11 @@ export const RLS_GOVERNED_TABLES: readonly string[] = Object.freeze([
   'trust_permission_grants',
   'trust_records',
   'trust_workspaces',
+]);
+
+/** Agentic OS tables join the same deployment gate whenever that capability is installed. */
+export const AGENTIC_RLS_GOVERNED_TABLES: readonly string[] = Object.freeze([
+  'persona_agent_profiles',
 ]);
 
 type RlsFlagRow = { relname: string; enabled: boolean; forced: boolean };
@@ -156,9 +161,14 @@ export async function certifyRowLevelSecurity(
     tables?: readonly string[];
   },
 ): Promise<RlsCertification> {
-  const tables = [...(options.tables ?? RLS_GOVERNED_TABLES)];
-  const findings: RlsFinding[] = [];
   const state = await readRlsState(sql, options.schema);
+  const tables = options.tables
+    ? [...options.tables]
+    : [
+        ...RLS_GOVERNED_TABLES,
+        ...AGENTIC_RLS_GOVERNED_TABLES.filter((table) => state.flags.has(table)),
+      ];
+  const findings: RlsFinding[] = [];
   for (const table of tables) {
     const flags = state.flags.get(table);
     if (!flags) continue;
