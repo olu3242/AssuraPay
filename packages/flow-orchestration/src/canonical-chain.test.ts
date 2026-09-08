@@ -19,14 +19,6 @@ function event(eventId: string, eventType: string) {
 describe('canonical AssuraPay domain-event chain', () => {
   it('advances only from authoritative events and requires enhanced approval when assurance demands it', async () => {
     const store = new InMemoryTrustStore();
-    await store.append('memberships', {
-      id: 'm-operator-w-release-reviewer',
-      workspaceId: 'w',
-      userId: context.actorUserId,
-      membershipType: 'RELEASE_REVIEWER',
-      role: 'RELEASE_REVIEWER',
-      status: 'ACTIVE',
-    });
     const registry = new FlowRegistry();
     registry.register(COMMERCIAL_COMMITMENT_FLOW_V1);
     const flows = new FlowOrchestrator(store, registry);
@@ -59,6 +51,15 @@ describe('canonical AssuraPay domain-event chain', () => {
     await bridge.apply(context, flow.id, event('e10', 'ReleaseRequestEvaluated'));
     const approval = await flows.dispatch(context, flow.id, 'enhanced-approval');
     expect('status' in approval && approval.status).toBe('OPEN');
+    if (!('requiredRole' in approval)) throw new Error('EXPECTED_HUMAN_TASK');
+    await store.append('memberships', {
+      id: 'm-operator-w-required-approval-role',
+      workspaceId: 'w',
+      userId: context.actorUserId,
+      membershipType: approval.requiredRole,
+      role: approval.requiredRole,
+      status: 'ACTIVE',
+    });
     await flows.decide(context, approval.id, 'APPROVE');
 
     await flows.dispatch(context, flow.id, 'payment');
