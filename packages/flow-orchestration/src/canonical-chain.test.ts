@@ -20,11 +20,11 @@ describe('canonical AssuraPay domain-event chain', () => {
   it('advances only from authoritative events and requires enhanced approval when assurance demands it', async () => {
     const store = new InMemoryTrustStore();
     await store.append('memberships', {
-      id: 'm-operator-w-release-approver',
+      id: 'm-operator-w-release-reviewer',
       workspaceId: 'w',
       userId: context.actorUserId,
-      membershipType: 'RELEASE_APPROVER',
-      role: 'RELEASE_APPROVER',
+      membershipType: 'RELEASE_REVIEWER',
+      role: 'RELEASE_REVIEWER',
       status: 'ACTIVE',
     });
     const registry = new FlowRegistry();
