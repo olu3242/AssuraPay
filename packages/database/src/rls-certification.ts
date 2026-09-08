@@ -91,6 +91,15 @@ export async function assertCrossTenantDenied(
     if (grants.n !== '0') findings.push({ code: 'RLS_CROSS_TENANT_READ', table: 'trust_permission_grants', detail: 'a caller read another tenant permission grants' });
     const [audits] = await tx<{ n: string }[]>`SELECT count(*)::text AS n FROM trust_audit_records WHERE workspace_id = ${foreign.workspaceId}`;
     if (audits.n !== '0') findings.push({ code: 'RLS_CROSS_TENANT_READ', table: 'trust_audit_records', detail: 'a caller read another tenant audit history' });
+    const [personaProfiles] = await tx<{ n: string }[]>`
+      SELECT count(*)::text AS n FROM persona_agent_profiles WHERE workspace_id = ${foreign.workspaceId}
+    `;
+    if (personaProfiles.n !== '0')
+      findings.push({
+        code: 'RLS_CROSS_TENANT_READ',
+        table: 'persona_agent_profiles',
+        detail: 'a caller read another tenant persona-agent governance configuration',
+      });
   });
   return findings;
 }
@@ -115,6 +124,7 @@ export async function assertUnscopedReadDenied(sql: SqlClient, role: string): Pr
     await tx.unsafe(`SET LOCAL ROLE ${quoteIdentifier(role)}`);
     await tx`SELECT set_config('app.tenant_id', '', true), set_config('app.workspace_id', '', true), set_config('app.actor_id', '', true)`;
     const queries: Record<string, string> = {
+      persona_agent_profiles: 'SELECT count(*)::text AS n FROM persona_agent_profiles',
       trust_workspaces: 'SELECT count(*)::text AS n FROM trust_workspaces',
       trust_permission_grants: 'SELECT count(*)::text AS n FROM trust_permission_grants',
       trust_audit_records: 'SELECT count(*)::text AS n FROM trust_audit_records WHERE tenant_id IS NOT NULL',
