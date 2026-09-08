@@ -3,6 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "main": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./recovery": "./src/recovery.ts"
+  },
   "dependencies": {
     "@assurapay/database": "workspace:*",
     "@assurapay/shared": "workspace:*"
