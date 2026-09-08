@@ -85,6 +85,33 @@ describe('FlowOperations', () => {
     expect(tasks.map((entry) => entry.id)).toEqual(['open']);
   });
 
+  it('derives stalled, aged-human, retry and failed recovery diagnostics without mutating state', async () => {
+    const store = new InMemoryTrustStore();
+    const now = new Date('2026-09-08T02:00:00.000Z');
+    await store.append('flowInstances', { ...flow('stalled', 'w1', '2026-09-08T00:00:00.000Z'), state: 'WAITING_EVENT' });
+    await store.append('flowInstances', { ...flow('human', 'w1', '2026-09-08T01:45:00.000Z'), state: 'WAITING_HUMAN' });
+    await store.append('flowInstances', { ...flow('retry', 'w1', '2026-09-08T01:55:00.000Z'), state: 'RETRY_PENDING' });
+    await store.append('flowInstances', { ...flow('failed', 'w1', '2026-09-08T01:59:00.000Z'), state: 'FAILED' });
+    await store.append('humanTasks', {
+      id: 'aged-task', workspaceId: 'w1', flowInstanceId: 'human', stepInstanceId: 's-human', requiredRole: 'RELEASE_APPROVER',
+      status: 'OPEN', createdAt: '2026-09-08T01:00:00.000Z',
+    });
+
+    const health = await new FlowOperations(store).health(context('w1'), {
+      now,
+      stalledAfterMs: 60 * 60 * 1000,
+      humanTaskAgingMs: 30 * 60 * 1000,
+    });
+
+    const byId = new Map(health.records.map((record) => [record.flowId, record]));
+    expect(byId.get('stalled')?.recommendedAction).toBe('INVESTIGATE_STALLED_FLOW');
+    expect(byId.get('human')?.recommendedAction).toBe('ESCALATE_HUMAN_TASK');
+    expect(byId.get('retry')?.recommendedAction).toBe('RETRY_FAILED_STEP');
+    expect(byId.get('failed')?.recommendedAction).toBe('RECOVER_FAILED_FLOW');
+    expect(health.metrics).toMatchObject({ totalFlows: 4, attentionFlows: 3, criticalFlows: 1, openHumanTasks: 1, stalledFlows: 1 });
+    expect((await store.list('flowInstances')).length).toBe(4);
+  });
+
   it('fails closed when the requested flow is outside the active workspace', async () => {
     const store = new InMemoryTrustStore();
     await store.append('flowInstances', flow('f2', 'w2', '2026-09-08T00:00:00.000Z'));
