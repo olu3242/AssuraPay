@@ -1,5 +1,6 @@
 import { afterAll, describe, expect, it } from 'vitest';
 import {
+  applyTrustScope,
   PostgresStoreError,
   PostgresTrustStore,
   POSTGRES_ROUTED_TABLES,
@@ -72,9 +73,12 @@ describe('integration: Agentic OS persona profiles are directly relational', () 
     await withTrustScope(scope, () => firstStore.append('personaAgentProfiles', buyer));
     await withTrustScope(scope, () => firstStore.replace('personaAgentProfiles', { ...buyer, active: true }));
 
-    const [generic] = await database.sql<{ n: string }[]>`
-      SELECT count(*)::text AS n FROM trust_records WHERE collection = 'personaAgentProfiles'
-    `;
+    const [generic] = await database.sql.begin(async (tx) => {
+      await applyTrustScope(tx, scope);
+      return await tx<{ n: string }[]>`
+        SELECT count(*)::text AS n FROM trust_records WHERE collection = 'personaAgentProfiles'
+      `;
+    });
     expect(generic.n).toBe('0');
 
     const secondStore = new PostgresTrustStore(database.sql);
@@ -82,11 +86,12 @@ describe('integration: Agentic OS persona profiles are directly relational', () 
     expect(rows).toHaveLength(1);
     expect(rows[0]).toMatchObject({ id: buyer.id, tenantId: TENANT, workspaceId: WORKSPACE, persona: 'BUYER', active: true, version: 1 });
 
-    const relational = await withTrustScope(scope, () =>
-      database.sql<{ id: string; active: boolean; version: number }[]>`
+    const relational = await database.sql.begin(async (tx) => {
+      await applyTrustScope(tx, scope);
+      return await tx<{ id: string; active: boolean; version: number }[]>`
         SELECT id, active, version FROM persona_agent_profiles WHERE id = ${buyer.id}
-      `,
-    );
+      `;
+    });
     expect(relational).toEqual([{ id: buyer.id, active: true, version: 1 }]);
   });
 
