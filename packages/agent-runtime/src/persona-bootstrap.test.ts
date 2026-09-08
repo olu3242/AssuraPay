@@ -14,7 +14,11 @@ const context: RequestContext = {
   activeWorkspaceId: 'workspace-bootstrap',
   tenantId: 'tenant-bootstrap',
   organizationId: 'org-bootstrap',
-  memberships: ['ORG_ADMIN'],
+  // RequestContext.memberships is the set of workspace ids the authenticated identity
+  // belongs to. Role/capability authorization is modeled separately by the Agentic OS
+  // profile and runtime policy. Keeping this fixture faithful preserves the production
+  // requireActiveWorkspace guard instead of weakening it for bootstrap convenience.
+  memberships: ['workspace-bootstrap'],
   correlationId: 'corr-bootstrap',
 };
 
