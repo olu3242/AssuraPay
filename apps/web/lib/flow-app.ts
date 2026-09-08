@@ -4,6 +4,7 @@ import {
   FlowOrchestrator,
   FlowRegistry,
 } from '@assurapay/flow-orchestration';
+import { FlowRecovery } from '@assurapay/flow-orchestration/recovery';
 import { trustStore } from './persistence';
 
 /**
@@ -21,3 +22,5 @@ export const flowOrchestration = new FlowOrchestrator(
   trustStore,
   flowRegistry,
 );
+
+export const flowRecovery = new FlowRecovery(trustStore);
