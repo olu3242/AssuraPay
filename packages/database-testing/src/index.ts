@@ -3,28 +3,8 @@ import path from 'node:path';
 import { applyMigrations, createPostgresPool, readMigrations } from '@assurapay/database';
 import type { PostgresPool, SqlClient } from '@assurapay/database';
 
-/**
- * Isolated PostgreSQL databases for integration tests.
- *
- * A package of its own rather than a module inside `@assurapay/database`, so production
- * code cannot reach it through the barrel it would otherwise share with the store. These
- * helpers create and drop databases and skip every check production configuration
- * performs; `persistence/test-helper-in-production` fails certification on any non-test
- * file that imports this package.
- *
- * Each caller gets its own schema inside the configured database, created and dropped
- * per test. A shared schema would make the concurrency and isolation suites depend on
- * each other's rows, and those are precisely the suites whose value comes from being
- * the only writer.
- *
- * The address comes from `ASSURAPAY_TEST_DATABASE_URL`. When it is unset the helper
- * reports that rather than substituting anything: a suite that silently ran against an
- * in-memory stand-in would report durability it never observed.
- */
-
 export const TEST_DATABASE_URL_VARIABLE = 'ASSURAPAY_TEST_DATABASE_URL';
 
-/** Where this capability's migration set lives. */
 export function migrationsDirectory(): string {
   return path.resolve(process.cwd(), 'supabase/migrations');
 }
@@ -32,33 +12,9 @@ export function migrationsDirectory(): string {
 export type TestDatabase = {
   readonly sql: SqlClient;
   readonly schema: string;
-  /**
-   * A connection URL that reaches exactly this database, in this schema.
-   *
-   * Exposed because a runtime test must hand a URL to `createPersistenceRuntime` rather than a
-   * client, and reconstructing one from `ASSURAPAY_TEST_DATABASE_URL` plus the schema only works
-   * for the schema-isolated helper — `createTestDatabaseInstance` creates a whole database whose
-   * name the caller never sees.
-   */
   readonly url: string;
-  /**
-   * A non-owning role the tenancy probes may assume, present when the policies were applied.
-   *
-   * Run-scoped rather than the shared `assurapay_app`. A cluster-wide role belongs to whichever
-   * credential created it, and a later credential holds no ADMIN OPTION on it — so `SET ROLE`
-   * is refused with a bare "permission denied to grant role" that says nothing about why. A role
-   * this connection just created is one it can always assume.
-   */
   readonly probeRole?: string;
-  /**
-   * Creates the probe role on demand, for a whole-database harness whose tables the caller
-   * migrates itself. Idempotent; returns the role name.
-   *
-   * Absent on the schema-isolated helper, which provisions its role during setup because it
-   * applies the policies itself and therefore knows the tables exist.
-   */
   provisionProbeRole?(): Promise<string>;
-  /** Drops the schema and closes the pool. Safe to call twice. */
   dispose(): Promise<void>;
 };
 
@@ -67,13 +23,6 @@ export function testDatabaseUrl(): string | undefined {
   return url?.trim() ? url : undefined;
 }
 
-/**
- * Whether real-PostgreSQL suites can run here.
- *
- * Callers must branch on this and *fail* rather than skip when a required suite has no
- * database — see `requireTestDatabaseUrl`. This exists so the reason is reported once,
- * in words, rather than as a silently-green empty run.
- */
 export function hasTestDatabase(): boolean {
   return testDatabaseUrl() !== undefined;
 }
@@ -89,19 +38,11 @@ export function requireTestDatabaseUrl(): string {
   return url;
 }
 
-/**
- * Creates an isolated schema with the trust tables applied.
- *
- * Migrations run inside the new schema by setting `search_path` on every connection in
- * the pool, so the DDL in `supabase/migrations` lands there without being rewritten.
- */
 export async function createTestDatabase(
   options: { applyAllMigrations?: boolean; applyRls?: boolean } = {},
 ): Promise<TestDatabase> {
   const databaseUrl = requireTestDatabaseUrl();
   const schema = `trust_test_${randomUUID().replace(/-/g, '').slice(0, 20)}`;
-
-  // A short-lived pool on the default schema, only to create the new one.
   const bootstrap = createPostgresPool({ databaseUrl, max: 1, applicationName: 'assurapay-test-setup' });
   try {
     await bootstrap.sql.unsafe(`CREATE SCHEMA "${schema}"`);
@@ -128,11 +69,7 @@ export async function createTestDatabase(
       if (disposed) return;
       disposed = true;
       await pool.dispose();
-      const teardown = createPostgresPool({
-        databaseUrl,
-        max: 1,
-        applicationName: 'assurapay-test-teardown',
-      });
+      const teardown = createPostgresPool({ databaseUrl, max: 1, applicationName: 'assurapay-test-teardown' });
       try {
         await teardown.sql.unsafe(`DROP SCHEMA IF EXISTS "${schema}" CASCADE`);
         if (probeRole) await dropProbeRole(teardown.sql, probeRole);
@@ -157,16 +94,21 @@ export async function createTestDatabase(
     await database.dispose().catch(() => undefined);
     throw error;
   }
-
   return database;
 }
 
-/**
- * Provisions a probe role in a whole-database harness.
- *
- * The probe receives the same table privileges needed to exercise policy enforcement.
- * A permission-denied error caused by a missing GRANT is not evidence that RLS works.
- */
+async function relationExists(sql: SqlClient, relation: string): Promise<boolean> {
+  const [row] = await sql<{ present: boolean }[]>`
+    SELECT to_regclass(${relation}) IS NOT NULL AS present
+  `;
+  return row?.present ?? false;
+}
+
+async function grantPersonaProbePrivileges(sql: SqlClient, role: string): Promise<void> {
+  if (!(await relationExists(sql, 'persona_agent_profiles'))) return;
+  await sql.unsafe(`GRANT SELECT, INSERT, UPDATE ON persona_agent_profiles TO "${role}"`);
+}
+
 async function provisionInstanceProbeRole(sql: SqlClient): Promise<string> {
   const role = `probe_db_${randomUUID().replace(/-/g, '').slice(0, 24)}`;
   await sql.unsafe(`CREATE ROLE "${role}" NOLOGIN`);
@@ -174,18 +116,15 @@ async function provisionInstanceProbeRole(sql: SqlClient): Promise<string> {
   await sql.unsafe(`GRANT USAGE ON SCHEMA public TO "${role}"`);
   await sql.unsafe(
     `GRANT SELECT, INSERT, UPDATE ON
-       persona_agent_profiles,
        trust_tenants, trust_workspaces, trust_memberships, trust_permission_grants,
        trust_bootstrap_state, trust_outbox_events, trust_idempotency_keys, trust_records
      TO "${role}"`,
   );
+  await grantPersonaProbePrivileges(sql, role);
   await sql.unsafe(`GRANT SELECT, INSERT ON trust_audit_records TO "${role}"`);
   return role;
 }
 
-/**
- * Provisions the application role the denial probes run as.
- */
 async function createProbeRole(sql: SqlClient, schema: string): Promise<string> {
   const role = `probe_${schema.replace(/[^a-z0-9_]/gi, '').slice(0, 40)}`;
   await sql.unsafe(`CREATE ROLE "${role}" NOLOGIN`);
@@ -193,11 +132,11 @@ async function createProbeRole(sql: SqlClient, schema: string): Promise<string> 
   await sql.unsafe(`GRANT USAGE ON SCHEMA "${schema}" TO "${role}"`);
   await sql.unsafe(
     `GRANT SELECT, INSERT, UPDATE ON
-       persona_agent_profiles,
        trust_tenants, trust_workspaces, trust_memberships, trust_permission_grants,
        trust_bootstrap_state, trust_outbox_events, trust_idempotency_keys, trust_records
      TO "${role}"`,
   );
+  await grantPersonaProbePrivileges(sql, role);
   await sql.unsafe(`GRANT SELECT, INSERT ON trust_audit_records TO "${role}"`);
   return role;
 }
@@ -217,23 +156,20 @@ export async function findBypassingRole(sql: SqlClient): Promise<string> {
   if (!role)
     throw new Error(
       'this cluster has no superuser and no BYPASSRLS role, so there is nothing to assert ' +
-        'bypass detection against. A cluster always has a bootstrap superuser; if this fires, ' +
-        'the connected role cannot read pg_roles rather than the cluster being unusual.',
+        'bypass detection against.',
     );
   return role.rolname;
 }
 
 async function assertConnectionCannotBypassRls(sql: SqlClient): Promise<void> {
   const [role] = await sql<{ who: string; rolsuper: boolean; rolbypassrls: boolean }[]>`
-    SELECT current_user AS who,
-           r.rolsuper, r.rolbypassrls
+    SELECT current_user AS who, r.rolsuper, r.rolbypassrls
     FROM pg_roles r WHERE r.rolname = current_user
   `;
   if (role?.rolsuper || role?.rolbypassrls)
     throw new Error(
       `${role.who} can bypass row-level security (${role.rolsuper ? 'superuser' : 'BYPASSRLS'}), ` +
-        'so a tenancy suite run as it would prove nothing: every policy is ignored for this role, ' +
-        'forced or not. Connect as a role that owns nothing and holds neither attribute.',
+        'so a tenancy suite run as it would prove nothing.',
     );
 }
 
@@ -296,7 +232,6 @@ async function dropDatabase(sql: SqlClient, name: string): Promise<void> {
 export async function createTestDatabaseInstance(): Promise<TestDatabase> {
   const databaseUrl = requireTestDatabaseUrl();
   const name = `trust_db_${randomUUID().replace(/-/g, '').slice(0, 20)}`;
-
   const admin = createPostgresPool({ databaseUrl, max: 1, applicationName: 'assurapay-test-setup' });
   try {
     await admin.sql.unsafe(`CREATE DATABASE "${name}"`);
@@ -325,11 +260,7 @@ export async function createTestDatabaseInstance(): Promise<TestDatabase> {
       if (disposed) return;
       disposed = true;
       await pool.dispose();
-      const teardown = createPostgresPool({
-        databaseUrl,
-        max: 1,
-        applicationName: 'assurapay-test-teardown',
-      });
+      const teardown = createPostgresPool({ databaseUrl, max: 1, applicationName: 'assurapay-test-teardown' });
       try {
         await dropDatabase(teardown.sql, name);
         if (probeRole) await dropProbeRole(teardown.sql, probeRole);
