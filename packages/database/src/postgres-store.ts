@@ -21,6 +21,11 @@ import { BATCH_I_RELATIONS, batchIRelation, isBatchICollection } from './batch-i
 import { BATCH_K_RELATIONS, batchKRelation, isBatchKCollection } from './batch-k-repository';
 import { BATCH_L_RELATIONS, batchLRelation, isBatchLCollection } from './batch-l-repository';
 import { BATCH_M_RELATIONS, batchMRelation, isBatchMCollection } from './batch-m-repository';
+import {
+  PERSONA_AGENT_COLLECTION,
+  PERSONA_AGENT_TABLE,
+  personaAgentRelation,
+} from './persona-agent-repository';
 import { PostgresStoreError } from './store-error';
 
 export { PostgresStoreError } from './store-error';
@@ -39,6 +44,7 @@ function translate(error: unknown): PostgresStoreError {
   if (detail.includes('TRUST_HISTORY_IS_APPEND_ONLY')) return new PostgresStoreError('PERSISTENCE_HISTORY_IMMUTABLE', detail);
   if (detail.includes('LEDGER_JOURNAL_DOES_NOT_BALANCE')) return new PostgresStoreError('PERSISTENCE_LEDGER_UNBALANCED', detail);
   if (detail.includes('ACTIVE_DISPUTE_HOLD')) return new PostgresStoreError('PERSISTENCE_RELEASE_HELD', detail);
+  if (detail.includes('PERSONA_AGENT_PROFILE_CONFIGURATION_IMMUTABLE')) return new PostgresStoreError('PERSISTENCE_HISTORY_IMMUTABLE', detail);
   if (detail.includes('AGGREGATE_ROW_IS_NOT_DELETABLE') || detail.includes('AGGREGATE_FACT_IS_IMMUTABLE') || detail.includes('AGGREGATE_STATE_IS_TERMINAL') || detail.includes('AGGREGATE_VERSION_MUST_ADVANCE') || detail.includes('append-only table'))
     return new PostgresStoreError('PERSISTENCE_HISTORY_IMMUTABLE', detail);
   if (code === SQLSTATE.insufficientPrivilege && detail.includes('row-level security policy'))
@@ -72,20 +78,19 @@ const DEDICATED: Record<string, DedicatedMapping> = {
 
 const GOVERNED_DOCUMENTS = Object.freeze([
   'authenticationMethods','beneficiaryAccounts','consents','delegations','devices','evidenceLedgerEntries','fieldPermissions','authorityRules','invitations','identities','legalHolds','legalPolicies','legalPolicyVersions','organizationUnits','parties','policyAcceptances','policyAssignments','segregationRules','sessions','signaturePolicies','stepUpChallenges','trustOrganizations','verificationRequests','verificationResults',
-  // Flow OS durable documents. These are intentionally explicit: a durable store still refuses every unknown collection.
   'flowInstances','flowStepInstances','flowSignals','humanTasks',
 ]);
 
 export const POSTGRES_IDENTITY_PLANE_COLLECTIONS: readonly string[] = Object.freeze(['authenticationMethods','devices','identities','sessions','stepUpChallenges']);
 const HISTORY_COLLECTIONS = Object.freeze(['auditRecords','outboxEvents']);
 export const POSTGRES_TRUST_COLLECTIONS: readonly string[] = Object.freeze([
-  ...Object.keys(DEDICATED), ...GOVERNED_DOCUMENTS, ...HISTORY_COLLECTIONS,
+  ...Object.keys(DEDICATED), ...GOVERNED_DOCUMENTS, ...HISTORY_COLLECTIONS, PERSONA_AGENT_COLLECTION,
   ...Object.keys(BATCH_A_RELATIONS), ...Object.keys(BATCH_B_RELATIONS), ...Object.keys(BATCH_C_RELATIONS), ...Object.keys(BATCH_D_RELATIONS),
   ...Object.keys(BATCH_E_RELATIONS), ...Object.keys(BATCH_F_RELATIONS), ...Object.keys(BATCH_G_RELATIONS), ...Object.keys(BATCH_H_RELATIONS),
   ...Object.keys(BATCH_I_RELATIONS), ...Object.keys(BATCH_K_RELATIONS), ...Object.keys(BATCH_L_RELATIONS), ...Object.keys(BATCH_M_RELATIONS),
 ].sort());
 export const POSTGRES_ROUTED_TABLES: readonly string[] = Object.freeze([...new Set([
-  ...Object.values(DEDICATED).map((mapping) => mapping.table), 'trust_records',
+  ...Object.values(DEDICATED).map((mapping) => mapping.table), 'trust_records', PERSONA_AGENT_TABLE,
   ...Object.values(BATCH_A_RELATIONS).map((relation) => relation.table), ...Object.values(BATCH_B_RELATIONS).map((relation) => relation.table),
   ...Object.values(BATCH_C_RELATIONS).map((relation) => relation.table), ...Object.values(BATCH_D_RELATIONS).map((relation) => relation.table),
   ...Object.values(BATCH_E_RELATIONS).map((relation) => relation.table), ...Object.values(BATCH_F_RELATIONS).map((relation) => relation.table),
@@ -104,7 +109,10 @@ function rowToRecord<T>(row:{payload:unknown;payload_digest:string}):T { const p
 export type PostgresTrustStoreOptions={now?:()=>Date;withinTransaction?:boolean};
 const LOCK_ON_TRANSACTIONAL_READ=new Set<string>(['signaturePackages']);
 type RelationalUpdate={update(sql:SqlClient,record:Record<string,unknown>):Promise<number>};
-function relationalUpdateTarget(collection:string):RelationalUpdate|undefined { if(isBatchACollection(collection))return batchARelation(collection); if(isBatchBCollection(collection))return batchBRelation(collection); if(isBatchCCollection(collection))return batchCRelation(collection); if(isBatchDCollection(collection))return batchDRelation(collection); if(isBatchECollection(collection))return batchERelation(collection); if(isBatchFCollection(collection))return batchFRelation(collection); if(isBatchGCollection(collection))return batchGRelation(collection); if(isBatchHCollection(collection))return batchHRelation(collection); if(isBatchICollection(collection))return batchIRelation(collection); if(isBatchKCollection(collection))return batchKRelation(collection); if(isBatchLCollection(collection))return batchLRelation(collection); if(isBatchMCollection(collection))return batchMRelation(collection); return undefined; }
+function relationalUpdateTarget(collection:string):RelationalUpdate|undefined {
+  if(collection===PERSONA_AGENT_COLLECTION)return personaAgentRelation;
+  if(isBatchACollection(collection))return batchARelation(collection); if(isBatchBCollection(collection))return batchBRelation(collection); if(isBatchCCollection(collection))return batchCRelation(collection); if(isBatchDCollection(collection))return batchDRelation(collection); if(isBatchECollection(collection))return batchERelation(collection); if(isBatchFCollection(collection))return batchFRelation(collection); if(isBatchGCollection(collection))return batchGRelation(collection); if(isBatchHCollection(collection))return batchHRelation(collection); if(isBatchICollection(collection))return batchIRelation(collection); if(isBatchKCollection(collection))return batchKRelation(collection); if(isBatchLCollection(collection))return batchLRelation(collection); if(isBatchMCollection(collection))return batchMRelation(collection); return undefined;
+}
 
 export class PostgresTrustStore implements TrustPersistence {
   private readonly now:()=>Date; private readonly withinTransaction:boolean;
@@ -120,6 +128,7 @@ export class PostgresTrustStore implements TrustPersistence {
     if(collection==='auditRecords'){const rows=await this.sql<AuditRow[]>`SELECT * FROM trust_audit_records ORDER BY coalesce(tenant_id, '') ASC, chain_position ASC`;return rows.map(auditRowToRecord) as unknown as T[];}
     if(collection==='outboxEvents'){const rows=await this.sql<OutboxRow[]>`SELECT * FROM trust_outbox_events ORDER BY occurred_at ASC, event_id ASC`;return rows.map(outboxRowToRecord) as unknown as T[];}
     if(dedicated)return await this.listDedicated<T>(collection);
+    if(collection===PERSONA_AGENT_COLLECTION)return(await personaAgentRelation.list(this.sql))as unknown as T[];
     if(isBatchACollection(collection))return(await batchARelation(collection).list(this.sql))as unknown as T[];
     if(isBatchBCollection(collection))return(await batchBRelation(collection).list(this.sql))as unknown as T[];
     if(isBatchCCollection(collection))return(await batchCRelation(collection).list(this.sql))as unknown as T[];
@@ -138,6 +147,7 @@ export class PostgresTrustStore implements TrustPersistence {
   private async listDedicated<T>(collection:string):Promise<T[]>{if(collection==='trustWorkspaces'){const rows=await this.sql<StoredRow[]>`SELECT payload, payload_digest FROM trust_workspaces ORDER BY created_at ASC, workspace_id ASC`;return rows.map((row)=>rowToRecord<T>(row));}if(collection==='memberships'){const rows=await this.sql<StoredRow[]>`SELECT payload, payload_digest FROM trust_memberships ORDER BY created_at ASC, membership_id ASC`;return rows.map((row)=>rowToRecord<T>(row));}const rows=await this.sql<StoredRow[]>`SELECT payload, payload_digest FROM trust_permission_grants ORDER BY created_at ASC, grant_id ASC`;return rows.map((row)=>rowToRecord<T>(row));}
 
   private async appendScoped<T>(collection:string,value:T):Promise<void>{const record=asRecord(value);const id=requireRecordId(value);const digest=payloadDigest(record);try{
+    if(collection===PERSONA_AGENT_COLLECTION){await personaAgentRelation.insert(this.sql,record,this.requireRelationalTenant(collection,record));return;}
     if(isBatchACollection(collection)){await batchARelation(collection).insert(this.sql,record,this.requireRelationalTenant(collection,record));return;}if(isBatchBCollection(collection)){await batchBRelation(collection).insert(this.sql,record,this.requireRelationalTenant(collection,record));return;}if(isBatchCCollection(collection)){await batchCRelation(collection).insert(this.sql,record,this.requireRelationalTenant(collection,record));return;}if(isBatchDCollection(collection)){await batchDRelation(collection).insert(this.sql,record,this.requireRelationalTenant(collection,record));return;}if(isBatchECollection(collection)){await batchERelation(collection).insert(this.sql,record,this.requireRelationalTenant(collection,record));return;}if(isBatchFCollection(collection)){await batchFRelation(collection).insert(this.sql,record,this.requireRelationalTenant(collection,record));return;}if(isBatchGCollection(collection)){await batchGRelation(collection).insert(this.sql,record,this.requireRelationalTenant(collection,record));return;}if(isBatchHCollection(collection)){await batchHRelation(collection).insert(this.sql,record,this.requireRelationalTenant(collection,record));return;}if(isBatchICollection(collection)){await batchIRelation(collection).insert(this.sql,record,this.requireRelationalTenant(collection,record));return;}if(isBatchKCollection(collection)){await batchKRelation(collection).insert(this.sql,record,this.requireRelationalTenant(collection,record));return;}if(isBatchLCollection(collection)){await batchLRelation(collection).insert(this.sql,record,this.requireRelationalTenant(collection,record));return;}if(isBatchMCollection(collection)){await batchMRelation(collection).insert(this.sql,record,this.requireRelationalTenant(collection,record));return;}
     if(collection==='trustWorkspaces'){const tenantId=firstString(record,['tenantId']);if(!tenantId)throw new PostgresStoreError('PERSISTENCE_SCOPE_INVALID','a workspace must name its tenant');await this.sql`INSERT INTO trust_tenants (tenant_id) VALUES (${tenantId}) ON CONFLICT (tenant_id) DO NOTHING`;await this.sql`INSERT INTO trust_workspaces (workspace_id, tenant_id, status, payload, payload_digest, version) VALUES (${id}, ${tenantId}, ${firstString(record,['status'])??'ACTIVE'}, ${this.sql.json(record)}, ${digest}, ${asVersion(record)})`;return;}
     if(collection==='memberships'){const membershipWorkspaceId=requireScope(record,'workspaceId');const[membershipWorkspace]=await this.sql<{tenantId:string}[]>`SELECT tenant_id AS "tenantId" FROM trust_workspaces WHERE workspace_id = ${membershipWorkspaceId}`;if(!membershipWorkspace)throw new PostgresStoreError('PERSISTENCE_SCOPE_INVALID',`membership names workspace ${membershipWorkspaceId}, which does not exist or is outside this scope`);await this.sql`INSERT INTO trust_memberships (membership_id, workspace_id, tenant_id, user_id, status, role, effective_from, effective_to, revoked_at, payload, payload_digest, version) VALUES (${id}, ${membershipWorkspaceId}, ${membershipWorkspace.tenantId}, ${requireScope(record,'userId')}, ${firstString(record,['status'])??'ACTIVE'}, ${firstString(record,['role'])}, ${firstTimestamp(record,['effectiveFrom','createdAt'])}, ${firstTimestamp(record,['effectiveTo'])}, ${firstTimestamp(record,['revokedAt'])}, ${this.sql.json(record)}, ${digest}, ${asVersion(record)})`;return;}

@@ -1,44 +1,33 @@
 import {
   loadAgentRuntimePolicy,
-  registerAgentRuntime,
+  registerAgenticOs,
   sandboxModelProvider,
-  type AgentRuntimeRegistration,
+  type AgenticOsRegistration,
   type ModelProvider,
 } from '@assurapay/agent-runtime';
 import { trustStore } from './trust-app';
 
 /**
- * Agent Runtime composition for the web application.
+ * Agentic OS composition for the web application.
  *
- * The runtime is mounted once and shared, so telemetry and execution memory stay
- * coherent across requests rather than being fragmented per route.
- *
- * The runtime produces proposals and result artifacts. It mutates no payment,
- * certification or release state, and nothing here grants it that ability.
+ * The existing governed Agent Runtime remains canonical. Persona assignment and
+ * autonomy are mounted around it, so every dispatched persona task still passes
+ * through prompt, capability, context, governance, telemetry, approval, model
+ * gateway and deterministic-engine boundaries.
  */
+let registration: AgenticOsRegistration | undefined;
 
-let registration: AgentRuntimeRegistration | undefined;
-
-/**
- * Model providers for this deployment.
- *
- * Only the sandbox provider is registered: no real model provider is configured
- * for this repository, and the sandbox provider performs no inference and says so
- * rather than returning plausible-looking output. Registering a real provider is a
- * configuration change, not a code change — add it here alongside the credential
- * handling its API requires.
- */
 function providers(): ModelProvider[] {
   return [sandboxModelProvider];
 }
 
 /**
- * Built on first use so an unconfigured environment still boots, and so a policy
- * misconfiguration surfaces on the paths that use the runtime rather than at
- * import time.
+ * Built on first use so an unconfigured environment still boots. The sandbox
+ * provider performs no inference; a real provider remains an explicit deployment
+ * configuration change rather than an implicit fallback.
  */
-export function getAgentRuntime(): AgentRuntimeRegistration {
-  registration ??= registerAgentRuntime(trustStore, {
+export function getAgentRuntime(): AgenticOsRegistration {
+  registration ??= registerAgenticOs(trustStore, {
     providers: providers(),
     policy: loadAgentRuntimePolicy(process.env),
   });
