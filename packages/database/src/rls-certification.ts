@@ -54,6 +54,11 @@ export function quoteIdentifier(value: string): string {
   return `"${value}"`;
 }
 
+async function relationExists(sql: SqlClient, relation: string): Promise<boolean> {
+  const [row] = await sql<{ present: boolean }[]>`SELECT to_regclass(${relation}) IS NOT NULL AS present`;
+  return row?.present ?? false;
+}
+
 async function applyProbeRole(sql: SqlClient, context: RlsProbeContext): Promise<void> {
   await sql.unsafe(`SET LOCAL ROLE ${quoteIdentifier(context.role)}`);
   await sql`SELECT set_config('app.tenant_id', ${context.tenantId}, true), set_config('app.workspace_id', ${context.workspaceId}, true), set_config('app.actor_id', ${context.actorId}, true)`;
@@ -81,6 +86,7 @@ export async function assertCrossTenantDenied(
   foreign: { tenantId: string; workspaceId: string },
 ): Promise<RlsFinding[]> {
   const findings: RlsFinding[] = [];
+  const hasPersonaProfiles = await relationExists(sql, 'persona_agent_profiles');
   await sql.begin(async (tx) => {
     await applyProbeRole(tx, context);
     const [own] = await tx<{ n: string }[]>`SELECT count(*)::text AS n FROM trust_workspaces WHERE workspace_id = ${context.workspaceId}`;
@@ -91,15 +97,17 @@ export async function assertCrossTenantDenied(
     if (grants.n !== '0') findings.push({ code: 'RLS_CROSS_TENANT_READ', table: 'trust_permission_grants', detail: 'a caller read another tenant permission grants' });
     const [audits] = await tx<{ n: string }[]>`SELECT count(*)::text AS n FROM trust_audit_records WHERE workspace_id = ${foreign.workspaceId}`;
     if (audits.n !== '0') findings.push({ code: 'RLS_CROSS_TENANT_READ', table: 'trust_audit_records', detail: 'a caller read another tenant audit history' });
-    const [personaProfiles] = await tx<{ n: string }[]>`
-      SELECT count(*)::text AS n FROM persona_agent_profiles WHERE workspace_id = ${foreign.workspaceId}
-    `;
-    if (personaProfiles.n !== '0')
-      findings.push({
-        code: 'RLS_CROSS_TENANT_READ',
-        table: 'persona_agent_profiles',
-        detail: 'a caller read another tenant persona-agent governance configuration',
-      });
+    if (hasPersonaProfiles) {
+      const [personaProfiles] = await tx<{ n: string }[]>`
+        SELECT count(*)::text AS n FROM persona_agent_profiles WHERE workspace_id = ${foreign.workspaceId}
+      `;
+      if (personaProfiles.n !== '0')
+        findings.push({
+          code: 'RLS_CROSS_TENANT_READ',
+          table: 'persona_agent_profiles',
+          detail: 'a caller read another tenant persona-agent governance configuration',
+        });
+    }
   });
   return findings;
 }
@@ -120,14 +128,17 @@ export async function assertCrossTenantWriteDenied(
 
 export async function assertUnscopedReadDenied(sql: SqlClient, role: string): Promise<RlsFinding[]> {
   const findings: RlsFinding[] = [];
+  const hasPersonaProfiles = await relationExists(sql, 'persona_agent_profiles');
   await sql.begin(async (tx) => {
     await tx.unsafe(`SET LOCAL ROLE ${quoteIdentifier(role)}`);
     await tx`SELECT set_config('app.tenant_id', '', true), set_config('app.workspace_id', '', true), set_config('app.actor_id', '', true)`;
     const queries: Record<string, string> = {
-      persona_agent_profiles: 'SELECT count(*)::text AS n FROM persona_agent_profiles',
       trust_workspaces: 'SELECT count(*)::text AS n FROM trust_workspaces',
       trust_permission_grants: 'SELECT count(*)::text AS n FROM trust_permission_grants',
       trust_audit_records: 'SELECT count(*)::text AS n FROM trust_audit_records WHERE tenant_id IS NOT NULL',
+      ...(hasPersonaProfiles
+        ? { persona_agent_profiles: 'SELECT count(*)::text AS n FROM persona_agent_profiles' }
+        : {}),
     };
     for (const [table, query] of Object.entries(queries)) {
       const rows = await tx.unsafe<Array<{ n: string }>>(query);
