@@ -1,5 +1,15 @@
 import { flowOrchestration } from '../../../../lib/flow-app';
+import { listFlows } from '../../../../lib/flow-operations';
 import { authorizedContextForRoute, errorResponse } from '../../../../lib/trust-app';
+
+export async function GET(request: Request) {
+  try {
+    const context = await authorizedContextForRoute(request);
+    return Response.json(await listFlows(context));
+  } catch (error) {
+    return errorResponse(error);
+  }
+}
 
 export async function POST(request: Request) {
   try {
