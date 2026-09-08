@@ -15,7 +15,6 @@ export type RlsFindingCode =
 export type RlsFinding = { code: RlsFindingCode; table?: string; detail: string };
 export type RlsCertification = { certified: boolean; checkedTables: string[]; findings: RlsFinding[] };
 
-/** Trust-core tables exist in the lightweight RLS fixture. */
 export const RLS_GOVERNED_TABLES: readonly string[] = Object.freeze([
   'trust_audit_records',
   'trust_tenants',
@@ -28,7 +27,6 @@ export const RLS_GOVERNED_TABLES: readonly string[] = Object.freeze([
   'trust_workspaces',
 ]);
 
-/** Agentic OS tables join the same deployment gate whenever that capability is installed. */
 export const AGENTIC_RLS_GOVERNED_TABLES: readonly string[] = Object.freeze([
   'persona_agent_profiles',
 ]);
@@ -47,7 +45,8 @@ export async function readRlsState(sql: SqlClient, schema: string) {
   `;
   const flags = new Map(flagRows.map((row) => [row.relname, { enabled: row.enabled, forced: row.forced }]));
   const policies = new Map<string, string[]>();
-  for (const row of policyRows) policies.set(row.tablename, [...(policies.get(row.tablename) ?? []), row.policyname]);
+  for (const row of policyRows)
+    policies.set(row.tablename, [...(policies.get(row.tablename) ?? []), row.policyname]);
   return { flags, policies };
 }
 
@@ -66,13 +65,20 @@ async function relationExists(sql: SqlClient, relation: string): Promise<boolean
 
 async function applyProbeRole(sql: SqlClient, context: RlsProbeContext): Promise<void> {
   await sql.unsafe(`SET LOCAL ROLE ${quoteIdentifier(context.role)}`);
-  await sql`SELECT set_config('app.tenant_id', ${context.tenantId}, true), set_config('app.workspace_id', ${context.workspaceId}, true), set_config('app.actor_id', ${context.actorId}, true)`;
+  await sql`
+    SELECT set_config('app.tenant_id', ${context.tenantId}, true),
+           set_config('app.workspace_id', ${context.workspaceId}, true),
+           set_config('app.actor_id', ${context.actorId}, true)
+  `;
 }
 
 export async function assertRoleCannotBypass(sql: SqlClient, role: string): Promise<RlsFinding[]> {
-  const [row] = await sql<{ rolsuper: boolean; rolbypassrls: boolean }[]>`SELECT rolsuper, rolbypassrls FROM pg_roles WHERE rolname = ${role}`;
+  const [row] = await sql<{ rolsuper: boolean; rolbypassrls: boolean }[]>`
+    SELECT rolsuper, rolbypassrls FROM pg_roles WHERE rolname = ${role}
+  `;
   if (!row) return [{ code: 'RLS_PROBE_ROLE_UNAVAILABLE', detail: `probe role ${role} does not exist` }];
-  if (row.rolsuper || row.rolbypassrls) return [{ code: 'RLS_ROLE_BYPASSES', detail: `probe role ${role} bypasses row-level security` }];
+  if (row.rolsuper || row.rolbypassrls)
+    return [{ code: 'RLS_ROLE_BYPASSES', detail: `probe role ${role} bypasses row-level security` }];
   return [];
 }
 
@@ -94,14 +100,26 @@ export async function assertCrossTenantDenied(
   const hasPersonaProfiles = await relationExists(sql, 'persona_agent_profiles');
   await sql.begin(async (tx) => {
     await applyProbeRole(tx, context);
-    const [own] = await tx<{ n: string }[]>`SELECT count(*)::text AS n FROM trust_workspaces WHERE workspace_id = ${context.workspaceId}`;
-    if (own.n === '0') findings.push({ code: 'RLS_CROSS_TENANT_READ', table: 'trust_workspaces', detail: 'the policy hides the caller’s own workspace' });
-    const [crossed] = await tx<{ n: string }[]>`SELECT count(*)::text AS n FROM trust_workspaces WHERE workspace_id = ${foreign.workspaceId}`;
-    if (crossed.n !== '0') findings.push({ code: 'RLS_CROSS_TENANT_READ', table: 'trust_workspaces', detail: 'a caller read another tenant workspace' });
-    const [grants] = await tx<{ n: string }[]>`SELECT count(*)::text AS n FROM trust_permission_grants WHERE workspace_id = ${foreign.workspaceId}`;
-    if (grants.n !== '0') findings.push({ code: 'RLS_CROSS_TENANT_READ', table: 'trust_permission_grants', detail: 'a caller read another tenant permission grants' });
-    const [audits] = await tx<{ n: string }[]>`SELECT count(*)::text AS n FROM trust_audit_records WHERE workspace_id = ${foreign.workspaceId}`;
-    if (audits.n !== '0') findings.push({ code: 'RLS_CROSS_TENANT_READ', table: 'trust_audit_records', detail: 'a caller read another tenant audit history' });
+    const [own] = await tx<{ n: string }[]>`
+      SELECT count(*)::text AS n FROM trust_workspaces WHERE workspace_id = ${context.workspaceId}
+    `;
+    if (own.n === '0')
+      findings.push({ code: 'RLS_CROSS_TENANT_READ', table: 'trust_workspaces', detail: 'the policy hides the caller’s own workspace' });
+    const [crossed] = await tx<{ n: string }[]>`
+      SELECT count(*)::text AS n FROM trust_workspaces WHERE workspace_id = ${foreign.workspaceId}
+    `;
+    if (crossed.n !== '0')
+      findings.push({ code: 'RLS_CROSS_TENANT_READ', table: 'trust_workspaces', detail: 'a caller read another tenant workspace' });
+    const [grants] = await tx<{ n: string }[]>`
+      SELECT count(*)::text AS n FROM trust_permission_grants WHERE workspace_id = ${foreign.workspaceId}
+    `;
+    if (grants.n !== '0')
+      findings.push({ code: 'RLS_CROSS_TENANT_READ', table: 'trust_permission_grants', detail: 'a caller read another tenant permission grants' });
+    const [audits] = await tx<{ n: string }[]>`
+      SELECT count(*)::text AS n FROM trust_audit_records WHERE workspace_id = ${foreign.workspaceId}
+    `;
+    if (audits.n !== '0')
+      findings.push({ code: 'RLS_CROSS_TENANT_READ', table: 'trust_audit_records', detail: 'a caller read another tenant audit history' });
     if (hasPersonaProfiles) {
       const [personaProfiles] = await tx<{ n: string }[]>`
         SELECT count(*)::text AS n FROM persona_agent_profiles WHERE workspace_id = ${foreign.workspaceId}
@@ -124,11 +142,15 @@ export async function assertCrossTenantWriteDenied(
 ): Promise<RlsFinding[]> {
   const refused = await sql.begin(async (tx) => {
     await applyProbeRole(tx, context);
-    await tx`INSERT INTO trust_records (collection, record_id, tenant_id, workspace_id, payload, payload_digest)
-             VALUES ('parties', 'planted-by-another-tenant', ${foreign.tenantId}, ${foreign.workspaceId}, '{}', 'digest')`;
+    await tx`
+      INSERT INTO trust_records (collection, record_id, tenant_id, workspace_id, payload, payload_digest)
+      VALUES ('parties', 'planted-by-another-tenant', ${foreign.tenantId}, ${foreign.workspaceId}, '{}', 'digest')
+    `;
     return false;
   }).catch(() => true);
-  return refused ? [] : [{ code: 'RLS_CROSS_TENANT_WRITE', table: 'trust_records', detail: 'a caller inserted a row attributed to another tenant' }];
+  return refused
+    ? []
+    : [{ code: 'RLS_CROSS_TENANT_WRITE', table: 'trust_records', detail: 'a caller inserted a row attributed to another tenant' }];
 }
 
 export async function assertUnscopedReadDenied(sql: SqlClient, role: string): Promise<RlsFinding[]> {
@@ -136,7 +158,11 @@ export async function assertUnscopedReadDenied(sql: SqlClient, role: string): Pr
   const hasPersonaProfiles = await relationExists(sql, 'persona_agent_profiles');
   await sql.begin(async (tx) => {
     await tx.unsafe(`SET LOCAL ROLE ${quoteIdentifier(role)}`);
-    await tx`SELECT set_config('app.tenant_id', '', true), set_config('app.workspace_id', '', true), set_config('app.actor_id', '', true)`;
+    await tx`
+      SELECT set_config('app.tenant_id', '', true),
+             set_config('app.workspace_id', '', true),
+             set_config('app.actor_id', '', true)
+    `;
     const queries: Record<string, string> = {
       trust_workspaces: 'SELECT count(*)::text AS n FROM trust_workspaces',
       trust_permission_grants: 'SELECT count(*)::text AS n FROM trust_permission_grants',
@@ -147,7 +173,8 @@ export async function assertUnscopedReadDenied(sql: SqlClient, role: string): Pr
     };
     for (const [table, query] of Object.entries(queries)) {
       const rows = await tx.unsafe<Array<{ n: string }>>(query);
-      if (rows[0]?.n !== '0') findings.push({ code: 'RLS_UNSCOPED_READ', table, detail: 'an unscoped application caller read governed rows' });
+      if (rows[0]?.n !== '0')
+        findings.push({ code: 'RLS_UNSCOPED_READ', table, detail: 'an unscoped application caller read governed rows' });
     }
   });
   return findings;
@@ -172,16 +199,23 @@ export async function certifyRowLevelSecurity(
   for (const table of tables) {
     const flags = state.flags.get(table);
     if (!flags) continue;
-    if (!flags.enabled) findings.push({ code: 'RLS_DISABLED', table, detail: `${table} does not have row-level security enabled` });
-    else if (!flags.forced) findings.push({ code: 'RLS_NOT_FORCED', table, detail: `${table} does not force row-level security` });
-    if ((state.policies.get(table) ?? []).length === 0) findings.push({ code: 'RLS_NO_POLICY', table, detail: `${table} has no row-level security policy` });
+    if (!flags.enabled)
+      findings.push({ code: 'RLS_DISABLED', table, detail: `${table} does not have row-level security enabled` });
+    else if (!flags.forced)
+      findings.push({ code: 'RLS_NOT_FORCED', table, detail: `${table} does not force row-level security` });
+    if ((state.policies.get(table) ?? []).length === 0)
+      findings.push({ code: 'RLS_NO_POLICY', table, detail: `${table} has no row-level security policy` });
   }
   if (options.probe) {
     findings.push(...(await assertRoleCannotBypass(sql, options.probe.context.role)));
-    findings.push(...(await assertConnectedRoleCannotBypass(sql));
+    findings.push(...(await assertConnectedRoleCannotBypass(sql)));
     findings.push(...(await assertUnscopedReadDenied(sql, options.probe.context.role)));
     findings.push(...(await assertCrossTenantDenied(sql, options.probe.context, options.probe.foreign)));
     findings.push(...(await assertCrossTenantWriteDenied(sql, options.probe.context, options.probe.foreign)));
   }
-  return { certified: findings.length === 0, checkedTables: tables.filter((table) => state.flags.has(table)), findings };
+  return {
+    certified: findings.length === 0,
+    checkedTables: tables.filter((table) => state.flags.has(table)),
+    findings,
+  };
 }
