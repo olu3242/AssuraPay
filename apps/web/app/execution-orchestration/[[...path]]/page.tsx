@@ -1,4 +1,7 @@
+import FlowOperationsConsole from '../../components/FlowOperationsConsole';
+
 const engines = ['Execution orchestration', 'Progress measurement', 'Evidence management', 'Validation & acceptance testing', 'Quality assurance'];
+
 export default function ExecutionOrchestrationPage() {
   return (
     <main className="shell">
@@ -6,8 +9,12 @@ export default function ExecutionOrchestrationPage() {
       <h1>From activated blueprint to financially earned progress</h1>
       <p className="lead">
         Assigned work items carry evidence, acceptance testing and a clean quality gate before progress can be
-        declared financially earned.
+        declared financially earned. Flow OS now adds live orchestration health, human-task aging and governed
+        recovery for failed orchestration state without bypassing protected domain decisions.
       </p>
+
+      <FlowOperationsConsole />
+
       <section className="grid">
         {engines.map((x, i) => (
           <article className="card" key={x}>
