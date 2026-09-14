@@ -528,3 +528,4 @@ export const BASIC_COMMERCIAL_COMMITMENT_FLOW_V1: FlowDefinition = {
   ],
 };
 export { COMMERCIAL_COMMITMENT_FLOW_V1 } from './canonical-chain';
+export { FlowRecovery } from './recovery';

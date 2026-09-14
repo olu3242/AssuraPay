@@ -2,6 +2,7 @@ import {
   AssuranceRouter,
   COMMERCIAL_COMMITMENT_FLOW_V1,
   FlowOrchestrator,
+  FlowRecovery,
   FlowRegistry,
 } from '@assurapay/flow-orchestration';
 import { trustStore } from './persistence';
@@ -21,3 +22,5 @@ export const flowOrchestration = new FlowOrchestrator(
   trustStore,
   flowRegistry,
 );
+
+export const flowRecovery = new FlowRecovery(trustStore);
