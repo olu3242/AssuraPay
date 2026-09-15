@@ -43,12 +43,15 @@ describe('canonical AssuraPay domain-event chain', () => {
       ['e1', 'AgreementExecuted', 'agreement-intelligence'],
       ['e2', 'AgreementIntelligencePublished', 'blueprint'],
       ['e3', 'PerformanceBlueprintActivated', 'dod'],
-      ['e4', 'DefinitionOfDonePackagePublished', 'execution'],
-      ['e5', 'ExecutionWorkspaceActivated', 'evidence'],
-      ['e6', 'EvidencePackageVerified', 'validation'],
-      ['e7', 'ValidationRecorded', 'completion'],
-      ['e8', 'CompletionCertificateIssued', 'eligibility'],
-      ['e9', 'PaymentEligibilityAssessed', 'release'],
+      ['e4', 'DefinitionOfDonePackagePublished', 'escrow-instruction'],
+      ['e5', 'EscrowInstructionCompiled', 'funding'],
+      ['e6', 'FundingCommitmentConfirmed', 'execution'],
+      ['e7', 'ExecutionWorkspaceActivated', 'evidence'],
+      ['e8', 'EvidencePackageVerified', 'validation'],
+      ['e9', 'ValidationRecorded', 'completion'],
+      ['e10', 'CompletionCertificateIssued', 'eligibility'],
+      ['e11', 'PaymentEligibilityAssessed', 'payment-readiness'],
+      ['e12', 'PaymentReadinessAssessed', 'release'],
     ] as const;
 
     for (const [id, type, next] of ordered) {
@@ -56,17 +59,17 @@ describe('canonical AssuraPay domain-event chain', () => {
       await flows.dispatch(context, flow.id, next);
     }
 
-    await bridge.apply(context, flow.id, event('e10', 'ReleaseRequestEvaluated'));
+    await bridge.apply(context, flow.id, event('e13', 'ReleaseRequestEvaluated'));
     const approval = await flows.dispatch(context, flow.id, 'enhanced-approval');
     expect('status' in approval && approval.status).toBe('OPEN');
     await flows.decide(context, approval.id, 'APPROVE');
 
     await flows.dispatch(context, flow.id, 'payment');
-    await bridge.apply(context, flow.id, event('e11', 'PaymentInstructionSubmitted'));
+    await bridge.apply(context, flow.id, event('e14', 'PaymentInstructionSubmitted'));
     await flows.dispatch(context, flow.id, 'reconciliation');
-    await bridge.apply(context, flow.id, event('e12', 'ReconciliationRecorded'));
+    await bridge.apply(context, flow.id, event('e15', 'ReconciliationRecorded'));
     await flows.dispatch(context, flow.id, 'closure');
-    await bridge.apply(context, flow.id, event('e13', 'FinalSettlementAccountClosed'));
+    await bridge.apply(context, flow.id, event('e16', 'FinalSettlementAccountClosed'));
 
     expect((await flows.get(context, flow.id)).state).toBe('COMPLETED');
   });
