@@ -1,86 +1,17 @@
 import { createHash, randomUUID } from 'node:crypto';
 import type { RequestContext, TrustPersistence } from '@assurapay/shared';
 import { requireActiveWorkspace } from '@assurapay/shared';
+const now=()=>new Date().toISOString(); const ws=(c:RequestContext)=>{requireActiveWorkspace(c);return c.activeWorkspaceId}; const hash=(v:unknown)=>createHash('sha256').update(JSON.stringify(v)).digest('hex');
+export type EscrowPaymentMode='DIRECT'|'MILESTONE_ESCROW'|'FULL_ESCROW'|'DEPOSIT_MILESTONES'|'RETAINER'|'PAY_ON_DELIVERY'|'EXTERNAL_PAYMENT';
+export type EscrowInstruction={id:string;workspaceId:string;agreementId:string;agreementVersionId:string;milestoneId:string;paymentMode:EscrowPaymentMode;amountMinor:number;currency:string;providerKey?:string;releaseConditions:string[];inspectionWindowHours?:number;instructionHash:string;status:'COMPILED'|'FUNDING_PENDING'|'FUNDED'|'SUPERSEDED';createdAt:string};
+export type PaymentReadiness={id:string;workspaceId:string;escrowInstructionId:string;milestoneId:string;score:number;eligible:boolean;blockers:string[];evaluatedAt:string};
+type Funding={id:string;workspaceId:string;milestoneId:string;currency:string;committedAmountMinor:number;status:string}; type Eligibility={workspaceId:string;milestoneId:string;eligible:boolean;blockers:string[]}; type Invoice={workspaceId:string;milestoneId:string;currency:string;amountMinor:number;status:string}; type Hold={workspaceId:string;milestoneId?:string;active:boolean}; type Certificate={workspaceId:string;milestoneId:string;status:string};
+async function emit(s:TrustPersistence,c:RequestContext,e:string,t:string,id:string,p:Record<string,unknown>){await s.audit({tenantId:c.tenantId,workspaceId:ws(c),actorId:c.actorUserId,eventType:e,aggregateType:t,aggregateId:id,correlationId:c.correlationId,metadata:p});await s.emit({tenantId:c.tenantId,workspaceId:ws(c),aggregateType:t,aggregateId:id,eventType:e,eventVersion:1,payload:p,correlationId:c.correlationId})} const latest=<T>(a:T[])=>a[a.length-1];
 
-const now = () => new Date().toISOString();
-const ws = (context: RequestContext) => { requireActiveWorkspace(context); return context.activeWorkspaceId; };
-const hash = (value: unknown) => createHash('sha256').update(JSON.stringify(value)).digest('hex');
+export class AgreementEscrowCompiler{constructor(private readonly store:TrustPersistence){} async compile(c:RequestContext,i:{agreementId:string;agreementVersionId:string;milestoneId:string;paymentMode:EscrowPaymentMode;amountMinor:number;currency:string;providerKey?:string;releaseConditions:string[];inspectionWindowHours?:number}){const w=ws(c);
+ const versions=await this.store.list<any>('agreementVersions'); const version=versions.find(x=>x.id===i.agreementVersionId&&x.workspaceId===w&&(x.agreementId===undefined||x.agreementId===i.agreementId)); if(!version)throw new Error('AGREEMENT_VERSION_NOT_FOUND');
+ const activations=await this.store.list<any>('agreementActivations'); const activation=latest(activations.filter(x=>x.workspaceId===w&&x.agreementId===i.agreementId&&(x.agreementVersionId===i.agreementVersionId||x.executedVersionId===i.agreementVersionId))); const agreements=await this.store.list<any>('agreements'); const agreement=agreements.find(x=>x.id===i.agreementId&&x.workspaceId===w); const executable=(activation&&['EXECUTED','ACTIVE'].includes(activation.status))||(agreement&&['EXECUTED','ACTIVE'].includes(agreement.status)&&(!agreement.executedVersionId||agreement.executedVersionId===i.agreementVersionId)); if(!executable)throw new Error('AGREEMENT_NOT_EXECUTED');
+ if(!Number.isInteger(i.amountMinor)||i.amountMinor<=0)throw new Error('AMOUNT_MUST_BE_POSITIVE_INTEGER_MINOR_UNITS');if(!/^[A-Z]{3}$/.test(i.currency))throw new Error('INVALID_CURRENCY');if(!i.releaseConditions.length)throw new Error('RELEASE_CONDITIONS_REQUIRED'); const old=(await this.store.list<EscrowInstruction>('escrowInstructions')).find(x=>x.workspaceId===w&&x.agreementVersionId===i.agreementVersionId&&x.milestoneId===i.milestoneId&&x.status!=='SUPERSEDED');if(old)return old;const immutable={...i,releaseConditions:[...i.releaseConditions].sort()};const x:EscrowInstruction={id:randomUUID(),workspaceId:w,...immutable,instructionHash:hash(immutable),status:['MILESTONE_ESCROW','FULL_ESCROW','DEPOSIT_MILESTONES'].includes(i.paymentMode)?'FUNDING_PENDING':'COMPILED',createdAt:now()};await this.store.append('escrowInstructions',x);await emit(this.store,c,'EscrowInstructionCompiled','EscrowInstruction',x.id,{agreementId:x.agreementId,agreementVersionId:x.agreementVersionId,milestoneId:x.milestoneId,instructionHash:x.instructionHash});return x}}
 
-export type EscrowPaymentMode = 'DIRECT'|'MILESTONE_ESCROW'|'FULL_ESCROW'|'DEPOSIT_MILESTONES'|'RETAINER'|'PAY_ON_DELIVERY'|'EXTERNAL_PAYMENT';
-export type EscrowInstruction = { id:string; workspaceId:string; agreementId:string; agreementVersionId:string; milestoneId:string; paymentMode:EscrowPaymentMode; amountMinor:number; currency:string; providerKey?:string; releaseConditions:string[]; inspectionWindowHours?:number; instructionHash:string; status:'COMPILED'|'FUNDING_PENDING'|'FUNDED'|'SUPERSEDED'; createdAt:string };
-export type PaymentReadiness = { id:string; workspaceId:string; escrowInstructionId:string; milestoneId:string; score:number; eligible:boolean; blockers:string[]; evaluatedAt:string };
-
-type AgreementVersion = { id:string; workspaceId:string; agreementId:string; status?:string };
-type FundingCommitment = { id:string; workspaceId:string; milestoneId:string; currency:string; committedAmountMinor:number; status:string };
-type PaymentEligibility = { id:string; workspaceId:string; milestoneId:string; eligible:boolean; blockers:string[] };
-type Invoice = { id:string; workspaceId:string; milestoneId:string; currency:string; amountMinor:number; status:string };
-type DisputeHold = { workspaceId:string; releaseRequestId?:string; milestoneId?:string; active:boolean };
-type CompletionCertificate = { id:string; workspaceId:string; milestoneId:string; status:string };
-
-async function emit(store:TrustPersistence, context:RequestContext, eventType:string, aggregateType:string, aggregateId:string, payload:Record<string,unknown>) {
-  await store.audit({tenantId:context.tenantId,workspaceId:ws(context),actorId:context.actorUserId,eventType,aggregateType,aggregateId,correlationId:context.correlationId,metadata:payload});
-  await store.emit({tenantId:context.tenantId,workspaceId:ws(context),aggregateType,aggregateId,eventType,eventVersion:1,payload,correlationId:context.correlationId});
-}
-const latest = <T>(records:T[]) => records[records.length-1];
-
-/** Compile only from a canonical executed agreement version already persisted in the workspace. */
-export class AgreementEscrowCompiler {
-  constructor(private readonly store:TrustPersistence) {}
-  async compile(context:RequestContext,input:{agreementId:string;agreementVersionId:string;milestoneId:string;paymentMode:EscrowPaymentMode;amountMinor:number;currency:string;providerKey?:string;releaseConditions:string[];inspectionWindowHours?:number}) {
-    const workspaceId=ws(context);
-    const version=(await this.store.list<AgreementVersion>('agreementVersions')).find(x=>x.id===input.agreementVersionId&&x.workspaceId===workspaceId&&x.agreementId===input.agreementId);
-    if(!version) throw new Error('AGREEMENT_VERSION_NOT_FOUND');
-    const agreements=await this.store.list<{id:string;workspaceId:string;status:string;executedVersionId?:string}>('agreements');
-    const agreement=agreements.find(x=>x.id===input.agreementId&&x.workspaceId===workspaceId);
-    const executable=agreement && ['EXECUTED','ACTIVE'].includes(agreement.status) && (!agreement.executedVersionId || agreement.executedVersionId===input.agreementVersionId);
-    if(!executable) throw new Error('AGREEMENT_NOT_EXECUTED');
-    if(!Number.isInteger(input.amountMinor)||input.amountMinor<=0) throw new Error('AMOUNT_MUST_BE_POSITIVE_INTEGER_MINOR_UNITS');
-    if(!/^[A-Z]{3}$/.test(input.currency)) throw new Error('INVALID_CURRENCY');
-    if(input.releaseConditions.length===0) throw new Error('RELEASE_CONDITIONS_REQUIRED');
-    const existing=(await this.store.list<EscrowInstruction>('escrowInstructions')).find(x=>x.workspaceId===workspaceId&&x.agreementVersionId===input.agreementVersionId&&x.milestoneId===input.milestoneId&&x.status!=='SUPERSEDED');
-    if(existing) return existing;
-    const immutable={...input,releaseConditions:[...input.releaseConditions].sort()};
-    const instruction:EscrowInstruction={id:randomUUID(),workspaceId,...immutable,instructionHash:hash(immutable),status:['MILESTONE_ESCROW','FULL_ESCROW','DEPOSIT_MILESTONES'].includes(input.paymentMode)?'FUNDING_PENDING':'COMPILED',createdAt:now()};
-    await this.store.append('escrowInstructions',instruction);
-    await emit(this.store,context,'EscrowInstructionCompiled','EscrowInstruction',instruction.id,{agreementId:instruction.agreementId,agreementVersionId:instruction.agreementVersionId,milestoneId:instruction.milestoneId,instructionHash:instruction.instructionHash});
-    return instruction;
-  }
-}
-
-/**
- * Derived deterministic readiness. Callers provide identity only; authoritative financial/lifecycle
- * facts are read from canonical collections so UI, API and AI cannot manufacture release eligibility.
- */
-export class PaymentReadinessEngine {
-  constructor(private readonly store:TrustPersistence) {}
-  async assess(context:RequestContext,input:{escrowInstructionId:string;milestoneId:string}) {
-    const workspaceId=ws(context);
-    const instruction=(await this.store.list<EscrowInstruction>('escrowInstructions')).find(x=>x.id===input.escrowInstructionId&&x.workspaceId===workspaceId);
-    if(!instruction) throw new Error('ESCROW_INSTRUCTION_NOT_FOUND');
-    if(instruction.milestoneId!==input.milestoneId) throw new Error('MILESTONE_INSTRUCTION_MISMATCH');
-
-    const fundingRequired=['MILESTONE_ESCROW','FULL_ESCROW','DEPOSIT_MILESTONES'].includes(instruction.paymentMode);
-    const funding=latest((await this.store.list<FundingCommitment>('fundingCommitments')).filter(x=>x.workspaceId===workspaceId&&x.milestoneId===input.milestoneId));
-    const certificate=latest((await this.store.list<CompletionCertificate>('completionCertificates')).filter(x=>x.workspaceId===workspaceId&&x.milestoneId===input.milestoneId));
-    const eligibility=latest((await this.store.list<PaymentEligibility>('paymentEligibilities')).filter(x=>x.workspaceId===workspaceId&&x.milestoneId===input.milestoneId));
-    const invoice=latest((await this.store.list<Invoice>('invoices')).filter(x=>x.workspaceId===workspaceId&&x.milestoneId===input.milestoneId&&x.status!=='REJECTED'));
-    const held=(await this.store.list<DisputeHold>('disputeHolds')).some(x=>x.workspaceId===workspaceId&&x.active&&x.milestoneId===input.milestoneId);
-
-    const blockers:string[]=[];
-    if(fundingRequired&&funding?.status!=='CONFIRMED') blockers.push('FUNDING_NOT_CONFIRMED');
-    if(fundingRequired&&funding&&(funding.currency!==instruction.currency||funding.committedAmountMinor<instruction.amountMinor)) blockers.push('FUNDING_INSTRUCTION_MISMATCH');
-    if(certificate?.status!=='CERTIFIED') blockers.push('COMPLETION_NOT_CERTIFIED');
-    if(!eligibility?.eligible) blockers.push('PAYMENT_NOT_ELIGIBLE',...(eligibility?.blockers??[]).map(x=>`ELIGIBILITY:${x}`));
-    if(invoice?.status!=='APPROVED') blockers.push('INVOICE_NOT_APPROVED');
-    if(invoice&&(invoice.currency!==instruction.currency||invoice.amountMinor!==instruction.amountMinor)) blockers.push('INVOICE_INSTRUCTION_MISMATCH');
-    if(held) blockers.push('DISPUTE_HOLD_ACTIVE');
-
-    const unique=[...new Set(blockers)];
-    const gateCount=5;
-    const failedGates=[fundingRequired&&unique.some(x=>x.startsWith('FUNDING_')),unique.includes('COMPLETION_NOT_CERTIFIED'),unique.some(x=>x==='PAYMENT_NOT_ELIGIBLE'||x.startsWith('ELIGIBILITY:')),unique.some(x=>x.startsWith('INVOICE_')),unique.includes('DISPUTE_HOLD_ACTIVE')].filter(Boolean).length;
-    const readiness:PaymentReadiness={id:randomUUID(),workspaceId,escrowInstructionId:instruction.id,milestoneId:input.milestoneId,score:Math.max(0,Math.round(((gateCount-failedGates)/gateCount)*100)),eligible:unique.length===0,blockers:unique,evaluatedAt:now()};
-    await this.store.append('paymentReadinessAssessments',readiness);
-    await emit(this.store,context,'PaymentReadinessAssessed','PaymentReadiness',readiness.id,{milestoneId:readiness.milestoneId,score:readiness.score,eligible:readiness.eligible,blockers:readiness.blockers});
-    return readiness;
-  }
-}
+/** Readiness derives canonical facts; caller supplies identity only. */
+export class PaymentReadinessEngine{constructor(private readonly store:TrustPersistence){} async assess(c:RequestContext,i:{escrowInstructionId:string;milestoneId:string}){const w=ws(c),x=(await this.store.list<EscrowInstruction>('escrowInstructions')).find(v=>v.id===i.escrowInstructionId&&v.workspaceId===w);if(!x)throw new Error('ESCROW_INSTRUCTION_NOT_FOUND');if(x.milestoneId!==i.milestoneId)throw new Error('MILESTONE_INSTRUCTION_MISMATCH');const required=['MILESTONE_ESCROW','FULL_ESCROW','DEPOSIT_MILESTONES'].includes(x.paymentMode);const f=latest((await this.store.list<Funding>('fundingCommitments')).filter(v=>v.workspaceId===w&&v.milestoneId===i.milestoneId));const cert=latest((await this.store.list<Certificate>('completionCertificates')).filter(v=>v.workspaceId===w&&v.milestoneId===i.milestoneId));const pe=latest((await this.store.list<Eligibility>('paymentEligibilities')).filter(v=>v.workspaceId===w&&v.milestoneId===i.milestoneId));const inv=latest((await this.store.list<Invoice>('invoices')).filter(v=>v.workspaceId===w&&v.milestoneId===i.milestoneId&&v.status!=='REJECTED'));const held=(await this.store.list<Hold>('disputeHolds')).some(v=>v.workspaceId===w&&v.active&&v.milestoneId===i.milestoneId);const b:string[]=[];if(required&&f?.status!=='CONFIRMED')b.push('FUNDING_NOT_CONFIRMED');if(required&&f&&(f.currency!==x.currency||f.committedAmountMinor<x.amountMinor))b.push('FUNDING_INSTRUCTION_MISMATCH');if(cert?.status!=='CERTIFIED')b.push('COMPLETION_NOT_CERTIFIED');if(!pe?.eligible)b.push('PAYMENT_NOT_ELIGIBLE',...(pe?.blockers??[]).map(v=>`ELIGIBILITY:${v}`));if(inv?.status!=='APPROVED')b.push('INVOICE_NOT_APPROVED');if(inv&&(inv.currency!==x.currency||inv.amountMinor!==x.amountMinor))b.push('INVOICE_INSTRUCTION_MISMATCH');if(held)b.push('DISPUTE_HOLD_ACTIVE');const blockers=[...new Set(b)];const failed=[required&&blockers.some(v=>v.startsWith('FUNDING_')),blockers.includes('COMPLETION_NOT_CERTIFIED'),blockers.some(v=>v==='PAYMENT_NOT_ELIGIBLE'||v.startsWith('ELIGIBILITY:')),blockers.some(v=>v.startsWith('INVOICE_')),blockers.includes('DISPUTE_HOLD_ACTIVE')].filter(Boolean).length;const r:PaymentReadiness={id:randomUUID(),workspaceId:w,escrowInstructionId:x.id,milestoneId:i.milestoneId,score:Math.max(0,Math.round(((5-failed)/5)*100)),eligible:!blockers.length,blockers,evaluatedAt:now()};await this.store.append('paymentReadinessAssessments',r);await emit(this.store,c,'PaymentReadinessAssessed','PaymentReadiness',r.id,{milestoneId:r.milestoneId,score:r.score,eligible:r.eligible,blockers:r.blockers});return r}}
