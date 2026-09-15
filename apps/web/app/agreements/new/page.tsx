@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import './intake.css';
 
 type Path = 'DIRECT_DESCRIPTION' | 'INFORMAL_ARTIFACT' | 'FORMAL_DOCUMENT';
 const choices: Array<{type:Path;title:string;copy:string}> = [
@@ -27,24 +28,11 @@ export default function NewAgreementPage() {
     finally { setBusy(false); }
   }
 
-  return <main>
-    <section className="intake-shell">
-      <span className="hero__eyebrow">Start an agreement</span>
-      <h1>How would you like to begin?</h1>
-      <p>Bring as much or as little as you have. Every path converges into one clear Assura Agreement before execution.</p>
-      <div className="intake-paths" role="radiogroup" aria-label="Agreement starting point">
-        {choices.map(choice=><button key={choice.type} type="button" role="radio" aria-checked={path===choice.type} className={`intake-path ${path===choice.type?'intake-path--selected':''}`} onClick={()=>setPath(choice.type)}><strong>{choice.title}</strong><span>{choice.copy}</span></button>)}
-      </div>
-      <div className="intake-editor">
-        <h2>{selected.title}</h2>
-        <label htmlFor="agreement-source">Describe or paste what has been agreed</label>
-        <textarea id="agreement-source" value={source} onChange={e=>setSource(e.target.value)} placeholder="Example: ABC Roofing will replace my roof for $18,000 by October 17..." rows={8}/>
-        <p className="intake-note">AssuraPay does not silently accept extracted terms. Missing or ambiguous terms are surfaced for review before a canonical agreement is created.</p>
-        <button className="button button--primary" disabled={busy||!source.trim()} onClick={structureAgreement}>{busy?'Structuring…':'Structure agreement'}</button>
-      </div>
-      {result && <section className="intake-review" aria-live="polite">
-        {result.error ? <><h2>We could not continue</h2><p>{result.error}</p></> : <><h2>Agreement review</h2><p><strong>Readiness: {result.clarityScore}%</strong></p><p>{result.status==='NEEDS_CLARIFICATION'?'Resolve the missing terms below before review and conversion.':'The intake is ready for review.'}</p>{result.clarifications?.map((item:any)=><div className="intake-gap" key={item.id}><strong>{item.key}</strong><span>{item.question}</span></div>)}</>}
-      </section>}
-    </section>
-  </main>;
+  return <main><section className="intake-shell">
+    <span className="hero__eyebrow">Start an agreement</span><h1>How would you like to begin?</h1>
+    <p>Bring as much or as little as you have. Every path converges into one clear Assura Agreement before execution.</p>
+    <div className="intake-paths" role="radiogroup" aria-label="Agreement starting point">{choices.map(choice=><button key={choice.type} type="button" role="radio" aria-checked={path===choice.type} className={`intake-path ${path===choice.type?'intake-path--selected':''}`} onClick={()=>setPath(choice.type)}><strong>{choice.title}</strong><span>{choice.copy}</span></button>)}</div>
+    <div className="intake-editor"><h2>{selected.title}</h2><label htmlFor="agreement-source">Describe or paste what has been agreed</label><textarea id="agreement-source" value={source} onChange={e=>setSource(e.target.value)} placeholder="Example: ABC Roofing will replace my roof for $18,000 by October 17..." rows={8}/><p className="intake-note">AssuraPay does not silently accept extracted terms. Missing or ambiguous terms are surfaced for review before a canonical agreement is created.</p><button className="button button--primary" disabled={busy||!source.trim()} onClick={structureAgreement}>{busy?'Structuring…':'Structure agreement'}</button></div>
+    {result && <section className="intake-review" aria-live="polite">{result.error?<><h2>We could not continue</h2><p>{result.error}</p></>:<><h2>Agreement review</h2><p><strong>Readiness: {result.clarityScore}%</strong></p><p>{result.status==='NEEDS_CLARIFICATION'?'Resolve the missing terms below before review and conversion.':'The intake is ready for review.'}</p>{result.clarifications?.map((item:any)=><div className="intake-gap" key={item.id}><strong>{item.key}</strong><span>{item.question}</span></div>)}</>}</section>}
+  </section></main>;
 }
