@@ -7,15 +7,8 @@
  * durable engines over `PostgresTrustStore`, and `docs/persistence/DOMAIN_STORE_RETIREMENT.md` records what
  * moved where.
  *
- * `domain-store-environment.ts` goes with them. It existed to refuse a file-backed store in a durable
- * deployment and to stop the composition root fabricating demo tenants — a gate that was correct while there
- * was something to gate. With no file-backed store to refuse, keeping `ASSURAPAY_DEPLOYMENT` as a persistence
- * switch would leave an environment variable that reads as though it still decides whether persistence is
- * durable, when the only store that exists is.
- *
- * What remains is one persistence surface, exported below: the trust store contract, the PostgreSQL client
- * and store, the migration runner, trust scoping, row-level-security certification, schema ownership, and
- * the relational repositories.
+ * What remains is one persistence surface: the trust store contract, PostgreSQL client/store, migration
+ * runner, trust scoping, RLS certification, schema ownership, and relational repositories.
  */
 
 export * from './trust-store';
@@ -27,6 +20,7 @@ export * from './trust-scope';
 export * from './rls-certification';
 export * from './schema-ownership';
 export * from './agreement-intake-repository';
+export * from './agreement-intake-postgres-routing';
 export * from './batch-a-repository';
 export * from './batch-b-repository';
 export * from './batch-c-repository';
