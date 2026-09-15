@@ -1,9 +1,10 @@
-import { agreementIntakes } from '../../../lib/agreement-intake-app';
-import { authorizedContextForRoute, errorResponse } from '../../../lib/trust-app';
+import { agreementIntakes } from '../../../../lib/agreement-intake-app';
+import { authorizeAgreementIntakeWrite } from '../../../../lib/agreement-intake-authorization';
+import { errorResponse } from '../../../../lib/trust-app';
 
 export async function POST(request: Request) {
   try {
-    const context = await authorizedContextForRoute(request);
+    const context = await authorizeAgreementIntakeWrite(request);
     const body = await request.json();
     const { tenantId: _tenantId, workspaceId: _workspaceId, actorUserId: _actorUserId, ...input } = body;
     return Response.json(await agreementIntakes.ingest(context, input), { status: 201 });
