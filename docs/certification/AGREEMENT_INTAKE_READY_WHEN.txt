@@ -1,0 +1,1 @@
+READY WHEN: focused + full tests GREEN; migrations/live RLS GREEN; authenticated APIs GREEN; three-path browser/accessibility GREEN; production build GREEN; existing agreement/payment regressions GREEN; HIGH risks closed.
