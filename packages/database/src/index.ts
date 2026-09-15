@@ -14,8 +14,8 @@
  * durable, when the only store that exists is.
  *
  * What remains is one persistence surface, exported below: the trust store contract, the PostgreSQL client
- * and store, the migration runner, trust scoping, row-level-security certification, schema ownership, and the
- * nine batch repositories.
+ * and store, the migration runner, trust scoping, row-level-security certification, schema ownership, and
+ * the relational repositories.
  */
 
 export * from './trust-store';
@@ -26,6 +26,7 @@ export * from './migrations';
 export * from './trust-scope';
 export * from './rls-certification';
 export * from './schema-ownership';
+export * from './agreement-intake-repository';
 export * from './batch-a-repository';
 export * from './batch-b-repository';
 export * from './batch-c-repository';
