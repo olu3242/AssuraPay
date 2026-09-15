@@ -1,0 +1,16 @@
+import type { RequestContext } from '@assurapay/shared';
+import type { AgreementIntake, AgreementIntakeEngine } from './agreement-intake';
+export interface CanonicalAgreementAuthoringPort { create(context: RequestContext, input: { contractNumber: string; title: string; contractType: string; ownerUserId: string }): Promise<{ id: string }>; }
+const term=(r:AgreementIntake,k:string)=>r.proposedTerms.find(x=>x.key===k)?.value;
+export class AgreementIntakeConvergenceService {
+  constructor(private intake: AgreementIntakeEngine, private authoring: CanonicalAgreementAuthoringPort) {}
+  async convert(context: RequestContext, record: AgreementIntake) {
+    if(record.status==='CONVERTED'&&record.convertedAgreementId)return{id:record.convertedAgreementId,alreadyConverted:true};
+    if(record.status!=='READY_FOR_REVIEW')throw new Error('INTAKE_NOT_READY');
+    const title=term(record,'title'); if(typeof title!=='string'||!title.trim())throw new Error('AGREEMENT_TITLE_REQUIRED');
+    const ct=term(record,'contractType');
+    const agreement=await this.authoring.create(context,{contractNumber:`INTAKE-${record.id}`,title,contractType:typeof ct==='string'&&ct?ct:'ASSURA_TRANSACTION',ownerUserId:context.actorUserId});
+    await this.intake.markConverted(context,record.id,agreement.id);
+    return{id:agreement.id,alreadyConverted:false};
+  }
+}
