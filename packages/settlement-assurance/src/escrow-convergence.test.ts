@@ -1,9 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { AgreementEscrowCompiler, PaymentReadinessEngine } from './escrow-convergence';
 class Store { data=new Map<string,any[]>(); async list<T>(c:string):Promise<T[]>{return(this.data.get(c)??[])as T[]} async append(c:string,v:any){this.data.set(c,[...(this.data.get(c)??[]),v])} async replace(c:string,v:any){this.data.set(c,(this.data.get(c)??[]).map(x=>x.id===v.id?v:x))} async audit(){} async emit(){} seed(c:string,...v:any[]){this.data.set(c,v)} }
-const context:any={tenantId:'t1',activeWorkspaceId:'w1',actorUserId:'u1',correlationId:'corr1'};
+const context:any={tenantId:'t1',activeWorkspaceId:'w1',actorUserId:'u1',sessionId:'s1',identityAssuranceLevel:'IAL2_VERIFIED',memberships:['w1'],correlationId:'corr1'};
 const seedAgreement=(s:Store,status='EXECUTED')=>{s.seed('agreementVersions',{id:'av1',agreementId:'a1',workspaceId:'w1'});s.seed('agreements',{id:'a1',workspaceId:'w1',status,executedVersionId:'av1'});};
-
 describe('agreement -> escrow -> payment readiness convergence',()=>{
  it('compiles only the canonical executed agreement version and is idempotent',async()=>{const s:any=new Store();seedAgreement(s);const c=new AgreementEscrowCompiler(s);const input={agreementId:'a1',agreementVersionId:'av1',milestoneId:'m1',paymentMode:'MILESTONE_ESCROW' as const,amountMinor:100,currency:'USD',releaseConditions:['CERTIFIED']};const a=await c.compile(context,input);const b=await c.compile(context,input);expect(a.id).toBe(b.id);expect(a.status).toBe('FUNDING_PENDING');});
  it('refuses caller attempts to compile a non-executed agreement',async()=>{const s:any=new Store();seedAgreement(s,'DRAFT');await expect(new AgreementEscrowCompiler(s).compile(context,{agreementId:'a1',agreementVersionId:'av1',milestoneId:'m1',paymentMode:'MILESTONE_ESCROW',amountMinor:100,currency:'USD',releaseConditions:['CERTIFIED']})).rejects.toThrow('AGREEMENT_NOT_EXECUTED');});
