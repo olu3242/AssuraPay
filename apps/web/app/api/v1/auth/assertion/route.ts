@@ -1,5 +1,10 @@
+import { protectBrowserMutation } from '../../../../../lib/browser-security';
+import { trustStore as browserSecurityStore } from '../../../../../lib/persistence';
 import type { AssuranceLevel } from '@assurapay/shared';
-import { errorResponse, issueSessionAssertion } from '../../../../../lib/trust-app';
+import {
+  errorResponse,
+  issueSessionAssertion,
+} from '../../../../../lib/trust-app';
 
 /** The assurance levels the platform defines, for validating an untrusted request body. */
 const ASSURANCE_LEVELS: readonly AssuranceLevel[] = [
@@ -22,6 +27,11 @@ const ASSURANCE_LEVELS: readonly AssuranceLevel[] = [
  */
 export async function POST(request: Request) {
   try {
+    await protectBrowserMutation(
+      request,
+      browserSecurityStore,
+      process.env.NEXT_PUBLIC_APP_URL,
+    );
     const token = request.headers
       .get('cookie')
       ?.match(/assurapay_session=([^;]+)/)?.[1];
@@ -54,7 +64,8 @@ export async function POST(request: Request) {
       workspaceId: body.workspaceId,
       purpose: body.purpose,
       minimumAssuranceLevel,
-      correlationId: request.headers.get('x-correlation-id') ?? crypto.randomUUID(),
+      correlationId:
+        request.headers.get('x-correlation-id') ?? crypto.randomUUID(),
     });
 
     // The token is returned in the body, never set as a cookie: it is a bearer

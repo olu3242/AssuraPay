@@ -1,4 +1,8 @@
-import { LoginProofService } from '@assurapay/identity/src/login-proof';
+import { protectBrowserMutation } from '../../../../../lib/browser-security';
+import { trustStore as browserSecurityStore } from '../../../../../lib/persistence';
+import { deliverAuthenticationEmail } from '../../../../../lib/authentication-email';
+import { randomBytes } from 'node:crypto';
+import { LoginProofService } from '@assurapay/identity';
 import { loadIdentityVerificationConfig } from '@assurapay/identity';
 import { trust, trustStore, errorResponse } from '../../../../../lib/trust-app';
 
@@ -17,6 +21,12 @@ const loginProofs = new LoginProofService(trustStore);
  */
 export async function POST(request: Request) {
   try {
+    await protectBrowserMutation(
+      request,
+      browserSecurityStore,
+      process.env.NEXT_PUBLIC_APP_URL,
+    );
+    const channel = loadIdentityVerificationConfig(process.env).channel;
     const body = (await request.json()) as {
       email?: string;
       challengeId?: string;
@@ -26,15 +36,31 @@ export async function POST(request: Request) {
     const email = body.email?.trim();
     if (!email) throw new Error('AUTHENTICATION_DENIED');
 
-    const correlationId = request.headers.get('x-correlation-id') ?? crypto.randomUUID();
+    const correlationId =
+      request.headers.get('x-correlation-id') ?? crypto.randomUUID();
 
     if (!body.challengeId || !body.proofToken) {
       const issued = await loginProofs.issue({ email, correlationId });
-      const channel = loadIdentityVerificationConfig(process.env).channel;
+
+      const delivery =
+        channel === 'EMAIL'
+          ? await deliverAuthenticationEmail({
+              purpose: 'LOGIN',
+              userId: issued.userId,
+              email,
+              reference: issued.challengeId,
+              credential: issued.proofToken,
+              correlationId,
+            })
+          : undefined;
       return Response.json({
+        delivery,
+        correlationId,
         challengeId: issued.challengeId,
         expiresAt: issued.expiresAt,
-        ...(channel === 'DIRECT_RETURN' ? { proofToken: issued.proofToken } : {}),
+        ...(channel === 'DIRECT_RETURN'
+          ? { proofToken: issued.proofToken }
+          : {}),
       });
     }
 
@@ -44,7 +70,7 @@ export async function POST(request: Request) {
       proofToken: body.proofToken,
       correlationId,
     });
-    const rawSessionToken = crypto.randomUUID();
+    const rawSessionToken = randomBytes(32).toString('hex');
     const { session } = await trust.identity.login({
       email,
       rawSessionToken,

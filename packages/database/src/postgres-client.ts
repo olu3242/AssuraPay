@@ -102,9 +102,7 @@ const DEFAULTS = {
 } as const;
 
 export type PostgresConfigErrorCode =
-  | 'POSTGRES_URL_REQUIRED'
-  | 'POSTGRES_URL_INVALID'
-  | 'POSTGRES_BOUND_INVALID';
+  'POSTGRES_URL_REQUIRED' | 'POSTGRES_URL_INVALID' | 'POSTGRES_BOUND_INVALID';
 
 export class PostgresConfigError extends Error {
   readonly code: PostgresConfigErrorCode;
@@ -118,10 +116,17 @@ export class PostgresConfigError extends Error {
   }
 }
 
-function requirePositiveInteger(name: string, value: number | undefined, fallback: number): number {
+function requirePositiveInteger(
+  name: string,
+  value: number | undefined,
+  fallback: number,
+): number {
   if (value === undefined) return fallback;
   if (!Number.isInteger(value) || value <= 0)
-    throw new PostgresConfigError('POSTGRES_BOUND_INVALID', `${name} must be a positive integer`);
+    throw new PostgresConfigError(
+      'POSTGRES_BOUND_INVALID',
+      `${name} must be a positive integer`,
+    );
   return value;
 }
 
@@ -131,15 +136,23 @@ function requirePositiveInteger(name: string, value: number | undefined, fallbac
  * Checked here rather than at first query so a misconfigured host fails at startup
  * with a stable code, instead of surfacing a driver parse error inside a request.
  */
-export function assertUsableDatabaseUrl(databaseUrl: string | undefined): string {
+export function assertUsableDatabaseUrl(
+  databaseUrl: string | undefined,
+): string {
   if (!databaseUrl?.trim())
-    throw new PostgresConfigError('POSTGRES_URL_REQUIRED', 'a database URL is required');
+    throw new PostgresConfigError(
+      'POSTGRES_URL_REQUIRED',
+      'a database URL is required',
+    );
 
   let parsed: URL;
   try {
     parsed = new URL(databaseUrl);
   } catch {
-    throw new PostgresConfigError('POSTGRES_URL_INVALID', 'the database URL is not a valid URL');
+    throw new PostgresConfigError(
+      'POSTGRES_URL_INVALID',
+      'the database URL is not a valid URL',
+    );
   }
 
   if (!['postgres:', 'postgresql:'].includes(parsed.protocol))
@@ -148,7 +161,10 @@ export function assertUsableDatabaseUrl(databaseUrl: string | undefined): string
       `expected a postgres:// URL, received protocol ${parsed.protocol}`,
     );
   if (!parsed.hostname)
-    throw new PostgresConfigError('POSTGRES_URL_INVALID', 'the database URL has no host');
+    throw new PostgresConfigError(
+      'POSTGRES_URL_INVALID',
+      'the database URL has no host',
+    );
 
   return databaseUrl;
 }
@@ -179,7 +195,8 @@ export function createPostgresPool(config: PostgresPoolConfig): PostgresPool {
       config.connectTimeoutSeconds,
       DEFAULTS.connectTimeoutSeconds,
     ),
-    ssl: config.ssl === undefined || config.ssl === 'disable' ? false : config.ssl,
+    ssl:
+      config.ssl === undefined || config.ssl === 'disable' ? false : config.ssl,
     connection: {
       application_name: config.applicationName ?? 'assurapay',
       // Milliseconds, set as a session parameter so PostgreSQL cancels the statement
@@ -189,6 +206,15 @@ export function createPostgresPool(config: PostgresPoolConfig): PostgresPool {
     // Transforms are off: a column name silently rewritten between the schema and
     // the row mapping would make a mapping bug look like missing data.
     transform: undefined,
+    // SQL DATE is a calendar value, not an instant. Preserve the wire date exactly.
+    types: {
+      calendarDate: {
+        to: 1082,
+        from: [1082],
+        serialize: (value: string) => value,
+        parse: (value: string) => value,
+      },
+    },
     onnotice: () => {},
   });
 

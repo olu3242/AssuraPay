@@ -39,6 +39,7 @@
           "kind": "symbol",
           "matches": [
             "apps/web/lib/assurance-read-model.ts",
+            "apps/web/lib/flow-app.ts",
             "apps/web/lib/persistence.ts",
             "packages/agent-runtime/src/index.ts",
             "packages/agent-runtime/src/registration.ts",
@@ -74,6 +75,9 @@
             "packages/enterprise-analytics/src/index.ts",
             "packages/enterprise-intelligence/src/index.ts",
             "packages/execution-orchestration/src/index.ts",
+            "packages/flow-orchestration/src/index.ts",
+            "packages/flow-orchestration/src/operations.ts",
+            "packages/flow-orchestration/src/recovery.ts",
             "packages/governance-core/src/index.ts",
             "packages/identity/src/assertions.ts",
             "packages/identity/src/gateway.ts",
@@ -221,6 +225,7 @@
           "kind": "symbol",
           "matches": [
             "packages/database-testing/src/durability-coverage.test.ts",
+            "packages/database-testing/src/flow-postgres-store.postgres.test.ts",
             "packages/database-testing/src/postgres-store.postgres.test.ts",
             "packages/database-testing/src/store-boundary.postgres.test.ts",
             "packages/database/src/postgres-store.ts"
@@ -389,6 +394,7 @@
           "matches": [
             "packages/audit-ledger/src/audit-ledger.postgres.test.ts",
             "packages/database-testing/src/durability-coverage.test.ts",
+            "packages/database-testing/src/flow-postgres-store.postgres.test.ts",
             "packages/database-testing/src/identity-plane-rls.postgres.test.ts",
             "packages/database-testing/src/index.ts",
             "packages/database-testing/src/postgres-store.postgres.test.ts",
@@ -427,6 +433,7 @@
             "packages/database/src/postgres-store.ts",
             "packages/database/src/schema-ownership.ts",
             "packages/domain/src/index.ts",
+            "packages/flow-orchestration/src/restart-recovery.postgres.test.ts",
             "packages/organizations/src/index.ts",
             "packages/reos/src/reos.persistence.test.ts",
             "packages/reos/src/validators/persistence.ts",
@@ -744,6 +751,7 @@
         {
           "kind": "symbol",
           "matches": [
+            "packages/database-testing/src/flow-postgres-store.postgres.test.ts",
             "packages/database-testing/src/progressive-trust.postgres.test.ts",
             "packages/database-testing/src/rls-certification.postgres.test.ts",
             "packages/database-testing/src/schema-ownership.postgres.test.ts",
@@ -1538,6 +1546,13 @@
             "apps/web/app/api/v1/financial-entitlements/route.ts",
             "apps/web/app/api/v1/financial-forecasts/[id]/review/route.ts",
             "apps/web/app/api/v1/financial-forecasts/route.ts",
+            "apps/web/app/api/v1/flow-tasks/[id]/decisions/route.ts",
+            "apps/web/app/api/v1/flow-tasks/route.ts",
+            "apps/web/app/api/v1/flows/[id]/resume/route.ts",
+            "apps/web/app/api/v1/flows/[id]/route.ts",
+            "apps/web/app/api/v1/flows/[id]/signals/route.ts",
+            "apps/web/app/api/v1/flows/[id]/suspend/route.ts",
+            "apps/web/app/api/v1/flows/route.ts",
             "apps/web/app/api/v1/fund-reservations/[id]/cancel/route.ts",
             "apps/web/app/api/v1/fund-reservations/[id]/release/route.ts",
             "apps/web/app/api/v1/fund-reservations/route.ts",
@@ -1615,6 +1630,7 @@
             "apps/web/app/api/v1/workspaces/route.ts",
             "apps/web/lib/persistence.test.ts",
             "apps/web/lib/route-coverage.test.ts",
+            "apps/web/lib/route-permissions.ts",
             "apps/web/lib/trust-app.ts",
             "packages/database-testing/src/scope-propagation.postgres.test.ts",
             "packages/database/src/trust-scope.ts"
@@ -1754,7 +1770,7 @@
       "totalProbes": 5
     }
   ],
-  "head": "d13fd5cff182ef6f2ce2b0753922e3024d0250b6",
+  "head": "79add8973d037e73bc2cf4e4f93df4db15a7c636",
   "reosVersion": "1.0.0",
   "stage": "forensics",
   "summary": {

@@ -31,13 +31,14 @@ export type DeploymentClass =
  * A persistent preview is on the list deliberately: it has real users looking at real
  * data, and "it is only a preview" is how volatile storage reaches people.
  */
-export const DURABLE_DEPLOYMENT_CLASSES: readonly DeploymentClass[] = Object.freeze([
-  'production',
-  'staging',
-  'release-candidate',
-  'hosted-pilot',
-  'persistent-preview',
-]);
+export const DURABLE_DEPLOYMENT_CLASSES: readonly DeploymentClass[] =
+  Object.freeze([
+    'production',
+    'staging',
+    'release-candidate',
+    'hosted-pilot',
+    'persistent-preview',
+  ]);
 
 export type PersistenceAdapter = 'postgres' | 'memory';
 
@@ -81,6 +82,7 @@ export type PersistenceConfigErrorCode =
   | 'PERSISTENCE_CONFIG_DATABASE_URL_REQUIRED'
   | 'PERSISTENCE_CONFIG_DATABASE_URL_INVALID'
   | 'PERSISTENCE_CONFIG_SSL_REQUIRED'
+  | 'PERSISTENCE_CONFIG_VERIFICATION_REQUIRED'
   | 'PERSISTENCE_CONFIG_BOUND_INVALID'
   | 'PERSISTENCE_CONFIG_CLIENT_VARIABLE_FORBIDDEN';
 
@@ -130,7 +132,11 @@ function integer(
   return value;
 }
 
-function boolean(environment: Environment, name: string, fallback: boolean): boolean {
+function boolean(
+  environment: Environment,
+  name: string,
+  fallback: boolean,
+): boolean {
   const raw = environment[name]?.trim().toLowerCase();
   if (raw === undefined || raw === '') return fallback;
   if (['1', 'true', 'yes'].includes(raw)) return true;
@@ -152,7 +158,9 @@ function boolean(environment: Environment, name: string, fallback: boolean): boo
 function resolveDeployment(environment: Environment): DeploymentClass {
   const declared = environment.ASSURAPAY_DEPLOYMENT?.trim().toLowerCase();
   if (declared) {
-    const match = DEPLOYMENT_CLASSES.find((candidate) => candidate === declared);
+    const match = DEPLOYMENT_CLASSES.find(
+      (candidate) => candidate === declared,
+    );
     if (!match)
       throw new PersistenceConfigError(
         'PERSISTENCE_CONFIG_DEPLOYMENT_UNKNOWN',
@@ -187,8 +195,12 @@ export function loadPersistenceConfig(
   const deployment = resolveDeployment(environment);
   const durable = isDurableDeployment(deployment);
 
-  const declaredAdapter = environment.ASSURAPAY_PERSISTENCE_ADAPTER?.trim().toLowerCase();
-  if (declaredAdapter !== undefined && !['postgres', 'memory', ''].includes(declaredAdapter))
+  const declaredAdapter =
+    environment.ASSURAPAY_PERSISTENCE_ADAPTER?.trim().toLowerCase();
+  if (
+    declaredAdapter !== undefined &&
+    !['postgres', 'memory', ''].includes(declaredAdapter)
+  )
     throw new PersistenceConfigError(
       'PERSISTENCE_CONFIG_ADAPTER_UNKNOWN',
       'ASSURAPAY_PERSISTENCE_ADAPTER must be postgres or memory',
@@ -209,7 +221,9 @@ export function loadPersistenceConfig(
       `${deployment} requires PostgreSQL. An in-memory store loses every grant, membership and audit record when the process exits, while the application keeps answering as though it had not.`,
     );
 
-  const databaseUrl = environment.ASSURAPAY_DATABASE_URL?.trim() || environment.DATABASE_URL?.trim();
+  const databaseUrl =
+    environment.ASSURAPAY_DATABASE_URL?.trim() ||
+    environment.DATABASE_URL?.trim();
 
   if (adapter === 'postgres') {
     if (!databaseUrl)
@@ -242,7 +256,10 @@ export function loadPersistenceConfig(
   }
 
   const declaredSsl = environment.ASSURAPAY_DATABASE_SSL?.trim().toLowerCase();
-  if (declaredSsl !== undefined && !['disable', 'require', 'verify-full', ''].includes(declaredSsl))
+  if (
+    declaredSsl !== undefined &&
+    !['disable', 'require', 'verify-full', ''].includes(declaredSsl)
+  )
     throw new PersistenceConfigError(
       'PERSISTENCE_CONFIG_BOUND_INVALID',
       'ASSURAPAY_DATABASE_SSL must be disable, require or verify-full',
@@ -268,34 +285,63 @@ export function loadPersistenceConfig(
     deployment,
     adapter,
     ssl,
-    poolMax: integer(environment, 'ASSURAPAY_DATABASE_POOL_MAX', 10, { min: 1, max: 200 }),
-    connectTimeoutSeconds: integer(environment, 'ASSURAPAY_DATABASE_CONNECT_TIMEOUT_SECONDS', 10, {
+    poolMax: integer(environment, 'ASSURAPAY_DATABASE_POOL_MAX', 10, {
       min: 1,
-      max: 120,
+      max: 200,
     }),
-    idleTimeoutSeconds: integer(environment, 'ASSURAPAY_DATABASE_IDLE_TIMEOUT_SECONDS', 30, {
-      min: 1,
-      max: 3600,
-    }),
+    connectTimeoutSeconds: integer(
+      environment,
+      'ASSURAPAY_DATABASE_CONNECT_TIMEOUT_SECONDS',
+      10,
+      {
+        min: 1,
+        max: 120,
+      },
+    ),
+    idleTimeoutSeconds: integer(
+      environment,
+      'ASSURAPAY_DATABASE_IDLE_TIMEOUT_SECONDS',
+      30,
+      {
+        min: 1,
+        max: 3600,
+      },
+    ),
     statementTimeoutSeconds: integer(
       environment,
       'ASSURAPAY_DATABASE_STATEMENT_TIMEOUT_SECONDS',
       30,
       { min: 1, max: 600 },
     ),
-    startupTimeoutSeconds: integer(environment, 'ASSURAPAY_STARTUP_TIMEOUT_SECONDS', 30, {
-      min: 1,
-      max: 300,
-    }),
-    shutdownGraceSeconds: integer(environment, 'ASSURAPAY_SHUTDOWN_GRACE_SECONDS', 15, {
-      min: 0,
-      max: 300,
-    }),
+    startupTimeoutSeconds: integer(
+      environment,
+      'ASSURAPAY_STARTUP_TIMEOUT_SECONDS',
+      30,
+      {
+        min: 1,
+        max: 300,
+      },
+    ),
+    shutdownGraceSeconds: integer(
+      environment,
+      'ASSURAPAY_SHUTDOWN_GRACE_SECONDS',
+      15,
+      {
+        min: 0,
+        max: 300,
+      },
+    ),
     verifyMigrations: boolean(environment, 'ASSURAPAY_VERIFY_MIGRATIONS', true),
     verifySchema: boolean(environment, 'ASSURAPAY_VERIFY_SCHEMA', true),
-    applicationName: environment.ASSURAPAY_APPLICATION_NAME?.trim() || 'assurapay-web',
+    applicationName:
+      environment.ASSURAPAY_APPLICATION_NAME?.trim() || 'assurapay-web',
   };
 
+  if (durable && (!config.verifyMigrations || !config.verifySchema))
+    throw new PersistenceConfigError(
+      'PERSISTENCE_CONFIG_VERIFICATION_REQUIRED',
+      'durable deployments require migration and schema verification',
+    );
   if (adapter === 'postgres') config.databaseUrl = databaseUrl;
   return config;
 }

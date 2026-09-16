@@ -1,3 +1,7 @@
+import {
+  reserveIdentityAttempt,
+  reserveProofConsumption,
+} from './security-attempts';
 import { createHash, randomUUID, timingSafeEqual } from 'node:crypto';
 import type { TrustPersistence } from '@assurapay/shared';
 import type { AuthenticationMethod, UserIdentity } from './index';
@@ -8,6 +12,7 @@ export type LoginProofChallenge = AuthenticationMethod & {
 };
 
 export type IssuedLoginProof = {
+  userId: string;
   challengeId: string;
   proofToken: string;
   expiresAt: string;
@@ -17,12 +22,15 @@ const LOGIN_METHOD_TYPE = 'PASSWORDLESS_EMAIL_CHALLENGE';
 const LOGIN_PROVIDER = 'assurapay-passwordless-email';
 const DEFAULT_LOGIN_PROOF_TTL_MS = 10 * 60 * 1000;
 
-const digest = (value: string) => createHash('sha256').update(value).digest('hex');
+const digest = (value: string) =>
+  createHash('sha256').update(value).digest('hex');
 
 function matches(presented: string, storedDigest: string): boolean {
   const candidate = Buffer.from(digest(presented), 'hex');
   const stored = Buffer.from(storedDigest, 'hex');
-  return candidate.length === stored.length && timingSafeEqual(candidate, stored);
+  return (
+    candidate.length === stored.length && timingSafeEqual(candidate, stored)
+  );
 }
 
 /**
@@ -47,10 +55,17 @@ export class LoginProofService {
       (entry) => entry.email === email && entry.status === 'ACTIVE',
     );
     if (!user) throw new Error('AUTHENTICATION_DENIED');
+    await reserveIdentityAttempt(this.store, {
+      subject: user.id,
+      purpose: 'LOGIN_ISSUE',
+      correlationId: input.correlationId,
+    });
 
     const proofToken = mintVerificationToken();
     const now = new Date();
-    const expiresAt = new Date(now.getTime() + (input.ttlMs ?? DEFAULT_LOGIN_PROOF_TTL_MS)).toISOString();
+    const expiresAt = new Date(
+      now.getTime() + (input.ttlMs ?? DEFAULT_LOGIN_PROOF_TTL_MS),
+    ).toISOString();
     const challenge: LoginProofChallenge = {
       id: randomUUID(),
       userId: user.id,
@@ -73,10 +88,47 @@ export class LoginProofService {
       metadata: { method: LOGIN_METHOD_TYPE },
     });
 
-    return { challengeId: challenge.id, proofToken, expiresAt };
+    return {
+      userId: user.id,
+      challengeId: challenge.id,
+      proofToken,
+      expiresAt,
+    };
   }
 
   async consume(input: {
+    email: string;
+    challengeId: string;
+    proofToken: string;
+    correlationId: string;
+  }): Promise<string> {
+    await reserveIdentityAttempt(this.store, {
+      subject: input.challengeId,
+      purpose: 'LOGIN_CONSUME',
+      correlationId: input.correlationId,
+    });
+    try {
+      return await this.store.transaction(async (tx) =>
+        new LoginProofService(tx).consumeInTransaction(input),
+      );
+    } catch (error) {
+      await this.store.audit({
+        actorId: 'anonymous',
+        eventType: 'AuthenticationFailed',
+        aggregateType: 'AuthenticationMethod',
+        aggregateId: input.challengeId,
+        correlationId: input.correlationId,
+        metadata: { reason: 'PROOF_INVALID_OR_SPENT' },
+      });
+      if (
+        error instanceof Error &&
+        error.message.includes('PERSISTENCE_DUPLICATE_RECORD')
+      )
+        throw new Error('AUTHENTICATION_DENIED');
+      throw error;
+    }
+  }
+  private async consumeInTransaction(input: {
     email: string;
     challengeId: string;
     proofToken: string;
@@ -86,7 +138,9 @@ export class LoginProofService {
     const user = (await this.store.list<UserIdentity>('identities')).find(
       (entry) => entry.email === email && entry.status === 'ACTIVE',
     );
-    const challenge = (await this.store.list<LoginProofChallenge>('authenticationMethods')).find(
+    const challenge = (
+      await this.store.list<LoginProofChallenge>('authenticationMethods')
+    ).find(
       (entry) =>
         entry.id === input.challengeId &&
         entry.userId === user?.id &&
@@ -106,11 +160,18 @@ export class LoginProofService {
       throw new Error('AUTHENTICATION_DENIED');
     };
 
-    if (!user || !challenge || challenge.status !== 'PENDING') return denied('LOGIN_PROOF_UNAVAILABLE');
-    if (Date.parse(challenge.challengeExpiresAt) <= Date.now()) return denied('LOGIN_PROOF_EXPIRED');
-    if (!matches(input.proofToken, challenge.providerSubjectReference)) return denied('LOGIN_PROOF_MISMATCH');
+    if (!user || !challenge || challenge.status !== 'PENDING')
+      return denied('LOGIN_PROOF_UNAVAILABLE');
+    if (
+      !Number.isFinite(Date.parse(challenge.challengeExpiresAt)) ||
+      Date.parse(challenge.challengeExpiresAt) <= Date.now()
+    )
+      return denied('LOGIN_PROOF_EXPIRED');
+    if (!matches(input.proofToken, challenge.providerSubjectReference))
+      return denied('LOGIN_PROOF_MISMATCH');
 
     const now = new Date().toISOString();
+    await reserveProofConsumption(this.store, user.id, challenge.id);
     const verified: LoginProofChallenge = {
       ...challenge,
       status: 'VERIFIED',

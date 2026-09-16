@@ -6,3 +6,4 @@
  */
 export * from './config';
 export * from './persistence-runtime';
+export * from './migration-directory';

@@ -38,3 +38,6 @@ export * from './batch-i-repository';
 export * from './batch-k-repository';
 export * from './batch-l-repository';
 export * from './batch-m-repository';
+
+export { AGREEMENT_INTAKE_RELATION, isAgreementIntakeCollection } from './agreement-intake-repository';
+export { AGREEMENT_INTAKE_COLLECTIONS, AGREEMENT_INTAKE_TABLES } from './agreement-intake-postgres-routing';

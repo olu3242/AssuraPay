@@ -283,6 +283,10 @@ export async function applyMigrations(
  * code and the database disagree about history — but only these must be present.
  */
 export const REQUIRED_TRUST_MIGRATIONS: readonly string[] = Object.freeze([
+  '20260915103610_production_notification_delivery',
+  '20260915214219_agreement_intake_convergence',
+  '20260915215154_legal_policy_scope_convergence',
+  '20260915220310_party_qualification_history',
   '202608060001_trust_repository_store',
   '202608070001_trust_row_level_security',
   '202608070002_trust_audit_chain_per_tenant',
@@ -499,6 +503,7 @@ export const REQUIRED_DOMAIN_AGGREGATE_TABLES = Object.freeze(
     ...BATCH_K_TABLES,
     ...BATCH_L_TABLES,
     ...BATCH_M_TABLES,
+    'agreement_intakes',
   ].sort(),
 );
 

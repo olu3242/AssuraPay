@@ -1,8 +1,12 @@
 import { createHash } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
 import { InMemoryTrustStore } from '@assurapay/database';
-import { IdentityService } from './index';
-import { loadIdentityVerificationConfig, mintVerificationToken, verificationTokenMatches } from './verification';
+import { IdentityService, LoginProofService } from './index';
+import {
+  loadIdentityVerificationConfig,
+  mintVerificationToken,
+  verificationTokenMatches,
+} from './verification';
 
 /**
  * Engine 01 — the email verification step that did not exist.
@@ -16,7 +20,8 @@ import { loadIdentityVerificationConfig, mintVerificationToken, verificationToke
 
 describe('a registration is not usable until it is verified', () => {
   it('refuses sign-in for a registered but unverified identity', async () => {
-    const service = new IdentityService(new InMemoryTrustStore());
+    const store = new InMemoryTrustStore();
+    const service = new IdentityService(store);
     const { identity } = await service.register({
       email: 'pending@example.test',
       displayName: 'Pending',
@@ -25,12 +30,17 @@ describe('a registration is not usable until it is verified', () => {
 
     expect(identity.status).toBe('PENDING_VERIFICATION');
     await expect(
-      service.login({ email: identity.email, rawSessionToken: 'raw', correlationId: 'c2' }),
+      service.login({
+        email: identity.email,
+        rawSessionToken: 'raw',
+        correlationId: 'c2',
+      }),
     ).rejects.toThrow('AUTHENTICATION_DENIED');
   });
 
   it('activates on a correct token, and then sign-in works', async () => {
-    const service = new IdentityService(new InMemoryTrustStore());
+    const store = new InMemoryTrustStore();
+    const service = new IdentityService(store);
     const { identity, emailVerificationToken } = await service.register({
       email: 'verified@example.test',
       displayName: 'Verified',
@@ -50,6 +60,7 @@ describe('a registration is not usable until it is verified', () => {
     expect(verified.identityAssuranceLevel).toBe('IAL1_BASIC');
 
     const login = await service.login({
+      authenticationMethodId: await loginMethod(store, identity.email),
       email: identity.email,
       rawSessionToken: 'raw',
       correlationId: 'c3',
@@ -72,21 +83,31 @@ describe('a registration is not usable until it is verified', () => {
   });
 
   it('spends the token: the same one cannot verify twice', async () => {
-    const service = new IdentityService(new InMemoryTrustStore());
+    const store = new InMemoryTrustStore();
+    const service = new IdentityService(store);
     const { identity, emailVerificationToken } = await service.register({
       email: 'once@example.test',
       displayName: 'Once',
       correlationId: 'c1',
     });
 
-    await service.verifyEmail({ userId: identity.id, token: emailVerificationToken, correlationId: 'c2' });
+    await service.verifyEmail({
+      userId: identity.id,
+      token: emailVerificationToken,
+      correlationId: 'c2',
+    });
     await expect(
-      service.verifyEmail({ userId: identity.id, token: emailVerificationToken, correlationId: 'c3' }),
+      service.verifyEmail({
+        userId: identity.id,
+        token: emailVerificationToken,
+        correlationId: 'c3',
+      }),
     ).rejects.toThrow('VERIFICATION_DENIED');
   });
 
   it('refuses a wrong token, an unknown user and an expired token with the same error', async () => {
-    const service = new IdentityService(new InMemoryTrustStore());
+    const store = new InMemoryTrustStore();
+    const service = new IdentityService(store);
     const { identity } = await service.register({
       email: 'wrong@example.test',
       displayName: 'Wrong',
@@ -97,15 +118,24 @@ describe('a registration is not usable until it is verified', () => {
     // registered and which registrations are still outstanding, and tells a legitimate holder of a
     // token nothing they can act on.
     await expect(
-      service.verifyEmail({ userId: identity.id, token: mintVerificationToken(), correlationId: 'c2' }),
+      service.verifyEmail({
+        userId: identity.id,
+        token: mintVerificationToken(),
+        correlationId: 'c2',
+      }),
     ).rejects.toThrow('VERIFICATION_DENIED');
     await expect(
-      service.verifyEmail({ userId: 'no-such-user', token: mintVerificationToken(), correlationId: 'c3' }),
+      service.verifyEmail({
+        userId: 'no-such-user',
+        token: mintVerificationToken(),
+        correlationId: 'c3',
+      }),
     ).rejects.toThrow('VERIFICATION_DENIED');
   });
 
   it('refuses a token that has expired', async () => {
-    const service = new IdentityService(new InMemoryTrustStore());
+    const store = new InMemoryTrustStore();
+    const service = new IdentityService(store);
     const { identity, emailVerificationToken } = await service.register({
       email: 'expired@example.test',
       displayName: 'Expired',
@@ -116,7 +146,11 @@ describe('a registration is not usable until it is verified', () => {
     });
 
     await expect(
-      service.verifyEmail({ userId: identity.id, token: emailVerificationToken, correlationId: 'c2' }),
+      service.verifyEmail({
+        userId: identity.id,
+        token: emailVerificationToken,
+        correlationId: 'c2',
+      }),
     ).rejects.toThrow('VERIFICATION_DENIED');
   });
 
@@ -130,12 +164,16 @@ describe('a registration is not usable until it is verified', () => {
     });
 
     await expect(
-      service.verifyEmail({ userId: identity.id, token: mintVerificationToken(), correlationId: 'c2' }),
+      service.verifyEmail({
+        userId: identity.id,
+        token: mintVerificationToken(),
+        correlationId: 'c2',
+      }),
     ).rejects.toThrow('VERIFICATION_DENIED');
 
-    const audits = (await store.list<{ eventType: string }>('auditRecords')).map(
-      (entry: { eventType: string }) => entry.eventType,
-    );
+    const audits = (
+      await store.list<{ eventType: string }>('auditRecords')
+    ).map((entry: { eventType: string }) => entry.eventType);
     expect(audits).toContain('IdentityVerificationFailed');
     expect(audits).not.toContain('IdentityActivated');
   });
@@ -150,7 +188,9 @@ describe('token comparison', () => {
     const digest = createHash('sha256').update(token).digest('hex');
 
     expect(verificationTokenMatches(token, digest)).toBe(true);
-    expect(verificationTokenMatches(mintVerificationToken(), digest)).toBe(false);
+    expect(verificationTokenMatches(mintVerificationToken(), digest)).toBe(
+      false,
+    );
     // A malformed digest must be refused rather than throwing out of the length check.
     expect(verificationTokenMatches(token, 'short')).toBe(false);
   });
@@ -158,34 +198,86 @@ describe('token comparison', () => {
 
 describe('the delivery channel is stated by the deployment', () => {
   it('refuses to start when the channel is unset', () => {
-    expect(() => loadIdentityVerificationConfig({})).toThrow(/ASSURAPAY_IDENTITY_VERIFICATION_CHANNEL/);
+    expect(() => loadIdentityVerificationConfig({})).toThrow(
+      /ASSURAPAY_IDENTITY_VERIFICATION_CHANNEL/,
+    );
   });
 
   it('refuses NOTIFICATION_ENGINE while Engine 09 is deferred', () => {
     expect(() =>
-      loadIdentityVerificationConfig({ ASSURAPAY_IDENTITY_VERIFICATION_CHANNEL: 'NOTIFICATION_ENGINE' }),
+      loadIdentityVerificationConfig({
+        ASSURAPAY_IDENTITY_VERIFICATION_CHANNEL: 'NOTIFICATION_ENGINE',
+      }),
     ).toThrow(/Engine 09/);
   });
 
   it('refuses a channel it does not recognise rather than falling back', () => {
     expect(() =>
-      loadIdentityVerificationConfig({ ASSURAPAY_IDENTITY_VERIFICATION_CHANNEL: 'SMTP' }),
+      loadIdentityVerificationConfig({
+        ASSURAPAY_IDENTITY_VERIFICATION_CHANNEL: 'SMTP',
+      }),
     ).toThrow(/not a channel/);
   });
 
   it('accepts DIRECT_RETURN, with a default token lifetime', () => {
     const config = loadIdentityVerificationConfig({
       ASSURAPAY_IDENTITY_VERIFICATION_CHANNEL: 'DIRECT_RETURN',
+      NODE_ENV: 'test',
+      ASSURAPAY_ALLOW_DIRECT_RETURN: 'true',
     });
     expect(config.channel).toBe('DIRECT_RETURN');
-    expect(config.tokenTtlMs).toBe(24 * 60 * 60 * 1000);
+    expect(config.tokenTtlMs).toBe(10 * 60 * 1000);
   });
 
   it('ignores a nonsensical lifetime rather than minting a token that is already expired', () => {
     const config = loadIdentityVerificationConfig({
       ASSURAPAY_IDENTITY_VERIFICATION_CHANNEL: 'DIRECT_RETURN',
+      NODE_ENV: 'test',
+      ASSURAPAY_ALLOW_DIRECT_RETURN: 'true',
       ASSURAPAY_IDENTITY_VERIFICATION_TTL_MS: 'not-a-number',
     });
-    expect(config.tokenTtlMs).toBe(24 * 60 * 60 * 1000);
+    expect(config.tokenTtlMs).toBe(10 * 60 * 1000);
+  });
+});
+
+async function loginMethod(
+  store: InMemoryTrustStore,
+  email: string,
+): Promise<string> {
+  const proofs = new LoginProofService(store);
+  const issued = await proofs.issue({
+    email,
+    correlationId: 'test-login-proof',
+  });
+  return proofs.consume({
+    email,
+    ...issued,
+    correlationId: 'test-login-consume',
+  });
+}
+
+describe('production refuses direct credential return', () => {
+  it.each([
+    {},
+    { NODE_ENV: 'production' },
+    { NODE_ENV: 'production', ASSURAPAY_DEPLOYMENT: 'test' },
+    { NODE_ENV: 'test', VERCEL: '1' },
+    { NODE_ENV: 'test', ASSURAPAY_DEPLOYMENT: 'staging' },
+  ])('fails closed for %j', (environment) => {
+    expect(() =>
+      loadIdentityVerificationConfig({
+        ...environment,
+        ASSURAPAY_ALLOW_DIRECT_RETURN: 'true',
+        ASSURAPAY_IDENTITY_VERIFICATION_CHANNEL: 'DIRECT_RETURN',
+      }),
+    ).toThrow('DIRECT_RETURN requires');
+  });
+  it('requires the explicit local opt-in flag', () => {
+    expect(() =>
+      loadIdentityVerificationConfig({
+        NODE_ENV: 'test',
+        ASSURAPAY_IDENTITY_VERIFICATION_CHANNEL: 'DIRECT_RETURN',
+      }),
+    ).toThrow('DIRECT_RETURN requires');
   });
 });

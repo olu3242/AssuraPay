@@ -18,3 +18,5 @@ export class PartyService {
   async serializeParty(context: RequestContext, id: string) { requireActiveWorkspace(context); const party = await this.requireParty(id, context.activeWorkspaceId); return { ...party, beneficiaries: (await this.store.list<BeneficiaryAccount>('beneficiaryAccounts')).filter((entry) => entry.partyId === id && entry.workspaceId === context.activeWorkspaceId).map(({ accountReferenceToken: _token, ...safe }) => safe) }; }
   private async requireParty(id: string, workspaceId: string) { const party = (await this.store.list<Party>('parties')).find((entry) => entry.id === id && entry.workspaceId === workspaceId); if (!party) throw new Error('PARTY_NOT_FOUND'); return party; }
 }
+
+export * from './qualifications';

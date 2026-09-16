@@ -1,3 +1,4 @@
+import { protectBrowserMutation } from './browser-security';
 import {
   IdentityAssertionService,
   IdentityGateway,
@@ -342,9 +343,14 @@ function correlationOf(request: Request): string {
  * empty: authentication cannot prove membership, so workspace-scoped paths must
  * have it resolved by the membership authority.
  */
-export async function requestContext(request: Request): Promise<RequestContext> {
+export async function requestContext(
+  request: Request,
+): Promise<RequestContext> {
   const correlationId = correlationOf(request);
-  const identity = await getIdentityGateway().authenticate(request, correlationId);
+  const identity = await getIdentityGateway().authenticate(
+    request,
+    correlationId,
+  );
   // The gateway proves identity and refuses to resolve membership. Enforcement
   // resolves it from the authoritative record, so workspace-scoped engines see
   // proven membership rather than a claim.
@@ -355,9 +361,14 @@ export async function requestContext(request: Request): Promise<RequestContext> 
  * Verified identity context for a path that acts, consuming the assertion so it
  * cannot authorise a second action.
  */
-export async function actingRequestContext(request: Request): Promise<RequestContext> {
+export async function actingRequestContext(
+  request: Request,
+): Promise<RequestContext> {
   const correlationId = correlationOf(request);
-  const identity = await getIdentityGateway().consumeRequestContext(request, correlationId);
+  const identity = await getIdentityGateway().consumeRequestContext(
+    request,
+    correlationId,
+  );
   return resolveMemberships(identity, membershipReader);
 }
 
@@ -371,7 +382,9 @@ export async function actingRequestContext(request: Request): Promise<RequestCon
  * A `public` classification is a programming error here — a public route must not
  * ask for an authorized context — so it is refused rather than silently allowed.
  */
-export async function authorizedContextForRoute(request: Request): Promise<RequestContext> {
+export async function authorizedContextForRoute(
+  request: Request,
+): Promise<RequestContext> {
   // Bound here, in the synchronous prologue, before this function's first `await` — and filled in
   // below once authentication has said who the caller is.
   //
@@ -382,7 +395,15 @@ export async function authorizedContextForRoute(request: Request): Promise<Reque
   // scope at all. Under forced RLS those reads returned nothing, so `GET /v1/me/workspaces` answered
   // `[]` to a caller holding an ACTIVE membership. `enterMutableTrustScope` explains the measurement.
   const scope = enterMutableTrustScope();
-  const access = requirementForRoute(new URL(request.url).pathname, request.method);
+  await protectBrowserMutation(
+    request,
+    trustStore,
+    process.env.NEXT_PUBLIC_APP_URL,
+  );
+  const access = requirementForRoute(
+    new URL(request.url).pathname,
+    request.method,
+  );
   const correlationId = correlationOf(request);
 
   if (access.access === 'public') {
@@ -397,7 +418,10 @@ export async function authorizedContextForRoute(request: Request): Promise<Reque
   // audited must be refused, not served.
   await requireReadyPersistence();
 
-  const identity = await getIdentityGateway().authenticate(request, correlationId);
+  const identity = await getIdentityGateway().authenticate(
+    request,
+    correlationId,
+  );
 
   // The tenancy scope Row Level Security reads, established here because this is the one
   // place every protected route passes through. Without it, forced RLS denies every read —
@@ -436,7 +460,10 @@ export async function authorizedContext(
   requirement: PermissionRequirement,
 ): Promise<RequestContext> {
   const correlationId = correlationOf(request);
-  const identity = await getIdentityGateway().authenticate(request, correlationId);
+  const identity = await getIdentityGateway().authenticate(
+    request,
+    correlationId,
+  );
   return await enforcePermission(identity, requirement, {
     memberships: membershipReader,
     permissions: trust.permissions,
@@ -457,7 +484,9 @@ export type WorkspaceScopedContext = RequestContext & {
   tenantId: string;
 };
 
-export function workspaceScoped(context: RequestContext): WorkspaceScopedContext {
+export function workspaceScoped(
+  context: RequestContext,
+): WorkspaceScopedContext {
   requireActiveWorkspace(context);
   return context;
 }
@@ -474,7 +503,9 @@ export function workspaceScoped(context: RequestContext): WorkspaceScopedContext
  * rules that are not defined, whereas this starts from a session the identity
  * engine owns and can revoke, and mints something strictly weaker.
  */
-export async function issueSessionAssertion(input: IssueAssertionInput): Promise<IssuedAssertion> {
+export async function issueSessionAssertion(
+  input: IssueAssertionInput,
+): Promise<IssuedAssertion> {
   // Bound in the prologue, before the first `await`, for the reason `enterMutableTrustScope`
   // documents — and needed here even though this route is `public`.
   //
@@ -507,11 +538,14 @@ export async function issueSessionAssertion(input: IssueAssertionInput): Promise
   // and a workspace it does not return leaves the scope untenanted, after which issuance refuses with
   // `ISSUANCE_WORKSPACE_UNKNOWN` exactly as it did before. Naming someone else's workspace therefore
   // grants nothing: the read comes back empty and no tenant is entered.
-  const requestedWorkspaceId = input.workspaceId?.trim() || session.workspaceId?.trim();
+  const requestedWorkspaceId =
+    input.workspaceId?.trim() || session.workspaceId?.trim();
   if (requestedWorkspaceId) {
-    const workspaces = await trustStore.list<{ id: string; tenantId?: string; status?: string }>(
-      'trustWorkspaces',
-    );
+    const workspaces = await trustStore.list<{
+      id: string;
+      tenantId?: string;
+      status?: string;
+    }>('trustWorkspaces');
     const workspace = workspaces.find(
       (entry) => entry.id === requestedWorkspaceId && entry.status === 'ACTIVE',
     );
@@ -554,7 +588,11 @@ export function getCatalogueConfig(): CatalogueConfig {
 export async function bootstrapFoundingAdministrator(
   input: BootstrapInput,
 ): Promise<WorkspaceBootstrap> {
-  return await bootstrapWorkspaceGrants(trustStore, input, getCatalogueConfig());
+  return await bootstrapWorkspaceGrants(
+    trustStore,
+    input,
+    getCatalogueConfig(),
+  );
 }
 
 /**
@@ -583,22 +621,32 @@ const CONFLICT_CODES = new Set([
 ]);
 
 export function errorResponse(error: unknown) {
-  const message = error instanceof Error ? error.message : 'UNKNOWN_ERROR';
+  const rawMessage = error instanceof Error ? error.message : '';
+  const message =
+    rawMessage.match(/^([A-Z][A-Z0-9_]+)(?::|$)/)?.[1] ?? 'INTERNAL_ERROR';
   // Assertion and gateway failures are authentication failures, not bad requests.
   const status =
-    message.includes('UNAUTHENTICATED') ||
-    message.startsWith('ASSERTION_') ||
-    message.startsWith('GATEWAY_')
-      ? 401
-      : CONFLICT_CODES.has(message)
-        ? 409
-        : message.startsWith('ENFORCEMENT_') || message.startsWith('PERMISSION_DENIED')
-          ? 403
-          : message.startsWith('CATALOGUE_BOOTSTRAP_DISABLED') ||
-              message.startsWith('CATALOGUE_ROLE_NOT_BOOTSTRAPPABLE')
-            ? 403
-            : message.includes('DENIED') || message.includes('REQUIRED')
+    message === 'AUTHENTICATION_RATE_LIMITED'
+      ? 429
+      : message === 'INTERNAL_ERROR'
+        ? 500
+        : message.includes('UNAUTHENTICATED') ||
+            message.startsWith('ASSERTION_') ||
+            message.startsWith('GATEWAY_')
+          ? 401
+          : CONFLICT_CODES.has(message)
+            ? 409
+            : message.startsWith('ENFORCEMENT_') ||
+                message.startsWith('PERMISSION_DENIED')
               ? 403
-              : 400;
-  return Response.json({ error: message }, { status });
+              : message.startsWith('CATALOGUE_BOOTSTRAP_DISABLED') ||
+                  message.startsWith('CATALOGUE_ROLE_NOT_BOOTSTRAPPABLE')
+                ? 403
+                : message.includes('DENIED') || message.includes('REQUIRED')
+                  ? 403
+                  : 400;
+  return Response.json(
+    { error: message, reasonCode: message, correlationId: crypto.randomUUID() },
+    { status },
+  );
 }

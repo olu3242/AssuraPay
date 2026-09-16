@@ -1,3 +1,5 @@
+import { protectBrowserMutation } from '../../../../../lib/browser-security';
+import { trustStore as browserSecurityStore } from '../../../../../lib/persistence';
 import { trust, errorResponse } from '../../../../../lib/trust-app';
 
 /**
@@ -17,11 +19,17 @@ import { trust, errorResponse } from '../../../../../lib/trust-app';
  */
 export async function POST(request: Request) {
   try {
+    await protectBrowserMutation(
+      request,
+      browserSecurityStore,
+      process.env.NEXT_PUBLIC_APP_URL,
+    );
     const body = await request.json();
     const identity = await trust.identity.verifyEmail({
       userId: body.userId,
       token: body.token,
-      correlationId: request.headers.get('x-correlation-id') ?? crypto.randomUUID(),
+      correlationId:
+        request.headers.get('x-correlation-id') ?? crypto.randomUUID(),
     });
     // Activation clears the digest, so there is nothing to strip — but the destructure stays as the
     // explicit statement that this response must never carry it, whatever the record holds later.

@@ -31,6 +31,10 @@ export default defineConfig({
   },
   resolve: {
     alias: {
+      '@assurapay/notifications': path.resolve(
+        __dirname,
+        'packages/notifications/src/index.ts',
+      ),
       '@assurapay/shared': path.resolve(
         __dirname,
         'packages/shared/src/index.ts',

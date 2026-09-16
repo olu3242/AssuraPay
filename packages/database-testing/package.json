@@ -11,6 +11,8 @@
     "@assurapay/performance-readiness": "workspace:*",
     "@assurapay/shared": "workspace:*",
     "postgres": "^3.4.9",
-    "@assurapay/progressive-trust": "workspace:*"
+    "@assurapay/progressive-trust": "workspace:*",
+    "@assurapay/identity": "workspace:*",
+    "@assurapay/legal": "workspace:*"
   }
 }

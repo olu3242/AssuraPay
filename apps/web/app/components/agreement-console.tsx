@@ -182,6 +182,7 @@ export function AgreementConsole() {
     <main className="shell" data-testid="agreement-console">
       <p className="eyebrow">RC1 Phase C</p>
       <h1>Agreement workspace</h1>
+      <nav aria-label="Agreement actions"><a href="/agreements/new">Create from your agreement details</a><a href="/start">Account & workspace</a></nav>
       <p className="lead">
         Governed contract authoring and human-reviewed agreement intelligence in the active workspace.
       </p>

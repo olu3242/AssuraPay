@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import path from 'node:path';
+import { resolveMigrationsDirectory } from './migration-directory';
 import type { TrustPersistence } from '@assurapay/shared';
 import {
   InMemoryTrustStore,
@@ -11,7 +11,11 @@ import {
   verifySchemaCompatibility,
 } from '@assurapay/database';
 import type { PostgresPool } from '@assurapay/database';
-import { describePersistenceConfig, isDurableDeployment, loadPersistenceConfig } from './config';
+import {
+  describePersistenceConfig,
+  isDurableDeployment,
+  loadPersistenceConfig,
+} from './config';
 import type { PersistenceRuntimeConfig } from './config';
 
 /**
@@ -64,11 +68,7 @@ export type PersistenceReadiness = {
 };
 
 export type PersistenceRuntimeState =
-  | 'initializing'
-  | 'ready'
-  | 'degraded'
-  | 'shutting-down'
-  | 'disposed';
+  'initializing' | 'ready' | 'degraded' | 'shutting-down' | 'disposed';
 
 export type PersistenceRuntime = {
   /** Identifies this runtime in evidence, so two hosts are distinguishable in a log. */
@@ -128,10 +128,6 @@ export class RuntimeStartupError extends Error {
   }
 }
 
-function defaultMigrationsDirectory(): string {
-  return path.resolve(process.cwd(), 'supabase/migrations');
-}
-
 /**
  * Fails a promise that takes too long, so a hanging connect cannot hold startup open.
  *
@@ -151,7 +147,10 @@ async function withTimeout<T>(
       operation(),
       new Promise<never>((_resolve, reject) => {
         timer = setTimeout(
-          () => reject(new RuntimeStartupError(code, `${what} exceeded ${seconds}s`)),
+          () =>
+            reject(
+              new RuntimeStartupError(code, `${what} exceeded ${seconds}s`),
+            ),
           seconds * 1000,
         );
       }),
@@ -174,8 +173,15 @@ export async function createPersistenceRuntime(
   const runtimeId = randomUUID();
   const config = options.config ?? loadPersistenceConfig(options.environment);
   const emit = (event: string, detail?: Record<string, unknown>) =>
-    options.onEvidence?.({ runtimeId, event, at: new Date().toISOString(), detail });
-  const migrations = options.migrationsDirectory ?? defaultMigrationsDirectory();
+    options.onEvidence?.({
+      runtimeId,
+      event,
+      at: new Date().toISOString(),
+      detail,
+    });
+  const migrations =
+    options.migrationsDirectory ??
+    resolveMigrationsDirectory(options.environment);
 
   emit('runtime.initializing', describePersistenceConfig(config));
 
@@ -282,7 +288,12 @@ function memoryRuntime(
     async checkReadiness() {
       return {
         ready: state === 'ready',
-        code: state === 'ready' ? 'READY' : state === 'shutting-down' ? 'SHUTTING_DOWN' : 'POOL_CLOSED',
+        code:
+          state === 'ready'
+            ? 'READY'
+            : state === 'shutting-down'
+              ? 'SHUTTING_DOWN'
+              : 'POOL_CLOSED',
         checkedAt: new Date().toISOString(),
       };
     },
@@ -316,7 +327,8 @@ function postgresRuntime(
       const checkedAt = new Date().toISOString();
       if (state === 'shutting-down')
         return { ready: false, code: 'SHUTTING_DOWN', checkedAt };
-      if (state === 'disposed') return { ready: false, code: 'POOL_CLOSED', checkedAt };
+      if (state === 'disposed')
+        return { ready: false, code: 'POOL_CLOSED', checkedAt };
 
       const connectivity = await checkConnectivity(pool.sql);
       if (!connectivity.reachable) {
@@ -333,9 +345,10 @@ function postgresRuntime(
       }
 
       if (config.verifySchema) {
-        const compatibility = await verifySchemaCompatibility(pool.sql, migrations).catch(
-          () => undefined,
-        );
+        const compatibility = await verifySchemaCompatibility(
+          pool.sql,
+          migrations,
+        ).catch(() => undefined);
         if (!compatibility || compatibility.missingTables.length > 0) {
           state = 'degraded';
           emit('runtime.unready', { code: 'SCHEMA_INCOMPATIBLE' });
@@ -348,7 +361,10 @@ function postgresRuntime(
             checkedAt,
           };
         }
-        if (config.verifyMigrations && compatibility.pendingRequired.length > 0) {
+        if (
+          config.verifyMigrations &&
+          compatibility.pendingRequired.length > 0
+        ) {
           state = 'degraded';
           emit('runtime.unready', { code: 'MIGRATIONS_PENDING' });
           return {
@@ -366,7 +382,9 @@ function postgresRuntime(
         // connection string never should.
         // No schema passed: it is resolved from the connection's own `search_path`, so the
         // certification reads the schema the store actually writes rather than assuming one.
-        const ownership = await certifySchemaOwnership(pool.sql).catch(() => undefined);
+        const ownership = await certifySchemaOwnership(pool.sql).catch(
+          () => undefined,
+        );
         if (!ownership || !ownership.safeToServe) {
           state = 'degraded';
           emit('runtime.unready', { code: 'SCHEMA_OWNERSHIP_UNRECONCILED' });
@@ -377,7 +395,10 @@ function postgresRuntime(
               ? ownership.findings
                   .filter((finding) => finding.severity === 'error')
                   .slice(0, 4)
-                  .map((finding) => `${finding.code}${finding.table ? `:${finding.table}` : ''}`)
+                  .map(
+                    (finding) =>
+                      `${finding.code}${finding.table ? `:${finding.table}` : ''}`,
+                  )
                   .join(', ')
               : 'schema ownership could not be read',
             checkedAt,

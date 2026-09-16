@@ -125,7 +125,10 @@ function requireSupportedSchemaVersion(collection: string, row: Row): void {
 function corrupt(collection: string, column: string, why: string): never {
   // Column and reason only, never the value: these rows carry party scores, unpaid balances, model
   // predictions and feedback comments.
-  throw new PostgresStoreError('PERSISTENCE_CORRUPT_RECORD', `${collection}.${column} ${why}`);
+  throw new PostgresStoreError(
+    'PERSISTENCE_CORRUPT_RECORD',
+    `${collection}.${column} ${why}`,
+  );
 }
 
 function text(collection: string, row: Row, column: string): string {
@@ -141,7 +144,11 @@ function instant(collection: string, row: Row, column: string): string {
   return corrupt(collection, column, 'is not a timestamp');
 }
 
-function optionalInstant(collection: string, row: Row, column: string): string | undefined {
+function optionalInstant(
+  collection: string,
+  row: Row,
+  column: string,
+): string | undefined {
   const value = row[column];
   if (value === null || value === undefined) return undefined;
   return instant(collection, row, column);
@@ -150,18 +157,16 @@ function optionalInstant(collection: string, row: Row, column: string): string |
 /**
  * A `DATE` column, as `YYYY-MM-DD`.
  *
- * The driver returns `date` as a `Date` at **local** midnight, so `toISOString()` would move the day back
- * for any zone behind UTC — a scoring period ending on the 31st would read as the 30th, and the
- * `period_end > period_start` check would still pass while the period silently shifted. Formatted from the
- * local components instead, which is what the value actually is: a calendar date with no zone.
+ * The pool preserves PostgreSQL DATE as a string, without timezone conversion.
  */
 function calendarDate(collection: string, row: Row, column: string): string {
   const value = row[column];
   if (typeof value === 'string') return value.slice(0, 10);
-  if (!(value instanceof Date)) return corrupt(collection, column, 'is not a date');
-  const year = value.getFullYear();
-  const month = String(value.getMonth() + 1).padStart(2, '0');
-  const day = String(value.getDate()).padStart(2, '0');
+  if (!(value instanceof Date))
+    return corrupt(collection, column, 'is not a date');
+  const year = value.getUTCFullYear();
+  const month = String(value.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(value.getUTCDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 }
 
@@ -176,20 +181,23 @@ function numeric(collection: string, row: Row, column: string): number {
   if (typeof value !== 'number' && typeof value !== 'string')
     corrupt(collection, column, 'is not numeric');
   const parsed = typeof value === 'number' ? value : Number(value);
-  if (!Number.isFinite(parsed)) corrupt(collection, column, 'is not a finite number');
+  if (!Number.isFinite(parsed))
+    corrupt(collection, column, 'is not a finite number');
   return parsed;
 }
 
 /** An integer column — a count, or an amount in minor units. */
 function integer(collection: string, row: Row, column: string): number {
   const parsed = numeric(collection, row, column);
-  if (!Number.isInteger(parsed)) corrupt(collection, column, 'is not an integer');
+  if (!Number.isInteger(parsed))
+    corrupt(collection, column, 'is not an integer');
   return parsed;
 }
 
 function boolean(collection: string, row: Row, column: string): boolean {
   const value = row[column];
-  if (typeof value !== 'boolean') corrupt(collection, column, 'is not a boolean');
+  if (typeof value !== 'boolean')
+    corrupt(collection, column, 'is not a boolean');
   return value as boolean;
 }
 
@@ -199,14 +207,18 @@ function json(row: Row, column: string): unknown {
 }
 
 function compact(record: Row): Row {
-  for (const key of Object.keys(record)) if (record[key] === undefined) delete record[key];
+  for (const key of Object.keys(record))
+    if (record[key] === undefined) delete record[key];
   return record;
 }
 
 function requireId(collection: string, record: Row): string {
   const id = record.id;
   if (typeof id !== 'string' || id.length === 0)
-    throw new PostgresStoreError('PERSISTENCE_RECORD_ID_REQUIRED', `${collection} record has no id`);
+    throw new PostgresStoreError(
+      'PERSISTENCE_RECORD_ID_REQUIRED',
+      `${collection} record has no id`,
+    );
   return id;
 }
 
@@ -240,33 +252,36 @@ function relation(
 // Engine 56 — Financial & Payment Intelligence
 // ---------------------------------------------------------------------------------------
 
-const financialForecasts = relation('financialForecasts', 'financial_forecasts', {
-  async list(sql) {
-    const rows = await sql<Row[]>`
+const financialForecasts = relation(
+  'financialForecasts',
+  'financial_forecasts',
+  {
+    async list(sql) {
+      const rows = await sql<Row[]>`
       SELECT id, workspace_id, scope_id, forecast_type, model_id, model_version, predicted_value,
              confidence, rationale, review_status, generated_at, schema_version
       FROM financial_forecasts ORDER BY generated_at ASC, id ASC
     `;
-    return rows.map((row) => {
-      requireSupportedSchemaVersion('financialForecasts', row);
-      return validateFromRow('financialForecasts', {
-        id: text('financialForecasts', row, 'id'),
-        workspaceId: text('financialForecasts', row, 'workspace_id'),
-        scopeId: text('financialForecasts', row, 'scope_id'),
-        forecastType: text('financialForecasts', row, 'forecast_type'),
-        modelId: text('financialForecasts', row, 'model_id'),
-        modelVersion: text('financialForecasts', row, 'model_version'),
-        predictedValue: numeric('financialForecasts', row, 'predicted_value'),
-        confidence: numeric('financialForecasts', row, 'confidence'),
-        rationale: text('financialForecasts', row, 'rationale'),
-        reviewStatus: text('financialForecasts', row, 'review_status'),
-        generatedAt: instant('financialForecasts', row, 'generated_at'),
+      return rows.map((row) => {
+        requireSupportedSchemaVersion('financialForecasts', row);
+        return validateFromRow('financialForecasts', {
+          id: text('financialForecasts', row, 'id'),
+          workspaceId: text('financialForecasts', row, 'workspace_id'),
+          scopeId: text('financialForecasts', row, 'scope_id'),
+          forecastType: text('financialForecasts', row, 'forecast_type'),
+          modelId: text('financialForecasts', row, 'model_id'),
+          modelVersion: text('financialForecasts', row, 'model_version'),
+          predictedValue: numeric('financialForecasts', row, 'predicted_value'),
+          confidence: numeric('financialForecasts', row, 'confidence'),
+          rationale: text('financialForecasts', row, 'rationale'),
+          reviewStatus: text('financialForecasts', row, 'review_status'),
+          generatedAt: instant('financialForecasts', row, 'generated_at'),
+        });
       });
-    });
-  },
-  async insert(sql, value, tenantId) {
-    const record = validateForWrite('financialForecasts', value);
-    await sql`
+    },
+    async insert(sql, value, tenantId) {
+      const record = validateForWrite('financialForecasts', value);
+      await sql`
       INSERT INTO financial_forecasts
         (id, tenant_id, workspace_id, scope_id, forecast_type, model_id, model_version, predicted_value,
          confidence, rationale, review_status, generated_at, row_version, schema_version, updated_at)
@@ -279,13 +294,13 @@ const financialForecasts = relation('financialForecasts', 'financial_forecasts',
         ${BATCH_L_SCHEMA_VERSION}, ${record.generatedAt as string}
       )
     `;
-  },
-  // The review status, and nothing else — the whole of `review()`. Everything else is the forecast a reviewer
-  // read in order to decide, and these forecast payment failure and leakage. This statement is one of the
-  // three a blanket append-only trigger refused before `202608110015`.
-  async update(sql, value) {
-    const record = validateForWrite('financialForecasts', value);
-    const rows = await sql<Row[]>`
+    },
+    // The review status, and nothing else — the whole of `review()`. Everything else is the forecast a reviewer
+    // read in order to decide, and these forecast payment failure and leakage. This statement is one of the
+    // three a blanket append-only trigger refused before `202608110015`.
+    async update(sql, value) {
+      const record = validateForWrite('financialForecasts', value);
+      const rows = await sql<Row[]>`
       UPDATE financial_forecasts
       SET review_status = ${record.reviewStatus as string},
           row_version = row_version + 1,
@@ -293,40 +308,48 @@ const financialForecasts = relation('financialForecasts', 'financial_forecasts',
       WHERE id = ${requireId('financialForecasts', record)}
       RETURNING id
     `;
-    return rows.length;
+      return rows.length;
+    },
   },
-});
+);
 
 // ---------------------------------------------------------------------------------------
 // Engine 57 — Vendor & Customer Performance
 // ---------------------------------------------------------------------------------------
 
 // No `update`. A scorecard covers a closed period; re-scoring is a new row and `history()` reads the series.
-const performanceScorecards = relation('performanceScorecards', 'performance_scorecards', {
-  async list(sql) {
-    const rows = await sql<Row[]>`
+const performanceScorecards = relation(
+  'performanceScorecards',
+  'performance_scorecards',
+  {
+    async list(sql) {
+      const rows = await sql<Row[]>`
       SELECT id, workspace_id, party_id, party_role, period_start, period_end, metrics, overall_score,
              computed_at, schema_version
       FROM performance_scorecards ORDER BY computed_at ASC, id ASC
     `;
-    return rows.map((row) => {
-      requireSupportedSchemaVersion('performanceScorecards', row);
-      return validateFromRow('performanceScorecards', {
-        id: text('performanceScorecards', row, 'id'),
-        workspaceId: text('performanceScorecards', row, 'workspace_id'),
-        partyId: text('performanceScorecards', row, 'party_id'),
-        partyRole: text('performanceScorecards', row, 'party_role'),
-        periodStart: calendarDate('performanceScorecards', row, 'period_start'),
-        periodEnd: calendarDate('performanceScorecards', row, 'period_end'),
-        metrics: json(row, 'metrics'),
-        overallScore: numeric('performanceScorecards', row, 'overall_score'),
-        computedAt: instant('performanceScorecards', row, 'computed_at'),
+      return rows.map((row) => {
+        requireSupportedSchemaVersion('performanceScorecards', row);
+        return validateFromRow('performanceScorecards', {
+          id: text('performanceScorecards', row, 'id'),
+          workspaceId: text('performanceScorecards', row, 'workspace_id'),
+          partyId: text('performanceScorecards', row, 'party_id'),
+          partyRole: text('performanceScorecards', row, 'party_role'),
+          periodStart: calendarDate(
+            'performanceScorecards',
+            row,
+            'period_start',
+          ),
+          periodEnd: calendarDate('performanceScorecards', row, 'period_end'),
+          metrics: json(row, 'metrics'),
+          overallScore: numeric('performanceScorecards', row, 'overall_score'),
+          computedAt: instant('performanceScorecards', row, 'computed_at'),
+        });
       });
-    });
-  },
-  async insert(sql, value, tenantId) {
-    const record = validateForWrite('performanceScorecards', value);
-    await sql`
+    },
+    async insert(sql, value, tenantId) {
+      const record = validateForWrite('performanceScorecards', value);
+      await sql`
       INSERT INTO performance_scorecards
         (id, tenant_id, workspace_id, party_id, party_role, period_start, period_end, metrics,
          overall_score, computed_at, row_version, schema_version, updated_at)
@@ -338,8 +361,9 @@ const performanceScorecards = relation('performanceScorecards', 'performance_sco
         ${BATCH_L_SCHEMA_VERSION}, ${record.computedAt as string}
       )
     `;
+    },
   },
-});
+);
 
 // ---------------------------------------------------------------------------------------
 // Engine 58 — Portfolio Analytics
@@ -347,39 +371,50 @@ const performanceScorecards = relation('performanceScorecards', 'performance_sco
 
 // No `update`. A snapshot is the portfolio at a moment; `trend()` reads the series and editing one would
 // rewrite the history the trend is drawn from.
-const portfolioSnapshots = relation('portfolioSnapshots', 'portfolio_snapshots', {
-  async list(sql) {
-    const rows = await sql<Row[]>`
+const portfolioSnapshots = relation(
+  'portfolioSnapshots',
+  'portfolio_snapshots',
+  {
+    async list(sql) {
+      const rows = await sql<Row[]>`
       SELECT id, workspace_id, scope_id, at_risk_count, blocked_count, unpaid_amount_minor,
              disputed_count, retained_amount_minor, concentration_top_party_percent, currency,
              computed_at, schema_version
       FROM portfolio_snapshots ORDER BY computed_at ASC, id ASC
     `;
-    return rows.map((row) => {
-      requireSupportedSchemaVersion('portfolioSnapshots', row);
-      return validateFromRow('portfolioSnapshots', {
-        id: text('portfolioSnapshots', row, 'id'),
-        workspaceId: text('portfolioSnapshots', row, 'workspace_id'),
-        scopeId: text('portfolioSnapshots', row, 'scope_id'),
-        atRiskCount: integer('portfolioSnapshots', row, 'at_risk_count'),
-        blockedCount: integer('portfolioSnapshots', row, 'blocked_count'),
-        // BIGINT, arriving as a string. Integer minor units per CLAUDE.md's fourth constraint.
-        unpaidAmountMinor: integer('portfolioSnapshots', row, 'unpaid_amount_minor'),
-        disputedCount: integer('portfolioSnapshots', row, 'disputed_count'),
-        retainedAmountMinor: integer('portfolioSnapshots', row, 'retained_amount_minor'),
-        concentrationTopPartyPercent: numeric(
-          'portfolioSnapshots',
-          row,
-          'concentration_top_party_percent',
-        ),
-        currency: text('portfolioSnapshots', row, 'currency'),
-        computedAt: instant('portfolioSnapshots', row, 'computed_at'),
+      return rows.map((row) => {
+        requireSupportedSchemaVersion('portfolioSnapshots', row);
+        return validateFromRow('portfolioSnapshots', {
+          id: text('portfolioSnapshots', row, 'id'),
+          workspaceId: text('portfolioSnapshots', row, 'workspace_id'),
+          scopeId: text('portfolioSnapshots', row, 'scope_id'),
+          atRiskCount: integer('portfolioSnapshots', row, 'at_risk_count'),
+          blockedCount: integer('portfolioSnapshots', row, 'blocked_count'),
+          // BIGINT, arriving as a string. Integer minor units per CLAUDE.md's fourth constraint.
+          unpaidAmountMinor: integer(
+            'portfolioSnapshots',
+            row,
+            'unpaid_amount_minor',
+          ),
+          disputedCount: integer('portfolioSnapshots', row, 'disputed_count'),
+          retainedAmountMinor: integer(
+            'portfolioSnapshots',
+            row,
+            'retained_amount_minor',
+          ),
+          concentrationTopPartyPercent: numeric(
+            'portfolioSnapshots',
+            row,
+            'concentration_top_party_percent',
+          ),
+          currency: text('portfolioSnapshots', row, 'currency'),
+          computedAt: instant('portfolioSnapshots', row, 'computed_at'),
+        });
       });
-    });
-  },
-  async insert(sql, value, tenantId) {
-    const record = validateForWrite('portfolioSnapshots', value);
-    await sql`
+    },
+    async insert(sql, value, tenantId) {
+      const record = validateForWrite('portfolioSnapshots', value);
+      await sql`
       INSERT INTO portfolio_snapshots
         (id, tenant_id, workspace_id, scope_id, at_risk_count, blocked_count, unpaid_amount_minor,
          disputed_count, retained_amount_minor, concentration_top_party_percent, currency, computed_at,
@@ -393,8 +428,9 @@ const portfolioSnapshots = relation('portfolioSnapshots', 'portfolio_snapshots',
         ${record.computedAt as string}, 1, ${BATCH_L_SCHEMA_VERSION}, ${record.computedAt as string}
       )
     `;
+    },
   },
-});
+);
 
 // ---------------------------------------------------------------------------------------
 // Engine 59 — Renewal & Relationship Intelligence
@@ -402,31 +438,46 @@ const portfolioSnapshots = relation('portfolioSnapshots', 'portfolio_snapshots',
 
 // No `update`. An assessment is one assessor's position at a moment; reassessing is a new row, and editing
 // one would change what a named person concluded about a contract.
-const renewalAssessments = relation('renewalAssessments', 'renewal_assessments', {
-  async list(sql) {
-    const rows = await sql<Row[]>`
+const renewalAssessments = relation(
+  'renewalAssessments',
+  'renewal_assessments',
+  {
+    async list(sql) {
+      const rows = await sql<Row[]>`
       SELECT id, workspace_id, contract_id, renewal_readiness_score, performance_history_summary,
              recommended_action, rationale, assessed_by, assessed_at, schema_version
       FROM renewal_assessments ORDER BY assessed_at ASC, id ASC
     `;
-    return rows.map((row) => {
-      requireSupportedSchemaVersion('renewalAssessments', row);
-      return validateFromRow('renewalAssessments', {
-        id: text('renewalAssessments', row, 'id'),
-        workspaceId: text('renewalAssessments', row, 'workspace_id'),
-        contractId: text('renewalAssessments', row, 'contract_id'),
-        renewalReadinessScore: numeric('renewalAssessments', row, 'renewal_readiness_score'),
-        performanceHistorySummary: text('renewalAssessments', row, 'performance_history_summary'),
-        recommendedAction: text('renewalAssessments', row, 'recommended_action'),
-        rationale: text('renewalAssessments', row, 'rationale'),
-        assessedBy: text('renewalAssessments', row, 'assessed_by'),
-        assessedAt: instant('renewalAssessments', row, 'assessed_at'),
+      return rows.map((row) => {
+        requireSupportedSchemaVersion('renewalAssessments', row);
+        return validateFromRow('renewalAssessments', {
+          id: text('renewalAssessments', row, 'id'),
+          workspaceId: text('renewalAssessments', row, 'workspace_id'),
+          contractId: text('renewalAssessments', row, 'contract_id'),
+          renewalReadinessScore: numeric(
+            'renewalAssessments',
+            row,
+            'renewal_readiness_score',
+          ),
+          performanceHistorySummary: text(
+            'renewalAssessments',
+            row,
+            'performance_history_summary',
+          ),
+          recommendedAction: text(
+            'renewalAssessments',
+            row,
+            'recommended_action',
+          ),
+          rationale: text('renewalAssessments', row, 'rationale'),
+          assessedBy: text('renewalAssessments', row, 'assessed_by'),
+          assessedAt: instant('renewalAssessments', row, 'assessed_at'),
+        });
       });
-    });
-  },
-  async insert(sql, value, tenantId) {
-    const record = validateForWrite('renewalAssessments', value);
-    await sql`
+    },
+    async insert(sql, value, tenantId) {
+      const record = validateForWrite('renewalAssessments', value);
+      await sql`
       INSERT INTO renewal_assessments
         (id, tenant_id, workspace_id, contract_id, renewal_readiness_score,
          performance_history_summary, recommended_action, rationale, assessed_by, assessed_at,
@@ -439,37 +490,41 @@ const renewalAssessments = relation('renewalAssessments', 'renewal_assessments',
         ${record.assessedAt as string}, 1, ${BATCH_L_SCHEMA_VERSION}, ${record.assessedAt as string}
       )
     `;
+    },
   },
-});
+);
 
 // ---------------------------------------------------------------------------------------
 // Engine 60 — AI Decision Support & Continuous Improvement
 // ---------------------------------------------------------------------------------------
 
-const modelRegistrations = relation('modelRegistrations', 'model_registrations', {
-  async list(sql) {
-    const rows = await sql<Row[]>`
+const modelRegistrations = relation(
+  'modelRegistrations',
+  'model_registrations',
+  {
+    async list(sql) {
+      const rows = await sql<Row[]>`
       SELECT id, workspace_id, model_id, model_version, purpose, governed_by, status, registered_at,
              schema_version
       FROM model_registrations ORDER BY registered_at ASC, id ASC
     `;
-    return rows.map((row) => {
-      requireSupportedSchemaVersion('modelRegistrations', row);
-      return validateFromRow('modelRegistrations', {
-        id: text('modelRegistrations', row, 'id'),
-        workspaceId: text('modelRegistrations', row, 'workspace_id'),
-        modelId: text('modelRegistrations', row, 'model_id'),
-        modelVersion: text('modelRegistrations', row, 'model_version'),
-        purpose: text('modelRegistrations', row, 'purpose'),
-        governedBy: text('modelRegistrations', row, 'governed_by'),
-        status: text('modelRegistrations', row, 'status'),
-        registeredAt: instant('modelRegistrations', row, 'registered_at'),
+      return rows.map((row) => {
+        requireSupportedSchemaVersion('modelRegistrations', row);
+        return validateFromRow('modelRegistrations', {
+          id: text('modelRegistrations', row, 'id'),
+          workspaceId: text('modelRegistrations', row, 'workspace_id'),
+          modelId: text('modelRegistrations', row, 'model_id'),
+          modelVersion: text('modelRegistrations', row, 'model_version'),
+          purpose: text('modelRegistrations', row, 'purpose'),
+          governedBy: text('modelRegistrations', row, 'governed_by'),
+          status: text('modelRegistrations', row, 'status'),
+          registeredAt: instant('modelRegistrations', row, 'registered_at'),
+        });
       });
-    });
-  },
-  async insert(sql, value, tenantId) {
-    const record = validateForWrite('modelRegistrations', value);
-    await sql`
+    },
+    async insert(sql, value, tenantId) {
+      const record = validateForWrite('modelRegistrations', value);
+      await sql`
       INSERT INTO model_registrations
         (id, tenant_id, workspace_id, model_id, model_version, purpose, governed_by, status,
          registered_at, row_version, schema_version, updated_at)
@@ -480,16 +535,16 @@ const modelRegistrations = relation('modelRegistrations', 'model_registrations',
         1, ${BATCH_L_SCHEMA_VERSION}, ${record.registeredAt as string}
       )
     `;
-  },
-  // Status only, which is all `deprecateModel` moves. The model id and version are what every evaluation,
-  // drift alert, feedback item and recommendation in this batch references, so a mutable `model_id` would
-  // silently re-attribute all of them to a different model.
-  //
-  // This statement was refused before `202608110015`, which meant a model the platform had *itself* flagged
-  // as drifting — `recordEvaluation` raises the alert automatically — could not be taken out of service.
-  async update(sql, value) {
-    const record = validateForWrite('modelRegistrations', value);
-    const rows = await sql<Row[]>`
+    },
+    // Status only, which is all `deprecateModel` moves. The model id and version are what every evaluation,
+    // drift alert, feedback item and recommendation in this batch references, so a mutable `model_id` would
+    // silently re-attribute all of them to a different model.
+    //
+    // This statement was refused before `202608110015`, which meant a model the platform had *itself* flagged
+    // as drifting — `recordEvaluation` raises the alert automatically — could not be taken out of service.
+    async update(sql, value) {
+      const record = validateForWrite('modelRegistrations', value);
+      const rows = await sql<Row[]>`
       UPDATE model_registrations
       SET status = ${record.status as string},
           row_version = row_version + 1,
@@ -497,9 +552,10 @@ const modelRegistrations = relation('modelRegistrations', 'model_registrations',
       WHERE id = ${requireId('modelRegistrations', record)}
       RETURNING id
     `;
-    return rows.length;
+      return rows.length;
+    },
   },
-});
+);
 
 // No `update`. An evaluation is a measurement against a threshold at a moment, and `recordEvaluation` raises
 // a drift alert from it — so an editable evaluation could retract the reason an alert exists.
@@ -515,7 +571,11 @@ const evaluationRecords = relation('evaluationRecords', 'evaluation_records', {
       return validateFromRow('evaluationRecords', {
         id: text('evaluationRecords', row, 'id'),
         workspaceId: text('evaluationRecords', row, 'workspace_id'),
-        modelRegistrationId: text('evaluationRecords', row, 'model_registration_id'),
+        modelRegistrationId: text(
+          'evaluationRecords',
+          row,
+          'model_registration_id',
+        ),
         metric: text('evaluationRecords', row, 'metric'),
         score: numeric('evaluationRecords', row, 'score'),
         threshold: numeric('evaluationRecords', row, 'threshold'),
@@ -555,7 +615,11 @@ const driftAlerts = relation('driftAlerts', 'drift_alerts', {
         compact({
           id: text('driftAlerts', row, 'id'),
           workspaceId: text('driftAlerts', row, 'workspace_id'),
-          modelRegistrationId: text('driftAlerts', row, 'model_registration_id'),
+          modelRegistrationId: text(
+            'driftAlerts',
+            row,
+            'model_registration_id',
+          ),
           description: text('driftAlerts', row, 'description'),
           severity: text('driftAlerts', row, 'severity'),
           status: text('driftAlerts', row, 'status'),
@@ -614,7 +678,11 @@ const modelFeedback = relation('modelFeedback', 'model_feedback', {
       return validateFromRow('modelFeedback', {
         id: text('modelFeedback', row, 'id'),
         workspaceId: text('modelFeedback', row, 'workspace_id'),
-        modelRegistrationId: text('modelFeedback', row, 'model_registration_id'),
+        modelRegistrationId: text(
+          'modelFeedback',
+          row,
+          'model_registration_id',
+        ),
         outputReference: text('modelFeedback', row, 'output_reference'),
         rating: text('modelFeedback', row, 'rating'),
         comment: text('modelFeedback', row, 'comment'),
@@ -654,7 +722,11 @@ const recommendations = relation('recommendations', 'recommendations', {
           id: text('recommendations', row, 'id'),
           workspaceId: text('recommendations', row, 'workspace_id'),
           scopeId: text('recommendations', row, 'scope_id'),
-          modelRegistrationId: text('recommendations', row, 'model_registration_id'),
+          modelRegistrationId: text(
+            'recommendations',
+            row,
+            'model_registration_id',
+          ),
           recommendation: text('recommendations', row, 'recommendation'),
           confidence: numeric('recommendations', row, 'confidence'),
           status: text('recommendations', row, 'status'),
@@ -699,21 +771,22 @@ const recommendations = relation('recommendations', 'recommendations', {
   },
 });
 
-export const BATCH_L_RELATIONS: Readonly<Record<string, BatchLRelation>> = Object.freeze(
-  Object.fromEntries(
-    [
-      financialForecasts,
-      performanceScorecards,
-      portfolioSnapshots,
-      renewalAssessments,
-      modelRegistrations,
-      evaluationRecords,
-      driftAlerts,
-      modelFeedback,
-      recommendations,
-    ].map((entry) => [entry.collection, entry]),
-  ),
-);
+export const BATCH_L_RELATIONS: Readonly<Record<string, BatchLRelation>> =
+  Object.freeze(
+    Object.fromEntries(
+      [
+        financialForecasts,
+        performanceScorecards,
+        portfolioSnapshots,
+        renewalAssessments,
+        modelRegistrations,
+        evaluationRecords,
+        driftAlerts,
+        modelFeedback,
+        recommendations,
+      ].map((entry) => [entry.collection, entry]),
+    ),
+  );
 
 export function isBatchLCollection(collection: string): boolean {
   return Object.hasOwn(BATCH_L_RELATIONS, collection);

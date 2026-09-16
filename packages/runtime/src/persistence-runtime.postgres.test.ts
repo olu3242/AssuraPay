@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import type { AuditRecord } from '@assurapay/shared';
-import { IdentityService } from '@assurapay/identity';
+import { IdentityService, LoginProofService } from '@assurapay/identity';
 import {
   PermissionService,
   TrustStoreMembershipReader,
@@ -80,7 +80,9 @@ async function isolatedDatabase(): Promise<{
 }> {
   const database = await createTestDatabaseInstance();
   disposables.push(() => database.dispose());
-  await applyMigrations(database.sql, migrationsDirectory(), { appliedBy: 'integration-test' });
+  await applyMigrations(database.sql, migrationsDirectory(), {
+    appliedBy: 'integration-test',
+  });
   return { database, url: database.url };
 }
 
@@ -407,7 +409,18 @@ describe('integration: the full trust application, composed through the runtime'
     const second = await startRuntime(url);
     await withTrustScope(SCOPE, async () => {
       const recovered = new IdentityService(second.store);
+      const proofs = new LoginProofService(second.store);
+      const proof = await proofs.issue({
+        email: 'owner@example.test',
+        correlationId: 'proof',
+      });
+      const authenticationMethodId = await proofs.consume({
+        email: 'owner@example.test',
+        ...proof,
+        correlationId: 'consume',
+      });
       const login = await recovered.login({
+        authenticationMethodId,
         email: 'owner@example.test',
         rawSessionToken: 'raw-token',
         correlationId: 'corr-3',

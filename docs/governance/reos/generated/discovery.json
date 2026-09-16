@@ -17,6 +17,7 @@
         "@assurapay/enterprise-analytics",
         "@assurapay/enterprise-intelligence",
         "@assurapay/execution-orchestration",
+        "@assurapay/flow-orchestration",
         "@assurapay/governance-core",
         "@assurapay/identity",
         "@assurapay/legal",
@@ -2363,7 +2364,7 @@
       "moduleType": null,
       "name": "@assurapay/database",
       "sourceFiles": 22,
-      "sourceLines": 12487,
+      "sourceLines": 11435,
       "testFiles": [
         "packages/database/src/async-conformance.test.ts",
         "packages/database/src/rls-certification.test.ts",
@@ -2397,6 +2398,7 @@
       "testFiles": [
         "packages/database-testing/src/durability-coverage.test.ts",
         "packages/database-testing/src/engine-identity.test.ts",
+        "packages/database-testing/src/flow-postgres-store.postgres.test.ts",
         "packages/database-testing/src/identity-plane-rls.postgres.test.ts",
         "packages/database-testing/src/migrations.postgres.test.ts",
         "packages/database-testing/src/money-integrality.postgres.test.ts",
@@ -2426,7 +2428,7 @@
         "integration": 0,
         "performance": 0,
         "security": 0,
-        "unit": 25
+        "unit": 26
       },
       "workspaceDependencies": [
         "@assurapay/agreement-creation",
@@ -2590,6 +2592,41 @@
       "workspaceDependencies": [
         "@assurapay/database",
         "@assurapay/domain-contracts",
+        "@assurapay/shared"
+      ]
+    },
+    {
+      "directory": "packages/flow-orchestration",
+      "exportedClasses": [
+        "AssuranceRouter",
+        "DomainEventFlowBridge",
+        "FlowOperations",
+        "FlowOrchestrator",
+        "FlowRecovery",
+        "FlowRegistry"
+      ],
+      "externalDependencies": [],
+      "main": "src/index.ts",
+      "moduleType": null,
+      "name": "@assurapay/flow-orchestration",
+      "sourceFiles": 5,
+      "sourceLines": 761,
+      "testFiles": [
+        "packages/flow-orchestration/src/canonical-chain.test.ts",
+        "packages/flow-orchestration/src/flow-orchestration.test.ts",
+        "packages/flow-orchestration/src/operations.test.ts",
+        "packages/flow-orchestration/src/recovery.test.ts",
+        "packages/flow-orchestration/src/restart-recovery.postgres.test.ts"
+      ],
+      "tests": {
+        "e2e": 0,
+        "integration": 0,
+        "performance": 0,
+        "security": 0,
+        "unit": 5
+      },
+      "workspaceDependencies": [
+        "@assurapay/database",
         "@assurapay/shared"
       ]
     },
@@ -2824,7 +2861,7 @@
       "moduleType": null,
       "name": "@assurapay/permissions",
       "sourceFiles": 3,
-      "sourceLines": 1022,
+      "sourceLines": 1023,
       "testFiles": [
         "packages/permissions/src/catalogue.test.ts",
         "packages/permissions/src/enforcement.test.ts",
@@ -2878,7 +2915,7 @@
       "moduleType": "module",
       "name": "@assurapay/reos",
       "sourceFiles": 25,
-      "sourceLines": 4957,
+      "sourceLines": 4961,
       "testFiles": [
         "packages/reos/src/reos.e2e.test.ts",
         "packages/reos/src/reos.governance.test.ts",
@@ -3069,42 +3106,20 @@
   "reosVersion": "1.0.0",
   "repository": {
     "git": {
-      "branch": "claude/git-pull-cqc04u",
+      "branch": "feat/production-gaps-single-batch",
       "branches": [
-        "assess/engines-31-50-certification-gap-matrix",
-        "chore/post-merge-governance-artifacts-batch-a",
         "claude/git-pull-cqc04u",
-        "feat/a1-batch-a-relational-repositories",
-        "feat/a1-domain-store-durability",
-        "feat/b1-batch-b-settlement-authority",
-        "feat/c1-batch-c-settlement-ledger",
-        "feat/d1-batch-d-dispute-linkage",
-        "feat/e1-post-wave5-followups",
-        "feat/f1-batch-e-performance-blueprint",
-        "feat/g1-batch-f-agreement-creation",
-        "feat/h1-batch-h-governance-core",
-        "feat/i1-batch-i-agreement-intelligence",
-        "feat/j1-retire-file-domain-store",
-        "feat/k1-batch-k-enterprise-intelligence",
-        "feat/l1-batch-l-enterprise-analytics",
-        "feat/m1-batch-m-agent-runtime",
-        "feat/n1-close-the-durability-capability",
-        "feat/persistence-async-domain-repository",
-        "feat/persistence-async-repository-interface",
-        "feat/persistence-domain-store-durable-environment-gate",
-        "feat/persistence-postgres-trust-store",
-        "feat/persistence-production-runtime-wiring",
-        "feat/persistence-rls-certification",
-        "feat/persistence-schema-ownership-reconciliation",
-        "feat/rc1-production-e2e-convergence",
-        "fix/wave5-codex-followups",
+        "feat/production-gaps-single-batch",
+        "feat/repository-intelligence",
         "main",
+        "origin",
         "origin/assess/engines-31-50-certification-gap-matrix",
         "origin/chore/post-merge-governance-artifacts-batch-a",
         "origin/claude/git-pull-cqc04u",
         "origin/claude/implementation-02q40a",
         "origin/feat/a1-batch-a-relational-repositories",
         "origin/feat/a1-domain-store-durability",
+        "origin/feat/agentic-os-persona-convergence",
         "origin/feat/b1-batch-b-settlement-authority",
         "origin/feat/c1-batch-c-settlement-ledger",
         "origin/feat/d1-batch-d-dispute-linkage",
@@ -3113,6 +3128,9 @@
         "origin/feat/engines-06-10-governance-core",
         "origin/feat/engines-61-70-agent-runtime",
         "origin/feat/f1-batch-e-performance-blueprint",
+        "origin/feat/flow-orchestration-os",
+        "origin/feat/flow-os-operations",
+        "origin/feat/flow-os-recovery-operator",
         "origin/feat/g1-batch-f-agreement-creation",
         "origin/feat/h1-batch-h-governance-core",
         "origin/feat/i1-batch-i-agreement-intelligence",
@@ -3120,6 +3138,7 @@
         "origin/feat/k1-batch-k-enterprise-intelligence",
         "origin/feat/l1-batch-l-enterprise-analytics",
         "origin/feat/m1-batch-m-agent-runtime",
+        "origin/feat/multi-currency-governed-fx",
         "origin/feat/n1-close-the-durability-capability",
         "origin/feat/p1-persistence-completion",
         "origin/feat/persistence-async-domain-repository",
@@ -3130,36 +3149,31 @@
         "origin/feat/persistence-rls-certification",
         "origin/feat/persistence-schema-ownership-reconciliation",
         "origin/feat/production-mvp-completion",
+        "origin/feat/rc1-phase-e-certification-engine",
+        "origin/feat/rc1-phase-e-certification-engine-guard",
+        "origin/feat/rc1-phases-b-d-convergence",
         "origin/feat/rc1-production-e2e-convergence",
         "origin/feat/reos-product-experiment-layer",
         "origin/fix/wave5-codex-followups",
         "origin/fix/windows-domain-store-path-certification",
         "origin/main",
         "origin/wip/persistence-async-migration",
-        "origin/wip/persistence-async-repository-interface",
-        "wip/persistence-async-migration",
-        "wip/persistence-async-repository-interface"
+        "origin/wip/persistence-async-repository-interface"
       ],
       "clean": false,
       "dirtyFiles": [
-        ".github/workflows/ci.yml",
-        "packages/database-testing/src/progressive-trust.postgres.test.ts",
-        "packages/progressive-trust/src/assessment.test.ts",
-        "packages/progressive-trust/src/index.ts",
-        "packages/progressive-trust/src/policy.test.ts",
-        "packages/progressive-trust/src/policy.ts"
+        "docs/governance/reos/generated/DEPENDENCY_RESOLUTION.md"
       ],
-      "head": "d13fd5cff182ef6f2ce2b0753922e3024d0250b6",
-      "headShort": "d13fd5c",
+      "head": "79add8973d037e73bc2cf4e4f93df4db15a7c636",
+      "headShort": "79add89",
       "reflogAvailable": true,
       "remotes": [
         "origin"
       ],
       "tags": [
-        "platform-trust-foundation",
         "rc-engine-60"
       ],
-      "upstream": "origin/claude/git-pull-cqc04u"
+      "upstream": "origin/main"
     },
     "name": "assurapay",
     "packageManager": "pnpm@11.3.0",
@@ -3337,17 +3351,17 @@
       "integration": 15,
       "performance": 2,
       "security": 3,
-      "unit": 86
+      "unit": 92
     },
-    "files": 121
+    "files": 127
   },
   "totals": {
     "applications": 1,
     "documents": 157,
     "engines": 60,
     "migrations": 49,
-    "packages": 27,
-    "testFiles": 121
+    "packages": 28,
+    "testFiles": 127
   },
   "workflows": [
     {

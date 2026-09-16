@@ -1,5 +1,6 @@
 'use client';
 
+import { workspaceFetch } from '../../lib/workspace-fetch';
 import { useCallback, useEffect, useState } from 'react';
 
 type HealthRecord = {
@@ -39,7 +40,7 @@ export default function FlowOperationsConsole() {
   const [busyFlow, setBusyFlow] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
-    const response = await fetch('/api/v1/flows?view=health', { credentials: 'same-origin', cache: 'no-store' });
+    const response = await workspaceFetch('/api/v1/flows?view=health', { credentials: 'same-origin', cache: 'no-store' });
     if (!response.ok) throw new Error(`FLOW_HEALTH_${response.status}`);
     setData(await response.json());
     setError(null);
@@ -54,7 +55,7 @@ export default function FlowOperationsConsole() {
     if (!reason?.trim()) return;
     setBusyFlow(record.flowId);
     try {
-      const response = await fetch(`/api/v1/flows/${record.flowId}/resume`, {
+      const response = await workspaceFetch(`/api/v1/flows/${encodeURIComponent(record.flowId)}/resume`, {
         method: 'POST',
         credentials: 'same-origin',
         headers: { 'content-type': 'application/json' },
@@ -69,7 +70,7 @@ export default function FlowOperationsConsole() {
     }
   };
 
-  if (error && !data) return <section className="card"><h2>Flow operations unavailable</h2><p>{error}</p></section>;
+  if (error && !data) return <section className="card"><h2>Flow operations unavailable</h2><p role="alert">{error}</p><a href="/start">Sign in or select a workspace</a><button onClick={() => refresh().catch(cause => setError(cause instanceof Error ? cause.message : 'Unable to retry'))}>Retry</button></section>;
   if (!data) return <section className="card"><h2>Loading flow health…</h2></section>;
 
   const metrics = [

@@ -16,6 +16,7 @@
         "@assurapay/enterprise-analytics",
         "@assurapay/enterprise-intelligence",
         "@assurapay/execution-orchestration",
+        "@assurapay/flow-orchestration",
         "@assurapay/governance-core",
         "@assurapay/identity",
         "@assurapay/legal",
@@ -48,7 +49,7 @@
       "PaymentInstruction",
       "ReconciliationRecord"
     ],
-    "packageCount": 27,
+    "packageCount": 28,
     "waves": [
       {
         "engines": [
@@ -244,6 +245,7 @@
       "packages/database-testing",
       "packages/domain",
       "packages/domain-contracts",
+      "packages/flow-orchestration",
       "packages/progressive-trust"
     ]
   },
@@ -3506,9 +3508,9 @@
     }
   ],
   "identity": {
-    "branch": "claude/git-pull-cqc04u",
+    "branch": "feat/production-gaps-single-batch",
     "clean": false,
-    "head": "d13fd5cff182ef6f2ce2b0753922e3024d0250b6",
+    "head": "79add8973d037e73bc2cf4e4f93df4db15a7c636",
     "repository": "assurapay",
     "version": "0.1.0"
   },
@@ -3600,7 +3602,7 @@
     "released": 76,
     "validated": 0
   },
-  "manifestDigest": "4c8324cd7b35",
+  "manifestDigest": "68f8a4634274",
   "missingCapabilities": [],
   "packages": [
     {
@@ -3793,7 +3795,7 @@
       "moduleType": null,
       "name": "@assurapay/database",
       "sourceFiles": 22,
-      "sourceLines": 12487,
+      "sourceLines": 11435,
       "testFiles": [
         "packages/database/src/async-conformance.test.ts",
         "packages/database/src/rls-certification.test.ts",
@@ -3827,6 +3829,7 @@
       "testFiles": [
         "packages/database-testing/src/durability-coverage.test.ts",
         "packages/database-testing/src/engine-identity.test.ts",
+        "packages/database-testing/src/flow-postgres-store.postgres.test.ts",
         "packages/database-testing/src/identity-plane-rls.postgres.test.ts",
         "packages/database-testing/src/migrations.postgres.test.ts",
         "packages/database-testing/src/money-integrality.postgres.test.ts",
@@ -3856,7 +3859,7 @@
         "integration": 0,
         "performance": 0,
         "security": 0,
-        "unit": 25
+        "unit": 26
       },
       "workspaceDependencies": [
         "@assurapay/agreement-creation",
@@ -4020,6 +4023,41 @@
       "workspaceDependencies": [
         "@assurapay/database",
         "@assurapay/domain-contracts",
+        "@assurapay/shared"
+      ]
+    },
+    {
+      "directory": "packages/flow-orchestration",
+      "exportedClasses": [
+        "AssuranceRouter",
+        "DomainEventFlowBridge",
+        "FlowOperations",
+        "FlowOrchestrator",
+        "FlowRecovery",
+        "FlowRegistry"
+      ],
+      "externalDependencies": [],
+      "main": "src/index.ts",
+      "moduleType": null,
+      "name": "@assurapay/flow-orchestration",
+      "sourceFiles": 5,
+      "sourceLines": 761,
+      "testFiles": [
+        "packages/flow-orchestration/src/canonical-chain.test.ts",
+        "packages/flow-orchestration/src/flow-orchestration.test.ts",
+        "packages/flow-orchestration/src/operations.test.ts",
+        "packages/flow-orchestration/src/recovery.test.ts",
+        "packages/flow-orchestration/src/restart-recovery.postgres.test.ts"
+      ],
+      "tests": {
+        "e2e": 0,
+        "integration": 0,
+        "performance": 0,
+        "security": 0,
+        "unit": 5
+      },
+      "workspaceDependencies": [
+        "@assurapay/database",
         "@assurapay/shared"
       ]
     },
@@ -4254,7 +4292,7 @@
       "moduleType": null,
       "name": "@assurapay/permissions",
       "sourceFiles": 3,
-      "sourceLines": 1022,
+      "sourceLines": 1023,
       "testFiles": [
         "packages/permissions/src/catalogue.test.ts",
         "packages/permissions/src/enforcement.test.ts",
@@ -4308,7 +4346,7 @@
       "moduleType": "module",
       "name": "@assurapay/reos",
       "sourceFiles": 25,
-      "sourceLines": 4957,
+      "sourceLines": 4961,
       "testFiles": [
         "packages/reos/src/reos.e2e.test.ts",
         "packages/reos/src/reos.governance.test.ts",
@@ -4536,6 +4574,7 @@
           "kind": "symbol",
           "matches": [
             "apps/web/lib/assurance-read-model.ts",
+            "apps/web/lib/flow-app.ts",
             "apps/web/lib/persistence.ts",
             "packages/agent-runtime/src/index.ts",
             "packages/agent-runtime/src/registration.ts",
@@ -4571,6 +4610,9 @@
             "packages/enterprise-analytics/src/index.ts",
             "packages/enterprise-intelligence/src/index.ts",
             "packages/execution-orchestration/src/index.ts",
+            "packages/flow-orchestration/src/index.ts",
+            "packages/flow-orchestration/src/operations.ts",
+            "packages/flow-orchestration/src/recovery.ts",
             "packages/governance-core/src/index.ts",
             "packages/identity/src/assertions.ts",
             "packages/identity/src/gateway.ts",
@@ -4718,6 +4760,7 @@
           "kind": "symbol",
           "matches": [
             "packages/database-testing/src/durability-coverage.test.ts",
+            "packages/database-testing/src/flow-postgres-store.postgres.test.ts",
             "packages/database-testing/src/postgres-store.postgres.test.ts",
             "packages/database-testing/src/store-boundary.postgres.test.ts",
             "packages/database/src/postgres-store.ts"
@@ -4886,6 +4929,7 @@
           "matches": [
             "packages/audit-ledger/src/audit-ledger.postgres.test.ts",
             "packages/database-testing/src/durability-coverage.test.ts",
+            "packages/database-testing/src/flow-postgres-store.postgres.test.ts",
             "packages/database-testing/src/identity-plane-rls.postgres.test.ts",
             "packages/database-testing/src/index.ts",
             "packages/database-testing/src/postgres-store.postgres.test.ts",
@@ -4924,6 +4968,7 @@
             "packages/database/src/postgres-store.ts",
             "packages/database/src/schema-ownership.ts",
             "packages/domain/src/index.ts",
+            "packages/flow-orchestration/src/restart-recovery.postgres.test.ts",
             "packages/organizations/src/index.ts",
             "packages/reos/src/reos.persistence.test.ts",
             "packages/reos/src/validators/persistence.ts",
@@ -5241,6 +5286,7 @@
         {
           "kind": "symbol",
           "matches": [
+            "packages/database-testing/src/flow-postgres-store.postgres.test.ts",
             "packages/database-testing/src/progressive-trust.postgres.test.ts",
             "packages/database-testing/src/rls-certification.postgres.test.ts",
             "packages/database-testing/src/schema-ownership.postgres.test.ts",
@@ -6035,6 +6081,13 @@
             "apps/web/app/api/v1/financial-entitlements/route.ts",
             "apps/web/app/api/v1/financial-forecasts/[id]/review/route.ts",
             "apps/web/app/api/v1/financial-forecasts/route.ts",
+            "apps/web/app/api/v1/flow-tasks/[id]/decisions/route.ts",
+            "apps/web/app/api/v1/flow-tasks/route.ts",
+            "apps/web/app/api/v1/flows/[id]/resume/route.ts",
+            "apps/web/app/api/v1/flows/[id]/route.ts",
+            "apps/web/app/api/v1/flows/[id]/signals/route.ts",
+            "apps/web/app/api/v1/flows/[id]/suspend/route.ts",
+            "apps/web/app/api/v1/flows/route.ts",
             "apps/web/app/api/v1/fund-reservations/[id]/cancel/route.ts",
             "apps/web/app/api/v1/fund-reservations/[id]/release/route.ts",
             "apps/web/app/api/v1/fund-reservations/route.ts",
@@ -6112,6 +6165,7 @@
             "apps/web/app/api/v1/workspaces/route.ts",
             "apps/web/lib/persistence.test.ts",
             "apps/web/lib/route-coverage.test.ts",
+            "apps/web/lib/route-permissions.ts",
             "apps/web/lib/trust-app.ts",
             "packages/database-testing/src/scope-propagation.postgres.test.ts",
             "packages/database/src/trust-scope.ts"

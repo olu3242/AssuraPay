@@ -23,7 +23,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "db:reset": "node scripts/reset-db.js",
-    "db:migrate": "node scripts/run-migrations.js",
+    "db:migrate": "tsx scripts/run-migrations.ts",
     "db:seed": "node scripts/seed-data.js",
     "repo:discover": "node packages/reos/bin/reos.ts discover",
     "repo:forensics": "node packages/reos/bin/reos.ts forensics",
@@ -139,6 +139,7 @@
     "eslint": "^8.57.0",
     "eslint-config-next": "^14.2.15",
     "prettier": "^3.3.3",
+    "tsx": "4.23.13",
     "typescript": "^5.5.4",
     "vitest": "^2.1.4"
   },

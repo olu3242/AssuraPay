@@ -23,7 +23,9 @@ import {
 
 const POSTGRES = 'postgres://user:secret@db.internal:5432/assurapay';
 
-function durableEnvironment(overrides: Record<string, string | undefined> = {}) {
+function durableEnvironment(
+  overrides: Record<string, string | undefined> = {},
+) {
   return {
     ASSURAPAY_DEPLOYMENT: 'production',
     ASSURAPAY_DATABASE_URL: POSTGRES,
@@ -35,7 +37,9 @@ function durableEnvironment(overrides: Record<string, string | undefined> = {}) 
 describe('durable environments require PostgreSQL', () => {
   it('resolves the postgres adapter for every durable deployment class', () => {
     for (const deployment of DURABLE_DEPLOYMENT_CLASSES) {
-      const config = loadPersistenceConfig(durableEnvironment({ ASSURAPAY_DEPLOYMENT: deployment }));
+      const config = loadPersistenceConfig(
+        durableEnvironment({ ASSURAPAY_DEPLOYMENT: deployment }),
+      );
       expect(config.adapter, deployment).toBe('postgres');
       expect(isDurableDeployment(deployment)).toBe(true);
     }
@@ -70,7 +74,10 @@ describe('durable environments require PostgreSQL', () => {
     // A production host that quietly connected to a local database would report healthy
     // while serving nothing.
     expect(() =>
-      loadPersistenceConfig({ ASSURAPAY_DEPLOYMENT: 'production', ASSURAPAY_DATABASE_SSL: 'require' }),
+      loadPersistenceConfig({
+        ASSURAPAY_DEPLOYMENT: 'production',
+        ASSURAPAY_DATABASE_SSL: 'require',
+      }),
     ).toThrow('PERSISTENCE_CONFIG_DATABASE_URL_REQUIRED');
   });
 
@@ -83,10 +90,16 @@ describe('durable environments require PostgreSQL', () => {
       'PERSISTENCE_CONFIG_DATABASE_URL_REQUIRED',
     );
     expect(() =>
-      loadPersistenceConfig({ NODE_ENV: 'production', ASSURAPAY_DATABASE_URL: POSTGRES }),
+      loadPersistenceConfig({
+        NODE_ENV: 'production',
+        ASSURAPAY_DATABASE_URL: POSTGRES,
+      }),
     ).toThrow('PERSISTENCE_CONFIG_SSL_REQUIRED');
     expect(() =>
-      loadPersistenceConfig({ NODE_ENV: 'production', ASSURAPAY_PERSISTENCE_ADAPTER: 'memory' }),
+      loadPersistenceConfig({
+        NODE_ENV: 'production',
+        ASSURAPAY_PERSISTENCE_ADAPTER: 'memory',
+      }),
     ).toThrow('PERSISTENCE_CONFIG_DURABLE_REQUIRES_POSTGRES');
   });
 
@@ -99,7 +112,9 @@ describe('durable environments require PostgreSQL', () => {
     ).toThrow('PERSISTENCE_CONFIG_SSL_REQUIRED');
 
     expect(() =>
-      loadPersistenceConfig(durableEnvironment({ ASSURAPAY_DATABASE_SSL: 'disable' })),
+      loadPersistenceConfig(
+        durableEnvironment({ ASSURAPAY_DATABASE_SSL: 'disable' }),
+      ),
     ).toThrow('PERSISTENCE_CONFIG_SSL_REQUIRED');
   });
 
@@ -118,7 +133,9 @@ describe('durable environments require PostgreSQL', () => {
 
 describe('non-durable environments still work without a database', () => {
   it('defaults to memory in development, so a developer with no database can run the app', () => {
-    const config = loadPersistenceConfig({ ASSURAPAY_DEPLOYMENT: 'development' });
+    const config = loadPersistenceConfig({
+      ASSURAPAY_DEPLOYMENT: 'development',
+    });
     expect(config.adapter).toBe('memory');
     expect(config.databaseUrl).toBeUndefined();
   });
@@ -151,7 +168,9 @@ describe('persistence cannot be selected by anything a client can reach', () => 
     for (const name of FORBIDDEN_CLIENT_VARIABLES) {
       const error = (() => {
         try {
-          loadPersistenceConfig(durableEnvironment({ [name]: 'postgres://elsewhere/db' }));
+          loadPersistenceConfig(
+            durableEnvironment({ [name]: 'postgres://elsewhere/db' }),
+          );
           return undefined;
         } catch (caught) {
           return caught;
@@ -166,7 +185,9 @@ describe('persistence cannot be selected by anything a client can reach', () => 
 
   it('names NEXT_PUBLIC_DATABASE_URL specifically, the variable most likely to be tried', () => {
     expect(FORBIDDEN_CLIENT_VARIABLES).toContain('NEXT_PUBLIC_DATABASE_URL');
-    expect(FORBIDDEN_CLIENT_VARIABLES).toContain('NEXT_PUBLIC_PERSISTENCE_MODE');
+    expect(FORBIDDEN_CLIENT_VARIABLES).toContain(
+      'NEXT_PUBLIC_PERSISTENCE_MODE',
+    );
   });
 });
 
@@ -179,21 +200,24 @@ describe('bounds and identifiers are validated, not coerced', () => {
       ['ASSURAPAY_DATABASE_STATEMENT_TIMEOUT_SECONDS', '-1'],
       ['ASSURAPAY_STARTUP_TIMEOUT_SECONDS', '99999'],
     ] as const)
-      expect(() => loadPersistenceConfig(durableEnvironment({ [name]: value })), `${name}=${value}`).toThrow(
-        'PERSISTENCE_CONFIG_BOUND_INVALID',
-      );
+      expect(
+        () => loadPersistenceConfig(durableEnvironment({ [name]: value })),
+        `${name}=${value}`,
+      ).toThrow('PERSISTENCE_CONFIG_BOUND_INVALID');
   });
 
   it('refuses an unknown deployment class rather than guessing', () => {
-    expect(() => loadPersistenceConfig({ ASSURAPAY_DEPLOYMENT: 'prodction' })).toThrow(
-      'PERSISTENCE_CONFIG_DEPLOYMENT_UNKNOWN',
-    );
+    expect(() =>
+      loadPersistenceConfig({ ASSURAPAY_DEPLOYMENT: 'prodction' }),
+    ).toThrow('PERSISTENCE_CONFIG_DEPLOYMENT_UNKNOWN');
   });
 
   it('refuses a URL that is not a postgres URL', () => {
     for (const url of ['not-a-url', 'mysql://host/db', 'postgres:///no-host'])
       expect(() =>
-        loadPersistenceConfig(durableEnvironment({ ASSURAPAY_DATABASE_URL: url })),
+        loadPersistenceConfig(
+          durableEnvironment({ ASSURAPAY_DATABASE_URL: url }),
+        ),
       ).toThrow('PERSISTENCE_CONFIG_DATABASE_URL_INVALID');
   });
 });
@@ -205,7 +229,9 @@ describe('errors and descriptions carry no secrets', () => {
     const error = (() => {
       try {
         loadPersistenceConfig(
-          durableEnvironment({ ASSURAPAY_DATABASE_URL: 'postgres://user:hunter2@host/db?x' }),
+          durableEnvironment({
+            ASSURAPAY_DATABASE_URL: 'postgres://user:hunter2@host/db?x',
+          }),
         );
         return undefined;
       } catch (caught) {
@@ -218,7 +244,11 @@ describe('errors and descriptions carry no secrets', () => {
 
     const invalid = (() => {
       try {
-        loadPersistenceConfig(durableEnvironment({ ASSURAPAY_DATABASE_URL: 'mysql://user:hunter2@host/db' }));
+        loadPersistenceConfig(
+          durableEnvironment({
+            ASSURAPAY_DATABASE_URL: 'mysql://user:hunter2@host/db',
+          }),
+        );
         return undefined;
       } catch (caught) {
         return caught as Error;
@@ -229,13 +259,30 @@ describe('errors and descriptions carry no secrets', () => {
   });
 
   it('describes the configuration without the URL in any form', () => {
-    const described = describePersistenceConfig(loadPersistenceConfig(durableEnvironment()));
+    const described = describePersistenceConfig(
+      loadPersistenceConfig(durableEnvironment()),
+    );
     const serialised = JSON.stringify(described);
 
     expect(serialised).not.toContain('secret');
     expect(serialised).not.toContain('db.internal');
     expect(serialised).not.toContain('postgres://');
     // What it does report: enough to tell two deployments apart in a log.
-    expect(described).toMatchObject({ deployment: 'production', adapter: 'postgres', ssl: 'require' });
+    expect(described).toMatchObject({
+      deployment: 'production',
+      adapter: 'postgres',
+      ssl: 'require',
+    });
   });
+});
+
+describe('durable readiness cannot disable schema evidence', () => {
+  it.each(['ASSURAPAY_VERIFY_MIGRATIONS', 'ASSURAPAY_VERIFY_SCHEMA'])(
+    'refuses %s=false',
+    (key) => {
+      expect(() =>
+        loadPersistenceConfig(durableEnvironment({ [key]: 'false' })),
+      ).toThrow('PERSISTENCE_CONFIG_VERIFICATION_REQUIRED');
+    },
+  );
 });

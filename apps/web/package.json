@@ -35,6 +35,13 @@
     "next": "^14.2.15",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "@assurapay/progressive-trust": "workspace:*"
+    "@assurapay/progressive-trust": "workspace:*",
+    "@assurapay/notifications": "workspace:*",
+    "lucide-react": "^1.46.0"
+  },
+  "devDependencies": {
+    "tailwindcss": "3.4.17",
+    "postcss": "^8.5.25",
+    "autoprefixer": "^10.6.0"
   }
 }

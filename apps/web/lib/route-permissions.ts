@@ -25,6 +25,11 @@ export class RouteAccessError extends Error {
  * through `authorizedContextForRoute`; no feature owns a parallel route policy.
  */
 export const ROUTE_PERMISSION_REQUIREMENTS: Readonly<Record<string, RouteAccess>> = {
+  '/api/v1/agreement-intakes|POST': { access: 'permission', permissionKey: 'agreement-contracts:create' },
+  '/api/v1/agreement-intakes/[id]|GET': { access: 'permission', permissionKey: 'contracts:read' },
+  '/api/v1/agreement-intakes/[id]/clarifications/[clarificationId]|POST': { access: 'permission', permissionKey: 'agreement-contracts:create' },
+  '/api/v1/agreement-intakes/[id]/review|POST': { access: 'permission', permissionKey: 'agreement-contracts:create' },
+  '/api/v1/agreement-intakes/[id]/convert|POST': { access: 'permission', permissionKey: 'agreement-contracts:create' },
   '/api/v1/acceptance-criteria/[id]/confirm|POST': { access: 'permission', permissionKey: 'acceptance-criteria:confirm' },
   '/api/v1/acceptance-criteria|POST': { access: 'permission', permissionKey: 'acceptance-criteria:create' },
   '/api/v1/acceptance-decisions|POST': { access: 'permission', permissionKey: 'acceptance-decisions:create' },
@@ -243,3 +248,4 @@ export function routePermissionKeys(): string[] {
     ),
   ].sort();
 }
+

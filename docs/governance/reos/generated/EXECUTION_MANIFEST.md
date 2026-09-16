@@ -9,15 +9,15 @@
 | --- | --- |
 | Repository | assurapay |
 | Version | 0.1.0 |
-| Branch | claude/git-pull-cqc04u |
-| HEAD | d13fd5cff182ef6f2ce2b0753922e3024d0250b6 |
+| Branch | feat/production-gaps-single-batch |
+| HEAD | 79add8973d037e73bc2cf4e4f93df4db15a7c636 |
 | Worktree clean | no |
-| Manifest digest | 4c8324cd7b35 |
+| Manifest digest | 68f8a4634274 |
 | REOS version | 1.0.0 |
 
 ## Architecture
 
-- Packages: 27
+- Packages: 28
 - Applications: 1
 - Waves: 6
 - Canonical chain: Contract → PerformanceBlueprint → Milestone → DefinitionOfDonePackage → ExecutionWorkspace → CompletionCertificate → PaymentEligibility → FinancialEntitlement → ReleaseRequest → PaymentInstruction → ReconciliationRecord
@@ -154,4 +154,4 @@ from repository evidence: package presence, test files, and certification wiring
 ## Certification coverage
 
 - Certification scripts: 87
-- Packages without a certification script: packages/database, packages/database-testing, packages/domain, packages/domain-contracts, packages/progressive-trust
+- Packages without a certification script: packages/database, packages/database-testing, packages/domain, packages/domain-contracts, packages/flow-orchestration, packages/progressive-trust

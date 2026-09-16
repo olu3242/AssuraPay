@@ -15,3 +15,7 @@ apps/web/apps/
 /test-results/
 /playwright-report/
 /blob-report/
+
+# Local convergence infrastructure and CLI state
+.local-postgres/
+supabase/.temp/

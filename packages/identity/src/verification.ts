@@ -1,55 +1,9 @@
-/**
- * Engine 01 — email verification, and the channel that carries it.
- *
- * ## The defect this closes
- *
- * `IdentityService.register` creates an identity with status `PENDING_VERIFICATION`.
- * `IdentityService.login` refuses anything whose status is not `ACTIVE`. The only transition
- * between the two is `IdentityService.activate`, and **no HTTP route reached it** — the web
- * application exposed `register`, `login`, `logout` and `session`, and nothing else under
- * `/v1/auth`. Every identity the platform could create was therefore permanently unable to sign
- * in, and the browser certification found it the only way it could be found: by registering
- * through the real UI and being refused at the next click with `AUTHENTICATION_DENIED`.
- *
- * The engine method existed the whole time. What was missing was a way for a user to prove the
- * email is theirs, which is the thing activation is supposed to be evidence of.
- *
- * ## Why a token, when login has no proof of possession at all
- *
- * `POST /v1/auth/login` takes `{ email }` and returns a session. It is passwordless in the literal
- * sense: possession of the address is never proven, because Engine 02's identity-provider
- * integration is not built. So one could argue activation needs no proof either.
- *
- * That argument is wrong in the direction that matters. Exposing `activate(userId)` as a route
- * would let anyone move *another* person's dormant, unverified registration into a state where it
- * can be signed into — turning a record nobody can use into a live account, on behalf of someone
- * who never completed anything. Adding a single-use token costs little and refuses that, and it
- * leaves the verification step correct for when the login path is eventually given real proof of
- * possession rather than requiring it to be revisited then.
- *
- * The token is stored as a SHA-256 digest and compared in constant time, which is the same
- * treatment `UserSession.sessionTokenHash` already gets in this engine — the raw value is returned
- * once and never persisted.
- *
- * ## The delivery channel is configured, and there is no default
- *
- * A verification token has to reach the person who registered. Engine 09, Notification &
- * Communication, is the engine that would carry it, and `docs/ENGINE_CATALOG.md` marks it
- * **Deferred** — the platform has no email transport of any kind.
- *
- * So the channel is stated by the deployment rather than assumed, in the same shape
- * `ASSURAPAY_DATABASE_SSL` is stated: there is no default and an unset value refuses to start.
- * A deployment that names `DIRECT_RETURN` is declaring that it has no delivery channel and that
- * `POST /v1/auth/register` may therefore hand the token straight back to its caller. That is a
- * property of the deployment, uniform for every caller of that deployment — not a branch keyed on
- * a test, which §19 of the RC1 brief forbids and which would certify a path production never runs.
- * The business rule is identical either way: a token is required, it is single-use, it expires,
- * and it is what makes an identity `ACTIVE`.
- */
+/** Single-use email verification with explicit production email delivery. */
 
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 
-export type IdentityVerificationChannel = 'DIRECT_RETURN' | 'NOTIFICATION_ENGINE';
+export type IdentityVerificationChannel =
+  'DIRECT_RETURN' | 'NOTIFICATION_ENGINE' | 'EMAIL';
 
 export type IdentityVerificationConfig = {
   channel: IdentityVerificationChannel;
@@ -59,7 +13,11 @@ export type IdentityVerificationConfig = {
 
 export class IdentityVerificationConfigError extends Error {
   constructor(
-    readonly code: 'VERIFICATION_CHANNEL_UNSET' | 'VERIFICATION_CHANNEL_UNKNOWN' | 'VERIFICATION_CHANNEL_UNAVAILABLE',
+    readonly code:
+      | 'VERIFICATION_CHANNEL_UNSET'
+      | 'VERIFICATION_CHANNEL_UNKNOWN'
+      | 'VERIFICATION_CHANNEL_UNAVAILABLE'
+      | 'VERIFICATION_DIRECT_RETURN_FORBIDDEN',
     message: string,
   ) {
     super(message);
@@ -67,8 +25,8 @@ export class IdentityVerificationConfigError extends Error {
   }
 }
 
-/** Twenty-four hours, matching the horizon a person plausibly acts on a registration within. */
-const DEFAULT_TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
+/** Verification codes expire after ten minutes by default. */
+const DEFAULT_TOKEN_TTL_MS = 10 * 60 * 1000;
 
 /**
  * Reads the verification channel from the environment. No default, deliberately.
@@ -82,6 +40,20 @@ export function loadIdentityVerificationConfig(
   env: Record<string, string | undefined>,
 ): IdentityVerificationConfig {
   const channel = env.ASSURAPAY_IDENTITY_VERIFICATION_CHANNEL?.trim();
+  if (
+    channel === 'DIRECT_RETURN' &&
+    (env.NODE_ENV === 'production' ||
+      env.VERCEL === '1' ||
+      !['development', 'test'].includes(
+        env.ASSURAPAY_DEPLOYMENT ?? env.NODE_ENV ?? '',
+      ) ||
+      env.ASSURAPAY_ALLOW_DIRECT_RETURN !== 'true')
+  ) {
+    throw new IdentityVerificationConfigError(
+      'VERIFICATION_DIRECT_RETURN_FORBIDDEN',
+      'DIRECT_RETURN requires explicit local development/test configuration and is forbidden on production hosts',
+    );
+  }
 
   if (!channel)
     throw new IdentityVerificationConfigError(
@@ -102,7 +74,38 @@ export function loadIdentityVerificationConfig(
         'fails loudly here rather than silently sending nothing.',
     );
 
-  if (channel !== 'DIRECT_RETURN')
+  if (channel === 'EMAIL') {
+    if (
+      env.NOTIFICATION_PROVIDER !== 'RESEND' ||
+      !env.RESEND_API_KEY?.trim() ||
+      !env.ASSURAPAY_EMAIL_FROM?.trim()
+    )
+      throw new IdentityVerificationConfigError(
+        'VERIFICATION_CHANNEL_UNAVAILABLE',
+        'EMAIL requires a configured RESEND provider',
+      );
+    let origin: URL;
+    try {
+      origin = new URL(env.NEXT_PUBLIC_APP_URL ?? '');
+    } catch {
+      throw new IdentityVerificationConfigError(
+        'VERIFICATION_CHANNEL_UNAVAILABLE',
+        'EMAIL requires a public application URL',
+      );
+    }
+    if (
+      origin.protocol !== 'https:' &&
+      !(
+        env.NODE_ENV !== 'production' &&
+        ['localhost', '127.0.0.1'].includes(origin.hostname)
+      )
+    )
+      throw new IdentityVerificationConfigError(
+        'VERIFICATION_CHANNEL_UNAVAILABLE',
+        'EMAIL requires an HTTPS application URL',
+      );
+  }
+  if (channel !== 'DIRECT_RETURN' && channel !== 'EMAIL')
     throw new IdentityVerificationConfigError(
       'VERIFICATION_CHANNEL_UNKNOWN',
       `ASSURAPAY_IDENTITY_VERIFICATION_CHANNEL=${channel} is not a channel. Use DIRECT_RETURN.`,
@@ -112,7 +115,10 @@ export function loadIdentityVerificationConfig(
     ? Number(env.ASSURAPAY_IDENTITY_VERIFICATION_TTL_MS)
     : DEFAULT_TOKEN_TTL_MS;
 
-  return { channel, tokenTtlMs: Number.isFinite(ttl) && ttl > 0 ? ttl : DEFAULT_TOKEN_TTL_MS };
+  return {
+    channel,
+    tokenTtlMs: Number.isFinite(ttl) && ttl > 0 ? ttl : DEFAULT_TOKEN_TTL_MS,
+  };
 }
 
 /** A verification token: 32 random bytes, hex-encoded. */
@@ -131,7 +137,10 @@ export function verificationTokenDigest(token: string): string {
  * values — a digest is always 64 hex characters, which makes the lengths equal by construction and
  * keeps the comparison from leaking through an exception rather than through timing.
  */
-export function verificationTokenMatches(presented: string, storedDigest: string): boolean {
+export function verificationTokenMatches(
+  presented: string,
+  storedDigest: string,
+): boolean {
   const candidate = Buffer.from(verificationTokenDigest(presented), 'hex');
   const stored = Buffer.from(storedDigest, 'hex');
   if (candidate.length !== stored.length) return false;

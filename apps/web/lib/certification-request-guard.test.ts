@@ -6,7 +6,7 @@ import { assertCertificationRequestBinding } from './certification-request-guard
 const context: RequestContext = {
   actorUserId: 'requester',
   sessionId: 'session',
-  identityAssuranceLevel: 'AAL1',
+  identityAssuranceLevel: 'IAL1_BASIC',
   activeWorkspaceId: 'workspace-1',
   tenantId: 'tenant-1',
   memberships: ['workspace-1'],

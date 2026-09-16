@@ -1,2 +1,128 @@
-import { describe, expect, it } from 'vitest'; import { InMemoryTrustStore } from '@assurapay/database'; import { IdentityService } from '@assurapay/identity'; import { OrganizationService } from '@assurapay/organizations'; import { PermissionService } from '@assurapay/permissions'; import { DeterministicVerificationProvider, PartyService } from '@assurapay/parties'; import { LegalService } from '@assurapay/legal';
-describe('e2e trust foundation flow', () => { it('registers identity, establishes tenant authority, verifies a vendor, accepts policy, masks fields, and audits the chain', async () => { const store = new InMemoryTrustStore(); const identity = new IdentityService(store); const organizations = new OrganizationService(store); const permissions = new PermissionService(store); const parties = new PartyService(store, [new DeterministicVerificationProvider()]); const legal = new LegalService(store); const user = await identity.activate((await identity.register({ email: 'owner@example.test', displayName: 'Owner', correlationId: 'register' })).identity.id, 'verify'); const session = (await identity.login({ email: user.email, rawSessionToken: 'e2e-session', correlationId: 'login' })).session; const workspace = await organizations.createWorkspace({ tenantId: 'tenant-e2e', workspaceType: 'ORGANIZATION', name: 'AssuraPay Demo Company', slug: 'assurapay-demo', ownerUserId: user.id, defaultCurrency: 'NGN', timezone: 'Africa/Lagos', countryCode: 'NG', correlationId: 'workspace' }); const context = await organizations.activateContext(user.id, workspace.id, session.id, session.identityAssuranceLevel); await permissions.grant(context, { userId: user.id, permissionKey: 'party.create', effect: 'ALLOW', scopeType: 'GLOBAL', sourceType: 'ROLE', sourceId: 'owner-role', effectiveFrom: '2020-01-01' }); await permissions.requirePermission(context, 'party.create'); const party = await parties.createParty(context, { partyType: 'VENDOR', legalName: 'Fictional Vendor Ltd', displayName: 'Vendor', countryCode: 'NG' }); const result = await parties.requestVerification(context, { partyId: party.id, verificationType: 'COMPANY_REGISTRATION', providerCode: 'DETERMINISTIC_TEST', attributes: { registration: 'TEST-001' } }); expect(result.result).toBe('VERIFIED'); const policy = await legal.createPolicy(context, { policyKey: 'terms', name: 'Terms', policyType: 'TERMS_OF_SERVICE' }); const version = await legal.publishVersion(context, (await legal.createVersion(context, policy.id, { contentReference: 'policy://terms/v1', content: 'fictional terms', effectiveFrom: '2026-01-01' })).id); const acceptance = await legal.acceptPolicy(context, version.id, { principalType: 'USER', principalId: user.id, acceptanceMethod: 'CLICKWRAP', sourceContext: 'e2e', evidenceReference: 'audit://terms' }); expect(acceptance.legalPolicyVersionId).toBe(version.id); expect((await store.list('auditRecords')).length).toBeGreaterThanOrEqual(7); await expect(organizations.activateContext('outsider', workspace.id, 'x', 'IAL1_BASIC')).rejects.toThrow('WORKSPACE_ACCESS_DENIED'); }); });
+import { describe, expect, it } from 'vitest';
+import { InMemoryTrustStore } from '@assurapay/database';
+import { IdentityService, LoginProofService } from '@assurapay/identity';
+import { OrganizationService } from '@assurapay/organizations';
+import { PermissionService } from '@assurapay/permissions';
+import {
+  DeterministicVerificationProvider,
+  PartyService,
+} from '@assurapay/parties';
+import { LegalService } from '@assurapay/legal';
+describe('e2e trust foundation flow', () => {
+  it('registers identity, establishes tenant authority, verifies a vendor, accepts policy, masks fields, and audits the chain', async () => {
+    const store = new InMemoryTrustStore();
+    const identity = new IdentityService(store);
+    const organizations = new OrganizationService(store);
+    const permissions = new PermissionService(store);
+    const parties = new PartyService(store, [
+      new DeterministicVerificationProvider(),
+    ]);
+    const legal = new LegalService(store);
+    const user = await identity.activate(
+      (
+        await identity.register({
+          email: 'owner@example.test',
+          displayName: 'Owner',
+          correlationId: 'register',
+        })
+      ).identity.id,
+      'verify',
+    );
+    const session = (
+      await identity.login({
+        email: user.email,
+        rawSessionToken: 'e2e-session',
+        authenticationMethodId: await loginMethod(store, user.email),
+        correlationId: 'login',
+      })
+    ).session;
+    const workspace = await organizations.createWorkspace({
+      tenantId: 'tenant-e2e',
+      workspaceType: 'ORGANIZATION',
+      name: 'AssuraPay Demo Company',
+      slug: 'assurapay-demo',
+      ownerUserId: user.id,
+      defaultCurrency: 'NGN',
+      timezone: 'Africa/Lagos',
+      countryCode: 'NG',
+      correlationId: 'workspace',
+    });
+    const context = await organizations.activateContext(
+      user.id,
+      workspace.id,
+      session.id,
+      session.identityAssuranceLevel,
+    );
+    await permissions.grant(context, {
+      userId: user.id,
+      permissionKey: 'party.create',
+      effect: 'ALLOW',
+      scopeType: 'GLOBAL',
+      sourceType: 'ROLE',
+      sourceId: 'owner-role',
+      effectiveFrom: '2020-01-01',
+    });
+    await permissions.requirePermission(context, 'party.create');
+    const party = await parties.createParty(context, {
+      partyType: 'VENDOR',
+      legalName: 'Fictional Vendor Ltd',
+      displayName: 'Vendor',
+      countryCode: 'NG',
+    });
+    const result = await parties.requestVerification(context, {
+      partyId: party.id,
+      verificationType: 'COMPANY_REGISTRATION',
+      providerCode: 'DETERMINISTIC_TEST',
+      attributes: { registration: 'TEST-001' },
+    });
+    expect(result.result).toBe('VERIFIED');
+    const policy = await legal.createPolicy(context, {
+      policyKey: 'terms',
+      name: 'Terms',
+      policyType: 'TERMS_OF_SERVICE',
+    });
+    const version = await legal.publishVersion(
+      context,
+      (
+        await legal.createVersion(context, policy.id, {
+          contentReference: 'policy://terms/v1',
+          content: 'fictional terms',
+          effectiveFrom: '2026-01-01',
+        })
+      ).id,
+    );
+    const acceptance = await legal.acceptPolicy(context, version.id, {
+      principalType: 'USER',
+      principalId: user.id,
+      acceptanceMethod: 'CLICKWRAP',
+      sourceContext: 'e2e',
+      evidenceReference: 'audit://terms',
+    });
+    expect(acceptance.legalPolicyVersionId).toBe(version.id);
+    expect((await store.list('auditRecords')).length).toBeGreaterThanOrEqual(7);
+    await expect(
+      organizations.activateContext(
+        'outsider',
+        workspace.id,
+        'x',
+        'IAL1_BASIC',
+      ),
+    ).rejects.toThrow('WORKSPACE_ACCESS_DENIED');
+  });
+});
+
+async function loginMethod(
+  store: InMemoryTrustStore,
+  email: string,
+): Promise<string> {
+  const proofs = new LoginProofService(store);
+  const issued = await proofs.issue({
+    email,
+    correlationId: 'test-login-proof',
+  });
+  return proofs.consume({
+    email,
+    ...issued,
+    correlationId: 'test-login-consume',
+  });
+}

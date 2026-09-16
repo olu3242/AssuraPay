@@ -1,1 +1,2 @@
-import { TrustConsole } from '../../components/trust-console'; export default function OnboardingPage({ params }: { params: { mode: string } }) { return <TrustConsole section={params.mode === 'organization' ? 'organization' : 'workspaces'} permissions={['organization.read']} />; }
+import { redirect } from 'next/navigation';
+export default function Page() { redirect('/start'); }

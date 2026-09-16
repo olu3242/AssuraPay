@@ -1,3 +1,6 @@
+import { protectBrowserMutation } from '../../../../../lib/browser-security';
+import { trustStore as browserSecurityStore } from '../../../../../lib/persistence';
+import { deliverAuthenticationEmail } from '../../../../../lib/authentication-email';
 import { loadIdentityVerificationConfig } from '@assurapay/identity';
 import { trust, errorResponse } from '../../../../../lib/trust-app';
 
@@ -19,12 +22,19 @@ import { trust, errorResponse } from '../../../../../lib/trust-app';
  */
 export async function POST(request: Request) {
   try {
+    await protectBrowserMutation(
+      request,
+      browserSecurityStore,
+      process.env.NEXT_PUBLIC_APP_URL,
+    );
     const verification = loadIdentityVerificationConfig(process.env);
     const body = await request.json();
+    const correlationId =
+      request.headers.get('x-correlation-id') ?? crypto.randomUUID();
     const { identity, emailVerificationToken } = await trust.identity.register({
       email: body.email,
       displayName: body.displayName,
-      correlationId: request.headers.get('x-correlation-id') ?? crypto.randomUUID(),
+      correlationId,
       verificationTokenTtlMs: verification.tokenTtlMs,
     });
 
@@ -32,10 +42,21 @@ export async function POST(request: Request) {
     // route strips `sessionTokenHash`.
     const { emailVerificationTokenHash: _digest, ...safeIdentity } = identity;
 
+    const delivery =
+      verification.channel === 'EMAIL'
+        ? await deliverAuthenticationEmail({
+            purpose: 'VERIFY_EMAIL',
+            userId: identity.id,
+            email: identity.email,
+            reference: identity.id,
+            credential: emailVerificationToken,
+            correlationId,
+          })
+        : undefined;
     return Response.json(
       verification.channel === 'DIRECT_RETURN'
         ? { ...safeIdentity, emailVerificationToken }
-        : safeIdentity,
+        : { ...safeIdentity, delivery, correlationId },
       { status: 201 },
     );
   } catch (error) {
