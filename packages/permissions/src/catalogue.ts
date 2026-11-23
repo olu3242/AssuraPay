@@ -262,6 +262,7 @@ export const PERMISSION_CATALOGUE: readonly RoleDefinition[] = Object.freeze([
       'execution-workspaces:resume',
       'execution-workspaces:submit',
       'executions:create',
+      'executions:read',
       'executions:transition',
       'work-items:create',
       'work-items:transition',
