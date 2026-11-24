@@ -114,7 +114,10 @@ describe('integration: stage 3 reconciles the engine catalog', () => {
     // would suggest. 06 is only *partly* what its row once described — vendor, cyber, ESG
     // and resilience risk are still deferred and the row says so.
     const mapped = manifest.engines.filter((engine) => engine.packageDirectory !== null);
-    expect(mapped.length).toBe(57);
+    // 58 since Engine 09, Notification & Communication, stopped being deferred: it now has
+    // `packages/notifications` behind it, with SMS, WhatsApp, push, in-app and webhooks still
+    // deferred and the catalog row saying so.
+    expect(mapped.length).toBe(58);
   });
 
   it('reads the canonical chain from CLAUDE.md', () => {

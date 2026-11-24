@@ -528,3 +528,7 @@ export const BASIC_COMMERCIAL_COMMITMENT_FLOW_V1: FlowDefinition = {
   ],
 };
 export { COMMERCIAL_COMMITMENT_FLOW_V1 } from './canonical-chain';
+export { CANONICAL_DOMAIN_EVENTS } from './canonical-chain';
+export { DomainEventFlowBridge } from './domain-event-bridge';
+export { FlowSignalRelay } from './relay';
+export type { RelayResult, RelayedEvent, RelayOutcome } from './relay';

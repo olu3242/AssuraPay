@@ -71,6 +71,12 @@
       "@assurapay/progressive-trust": [
         "packages/progressive-trust/src/index.ts"
       ],
+      "@assurapay/agreement-atlas": [
+        "packages/agreement-atlas/src/index.ts"
+      ],
+      "@assurapay/notifications": [
+        "packages/notifications/src/index.ts"
+      ],
       "@assurapay/execution-orchestration": [
         "packages/execution-orchestration/src/index.ts"
       ],

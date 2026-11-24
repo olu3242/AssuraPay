@@ -10,6 +10,7 @@
   "dependencies": {
     "@assurapay/agent-runtime": "workspace:*",
     "@assurapay/agreement-creation": "workspace:*",
+    "@assurapay/agreement-atlas": "workspace:*",
     "@assurapay/agreement-intelligence": "workspace:*",
     "@assurapay/audit-ledger": "workspace:*",
     "@assurapay/completion-assurance": "workspace:*",
@@ -22,6 +23,7 @@
     "@assurapay/governance-core": "workspace:*",
     "@assurapay/identity": "workspace:*",
     "@assurapay/legal": "workspace:*",
+    "@assurapay/notifications": "workspace:*",
     "@assurapay/organizations": "workspace:*",
     "@assurapay/parties": "workspace:*",
     "@assurapay/performance-blueprint": "workspace:*",

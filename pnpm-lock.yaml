@@ -63,6 +63,9 @@ importers:
       '@assurapay/agent-runtime':
         specifier: workspace:*
         version: link:../../packages/agent-runtime
+      '@assurapay/agreement-atlas':
+        specifier: workspace:*
+        version: link:../../packages/agreement-atlas
       '@assurapay/agreement-creation':
         specifier: workspace:*
         version: link:../../packages/agreement-creation
@@ -102,6 +105,9 @@ importers:
       '@assurapay/legal':
         specifier: workspace:*
         version: link:../../packages/legal
+      '@assurapay/notifications':
+        specifier: workspace:*
+        version: link:../../packages/notifications
       '@assurapay/organizations':
         specifier: workspace:*
         version: link:../../packages/organizations
@@ -153,6 +159,24 @@ importers:
       '@assurapay/domain-contracts':
         specifier: workspace:*
         version: link:../domain-contracts
+      '@assurapay/shared':
+        specifier: workspace:*
+        version: link:../shared
+
+  packages/agreement-atlas:
+    dependencies:
+      '@assurapay/agent-runtime':
+        specifier: workspace:*
+        version: link:../agent-runtime
+      '@assurapay/agreement-intelligence':
+        specifier: workspace:*
+        version: link:../agreement-intelligence
+      '@assurapay/database':
+        specifier: workspace:*
+        version: link:../database
+      '@assurapay/progressive-trust':
+        specifier: workspace:*
+        version: link:../progressive-trust
       '@assurapay/shared':
         specifier: workspace:*
         version: link:../shared
@@ -219,15 +243,30 @@ importers:
 
   packages/database-testing:
     dependencies:
+      '@assurapay/agent-runtime':
+        specifier: workspace:*
+        version: link:../agent-runtime
+      '@assurapay/agreement-atlas':
+        specifier: workspace:*
+        version: link:../agreement-atlas
       '@assurapay/agreement-creation':
         specifier: workspace:*
         version: link:../agreement-creation
+      '@assurapay/agreement-intelligence':
+        specifier: workspace:*
+        version: link:../agreement-intelligence
       '@assurapay/database':
         specifier: workspace:*
         version: link:../database
       '@assurapay/domain-contracts':
         specifier: workspace:*
         version: link:../domain-contracts
+      '@assurapay/flow-orchestration':
+        specifier: workspace:*
+        version: link:../flow-orchestration
+      '@assurapay/notifications':
+        specifier: workspace:*
+        version: link:../notifications
       '@assurapay/organizations':
         specifier: workspace:*
         version: link:../organizations
@@ -341,6 +380,15 @@ importers:
         version: link:../shared
 
   packages/legal:
+    dependencies:
+      '@assurapay/database':
+        specifier: workspace:*
+        version: link:../database
+      '@assurapay/shared':
+        specifier: workspace:*
+        version: link:../shared
+
+  packages/notifications:
     dependencies:
       '@assurapay/database':
         specifier: workspace:*

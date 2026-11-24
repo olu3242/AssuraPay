@@ -40,13 +40,13 @@ describe('canonical AssuraPay domain-event chain', () => {
 
     await flows.dispatch(context, flow.id, 'agreement-executed');
     const ordered = [
-      ['e1', 'AgreementExecuted', 'agreement-intelligence'],
+      ['e1', 'ExecutionCertificateIssued', 'agreement-intelligence'],
       ['e2', 'AgreementIntelligencePublished', 'blueprint'],
       ['e3', 'PerformanceBlueprintActivated', 'dod'],
-      ['e4', 'DefinitionOfDonePackagePublished', 'execution'],
+      ['e4', 'DefinitionOfDonePublished', 'execution'],
       ['e5', 'ExecutionWorkspaceActivated', 'evidence'],
       ['e6', 'EvidencePackageVerified', 'validation'],
-      ['e7', 'ValidationRecorded', 'completion'],
+      ['e7', 'ValidationTestRecorded', 'completion'],
       ['e8', 'CompletionCertificateIssued', 'eligibility'],
       ['e9', 'PaymentEligibilityAssessed', 'release'],
     ] as const;
@@ -82,11 +82,11 @@ describe('canonical AssuraPay domain-event chain', () => {
       organizationId: 'org', transactionId: 'tx', idempotencyKey: 'start:tx',
     });
     await flows.dispatch(context, flow.id, 'agreement-executed');
-    const e = event('same-event', 'AgreementExecuted');
+    const e = event('same-event', 'ExecutionCertificateIssued');
     await bridge.apply(context, flow.id, e);
     await bridge.apply(context, flow.id, e);
     expect((await store.list('flowSignals')).length).toBe(1);
-    await expect(bridge.apply(context, flow.id, { ...event('bad', 'AgreementExecuted'), workspaceId: 'other' }))
+    await expect(bridge.apply(context, flow.id, { ...event('bad', 'ExecutionCertificateIssued'), workspaceId: 'other' }))
       .rejects.toThrow('FLOW_EVENT_WORKSPACE_MISMATCH');
   });
 });

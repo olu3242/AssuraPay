@@ -16,7 +16,7 @@ AssuraPay is an Execution Assurance and Conditional Payment Platform. The engine
 | 06 | Counterparty & Transaction Risk | Progressive Trust and Adaptive Assurance: deterministic L0–L4 assurance levels from governed counterparty and transaction facts, the controls each level requires, advisory AI recommendations bounded so they can only raise scrutiny, and tighten-only overrides. Vendor, cyber, ESG and resilience risk remain deferred. | Conditionally implemented |
 | 07 | Compliance Foundation | Configurable privacy, AML, sanctions, quality and internal-policy controls | Deferred |
 | 08 | Audit & Evidence Ledger | Append-only decisions, approvals, signatures, evidence and financial audit; hash-chain verification and snapshot comparison | Conditionally implemented |
-| 09 | Notification & Communication | Email, SMS, WhatsApp, push, in-app, webhooks and delivery evidence | Deferred |
+| 09 | Notification & Communication | Email notifications with versioned templates, durable delivery evidence, masked recipients and verified-address-only delivery, raised from flow-process changes (human task awaiting a decision, journey suspended, failed or completed). SMS, WhatsApp, push, in-app and webhooks remain deferred, and no email transport is configured — an unconfigured deployment records honest FAILED evidence rather than silently dropping. | Conditionally implemented |
 | 10 | Enterprise Configuration | Profiles, inheritance, object/field controls, workflows, rules and policy packs | Deferred |
 
 ## Wave 2 — Agreement Intelligence (11–20)

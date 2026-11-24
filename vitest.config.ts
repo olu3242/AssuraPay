@@ -99,6 +99,14 @@ export default defineConfig({
         __dirname,
         'packages/progressive-trust/src/index.ts',
       ),
+      '@assurapay/agreement-atlas': path.resolve(
+        __dirname,
+        'packages/agreement-atlas/src/index.ts',
+      ),
+      '@assurapay/notifications': path.resolve(
+        __dirname,
+        'packages/notifications/src/index.ts',
+      ),
       '@assurapay/execution-orchestration': path.resolve(
         __dirname,
         'packages/execution-orchestration/src/index.ts',

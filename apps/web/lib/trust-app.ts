@@ -48,11 +48,9 @@ import {
 } from '@assurapay/agreement-creation';
 import {
   AgreementIntelligenceEngine,
-  ContractAnalysisEngine,
   ContractRepositoryEngine,
   ContractRiskEngine,
   ContractVersionEngine,
-  deterministicAnalysisGateway,
   inMemorySecureStore,
 } from '@assurapay/agreement-intelligence';
 import {
@@ -229,10 +227,12 @@ export const agreements = {
   ),
 };
 export const intelligence = {
-  analysis: new ContractAnalysisEngine(
-    trustStore,
-    deterministicAnalysisGateway,
-  ),
+  // `analysis` is composed in `agent-runtime-app.ts`, not here, and the move is the point of the
+  // gateway convergence rather than tidying. Contract analysis now runs through the single shared
+  // `AiGatewayEngine`, and that engine holds the per-tenant rate-limit window in memory — so it has
+  // to be one instance, which means the analysis engine has to be composed where the runtime is.
+  // Composing it here instead would need this module to import the runtime, which imports
+  // `trustStore` from this module: a cycle. See `getGovernedContractAnalysis`.
   risk: new ContractRiskEngine(trustStore),
   versions: new ContractVersionEngine(trustStore),
   repository: new ContractRepositoryEngine(trustStore, inMemorySecureStore),

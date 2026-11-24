@@ -1,0 +1,1 @@
+import {errorResponse,authorizedContextForRoute} from '../../../../../../../lib/trust-app';import {getAtlas} from '../../../../../../../lib/agent-runtime-app';export async function POST(r:Request,{params}:{params:{id:string}}){try{return Response.json(await getAtlas().publish(await authorizedContextForRoute(r),params.id))}catch(e){return errorResponse(e)}}
