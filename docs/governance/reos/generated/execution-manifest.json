@@ -3508,9 +3508,9 @@
     }
   ],
   "identity": {
-    "branch": "claude/git-pull-cqc04u",
-    "clean": true,
-    "head": "c320f864dd03c157c0d2e48b3e821fda71cfbbcb",
+    "branch": "feat/ai-runtime-atlas-convergence",
+    "clean": false,
+    "head": "ce78539e75079e416d096aba49b054071aacdffd",
     "repository": "assurapay",
     "version": "0.1.0"
   },
@@ -3602,7 +3602,7 @@
     "released": 76,
     "validated": 0
   },
-  "manifestDigest": "4cc3894f4f8f",
+  "manifestDigest": "830bdd3c1255",
   "missingCapabilities": [],
   "packages": [
     {
@@ -3696,7 +3696,7 @@
       "moduleType": null,
       "name": "@assurapay/agreement-intelligence",
       "sourceFiles": 1,
-      "sourceLines": 23,
+      "sourceLines": 33,
       "testFiles": [
         "packages/agreement-intelligence/src/agreement-intelligence.e2e.test.ts",
         "packages/agreement-intelligence/src/agreement-intelligence.integration.test.ts",
@@ -6542,6 +6542,18 @@
     ],
     "registrations": [
       {
+        "compositionRoot": "apps/web/lib/agent-runtime-app.ts",
+        "registeredEngines": [
+          "ContractAnalysisEngine"
+        ]
+      },
+      {
+        "compositionRoot": "apps/web/lib/governed-analysis.test.ts",
+        "registeredEngines": [
+          "AiGatewayEngine"
+        ]
+      },
+      {
         "compositionRoot": "apps/web/lib/trust-app.ts",
         "registeredEngines": [
           "AcceptanceCriteriaEngine",
@@ -6556,7 +6568,6 @@
           "ClauseIntelligenceEngine",
           "CompletionCertificationEngine",
           "ConditionalReleaseOrchestrationEngine",
-          "ContractAnalysisEngine",
           "ContractAuthoringEngine",
           "ContractRepositoryEngine",
           "ContractRiskEngine",

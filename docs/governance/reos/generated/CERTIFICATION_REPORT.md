@@ -4,9 +4,9 @@
 
 | Field | Value |
 | --- | --- |
-| Branch | claude/git-pull-cqc04u |
-| HEAD | c320f864dd03c157c0d2e48b3e821fda71cfbbcb |
-| Generated at | 2026-11-24T00:01:08.871Z |
+| Branch | feat/ai-runtime-atlas-convergence |
+| HEAD | ce78539e75079e416d096aba49b054071aacdffd |
+| Generated at | 2026-11-24T01:46:33.978Z |
 | Result | **PASSED** |
 | Steps | 11 passed, 0 failed, 0 skipped |
 
@@ -14,14 +14,14 @@
 
 | Step | Description | Result | Duration | Findings |
 | --- | --- | --- | --- | --- |
-| lint | ESLint across the workspace | pass | 8796 ms | — |
-| typecheck | TypeScript project typecheck | pass | 11015 ms | — |
-| test:unit | Unit tests | pass | 43662 ms | — |
-| test:integration | Integration tests | pass | 22950 ms | — |
-| test:e2e | End-to-end tests | pass | 47515 ms | — |
-| architecture | Architecture validation | pass | 553 ms | — |
-| dependencies | Dependency validation | pass | 15 ms | 2 |
-| security | Security validation | pass | 41 ms | — |
-| contract | Execution contract validation | pass | 20 ms | 1 |
-| governance | Reconciliation governance policy | pass | 0 ms | 15 |
-| build | Production build | pass | 30976 ms | — |
+| lint | ESLint across the workspace | pass | 12028 ms | — |
+| typecheck | TypeScript project typecheck | pass | 2989 ms | — |
+| test:unit | Unit tests | pass | 21835 ms | — |
+| test:integration | Integration tests | pass | 11073 ms | — |
+| test:e2e | End-to-end tests | pass | 19416 ms | — |
+| architecture | Architecture validation | pass | 464 ms | — |
+| dependencies | Dependency validation | pass | 13 ms | 2 |
+| security | Security validation | pass | 37 ms | — |
+| contract | Execution contract validation | pass | 20 ms | 2 |
+| governance | Reconciliation governance policy | pass | 1 ms | 15 |
+| build | Production build | pass | 25695 ms | — |

@@ -2265,7 +2265,7 @@
       "moduleType": null,
       "name": "@assurapay/agreement-intelligence",
       "sourceFiles": 1,
-      "sourceLines": 23,
+      "sourceLines": 33,
       "testFiles": [
         "packages/agreement-intelligence/src/agreement-intelligence.e2e.test.ts",
         "packages/agreement-intelligence/src/agreement-intelligence.integration.test.ts",
@@ -3106,9 +3106,10 @@
   "reosVersion": "1.0.0",
   "repository": {
     "git": {
-      "branch": "claude/git-pull-cqc04u",
+      "branch": "feat/ai-runtime-atlas-convergence",
       "branches": [
         "claude/git-pull-cqc04u",
+        "feat/ai-runtime-atlas-convergence",
         "main",
         "origin/assess/engines-31-50-certification-gap-matrix",
         "origin/chore/git-component-convergence",
@@ -3163,10 +3164,17 @@
         "origin/wip/persistence-async-migration",
         "origin/wip/persistence-async-repository-interface"
       ],
-      "clean": true,
-      "dirtyFiles": [],
-      "head": "c320f864dd03c157c0d2e48b3e821fda71cfbbcb",
-      "headShort": "c320f86",
+      "clean": false,
+      "dirtyFiles": [
+        "apps/web/app/api/v1/contract-analysis/route.ts",
+        "apps/web/lib/agent-runtime-app.ts",
+        "apps/web/lib/governed-analysis.test.ts",
+        "apps/web/lib/governed-analysis.ts",
+        "apps/web/lib/trust-app.ts",
+        "packages/agreement-intelligence/src/index.ts"
+      ],
+      "head": "ce78539e75079e416d096aba49b054071aacdffd",
+      "headShort": "ce78539",
       "reflogAvailable": true,
       "remotes": [
         "origin"
@@ -3264,6 +3272,18 @@
     ],
     "registrations": [
       {
+        "compositionRoot": "apps/web/lib/agent-runtime-app.ts",
+        "registeredEngines": [
+          "ContractAnalysisEngine"
+        ]
+      },
+      {
+        "compositionRoot": "apps/web/lib/governed-analysis.test.ts",
+        "registeredEngines": [
+          "AiGatewayEngine"
+        ]
+      },
+      {
         "compositionRoot": "apps/web/lib/trust-app.ts",
         "registeredEngines": [
           "AcceptanceCriteriaEngine",
@@ -3278,7 +3298,6 @@
           "ClauseIntelligenceEngine",
           "CompletionCertificationEngine",
           "ConditionalReleaseOrchestrationEngine",
-          "ContractAnalysisEngine",
           "ContractAuthoringEngine",
           "ContractRepositoryEngine",
           "ContractRiskEngine",

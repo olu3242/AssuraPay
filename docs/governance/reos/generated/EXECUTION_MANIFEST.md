@@ -9,10 +9,10 @@
 | --- | --- |
 | Repository | assurapay |
 | Version | 0.1.0 |
-| Branch | claude/git-pull-cqc04u |
-| HEAD | c320f864dd03c157c0d2e48b3e821fda71cfbbcb |
-| Worktree clean | yes |
-| Manifest digest | 4cc3894f4f8f |
+| Branch | feat/ai-runtime-atlas-convergence |
+| HEAD | ce78539e75079e416d096aba49b054071aacdffd |
+| Worktree clean | no |
+| Manifest digest | 830bdd3c1255 |
 | REOS version | 1.0.0 |
 
 ## Architecture
