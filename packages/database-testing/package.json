@@ -11,6 +11,7 @@
     "@assurapay/database": "workspace:*",
     "@assurapay/domain-contracts": "workspace:*",
     "@assurapay/flow-orchestration": "workspace:*",
+    "@assurapay/notifications": "workspace:*",
     "@assurapay/organizations": "workspace:*",
     "@assurapay/performance-readiness": "workspace:*",
     "@assurapay/progressive-trust": "workspace:*",

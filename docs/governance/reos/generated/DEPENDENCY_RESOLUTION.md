@@ -23,6 +23,7 @@
 | Capability | Title | Lifecycle | Priority | Blocks | Live infra |
 | --- | --- | --- | --- | --- | --- |
 | engine:06 | Engine 06 — Counterparty & Transaction Risk | implementing | 106 | 54 | no |
+| engine:09 | Engine 09 — Notification & Communication | implementing | 109 | 51 | no |
 
 ## Blocked
 

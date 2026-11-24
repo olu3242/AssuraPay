@@ -23,6 +23,7 @@
     "@assurapay/governance-core": "workspace:*",
     "@assurapay/identity": "workspace:*",
     "@assurapay/legal": "workspace:*",
+    "@assurapay/notifications": "workspace:*",
     "@assurapay/organizations": "workspace:*",
     "@assurapay/parties": "workspace:*",
     "@assurapay/performance-blueprint": "workspace:*",

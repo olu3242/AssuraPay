@@ -86,6 +86,8 @@
             "packages/identity/src/index.ts",
             "packages/identity/src/issuance.ts",
             "packages/legal/src/index.ts",
+            "packages/notifications/src/flow-notifications.ts",
+            "packages/notifications/src/index.ts",
             "packages/organizations/src/index.ts",
             "packages/parties/src/index.ts",
             "packages/performance-blueprint/src/index.ts",
@@ -1787,7 +1789,7 @@
       "totalProbes": 5
     }
   ],
-  "head": "f47163d956128706ce2db96f4db4595932b7f407",
+  "head": "7568bd7963afdf3ecc3683b7cf17bd2202969c0b",
   "reosVersion": "1.0.0",
   "stage": "forensics",
   "summary": {

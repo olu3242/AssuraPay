@@ -22,6 +22,7 @@
         "@assurapay/governance-core",
         "@assurapay/identity",
         "@assurapay/legal",
+        "@assurapay/notifications",
         "@assurapay/organizations",
         "@assurapay/parties",
         "@assurapay/performance-blueprint",
@@ -1413,10 +1414,10 @@
       "waveName": "Trust Foundation"
     },
     {
-      "declaredStatus": "Deferred",
+      "declaredStatus": "Conditionally implemented",
       "id": "09",
       "name": "Notification & Communication",
-      "responsibility": "Email, SMS, WhatsApp, push, in-app, webhooks and delivery evidence",
+      "responsibility": "Email notifications with versioned templates, durable delivery evidence, masked recipients and verified-address-only delivery, raised from flow-process changes (human task awaiting a decision, journey suspended, failed or completed). SMS, WhatsApp, push, in-app and webhooks remain deferred, and no email transport is configured — an unconfigured deployment records honest FAILED evidence rather than silently dropping.",
       "wave": 1,
       "waveName": "Trust Foundation"
     },
@@ -2769,6 +2770,35 @@
       ]
     },
     {
+      "directory": "packages/notifications",
+      "exportedClasses": [
+        "FlowNotificationDispatcher",
+        "NotificationEngine",
+        "NotificationError",
+        "NotificationTemplateError"
+      ],
+      "externalDependencies": [],
+      "main": "src/index.ts",
+      "moduleType": null,
+      "name": "@assurapay/notifications",
+      "sourceFiles": 4,
+      "sourceLines": 698,
+      "testFiles": [
+        "packages/notifications/src/notifications.test.ts"
+      ],
+      "tests": {
+        "e2e": 0,
+        "integration": 0,
+        "performance": 0,
+        "security": 0,
+        "unit": 1
+      },
+      "workspaceDependencies": [
+        "@assurapay/database",
+        "@assurapay/shared"
+      ]
+    },
+    {
       "directory": "packages/organizations",
       "exportedClasses": [
         "OrganizationService"
@@ -3211,26 +3241,32 @@
       "dirtyFiles": [
         "apps/web/app/api/v1/flows/[id]/advance/route.ts",
         "apps/web/lib/flow-app.ts",
-        "apps/web/lib/route-permissions.ts",
+        "apps/web/package.json",
+        "docs/ENGINE_CATALOG.md",
+        "docs/governance/reos/capability-registry.json",
         "docs/governance/reos/generated/CERTIFICATION_REPORT.md",
+        "docs/governance/reos/generated/DEPENDENCY_RESOLUTION.md",
         "docs/governance/reos/generated/EXECUTION_MANIFEST.md",
         "docs/governance/reos/generated/certification.json",
         "docs/governance/reos/generated/dependency-resolution.json",
         "docs/governance/reos/generated/discovery.json",
         "docs/governance/reos/generated/execution-manifest.json",
         "docs/governance/reos/generated/forensics.json",
-        "packages/database-testing/package.json",
-        "packages/database-testing/src/flow-trigger.postgres.test.ts",
-        "packages/flow-orchestration/src/canonical-chain.test.ts",
-        "packages/flow-orchestration/src/canonical-chain.ts",
-        "packages/flow-orchestration/src/flow-trigger-coverage.test.ts",
-        "packages/flow-orchestration/src/index.ts",
-        "packages/flow-orchestration/src/relay.test.ts",
-        "packages/flow-orchestration/src/relay.ts",
-        "pnpm-lock.yaml"
+        "packages/database/src/postgres-store.ts",
+        "packages/notifications/package.json",
+        "packages/notifications/src/flow-notifications.ts",
+        "packages/notifications/src/index.ts",
+        "packages/notifications/src/notifications.test.ts",
+        "packages/notifications/src/templates.ts",
+        "packages/notifications/src/transport.ts",
+        "packages/reos/src/reos.integration.test.ts",
+        "pnpm-lock.yaml",
+        "tsconfig.json",
+        "vitest.config.ts",
+        "vitest.postgres.config.ts"
       ],
-      "head": "f47163d956128706ce2db96f4db4595932b7f407",
-      "headShort": "f47163d",
+      "head": "7568bd7963afdf3ecc3683b7cf17bd2202969c0b",
+      "headShort": "7568bd7",
       "reflogAvailable": true,
       "remotes": [
         "origin"
@@ -3301,6 +3337,7 @@
       "MilestoneEngine",
       "MilestonePlanningEngine",
       "NegotiationEngine",
+      "NotificationEngine",
       "PaymentEligibilityEngine",
       "PaymentExecutionEngine",
       "PaymentTriggerEngine",
@@ -3332,6 +3369,12 @@
         "registeredEngines": [
           "AtlasConvergenceService",
           "ContractAnalysisEngine"
+        ]
+      },
+      {
+        "compositionRoot": "apps/web/lib/flow-app.ts",
+        "registeredEngines": [
+          "NotificationEngine"
         ]
       },
       {
@@ -3428,17 +3471,17 @@
       "integration": 15,
       "performance": 2,
       "security": 3,
-      "unit": 97
+      "unit": 98
     },
-    "files": 132
+    "files": 133
   },
   "totals": {
     "applications": 1,
     "documents": 157,
     "engines": 60,
     "migrations": 49,
-    "packages": 29,
-    "testFiles": 132
+    "packages": 30,
+    "testFiles": 133
   },
   "workflows": [
     {

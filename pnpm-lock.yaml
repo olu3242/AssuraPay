@@ -105,6 +105,9 @@ importers:
       '@assurapay/legal':
         specifier: workspace:*
         version: link:../../packages/legal
+      '@assurapay/notifications':
+        specifier: workspace:*
+        version: link:../../packages/notifications
       '@assurapay/organizations':
         specifier: workspace:*
         version: link:../../packages/organizations
@@ -261,6 +264,9 @@ importers:
       '@assurapay/flow-orchestration':
         specifier: workspace:*
         version: link:../flow-orchestration
+      '@assurapay/notifications':
+        specifier: workspace:*
+        version: link:../notifications
       '@assurapay/organizations':
         specifier: workspace:*
         version: link:../organizations
@@ -374,6 +380,15 @@ importers:
         version: link:../shared
 
   packages/legal:
+    dependencies:
+      '@assurapay/database':
+        specifier: workspace:*
+        version: link:../database
+      '@assurapay/shared':
+        specifier: workspace:*
+        version: link:../shared
+
+  packages/notifications:
     dependencies:
       '@assurapay/database':
         specifier: workspace:*
