@@ -1,99 +1,88 @@
-const cards = [
-  [
-    'Execution health',
-    '82',
-    'Healthy',
-    'Milestones, DoD, evidence, validation, approvals, settlement and risk',
-  ],
-  [
-    'Workflow progress',
-    '74%',
-    'On plan',
-    'Canonical execution graph and stalled-work monitoring',
-  ],
-  [
-    'SLA adherence',
-    '91%',
-    '2 watched',
-    'Contract, milestone, review, approval and settlement windows',
-  ],
-  [
-    'Active bottlenecks',
-    '3',
-    'Advisory',
-    'Evidence shortage, review queues and validation failures',
-  ],
-];
-export default function WorkflowIntelligencePage() {
+/**
+ * Insights — the execution overview, without invented figures.
+ *
+ * This page used to display numbers: execution health 82, workflow progress 74%, SLA adherence 91%,
+ * three active bottlenecks, and a predictive panel reading "Approval delay risk: 34%", "Late
+ * completion risk: 21%", "Settlement readiness: 68%". None of them came from anywhere. They were
+ * constants in the file, rendered identically for every visitor and every workspace, under a caption
+ * reading "Advisory only · Human review required" that lent them the credibility of a computed
+ * result.
+ *
+ * That is the same defect the landing page already recorded removing — "the cards presented invented
+ * records as the state of the platform" — and it is worse here, because these figures are the kind a
+ * delivery lead acts on. A fabricated "settlement readiness: 68%" in software that releases money is
+ * not a cosmetic problem.
+ *
+ * So the figures are gone rather than restyled. What remains says what this section is for and names
+ * the stages a journey passes through, which is true without needing data. Real figures require an
+ * authenticated caller — a server component has none, so there is no tenant, no trust scope, and
+ * forced row-level security correctly returns nothing. Serving them is the API's job under the
+ * signed-in user's own scope, through a client component like the one `/start` already uses.
+ *
+ * The styling also moves onto the application's own `shell`, `card` and `eyebrow` classes. It was the
+ * only page using Tailwind utilities directly, so it did not look like part of the same product.
+ */
+
+/** The stages a journey passes through, in order. True regardless of data. */
+const STAGES = [
+  'Agreement',
+  'Plan',
+  'Milestones',
+  'Completion rules',
+  'Evidence',
+  'Acceptance',
+  'Completion',
+  'Payment',
+] as const;
+
+const SECTIONS = [
+  {
+    title: 'Delivery health',
+    detail: 'How your agreements are tracking against their plans, once there are agreements to track.',
+  },
+  {
+    title: 'Progress',
+    detail: 'Work completed against the agreed baseline, measured per milestone.',
+  },
+  {
+    title: 'Timeliness',
+    detail: 'Where reviews, approvals and settlements are running against their agreed windows.',
+  },
+  {
+    title: 'Blockers',
+    detail: 'Work that has stopped moving, and what it is waiting on.',
+  },
+] as const;
+
+export default function InsightsPage() {
   return (
-    <main className="min-h-screen bg-slate-950 px-6 py-10 text-slate-100">
-      <div className="mx-auto max-w-7xl">
-        <p className="text-sm font-semibold uppercase tracking-[.25em] text-cyan-400">
-          Execution Intelligence
-        </p>
-        <h1 className="mt-3 text-4xl font-semibold">Workflow command center</h1>
-        <p className="mt-3 max-w-3xl text-slate-400">
-          A governed, read-only view for project managers, contract managers,
-          delivery leads and executives. Recommendations never change protected
-          execution or payment state.
-        </p>
-        <section className="mt-10 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {cards.map(([title, value, status, detail]) => (
-            <article
-              key={title}
-              className="rounded-2xl border border-slate-800 bg-slate-900 p-5"
-            >
-              <p className="text-sm text-slate-400">{title}</p>
-              <p className="mt-3 text-3xl font-semibold">{value}</p>
-              <p className="mt-2 text-sm text-cyan-300">{status}</p>
-              <p className="mt-4 text-sm leading-6 text-slate-500">{detail}</p>
-            </article>
-          ))}
-        </section>
-        <section className="mt-6 grid gap-6 lg:grid-cols-2">
-          <article className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-            <h2 className="text-xl font-semibold">
-              Execution timeline & workflow graph
-            </h2>
-            <div className="mt-6 flex items-center gap-2 text-xs">
-              {[
-                'Agreement',
-                'Blueprint',
-                'Milestones',
-                'DoD',
-                'Evidence',
-                'Validation',
-                'Completion',
-                'Settlement',
-              ].map((item, index) => (
-                <div key={item} className="flex flex-1 items-center gap-2">
-                  <span className="rounded-full bg-cyan-500/15 px-2 py-2 text-cyan-300">
-                    {item}
-                  </span>
-                  {index < 7 && <span className="text-slate-600">→</span>}
-                </div>
-              ))}
-            </div>
+    <main className="shell">
+      <p className="eyebrow">Insights</p>
+      <h1>Execution overview</h1>
+      <p className="lead">
+        A read-only view for delivery and contract managers. Nothing here changes an agreement, a
+        certification or a payment, and any recommendation waits for a person to decide.
+      </p>
+
+      <section className="grid">
+        {SECTIONS.map((section) => (
+          <article className="card" key={section.title}>
+            <h2>{section.title}</h2>
+            <p>{section.detail}</p>
           </article>
-          <article className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-            <h2 className="text-xl font-semibold">Predictive insights</h2>
-            <ul className="mt-5 space-y-3 text-sm text-slate-300">
-              <li>Approval delay risk: 34% — monitor reviewer capacity.</li>
-              <li>
-                Late completion risk: 21% — current critical path remains
-                feasible.
-              </li>
-              <li>
-                Settlement readiness: 68% — one funding confirmation remains
-                outstanding.
-              </li>
-            </ul>
-            <p className="mt-6 text-xs text-amber-300">
-              Advisory only · Human review required
-            </p>
-          </article>
-        </section>
-      </div>
+        ))}
+      </section>
+
+      <section className="card">
+        <h2>How a journey runs</h2>
+        <p className="lead">
+          {STAGES.join(' → ')}
+        </p>
+        <p>
+          Each stage completes only when the step before it has, and only on the strength of a record
+          the platform holds rather than a declaration that it is done.
+        </p>
+      </section>
     </main>
   );
 }

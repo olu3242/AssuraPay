@@ -1,19 +1,34 @@
-const engines = ['Financial & payment intelligence', 'Vendor & customer performance', 'Portfolio analytics', 'Renewal & relationship intelligence', 'AI decision support & continuous improvement'];
-export default function EnterpriseAnalyticsPage() {
+/**
+ * Portfolio — a section of the application, described in the user's language.
+ *
+ * This page used to render the engine catalogue: five cards each labelled `Engine {n}` with an
+ * internal capability name and a line of boilerplate about workspace scoping and versioning. That
+ * told a customer which part of the codebase they were looking at, which is not something they have
+ * any use for, and made the product read as a list of features rather than as software.
+ *
+ * The engine numbers and the boilerplate are gone. The cards now say what a person can see or do
+ * here. The engine catalogue still exists, in `docs/ENGINE_CATALOG.md`, where it belongs.
+ */
+
+const SECTIONS = [
+        { title: 'Payment patterns', detail: 'How money has moved across the portfolio over time.' },
+        { title: 'Counterparty performance', detail: 'How reliably each party has delivered and been paid.' },
+        { title: 'Portfolio view', detail: 'Exposure and concentration across everything in flight.' },
+        { title: 'Renewals', detail: 'Agreements coming to an end, and the relationship behind each.' },
+        { title: 'Recommendations', detail: 'Suggested actions, each pending a human decision.' },
+] as const;
+
+export default function PortfolioPage() {
   return (
     <main className="shell">
-      <p className="eyebrow">Enterprise analytics</p>
-      <h1>Portfolio and relationship intelligence, governed end to end</h1>
-      <p className="lead">
-        Every model behind these forecasts and recommendations is registered, evaluated against a threshold and
-        monitored for drift. A recommendation is never executed — it starts pending and waits for a human decision.
-      </p>
+      <p className="eyebrow">Portfolio</p>
+      <h1>Patterns across agreements and counterparties</h1>
+      <p className="lead">Every model behind these figures is registered and monitored. A recommendation is never acted on by itself — it waits for a person to decide.</p>
       <section className="grid">
-        {engines.map((x, i) => (
-          <article className="card" key={x}>
-            <span>Engine {56 + i}</span>
-            <h2>{x}</h2>
-            <p>Workspace scoped, versioned and auditable, closing the 60-engine assurance catalog.</p>
+        {SECTIONS.map((section) => (
+          <article className="card" key={section.title}>
+            <h2>{section.title}</h2>
+            <p>{section.detail}</p>
           </article>
         ))}
       </section>
