@@ -258,6 +258,9 @@ importers:
       '@assurapay/domain-contracts':
         specifier: workspace:*
         version: link:../domain-contracts
+      '@assurapay/flow-orchestration':
+        specifier: workspace:*
+        version: link:../flow-orchestration
       '@assurapay/organizations':
         specifier: workspace:*
         version: link:../organizations
