@@ -1,0 +1,329 @@
+import { randomUUID } from 'node:crypto';
+import type { RequestContext, TrustPersistence } from '@assurapay/shared';
+import { requireActiveWorkspace } from '@assurapay/shared';
+import {
+  applyAdvisory,
+  controlsFor,
+  evaluate,
+  levelRank,
+  type AiRecommendation,
+  type GovernedFacts,
+  type ReasonCode,
+  type RequiredControls,
+  type TrustLevel,
+} from './policy';
+
+export * from './policy';
+
+/**
+ * Progressive Trust & Adaptive Assurance — the record.
+ *
+ * `policy.ts` decides; this persists the decision in a form that can be audited and argued with years
+ * later. §3 and §6 of the convergence brief require the recommendation, its confidence, its reason
+ * codes, the model and prompt versions behind it, the policy result, the final level and any override
+ * to all survive — so an assessment is a complete account of who said what and what actually decided.
+ *
+ * The assessment is **append-only**. A re-assessment is a new record that supersedes the previous one,
+ * never a mutation: a trust level that could be edited after a release would make the release's
+ * justification unfalsifiable, which is the opposite of what an assurance platform is for.
+ */
+
+export type TrustAssessmentErrorCode =
+  | 'TRUST_FACTS_INVALID'
+  | 'TRUST_ASSESSMENT_NOT_FOUND'
+  | 'TRUST_OVERRIDE_BELOW_POLICY_FLOOR'
+  | 'TRUST_OVERRIDE_REASON_REQUIRED'
+  | 'TRUST_OVERRIDE_SELF_APPROVAL'
+  | 'TRUST_ASSESSMENT_SUPERSEDED';
+
+export class TrustAssessmentError extends Error {
+  constructor(
+    readonly code: TrustAssessmentErrorCode,
+    detail?: string,
+  ) {
+    super(detail ? `${code}: ${detail}` : code);
+    this.name = 'TrustAssessmentError';
+  }
+}
+
+/** An authorized human raising the level above what policy required. */
+export type TrustOverride = {
+  /** Never below the policy floor — enforced, not merely documented. */
+  level: TrustLevel;
+  reason: string;
+  overriddenBy: string;
+  overriddenAt: string;
+};
+
+export type TrustAssessment = {
+  id: string;
+  workspaceId: string;
+  /** What is being assessed: an agreement, a milestone, a release request. */
+  subjectType: string;
+  subjectId: string;
+  counterpartyId: string;
+  facts: GovernedFacts;
+  /** What the deterministic policy required, before any advisory input. */
+  policyLevel: TrustLevel;
+  policyReasonCodes: ReasonCode[];
+  /** The advisory recommendation, recorded whether or not it changed anything. */
+  recommendation?: AiRecommendation;
+  advisoryApplied: boolean;
+  advisoryDisregardedReason?: string;
+  override?: TrustOverride;
+  /** The level that governs. `max(policyLevel, advisory, override)` by construction. */
+  effectiveLevel: TrustLevel;
+  controls: RequiredControls;
+  status: 'ACTIVE' | 'SUPERSEDED';
+  assessedBy: string;
+  correlationId: string;
+  createdAt: string;
+};
+
+const MONEY_FIELDS = [
+  'transactionValueMinor',
+  'cumulativeExposureMinor',
+  'activeExposureMinor',
+] as const satisfies readonly (keyof GovernedFacts)[];
+
+const COUNT_FIELDS = [
+  'relationshipMaturityDays',
+  'priorCompletedAgreements',
+  'disputeCount',
+  'settlementsOnTime',
+  'settlementsLateOrFailed',
+  'complexityScore',
+  'anomalyCount',
+] as const satisfies readonly (keyof GovernedFacts)[];
+
+/**
+ * Refuses facts that cannot be true.
+ *
+ * Checked here rather than trusted from a caller because a level is only as defensible as the numbers
+ * behind it: a negative exposure or a fractional dispute count would produce a level that is arithmetically
+ * valid and meaningless. Money is minor units and integral, matching `202608110018`'s treatment of every
+ * money column in the schema — a fractional kobo is refused rather than rounded.
+ */
+function assertFacts(facts: GovernedFacts): void {
+  for (const field of MONEY_FIELDS) {
+    const value = facts[field];
+    if (!Number.isSafeInteger(value) || value < 0)
+      throw new TrustAssessmentError(
+        'TRUST_FACTS_INVALID',
+        `${field} must be a non-negative integer of minor units`,
+      );
+  }
+  for (const field of COUNT_FIELDS) {
+    const value = facts[field];
+    if (!Number.isSafeInteger(value) || value < 0)
+      throw new TrustAssessmentError('TRUST_FACTS_INVALID', `${field} must be a non-negative integer`);
+  }
+}
+
+function assertRecommendation(recommendation: AiRecommendation | undefined): void {
+  if (!recommendation) return;
+  if (!Number.isFinite(recommendation.confidence) || recommendation.confidence < 0 || recommendation.confidence > 1)
+    throw new TrustAssessmentError('TRUST_FACTS_INVALID', 'recommendation confidence must be within 0..1');
+  // A recommendation with no reason is not advice, it is an assertion — and an assertion from a model is
+  // exactly what this design refuses to act on.
+  if (recommendation.reasonCodes.length === 0)
+    throw new TrustAssessmentError('TRUST_FACTS_INVALID', 'recommendation must carry at least one reason code');
+  for (const field of ['agentId', 'modelId', 'modelVersion', 'promptVersion', 'capabilityVersion'] as const)
+    if (!recommendation[field]?.trim())
+      throw new TrustAssessmentError(
+        'TRUST_FACTS_INVALID',
+        `recommendation must name ${field} so the decision can be replayed`,
+      );
+}
+
+export class ProgressiveTrustEngine {
+  constructor(private readonly store: TrustPersistence) {}
+
+  /**
+   * Assesses a subject and supersedes any previous active assessment of it.
+   *
+   * The recommendation is passed in rather than fetched, because this engine must not depend on the
+   * agent runtime: Progressive Trust has to work identically whether an agent ran, ran and was
+   * disregarded, or was never configured at all. A deployment with no model provider — which is every
+   * deployment of this repository today — still gets a fully governed level.
+   */
+  async assess(
+    context: RequestContext,
+    input: {
+      subjectType: string;
+      subjectId: string;
+      counterpartyId: string;
+      facts: GovernedFacts;
+      recommendation?: AiRecommendation;
+    },
+  ): Promise<TrustAssessment> {
+    requireActiveWorkspace(context);
+    assertFacts(input.facts);
+    assertRecommendation(input.recommendation);
+
+    const policy = evaluate(input.facts);
+    const advisory = applyAdvisory(policy.level, input.recommendation);
+
+    const assessment: TrustAssessment = {
+      id: randomUUID(),
+      workspaceId: context.activeWorkspaceId,
+      subjectType: input.subjectType,
+      subjectId: input.subjectId,
+      counterpartyId: input.counterpartyId,
+      facts: input.facts,
+      policyLevel: policy.level,
+      policyReasonCodes: policy.reasonCodes,
+      recommendation: input.recommendation,
+      advisoryApplied: advisory.advisoryApplied,
+      advisoryDisregardedReason: advisory.advisoryDisregardedReason,
+      effectiveLevel: advisory.level,
+      controls: controlsFor(advisory.level),
+      status: 'ACTIVE',
+      assessedBy: context.actorUserId,
+      correlationId: context.correlationId,
+      createdAt: new Date().toISOString(),
+    };
+
+    // One transaction, because these three writes are one fact.
+    //
+    // They ran as separate store calls, and review on #42 named both ways that breaks. A failure
+    // after `supersedePrevious` but before the append leaves the subject with **no active
+    // assessment at all** — so the next release finds no level rather than the old one, which is
+    // worse than either. A failure after the append but before the audit leaves a governing
+    // assessment with no audit record, while `assess()` reports failure to its caller: the level
+    // silently governs and nothing says where it came from.
+    await this.store.transaction(async (tx) => {
+      for (const previous of await this.activeFor(context, input.subjectType, input.subjectId, tx))
+        await tx.replace('trustAssessments', { ...previous, status: 'SUPERSEDED' as const });
+
+      await tx.append('trustAssessments', assessment);
+      await tx.audit({
+        actorId: context.actorUserId,
+        workspaceId: context.activeWorkspaceId,
+        tenantId: context.tenantId,
+        eventType: 'TrustAssessed',
+        aggregateType: 'TrustAssessment',
+        aggregateId: assessment.id,
+        correlationId: context.correlationId,
+        // The disagreement is the interesting part, so it is audited explicitly rather than left to be
+        // reconstructed by comparing two fields.
+        metadata: {
+          policyLevel: assessment.policyLevel,
+          effectiveLevel: assessment.effectiveLevel,
+          advisoryApplied: assessment.advisoryApplied,
+          recommendedLevel: input.recommendation?.recommendedLevel,
+          agentId: input.recommendation?.agentId,
+        },
+      });
+    });
+    return assessment;
+  }
+
+  /**
+   * Raises the level above the one currently in force.
+   *
+   * Three refusals, and each closes a different hole. An override may not go **below the effective
+   * level** — not merely below the policy floor. That distinction is the whole guarantee of this
+   * module and the first version got it wrong: it compared against `policyLevel`, so an assessment
+   * that advisory input had raised from L1 to L2 would accept an L1 override and quietly switch off
+   * the L2 controls, while every comment in the file promised tighten-only. `effectiveLevel` is
+   * `>= policyLevel` by construction, so comparing against it subsumes the floor and closes the gap.
+   * Found by review on #42.
+   *
+   * The other two: an override may not be applied by the person who produced the assessment,
+   * matching `HumanApprovalEngine`'s refusal of self-approval; and it must carry a reason, because
+   * an unexplained escalation is indistinguishable from a mistake later.
+   */
+  async override(
+    context: RequestContext,
+    assessmentId: string,
+    input: { level: TrustLevel; reason: string },
+  ): Promise<TrustAssessment> {
+    requireActiveWorkspace(context);
+    const assessment = await this.require(context, assessmentId);
+
+    if (assessment.status !== 'ACTIVE')
+      throw new TrustAssessmentError('TRUST_ASSESSMENT_SUPERSEDED', assessmentId);
+    if (!input.reason?.trim())
+      throw new TrustAssessmentError('TRUST_OVERRIDE_REASON_REQUIRED');
+    if (assessment.assessedBy === context.actorUserId)
+      throw new TrustAssessmentError('TRUST_OVERRIDE_SELF_APPROVAL', assessmentId);
+    if (levelRank(input.level) < levelRank(assessment.effectiveLevel))
+      throw new TrustAssessmentError(
+        'TRUST_OVERRIDE_BELOW_POLICY_FLOOR',
+        assessment.effectiveLevel === assessment.policyLevel
+          ? `policy requires ${assessment.policyLevel}`
+          : `${assessment.effectiveLevel} is in force (policy floor ${assessment.policyLevel}, raised by advisory input)`,
+      );
+
+    const overridden: TrustAssessment = {
+      ...assessment,
+      override: {
+        level: input.level,
+        reason: input.reason,
+        overriddenBy: context.actorUserId,
+        overriddenAt: new Date().toISOString(),
+      },
+      effectiveLevel: input.level,
+      controls: controlsFor(input.level),
+    };
+    // Same reasoning as `assess`: an override whose audit record failed to write would raise the
+    // level with no account of who raised it or why, which is precisely the thing an override has
+    // to be able to justify later.
+    await this.store.transaction(async (tx) => {
+      await tx.replace('trustAssessments', overridden);
+      await tx.audit({
+        actorId: context.actorUserId,
+        workspaceId: context.activeWorkspaceId,
+        tenantId: context.tenantId,
+        eventType: 'TrustOverridden',
+        aggregateType: 'TrustAssessment',
+        aggregateId: assessmentId,
+        correlationId: context.correlationId,
+        metadata: { from: assessment.effectiveLevel, to: input.level, reason: input.reason },
+      });
+    });
+    return overridden;
+  }
+
+  /** The assessment that currently governs a subject, if any. */
+  async active(
+    context: RequestContext,
+    subjectType: string,
+    subjectId: string,
+  ): Promise<TrustAssessment | undefined> {
+    return (await this.activeFor(context, subjectType, subjectId))[0];
+  }
+
+  private async require(context: RequestContext, id: string): Promise<TrustAssessment> {
+    requireActiveWorkspace(context);
+    const found = (await this.store.list<TrustAssessment>('trustAssessments')).find(
+      (entry) => entry.id === id && entry.workspaceId === context.activeWorkspaceId,
+    );
+    if (!found) throw new TrustAssessmentError('TRUST_ASSESSMENT_NOT_FOUND', id);
+    return found;
+  }
+
+  /**
+   * Active assessments of a subject, read through whichever repository the caller is using.
+   *
+   * `store` is passed rather than assumed so the supersession read happens inside the same
+   * transaction as the writes that depend on it. Reading through the outer repository would put the
+   * read outside the transaction, which is the race this refactor exists to close.
+   */
+  private async activeFor(
+    context: RequestContext,
+    subjectType: string,
+    subjectId: string,
+    store: TrustPersistence = this.store,
+  ): Promise<TrustAssessment[]> {
+    requireActiveWorkspace(context);
+    return (await store.list<TrustAssessment>('trustAssessments')).filter(
+      (entry) =>
+        entry.workspaceId === context.activeWorkspaceId &&
+        entry.subjectType === subjectType &&
+        entry.subjectId === subjectId &&
+        entry.status === 'ACTIVE',
+    );
+  }
+}

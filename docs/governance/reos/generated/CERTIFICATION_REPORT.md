@@ -4,9 +4,9 @@
 
 | Field | Value |
 | --- | --- |
-| Branch | feat/rc1-production-e2e-convergence |
-| HEAD | 096bf8004c8ffff829f28a0ad2aa5f240a4f5f68 |
-| Generated at | 2026-08-19T12:11:25.243Z |
+| Branch | claude/git-pull-cqc04u |
+| HEAD | c320f864dd03c157c0d2e48b3e821fda71cfbbcb |
+| Generated at | 2026-11-24T00:01:08.871Z |
 | Result | **PASSED** |
 | Steps | 11 passed, 0 failed, 0 skipped |
 
@@ -14,14 +14,14 @@
 
 | Step | Description | Result | Duration | Findings |
 | --- | --- | --- | --- | --- |
-| lint | ESLint across the workspace | pass | 7719 ms | — |
-| typecheck | TypeScript project typecheck | pass | 3089 ms | — |
-| test:unit | Unit tests | pass | 43721 ms | — |
-| test:integration | Integration tests | pass | 18082 ms | — |
-| test:e2e | End-to-end tests | pass | 43627 ms | — |
-| architecture | Architecture validation | pass | 727 ms | — |
-| dependencies | Dependency validation | pass | 23 ms | 2 |
-| security | Security validation | pass | 46 ms | — |
-| contract | Execution contract validation | pass | 42 ms | 1 |
+| lint | ESLint across the workspace | pass | 8796 ms | — |
+| typecheck | TypeScript project typecheck | pass | 11015 ms | — |
+| test:unit | Unit tests | pass | 43662 ms | — |
+| test:integration | Integration tests | pass | 22950 ms | — |
+| test:e2e | End-to-end tests | pass | 47515 ms | — |
+| architecture | Architecture validation | pass | 553 ms | — |
+| dependencies | Dependency validation | pass | 15 ms | 2 |
+| security | Security validation | pass | 41 ms | — |
+| contract | Execution contract validation | pass | 20 ms | 1 |
 | governance | Reconciliation governance policy | pass | 0 ms | 15 |
-| build | Production build | pass | 30425 ms | — |
+| build | Production build | pass | 30976 ms | — |
