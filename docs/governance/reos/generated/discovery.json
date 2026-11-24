@@ -8,6 +8,7 @@
       "routes": 24,
       "workspaceDependencies": [
         "@assurapay/agent-runtime",
+        "@assurapay/agreement-atlas",
         "@assurapay/agreement-creation",
         "@assurapay/agreement-intelligence",
         "@assurapay/audit-ledger",
@@ -2218,6 +2219,37 @@
       ]
     },
     {
+      "directory": "packages/agreement-atlas",
+      "exportedClasses": [
+        "AtlasConvergenceService",
+        "AtlasError",
+        "AtlasProposalInvalid"
+      ],
+      "externalDependencies": [],
+      "main": "src/index.ts",
+      "moduleType": null,
+      "name": "@assurapay/agreement-atlas",
+      "sourceFiles": 2,
+      "sourceLines": 817,
+      "testFiles": [
+        "packages/agreement-atlas/src/atlas.test.ts"
+      ],
+      "tests": {
+        "e2e": 0,
+        "integration": 0,
+        "performance": 0,
+        "security": 0,
+        "unit": 1
+      },
+      "workspaceDependencies": [
+        "@assurapay/agent-runtime",
+        "@assurapay/agreement-intelligence",
+        "@assurapay/database",
+        "@assurapay/progressive-trust",
+        "@assurapay/shared"
+      ]
+    },
+    {
       "directory": "packages/agreement-creation",
       "exportedClasses": [
         "ApprovalWorkflowEngine",
@@ -2396,6 +2428,7 @@
       "sourceFiles": 1,
       "sourceLines": 473,
       "testFiles": [
+        "packages/database-testing/src/atlas.postgres.test.ts",
         "packages/database-testing/src/durability-coverage.test.ts",
         "packages/database-testing/src/engine-identity.test.ts",
         "packages/database-testing/src/flow-postgres-store.postgres.test.ts",
@@ -2428,10 +2461,13 @@
         "integration": 0,
         "performance": 0,
         "security": 0,
-        "unit": 26
+        "unit": 27
       },
       "workspaceDependencies": [
+        "@assurapay/agent-runtime",
+        "@assurapay/agreement-atlas",
         "@assurapay/agreement-creation",
+        "@assurapay/agreement-intelligence",
         "@assurapay/database",
         "@assurapay/domain-contracts",
         "@assurapay/organizations",
@@ -2861,7 +2897,7 @@
       "moduleType": null,
       "name": "@assurapay/permissions",
       "sourceFiles": 3,
-      "sourceLines": 1023,
+      "sourceLines": 1028,
       "testFiles": [
         "packages/permissions/src/catalogue.test.ts",
         "packages/permissions/src/enforcement.test.ts",
@@ -3122,6 +3158,7 @@
         "origin/feat/agentic-os-persona-convergence",
         "origin/feat/agreement-intake-e2e-v2",
         "origin/feat/agreement-three-path-intake",
+        "origin/feat/ai-runtime-atlas-convergence",
         "origin/feat/assurapay-full-production-convergence",
         "origin/feat/b1-batch-b-settlement-authority",
         "origin/feat/c1-batch-c-settlement-ledger",
@@ -3166,15 +3203,36 @@
       ],
       "clean": false,
       "dirtyFiles": [
-        "apps/web/app/api/v1/contract-analysis/route.ts",
+        "apps/web/app/api/v1/atlas/proposals/[id]/decision/route.ts",
+        "apps/web/app/api/v1/atlas/proposals/[id]/publish/route.ts",
+        "apps/web/app/api/v1/atlas/proposals/[id]/route.ts",
+        "apps/web/app/api/v1/atlas/proposals/route.ts",
+        "apps/web/lib/agent-route-governance.test.ts",
         "apps/web/lib/agent-runtime-app.ts",
-        "apps/web/lib/governed-analysis.test.ts",
-        "apps/web/lib/governed-analysis.ts",
-        "apps/web/lib/trust-app.ts",
-        "packages/agreement-intelligence/src/index.ts"
+        "apps/web/lib/route-permissions.ts",
+        "apps/web/package.json",
+        "docs/governance/reos/generated/CERTIFICATION_REPORT.md",
+        "docs/governance/reos/generated/EXECUTION_MANIFEST.md",
+        "docs/governance/reos/generated/certification.json",
+        "docs/governance/reos/generated/dependency-resolution.json",
+        "docs/governance/reos/generated/discovery.json",
+        "docs/governance/reos/generated/execution-manifest.json",
+        "docs/governance/reos/generated/forensics.json",
+        "packages/agreement-atlas/package.json",
+        "packages/agreement-atlas/src/atlas.test.ts",
+        "packages/agreement-atlas/src/index.ts",
+        "packages/agreement-atlas/src/schema.ts",
+        "packages/database-testing/package.json",
+        "packages/database-testing/src/atlas.postgres.test.ts",
+        "packages/database/src/postgres-store.ts",
+        "packages/permissions/src/catalogue.ts",
+        "pnpm-lock.yaml",
+        "tsconfig.json",
+        "vitest.config.ts",
+        "vitest.postgres.config.ts"
       ],
-      "head": "ce78539e75079e416d096aba49b054071aacdffd",
-      "headShort": "ce78539",
+      "head": "9adc107a8083844ec52ce8fd8b2d086fbf5f4b12",
+      "headShort": "9adc107",
       "reflogAvailable": true,
       "remotes": [
         "origin"
@@ -3182,7 +3240,7 @@
       "tags": [
         "rc-engine-60"
       ],
-      "upstream": null
+      "upstream": "origin/feat/ai-runtime-atlas-convergence"
     },
     "name": "assurapay",
     "packageManager": "pnpm@11.3.0",
@@ -3274,6 +3332,7 @@
       {
         "compositionRoot": "apps/web/lib/agent-runtime-app.ts",
         "registeredEngines": [
+          "AtlasConvergenceService",
           "ContractAnalysisEngine"
         ]
       },
@@ -3371,17 +3430,17 @@
       "integration": 15,
       "performance": 2,
       "security": 3,
-      "unit": 92
+      "unit": 94
     },
-    "files": 127
+    "files": 129
   },
   "totals": {
     "applications": 1,
     "documents": 157,
     "engines": 60,
     "migrations": 49,
-    "packages": 28,
-    "testFiles": 127
+    "packages": 29,
+    "testFiles": 129
   },
   "workflows": [
     {

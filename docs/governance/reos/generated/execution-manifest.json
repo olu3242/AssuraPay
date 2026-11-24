@@ -7,6 +7,7 @@
       "routes": 24,
       "workspaceDependencies": [
         "@assurapay/agent-runtime",
+        "@assurapay/agreement-atlas",
         "@assurapay/agreement-creation",
         "@assurapay/agreement-intelligence",
         "@assurapay/audit-ledger",
@@ -49,7 +50,7 @@
       "PaymentInstruction",
       "ReconciliationRecord"
     ],
-    "packageCount": 28,
+    "packageCount": 29,
     "waves": [
       {
         "engines": [
@@ -241,6 +242,7 @@
     ],
     "targets": 87,
     "unscripted": [
+      "packages/agreement-atlas",
       "packages/database",
       "packages/database-testing",
       "packages/domain",
@@ -3510,7 +3512,7 @@
   "identity": {
     "branch": "feat/ai-runtime-atlas-convergence",
     "clean": false,
-    "head": "ce78539e75079e416d096aba49b054071aacdffd",
+    "head": "9adc107a8083844ec52ce8fd8b2d086fbf5f4b12",
     "repository": "assurapay",
     "version": "0.1.0"
   },
@@ -3602,7 +3604,7 @@
     "released": 76,
     "validated": 0
   },
-  "manifestDigest": "830bdd3c1255",
+  "manifestDigest": "5cfc8a07961d",
   "missingCapabilities": [],
   "packages": [
     {
@@ -3645,6 +3647,37 @@
       "workspaceDependencies": [
         "@assurapay/database",
         "@assurapay/domain-contracts",
+        "@assurapay/shared"
+      ]
+    },
+    {
+      "directory": "packages/agreement-atlas",
+      "exportedClasses": [
+        "AtlasConvergenceService",
+        "AtlasError",
+        "AtlasProposalInvalid"
+      ],
+      "externalDependencies": [],
+      "main": "src/index.ts",
+      "moduleType": null,
+      "name": "@assurapay/agreement-atlas",
+      "sourceFiles": 2,
+      "sourceLines": 817,
+      "testFiles": [
+        "packages/agreement-atlas/src/atlas.test.ts"
+      ],
+      "tests": {
+        "e2e": 0,
+        "integration": 0,
+        "performance": 0,
+        "security": 0,
+        "unit": 1
+      },
+      "workspaceDependencies": [
+        "@assurapay/agent-runtime",
+        "@assurapay/agreement-intelligence",
+        "@assurapay/database",
+        "@assurapay/progressive-trust",
         "@assurapay/shared"
       ]
     },
@@ -3827,6 +3860,7 @@
       "sourceFiles": 1,
       "sourceLines": 473,
       "testFiles": [
+        "packages/database-testing/src/atlas.postgres.test.ts",
         "packages/database-testing/src/durability-coverage.test.ts",
         "packages/database-testing/src/engine-identity.test.ts",
         "packages/database-testing/src/flow-postgres-store.postgres.test.ts",
@@ -3859,10 +3893,13 @@
         "integration": 0,
         "performance": 0,
         "security": 0,
-        "unit": 26
+        "unit": 27
       },
       "workspaceDependencies": [
+        "@assurapay/agent-runtime",
+        "@assurapay/agreement-atlas",
         "@assurapay/agreement-creation",
+        "@assurapay/agreement-intelligence",
         "@assurapay/database",
         "@assurapay/domain-contracts",
         "@assurapay/organizations",
@@ -4292,7 +4329,7 @@
       "moduleType": null,
       "name": "@assurapay/permissions",
       "sourceFiles": 3,
-      "sourceLines": 1023,
+      "sourceLines": 1028,
       "testFiles": [
         "packages/permissions/src/catalogue.test.ts",
         "packages/permissions/src/enforcement.test.ts",
@@ -4578,6 +4615,7 @@
             "apps/web/lib/persistence.ts",
             "packages/agent-runtime/src/index.ts",
             "packages/agent-runtime/src/registration.ts",
+            "packages/agreement-atlas/src/index.ts",
             "packages/agreement-creation/src/index.ts",
             "packages/agreement-intelligence/src/index.ts",
             "packages/audit-ledger/src/index.ts",
@@ -4928,6 +4966,7 @@
           "kind": "symbol",
           "matches": [
             "packages/audit-ledger/src/audit-ledger.postgres.test.ts",
+            "packages/database-testing/src/atlas.postgres.test.ts",
             "packages/database-testing/src/durability-coverage.test.ts",
             "packages/database-testing/src/flow-postgres-store.postgres.test.ts",
             "packages/database-testing/src/identity-plane-rls.postgres.test.ts",
@@ -4989,6 +5028,7 @@
         {
           "kind": "symbol",
           "matches": [
+            "packages/database-testing/src/atlas.postgres.test.ts",
             "packages/database-testing/src/index.ts",
             "packages/database-testing/src/migrations.postgres.test.ts",
             "packages/database-testing/src/money-integrality.postgres.test.ts",
@@ -5286,6 +5326,7 @@
         {
           "kind": "symbol",
           "matches": [
+            "packages/database-testing/src/atlas.postgres.test.ts",
             "packages/database-testing/src/flow-postgres-store.postgres.test.ts",
             "packages/database-testing/src/progressive-trust.postgres.test.ts",
             "packages/database-testing/src/rls-certification.postgres.test.ts",
@@ -5537,7 +5578,9 @@
           "matches": [
             "apps/web/lib/agent-runtime-app.ts",
             "packages/agent-runtime/src/agent-runtime.registration.test.ts",
-            "packages/agent-runtime/src/registration.ts"
+            "packages/agent-runtime/src/registration.ts",
+            "packages/agreement-atlas/src/atlas.test.ts",
+            "packages/database-testing/src/atlas.postgres.test.ts"
           ],
           "query": "registerAgentRuntime",
           "satisfied": true
@@ -5880,6 +5923,7 @@
         {
           "kind": "symbol",
           "matches": [
+            "apps/web/lib/agent-route-governance.test.ts",
             "apps/web/lib/grant-administration.ts",
             "packages/permissions/src/catalogue.test.ts",
             "packages/permissions/src/catalogue.ts"
@@ -5974,6 +6018,7 @@
         {
           "kind": "symbol",
           "matches": [
+            "apps/web/lib/agent-route-governance.test.ts",
             "apps/web/lib/grant-administration.test.ts",
             "apps/web/lib/personas.test.ts",
             "apps/web/lib/personas.ts",
@@ -6008,6 +6053,10 @@
             "apps/web/app/api/v1/approval-requests/[id]/decisions/route.ts",
             "apps/web/app/api/v1/approval-requests/route.ts",
             "apps/web/app/api/v1/approval-thresholds/route.ts",
+            "apps/web/app/api/v1/atlas/proposals/[id]/decision/route.ts",
+            "apps/web/app/api/v1/atlas/proposals/[id]/publish/route.ts",
+            "apps/web/app/api/v1/atlas/proposals/[id]/route.ts",
+            "apps/web/app/api/v1/atlas/proposals/route.ts",
             "apps/web/app/api/v1/auth/logout/route.ts",
             "apps/web/app/api/v1/authorization-decisions/[id]/approve/route.ts",
             "apps/web/app/api/v1/authorization-decisions/[id]/reject/route.ts",
@@ -6544,6 +6593,7 @@
       {
         "compositionRoot": "apps/web/lib/agent-runtime-app.ts",
         "registeredEngines": [
+          "AtlasConvergenceService",
           "ContractAnalysisEngine"
         ]
       },

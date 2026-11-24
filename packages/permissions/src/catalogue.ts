@@ -211,6 +211,9 @@ export const PERMISSION_CATALOGUE: readonly RoleDefinition[] = Object.freeze([
       'change-requests:implement',
       'recommendations:create',
       'recommendations:decide',
+      'atlas:read',
+      'atlas:approve',
+      'atlas:publish',
     ],
   },
   {
@@ -389,6 +392,8 @@ export const PERMISSION_CATALOGUE: readonly RoleDefinition[] = Object.freeze([
       'kpi-values:create',
       'model-feedback:create',
       'workflow-intelligence:create',
+      'atlas:propose',
+      'atlas:read',
     ],
   },
 ]);

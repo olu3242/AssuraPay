@@ -1,0 +1,13 @@
+{
+  "name": "@assurapay/agreement-atlas",
+  "version": "0.1.0",
+  "private": true,
+  "main": "src/index.ts",
+  "dependencies": {
+    "@assurapay/agent-runtime": "workspace:*",
+    "@assurapay/agreement-intelligence": "workspace:*",
+    "@assurapay/database": "workspace:*",
+    "@assurapay/progressive-trust": "workspace:*",
+    "@assurapay/shared": "workspace:*"
+  }
+}

@@ -10,14 +10,14 @@
 | Repository | assurapay |
 | Version | 0.1.0 |
 | Branch | feat/ai-runtime-atlas-convergence |
-| HEAD | ce78539e75079e416d096aba49b054071aacdffd |
+| HEAD | 9adc107a8083844ec52ce8fd8b2d086fbf5f4b12 |
 | Worktree clean | no |
-| Manifest digest | 830bdd3c1255 |
+| Manifest digest | 5cfc8a07961d |
 | REOS version | 1.0.0 |
 
 ## Architecture
 
-- Packages: 28
+- Packages: 29
 - Applications: 1
 - Waves: 6
 - Canonical chain: Contract → PerformanceBlueprint → Milestone → DefinitionOfDonePackage → ExecutionWorkspace → CompletionCertificate → PaymentEligibility → FinancialEntitlement → ReleaseRequest → PaymentInstruction → ReconciliationRecord
@@ -154,4 +154,4 @@ from repository evidence: package presence, test files, and certification wiring
 ## Certification coverage
 
 - Certification scripts: 87
-- Packages without a certification script: packages/database, packages/database-testing, packages/domain, packages/domain-contracts, packages/flow-orchestration, packages/progressive-trust
+- Packages without a certification script: packages/agreement-atlas, packages/database, packages/database-testing, packages/domain, packages/domain-contracts, packages/flow-orchestration, packages/progressive-trust

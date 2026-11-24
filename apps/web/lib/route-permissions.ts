@@ -31,6 +31,13 @@ export const ROUTE_PERMISSION_REQUIREMENTS: Readonly<Record<string, RouteAccess>
   '/api/v1/agreement-contracts|POST': { access: 'permission', permissionKey: 'agreement-contracts:create' },
   '/api/v1/agreement-intelligence/[id]/publish|POST': { access: 'permission', permissionKey: 'agreement-intelligence:publish' },
   '/api/v1/agreement-intelligence|POST': { access: 'permission', permissionKey: 'agreement-intelligence:create' },
+  // Atlas — the governed agent surface. Proposing and approving are deliberately different keys
+  // held by different roles, so the separation the service enforces at run time is also a property
+  // of the role catalogue rather than only of a check that could be edited away.
+  '/api/v1/atlas/proposals|POST': { access: 'permission', permissionKey: 'atlas:propose' },
+  '/api/v1/atlas/proposals/[id]|GET': { access: 'permission', permissionKey: 'atlas:read' },
+  '/api/v1/atlas/proposals/[id]/decision|POST': { access: 'permission', permissionKey: 'atlas:approve' },
+  '/api/v1/atlas/proposals/[id]/publish|POST': { access: 'permission', permissionKey: 'atlas:publish' },
   '/api/v1/approval-requests/[id]/decisions|POST': { access: 'permission', permissionKey: 'approval-requests:decide' },
   '/api/v1/approval-requests|POST': { access: 'permission', permissionKey: 'approval-requests:create' },
   '/api/v1/approval-thresholds|POST': { access: 'permission', permissionKey: 'approval-thresholds:create' },

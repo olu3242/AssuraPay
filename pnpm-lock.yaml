@@ -63,6 +63,9 @@ importers:
       '@assurapay/agent-runtime':
         specifier: workspace:*
         version: link:../../packages/agent-runtime
+      '@assurapay/agreement-atlas':
+        specifier: workspace:*
+        version: link:../../packages/agreement-atlas
       '@assurapay/agreement-creation':
         specifier: workspace:*
         version: link:../../packages/agreement-creation
@@ -157,6 +160,24 @@ importers:
         specifier: workspace:*
         version: link:../shared
 
+  packages/agreement-atlas:
+    dependencies:
+      '@assurapay/agent-runtime':
+        specifier: workspace:*
+        version: link:../agent-runtime
+      '@assurapay/agreement-intelligence':
+        specifier: workspace:*
+        version: link:../agreement-intelligence
+      '@assurapay/database':
+        specifier: workspace:*
+        version: link:../database
+      '@assurapay/progressive-trust':
+        specifier: workspace:*
+        version: link:../progressive-trust
+      '@assurapay/shared':
+        specifier: workspace:*
+        version: link:../shared
+
   packages/agreement-creation:
     dependencies:
       '@assurapay/database':
@@ -219,9 +240,18 @@ importers:
 
   packages/database-testing:
     dependencies:
+      '@assurapay/agent-runtime':
+        specifier: workspace:*
+        version: link:../agent-runtime
+      '@assurapay/agreement-atlas':
+        specifier: workspace:*
+        version: link:../agreement-atlas
       '@assurapay/agreement-creation':
         specifier: workspace:*
         version: link:../agreement-creation
+      '@assurapay/agreement-intelligence':
+        specifier: workspace:*
+        version: link:../agreement-intelligence
       '@assurapay/database':
         specifier: workspace:*
         version: link:../database

@@ -10,6 +10,7 @@
   "dependencies": {
     "@assurapay/agent-runtime": "workspace:*",
     "@assurapay/agreement-creation": "workspace:*",
+    "@assurapay/agreement-atlas": "workspace:*",
     "@assurapay/agreement-intelligence": "workspace:*",
     "@assurapay/audit-ledger": "workspace:*",
     "@assurapay/completion-assurance": "workspace:*",

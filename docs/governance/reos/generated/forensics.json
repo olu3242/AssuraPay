@@ -43,6 +43,7 @@
             "apps/web/lib/persistence.ts",
             "packages/agent-runtime/src/index.ts",
             "packages/agent-runtime/src/registration.ts",
+            "packages/agreement-atlas/src/index.ts",
             "packages/agreement-creation/src/index.ts",
             "packages/agreement-intelligence/src/index.ts",
             "packages/audit-ledger/src/index.ts",
@@ -393,6 +394,7 @@
           "kind": "symbol",
           "matches": [
             "packages/audit-ledger/src/audit-ledger.postgres.test.ts",
+            "packages/database-testing/src/atlas.postgres.test.ts",
             "packages/database-testing/src/durability-coverage.test.ts",
             "packages/database-testing/src/flow-postgres-store.postgres.test.ts",
             "packages/database-testing/src/identity-plane-rls.postgres.test.ts",
@@ -454,6 +456,7 @@
         {
           "kind": "symbol",
           "matches": [
+            "packages/database-testing/src/atlas.postgres.test.ts",
             "packages/database-testing/src/index.ts",
             "packages/database-testing/src/migrations.postgres.test.ts",
             "packages/database-testing/src/money-integrality.postgres.test.ts",
@@ -751,6 +754,7 @@
         {
           "kind": "symbol",
           "matches": [
+            "packages/database-testing/src/atlas.postgres.test.ts",
             "packages/database-testing/src/flow-postgres-store.postgres.test.ts",
             "packages/database-testing/src/progressive-trust.postgres.test.ts",
             "packages/database-testing/src/rls-certification.postgres.test.ts",
@@ -1002,7 +1006,9 @@
           "matches": [
             "apps/web/lib/agent-runtime-app.ts",
             "packages/agent-runtime/src/agent-runtime.registration.test.ts",
-            "packages/agent-runtime/src/registration.ts"
+            "packages/agent-runtime/src/registration.ts",
+            "packages/agreement-atlas/src/atlas.test.ts",
+            "packages/database-testing/src/atlas.postgres.test.ts"
           ],
           "query": "registerAgentRuntime",
           "satisfied": true
@@ -1345,6 +1351,7 @@
         {
           "kind": "symbol",
           "matches": [
+            "apps/web/lib/agent-route-governance.test.ts",
             "apps/web/lib/grant-administration.ts",
             "packages/permissions/src/catalogue.test.ts",
             "packages/permissions/src/catalogue.ts"
@@ -1439,6 +1446,7 @@
         {
           "kind": "symbol",
           "matches": [
+            "apps/web/lib/agent-route-governance.test.ts",
             "apps/web/lib/grant-administration.test.ts",
             "apps/web/lib/personas.test.ts",
             "apps/web/lib/personas.ts",
@@ -1473,6 +1481,10 @@
             "apps/web/app/api/v1/approval-requests/[id]/decisions/route.ts",
             "apps/web/app/api/v1/approval-requests/route.ts",
             "apps/web/app/api/v1/approval-thresholds/route.ts",
+            "apps/web/app/api/v1/atlas/proposals/[id]/decision/route.ts",
+            "apps/web/app/api/v1/atlas/proposals/[id]/publish/route.ts",
+            "apps/web/app/api/v1/atlas/proposals/[id]/route.ts",
+            "apps/web/app/api/v1/atlas/proposals/route.ts",
             "apps/web/app/api/v1/auth/logout/route.ts",
             "apps/web/app/api/v1/authorization-decisions/[id]/approve/route.ts",
             "apps/web/app/api/v1/authorization-decisions/[id]/reject/route.ts",
@@ -1770,7 +1782,7 @@
       "totalProbes": 5
     }
   ],
-  "head": "ce78539e75079e416d096aba49b054071aacdffd",
+  "head": "9adc107a8083844ec52ce8fd8b2d086fbf5f4b12",
   "reosVersion": "1.0.0",
   "stage": "forensics",
   "summary": {

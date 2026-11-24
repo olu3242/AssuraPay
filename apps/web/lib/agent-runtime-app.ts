@@ -6,7 +6,8 @@ import {
   type ModelProvider,
 } from '@assurapay/agent-runtime';
 import { ContractAnalysisEngine } from '@assurapay/agreement-intelligence';
-import { trustStore } from './trust-app';
+import { AtlasConvergenceService } from '@assurapay/agreement-atlas';
+import { intelligence, trust, trustStore } from './trust-app';
 import { createGovernedAnalysisGateway } from './governed-analysis';
 
 /**
@@ -90,3 +91,38 @@ export function getGovernedContractAnalysis(): ContractAnalysisEngine {
  * be named cannot be replayed, which would make its findings evidence of nothing.
  */
 export const ANALYSIS_PROMPT_VERSION = 'contract-analysis/1';
+
+let atlas: AtlasConvergenceService | undefined;
+
+/**
+ * Atlas, composed against the governed runtime.
+ *
+ * Composed here for the same reason the analysis engine is: Atlas runs through the single shared
+ * `AiGatewayEngine`, and a second instance would double every tenant's rate-limit allowance.
+ *
+ * The engines it is handed are the whole of its authority, and the list is worth reading for what is
+ * absent. There is no payment, entitlement, certification, settlement or release engine here, so
+ * Atlas cannot reach protected state even if a model instructed it to — the limit is structural
+ * rather than a rule it is asked to observe. The only engine that writes authoritative state is
+ * `AgreementIntelligenceEngine`, which is ordinary deterministic domain code and knows nothing about
+ * agents or models.
+ */
+export function getAtlas(): AtlasConvergenceService {
+  if (!atlas) {
+    const runtime = getAgentRuntime();
+    atlas = new AtlasConvergenceService({
+      store: trustStore,
+      runtime: runtime.runtime,
+      capabilities: runtime.capabilities,
+      agents: runtime.agents,
+      prompts: runtime.prompts,
+      governance: runtime.governance,
+      contexts: runtime.contexts,
+      approvals: runtime.approvals,
+      trust: trust.progressiveTrust,
+      publication: intelligence.structured,
+      model: loadAgentRuntimePolicy(process.env).allowedModels[0],
+    });
+  }
+  return atlas;
+}
