@@ -3635,9 +3635,9 @@
     }
   ],
   "identity": {
-    "branch": "main",
+    "branch": "feat/ui-speak-the-users-language",
     "clean": false,
-    "head": "bc04205b1c79cbcdffac8417116924fd0e0b76da",
+    "head": "c1bcd97401171dd0197fff11824db3e70762ee64",
     "repository": "assurapay",
     "version": "0.1.0"
   },
@@ -3729,7 +3729,7 @@
     "released": 76,
     "validated": 0
   },
-  "manifestDigest": "127eede6c5c9",
+  "manifestDigest": "1ce89d79c0b9",
   "missingCapabilities": [],
   "packages": [
     {
@@ -3985,6 +3985,7 @@
       "sourceFiles": 1,
       "sourceLines": 473,
       "testFiles": [
+        "packages/database-testing/src/approval-inbox.postgres.test.ts",
         "packages/database-testing/src/atlas.postgres.test.ts",
         "packages/database-testing/src/durability-coverage.test.ts",
         "packages/database-testing/src/engine-identity.test.ts",
@@ -4020,7 +4021,7 @@
         "integration": 0,
         "performance": 0,
         "security": 0,
-        "unit": 29
+        "unit": 30
       },
       "workspaceDependencies": [
         "@assurapay/agent-runtime",
@@ -4340,7 +4341,7 @@
       "moduleType": null,
       "name": "@assurapay/notifications",
       "sourceFiles": 4,
-      "sourceLines": 698,
+      "sourceLines": 712,
       "testFiles": [
         "packages/notifications/src/notifications.test.ts"
       ],
@@ -4781,6 +4782,7 @@
             "packages/agreement-intelligence/src/index.ts",
             "packages/audit-ledger/src/index.ts",
             "packages/completion-assurance/src/index.ts",
+            "packages/database-testing/src/approval-inbox.postgres.test.ts",
             "packages/database-testing/src/durability-coverage.test.ts",
             "packages/database-testing/src/postgres-store.postgres.test.ts",
             "packages/database-testing/src/wave4-batch-a-repository.postgres.test.ts",
@@ -5130,6 +5132,7 @@
           "kind": "symbol",
           "matches": [
             "packages/audit-ledger/src/audit-ledger.postgres.test.ts",
+            "packages/database-testing/src/approval-inbox.postgres.test.ts",
             "packages/database-testing/src/atlas.postgres.test.ts",
             "packages/database-testing/src/durability-coverage.test.ts",
             "packages/database-testing/src/flow-postgres-store.postgres.test.ts",
@@ -5493,6 +5496,7 @@
         {
           "kind": "symbol",
           "matches": [
+            "packages/database-testing/src/approval-inbox.postgres.test.ts",
             "packages/database-testing/src/atlas.postgres.test.ts",
             "packages/database-testing/src/flow-postgres-store.postgres.test.ts",
             "packages/database-testing/src/flow-trigger.postgres.test.ts",
@@ -6127,6 +6131,7 @@
           "kind": "symbol",
           "matches": [
             "apps/web/lib/trust-app.ts",
+            "packages/database-testing/src/approval-inbox.postgres.test.ts",
             "packages/permissions/src/catalogue.test.ts",
             "packages/permissions/src/catalogue.ts"
           ],
@@ -6188,6 +6193,7 @@
           "kind": "symbol",
           "matches": [
             "apps/web/lib/agent-route-governance.test.ts",
+            "apps/web/lib/approval-inbox.test.ts",
             "apps/web/lib/grant-administration.test.ts",
             "apps/web/lib/personas.test.ts",
             "apps/web/lib/personas.ts",
@@ -6222,6 +6228,7 @@
             "apps/web/app/api/v1/approval-requests/[id]/decisions/route.ts",
             "apps/web/app/api/v1/approval-requests/route.ts",
             "apps/web/app/api/v1/approval-thresholds/route.ts",
+            "apps/web/app/api/v1/approvals/route.ts",
             "apps/web/app/api/v1/atlas/proposals/[id]/decision/route.ts",
             "apps/web/app/api/v1/atlas/proposals/[id]/publish/route.ts",
             "apps/web/app/api/v1/atlas/proposals/[id]/route.ts",

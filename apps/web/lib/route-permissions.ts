@@ -115,6 +115,9 @@ export const ROUTE_PERMISSION_REQUIREMENTS: Readonly<Record<string, RouteAccess>
   '/api/v1/execution-workspaces|POST': { access: 'permission', permissionKey: 'execution-workspaces:create' },
   '/api/v1/executions/[id]/transition|POST': { access: 'permission', permissionKey: 'executions:transition' },
   '/api/v1/executions|POST': { access: 'permission', permissionKey: 'executions:create' },
+  // The caller's own approval inbox. A read, so it carries the read key; deciding is a separate
+  // route with a separate key that segregation rules keep apart from payment execution.
+  '/api/v1/approvals|GET': { access: 'permission', permissionKey: 'executions:read' },
   '/api/v1/flow-tasks|GET': { access: 'permission', permissionKey: 'executions:read' },
   '/api/v1/flow-tasks/[id]/decisions|POST': { access: 'permission', permissionKey: 'authorization-decisions:approve', segregatedFrom: ['payment-instructions:submit'] },
   '/api/v1/flows/[id]|GET': { access: 'permission', permissionKey: 'executions:read' },

@@ -48,6 +48,7 @@
             "packages/agreement-intelligence/src/index.ts",
             "packages/audit-ledger/src/index.ts",
             "packages/completion-assurance/src/index.ts",
+            "packages/database-testing/src/approval-inbox.postgres.test.ts",
             "packages/database-testing/src/durability-coverage.test.ts",
             "packages/database-testing/src/postgres-store.postgres.test.ts",
             "packages/database-testing/src/wave4-batch-a-repository.postgres.test.ts",
@@ -397,6 +398,7 @@
           "kind": "symbol",
           "matches": [
             "packages/audit-ledger/src/audit-ledger.postgres.test.ts",
+            "packages/database-testing/src/approval-inbox.postgres.test.ts",
             "packages/database-testing/src/atlas.postgres.test.ts",
             "packages/database-testing/src/durability-coverage.test.ts",
             "packages/database-testing/src/flow-postgres-store.postgres.test.ts",
@@ -760,6 +762,7 @@
         {
           "kind": "symbol",
           "matches": [
+            "packages/database-testing/src/approval-inbox.postgres.test.ts",
             "packages/database-testing/src/atlas.postgres.test.ts",
             "packages/database-testing/src/flow-postgres-store.postgres.test.ts",
             "packages/database-testing/src/flow-trigger.postgres.test.ts",
@@ -1394,6 +1397,7 @@
           "kind": "symbol",
           "matches": [
             "apps/web/lib/trust-app.ts",
+            "packages/database-testing/src/approval-inbox.postgres.test.ts",
             "packages/permissions/src/catalogue.test.ts",
             "packages/permissions/src/catalogue.ts"
           ],
@@ -1455,6 +1459,7 @@
           "kind": "symbol",
           "matches": [
             "apps/web/lib/agent-route-governance.test.ts",
+            "apps/web/lib/approval-inbox.test.ts",
             "apps/web/lib/grant-administration.test.ts",
             "apps/web/lib/personas.test.ts",
             "apps/web/lib/personas.ts",
@@ -1489,6 +1494,7 @@
             "apps/web/app/api/v1/approval-requests/[id]/decisions/route.ts",
             "apps/web/app/api/v1/approval-requests/route.ts",
             "apps/web/app/api/v1/approval-thresholds/route.ts",
+            "apps/web/app/api/v1/approvals/route.ts",
             "apps/web/app/api/v1/atlas/proposals/[id]/decision/route.ts",
             "apps/web/app/api/v1/atlas/proposals/[id]/publish/route.ts",
             "apps/web/app/api/v1/atlas/proposals/[id]/route.ts",
@@ -1791,7 +1797,7 @@
       "totalProbes": 5
     }
   ],
-  "head": "bc04205b1c79cbcdffac8417116924fd0e0b76da",
+  "head": "c1bcd97401171dd0197fff11824db3e70762ee64",
   "reosVersion": "1.0.0",
   "stage": "forensics",
   "summary": {
