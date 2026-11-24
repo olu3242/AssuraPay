@@ -954,6 +954,54 @@ describe('integration: Batch C mutation boundaries', () => {
     expect(String(direct)).toContain('append-only table');
   }, 300_000);
 
+  it('refuses reservations that together exceed the committed funds, including two raced', async () => {
+    // The invariant: the RESERVED reservations against a funding commitment may never exceed what the
+    // provider actually confirmed. Over-reserving means the platform has promised the same custodied
+    // naira twice, and the second release fails at the provider — after a human approved it.
+    //
+    // `EscrowFundingAssuranceEngine.reserve` sums the active reservations and compares before
+    // appending. That read-then-write is not atomic and runs in no transaction, so it is the same
+    // shape as the closure-certificate count above: two concurrent callers both read the old total,
+    // both pass, and both insert. `MONETARY_INVARIANTS.md` is explicit that "an invariant that
+    // PostgreSQL can enforce must not exist only as an application check", and this is one it can.
+    //
+    // The fixture leaves 1,075,000 of 2,000,000 unreserved (fr-1 holds 925,000).
+    const remaining = 2_000_000 - 925_000;
+    const half = Math.floor(remaining / 2) + 50_000; // each alone fits; together they do not
+
+    const store = new PostgresTrustStore(database.sql);
+    const reserve = (id: string, amount: number) =>
+      withTrustScope({ tenantId: TENANT, workspaceId: WORKSPACE, actorId: ACTOR }, () =>
+        store.append('fundReservations', {
+          id,
+          workspaceId: WORKSPACE,
+          fundingCommitmentId: 'fc-1',
+          invoiceId: 'inv-1',
+          reservedAmountMinor: amount,
+          status: 'RESERVED',
+          createdAt: stamp,
+        }),
+      );
+
+    // Raced deliberately, in two transactions, because a sequential pair proves only the sum and not
+    // the atomicity. One must survive and one must be refused.
+    const outcomes = await Promise.allSettled([
+      reserve('fr-race-a', half),
+      reserve('fr-race-b', half),
+    ]);
+    const rejected = outcomes.filter((outcome) => outcome.status === 'rejected');
+    expect(rejected, 'one of two raced over-reservations must be refused').toHaveLength(1);
+
+    // And the committed total is what actually matters: whatever the engine or a direct writer did,
+    // the database must not hold more reserved than was committed.
+    const [total] = await raw(database, (tx) => tx<{ reserved: string }[]>`
+      SELECT coalesce(sum(reserved_amount_minor), 0)::text AS reserved
+        FROM fund_reservations
+       WHERE funding_commitment_id = ${'fc-1'} AND status = 'RESERVED'
+    `);
+    expect(Number(total.reserved)).toBeLessThanOrEqual(2_000_000);
+  }, 300_000);
+
   it('permits confirming a funding commitment, which Batch B converged but never wrote', async () => {
     await as(database, (store) =>
       store.replace('fundingCommitments', {

@@ -381,6 +381,18 @@ export class EscrowFundingAssuranceEngine {
     const commitment = await get<FundingCommitment>(this.store, 'fundingCommitments', context, input.fundingCommitmentId);
     if (commitment.status !== 'CONFIRMED') throw new Error('FUNDING_COMMITMENT_NOT_CONFIRMED');
     const workspaceId = ws(context);
+    // A fast, well-named refusal — not the guarantee.
+    //
+    // This is a read-then-write: two concurrent reservations both read the same total, both pass
+    // here, and both would insert. The invariant is therefore enforced in the database, by
+    // `fund_reservations_within_commitment` (migration `202608110023`), which locks the parent
+    // commitment before summing so the second caller blocks and then sees the first. That trigger
+    // raises `FUND_RESERVATIONS_EXCEED_COMMITTED_FUNDS`, and it is what holds for a writer this
+    // engine never mediated.
+    //
+    // Kept because it gives the ordinary single-caller case a clear domain error instead of a raw
+    // database exception. Do not read it as the control: `docs/finance/MONETARY_INVARIANTS.md`
+    // forbids enforcing a monetary invariant only in TypeScript, and this one is not.
     const activeReserved = (await this.store
       .list<FundReservation>('fundReservations'))
       .filter((x) => x.workspaceId === workspaceId && x.fundingCommitmentId === commitment.id && x.status === 'RESERVED')

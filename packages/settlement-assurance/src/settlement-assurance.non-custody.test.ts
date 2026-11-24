@@ -75,4 +75,53 @@ describe('non-custody constraint', () => {
   it('never lets release orchestration depend on a payment or provider gateway — it only evaluates and records conditions', () => {
     expect(ConditionalReleaseOrchestrationEngine.length).toBe(1);
   });
+
+  it('reserves no more than the provider confirmed, so a reservation never claims funds nobody holds', async () => {
+    // The non-custody reading of over-reservation. AssuraPay holds nothing, so a reservation is a
+    // claim on money a licensed provider is holding. Reserving past the confirmed commitment claims
+    // custody the platform does not have and the provider never granted — and the lie is only found
+    // when the provider refuses a release a human has already approved.
+    const s = new InMemoryTrustStore();
+    const engine = new EscrowFundingAssuranceEngine(s, {
+      async confirmFunding() {
+        return { confirmed: true, providerConfirmationReference: 'paystack://conf/1' };
+      },
+    });
+    const commitment = await engine.confirmCommitment(
+      c,
+      (
+        await engine.recordCommitment(c, {
+          milestoneId: 'm',
+          providerKey: 'paystack',
+          externalCustodyReference: 'paystack://escrow/abc123',
+          committedAmountMinor: 1_000_000,
+          currency: 'NGN',
+        })
+      ).id,
+    );
+
+    await engine.reserve(c, {
+      fundingCommitmentId: commitment.id,
+      invoiceId: 'inv-1',
+      reservedAmountMinor: 600_000,
+    });
+    await expect(
+      engine.reserve(c, {
+        fundingCommitmentId: commitment.id,
+        invoiceId: 'inv-2',
+        reservedAmountMinor: 600_000,
+      }),
+    ).rejects.toThrow('INSUFFICIENT_COMMITTED_FUNDS');
+  });
+
+  it('does not treat its own arithmetic as the control that stops over-reservation', () => {
+    // The check in `reserve` is a read-then-write: two concurrent callers both read the same total
+    // and both pass it. So the constraint lives in the database, and this asserts the source says so
+    // rather than leaving a later reader to assume the TypeScript is the guarantee.
+    // `docs/finance/MONETARY_INVARIANTS.md` forbids enforcing a monetary invariant only in
+    // TypeScript; the durable proof is the raced pair in `wave5-batch-c-repository.postgres.test.ts`.
+    const source = readFileSync(resolve('packages/settlement-assurance/src/index.ts'), 'utf8');
+    expect(source).toContain('fund_reservations_within_commitment');
+    expect(source).toContain('202608110023');
+  });
 });
