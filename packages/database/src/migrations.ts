@@ -458,6 +458,16 @@ export const REQUIRED_TRUST_MIGRATIONS: readonly string[] = Object.freeze([
   // deployment behind a load balancer admits the same assertion once per instance. Also the table
   // the durable store writes on every acting request, so a host missing it fails that write outright.
   '202608110026_assertion_nonces_are_consumed_once_across_replicas',
+  // Makes the settlement chain's upward references real. Required: the planning tables constrained
+  // their `milestone_id` and the settlement tables did not, so an invoice, entitlement, commitment,
+  // release or eligibility could name a milestone that had never existed — and
+  // `performance_blueprints.contract_id` was unenforced, leaving the chain's first link open too. A
+  // host without this cannot answer which obligation justified a payment, because the join can come
+  // back empty with nothing to distinguish "no obligation recorded" from "obligation deleted". Plain
+  // foreign keys rather than triggers, because this is referential integrity. Safe on populated
+  // tables: added NOT VALID, so the rule binds every later write without failing on rows that predate
+  // it.
+  '202611250001_the_settlement_chain_names_only_milestones_that_exist',
 ]);
 
 export type SchemaCompatibility = {

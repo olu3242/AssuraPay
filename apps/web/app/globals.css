@@ -2784,3 +2784,75 @@ button:disabled {
 .app-brand img { object-fit:contain; }
 .app-navigation nav { display:flex; flex-wrap:wrap; gap:1rem; margin:0; }
 .app-navigation a:focus-visible { outline:2px solid var(--ap-blue); outline-offset:4px; }
+
+/* ---------------------------------------------------------------------------
+   Record pages — tabs and field lists.
+
+   Built on the same tokens as every other surface (`--ap-border`, `--ap-pale`,
+   `--ap-ink`, and the per-persona `--ap-accent`), so a record opened from the
+   finance workspace carries that workspace's accent rather than introducing a
+   second visual language for the same chain.
+   --------------------------------------------------------------------------- */
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  border-bottom: 1px solid var(--ap-border);
+  margin-bottom: 1rem;
+}
+
+.tab {
+  appearance: none;
+  background: transparent;
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-radius: 10px 10px 0 0;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  padding: 0.5rem 0.9rem;
+}
+
+.tab:hover {
+  background: var(--ap-pale);
+}
+
+.tab--current {
+  background: var(--ap-pale);
+  border-color: var(--ap-border);
+  /* The accent is the one thing that distinguishes the active tab beyond
+     background, so the state survives a high-contrast or forced-colours mode
+     where backgrounds are overridden. */
+  box-shadow: inset 0 3px 0 0 var(--ap-accent, var(--ap-ink));
+  font-weight: 600;
+}
+
+.tab:focus-visible {
+  outline: 2px solid var(--ap-accent, var(--ap-ink));
+  outline-offset: 2px;
+}
+
+.record-fields {
+  display: grid;
+  gap: 0.6rem 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  margin: 0.75rem 0 0;
+}
+
+.record-fields > div {
+  min-width: 0;
+}
+
+.record-fields dt {
+  font-size: 0.82rem;
+  letter-spacing: 0.01em;
+  opacity: 0.72;
+}
+
+.record-fields dd {
+  margin: 0.15rem 0 0;
+  /* Values can be long identifiers or serialized JSON; wrapping beats a
+     horizontal scrollbar on a page whose job is to be read. */
+  overflow-wrap: anywhere;
+}

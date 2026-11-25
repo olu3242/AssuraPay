@@ -166,28 +166,59 @@ describe('integration: Batch A converges on the trust runtime', () => {
 describe('integration: the Batch A boundary denies', () => {
   /** Founds two tenants and a workspace each, as the owner with FORCE temporarily lifted. */
   async function seeded(database: TestDatabase): Promise<void> {
+    // `202611250001` made `execution_workspaces.blueprint_id` and `.milestone_id` real foreign keys,
+    // so the chain above an execution workspace now has to exist before one can be written. This
+    // suite is about row-level security rather than the chain, but it cannot write its fixture
+    // without one — which is the constraint doing its job: CLAUDE.md's canonical chain puts
+    // ExecutionWorkspace after Milestone, and before this an execution workspace could name a
+    // blueprint and a milestone that had never been planned.
+    const CHAIN = ['agreements_v2', 'performance_blueprints', 'blueprint_milestones'] as const;
     await database.sql.unsafe(
       'ALTER TABLE trust_tenants NO FORCE ROW LEVEL SECURITY; ' +
         'ALTER TABLE trust_workspaces NO FORCE ROW LEVEL SECURITY; ' +
-        'ALTER TABLE execution_workspaces NO FORCE ROW LEVEL SECURITY',
+        'ALTER TABLE execution_workspaces NO FORCE ROW LEVEL SECURITY; ' +
+        CHAIN.map((table) => `ALTER TABLE ${table} NO FORCE ROW LEVEL SECURITY`).join('; '),
     );
     for (const tenant of ['tenant-a', 'tenant-b']) {
+      const workspace = `workspace-${tenant}`;
       await database.sql`INSERT INTO trust_tenants (tenant_id) VALUES (${tenant})`;
       await database.sql`
         INSERT INTO trust_workspaces (workspace_id, tenant_id, status, payload, payload_digest)
-        VALUES (${`workspace-${tenant}`}, ${tenant}, 'ACTIVE', '{}', 'digest')
+        VALUES (${workspace}, ${tenant}, 'ACTIVE', '{}', 'digest')
+      `;
+      await database.sql`
+        INSERT INTO agreements_v2
+          (id, tenant_id, workspace_id, contract_number, title, contract_type, owner_user_id, status)
+        VALUES (${`c-${tenant}`}, ${tenant}, ${workspace}, ${`C-${tenant}`},
+                'Seeded agreement', 'PROCUREMENT', 'user-contract-owner', 'DRAFT')
+      `;
+      await database.sql`
+        INSERT INTO performance_blueprints
+          (id, tenant_id, workspace_id, contract_id, contract_version_id,
+           agreement_intelligence_version_id, version, status, created_by, content_hash)
+        VALUES (${`bp-${tenant}`}, ${tenant}, ${workspace}, ${`c-${tenant}`}, ${`cv-${tenant}`},
+                ${`aiv-${tenant}`}, 1, 'ACTIVE', 'user-contract-owner', 'a3f1c9')
+      `;
+      await database.sql`
+        INSERT INTO blueprint_milestones
+          (id, tenant_id, workspace_id, blueprint_id, title, deliverable_ids, start_date, due_date,
+           budget_amount_minor, currency, value_allocation_percent, status)
+        VALUES (${`ms-${tenant}`}, ${tenant}, ${workspace}, ${`bp-${tenant}`}, 'Slab complete',
+                ${database.sql.json([`dl-${tenant}`])}, '2026-09-01', '2026-09-30',
+                5000000, 'NGN', 25, 'SCHEDULED')
       `;
       await database.sql`
         INSERT INTO execution_workspaces
           (id, tenant_id, workspace_id, blueprint_id, milestone_id, status)
-        VALUES (${`exec-${tenant}`}, ${tenant}, ${`workspace-${tenant}`},
+        VALUES (${`exec-${tenant}`}, ${tenant}, ${workspace},
                 ${`bp-${tenant}`}, ${`ms-${tenant}`}, 'ACTIVE')
       `;
     }
     await database.sql.unsafe(
       'ALTER TABLE trust_tenants FORCE ROW LEVEL SECURITY; ' +
         'ALTER TABLE trust_workspaces FORCE ROW LEVEL SECURITY; ' +
-        'ALTER TABLE execution_workspaces FORCE ROW LEVEL SECURITY',
+        'ALTER TABLE execution_workspaces FORCE ROW LEVEL SECURITY; ' +
+        CHAIN.map((table) => `ALTER TABLE ${table} FORCE ROW LEVEL SECURITY`).join('; '),
     );
   }
 

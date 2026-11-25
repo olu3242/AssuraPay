@@ -77,6 +77,50 @@ async function foundTenancy(database: TestDatabase): Promise<void> {
           status: 'ACTIVE',
           version: 1,
         });
+        // The blueprint and milestone an execution workspace hangs off. `202611250001` made
+        // `execution_workspaces.blueprint_id` and `.milestone_id` real foreign keys, and
+        // `completion_certificates.milestone_id` too — before it, Batch A could open an execution
+        // workspace against a blueprint nobody had drawn and certify a milestone nobody had planned.
+        // CLAUDE.md's canonical chain puts both after Milestone, so the fixture builds the chain it
+        // was always claiming to sit on.
+        const ids = chain(workspaceId);
+        await store.append('agreements', {
+          id: ids.contractId,
+          workspaceId,
+          contractNumber: `C-0001${workspaceId === WORKSPACE ? '' : `-${workspaceId}`}`,
+          title: 'Seeded agreement',
+          contractType: 'PROCUREMENT',
+          ownerUserId: 'user-contract-owner',
+          status: 'DRAFT',
+          createdAt: stamp,
+          version: 1,
+        });
+        await store.append('performanceBlueprints', {
+          id: ids.blueprintId,
+          workspaceId,
+          contractId: ids.contractId,
+          contractVersionId: 'cv-1',
+          agreementIntelligenceVersionId: 'aiv-1',
+          version: 1,
+          status: 'ACTIVE',
+          createdBy: ACTOR,
+          createdAt: stamp,
+          contentHash: 'a3f1c9',
+        });
+        await store.append('blueprintMilestones', {
+          id: ids.milestoneId,
+          workspaceId,
+          blueprintId: ids.blueprintId,
+          title: 'Slab complete',
+          deliverableIds: ['dl-1'],
+          startDate: '2026-09-01',
+          dueDate: '2026-09-30',
+          budgetAmountMinor: 5_000_000,
+          currency: 'NGN',
+          valueAllocationPercent: 25,
+          status: 'SCHEDULED',
+          createdAt: stamp,
+        });
       },
     );
   }
@@ -100,12 +144,33 @@ function scoped(database: TestDatabase) {
 
 const stamp = '2026-08-10T09:00:00.000Z';
 
+/**
+ * The planning chain seeded for one workspace.
+ *
+ * Suffixed per workspace because `id` is the primary key on these tables globally, with
+ * `(tenant_id, id)` unique on top — so two tenants cannot share `bp-1`, and each needs its own
+ * identifiers. Batch B's fixtures say the same thing about their chain, for the same reason.
+ */
+function chain(workspaceId: string) {
+  const suffix = workspaceId === WORKSPACE ? '' : `-${workspaceId}`;
+  return {
+    contractId: `c-1${suffix}`,
+    blueprintId: `bp-1${suffix}`,
+    milestoneId: `ms-1${suffix}`,
+  };
+}
+
 function executionWorkspace(overrides: Record<string, unknown> = {}) {
+  // The blueprint and milestone follow the workspace rather than being fixed, because
+  // `202611250001` made both real foreign keys: a workspace's execution record can only name the
+  // chain seeded in that workspace.
+  const workspaceId = (overrides.workspaceId as string | undefined) ?? WORKSPACE;
+  const { blueprintId, milestoneId } = chain(workspaceId);
   return {
     id: 'exec-1',
-    workspaceId: WORKSPACE,
-    blueprintId: 'bp-1',
-    milestoneId: 'ms-1',
+    workspaceId,
+    blueprintId,
+    milestoneId,
     status: 'DRAFT',
     createdAt: stamp,
     ...overrides,
@@ -461,8 +526,8 @@ describe('integration: the schema is enforced at the store boundary', () => {
       INSERT INTO execution_workspaces
         (id, tenant_id, workspace_id, blueprint_id, milestone_id, status, created_at,
          version, schema_version, updated_at)
-      VALUES ('exec-future', ${TENANT}, ${WORKSPACE}, 'bp-f', 'ms-future', 'DRAFT', ${stamp},
-              1, 99, ${stamp})
+      VALUES ('exec-future', ${TENANT}, ${WORKSPACE}, ${chain(WORKSPACE).blueprintId},
+              ${chain(WORKSPACE).milestoneId}, 'DRAFT', ${stamp}, 1, 99, ${stamp})
     `,
     );
 
@@ -683,10 +748,14 @@ describe('integration: natural uniqueness is enforced per workspace', () => {
         }>('executionWorkspaces'),
     );
     expect(theirs.map((row) => row.id)).toEqual(['exec-b']);
-    expect([...mine, ...theirs].map((row) => row.milestoneId)).toEqual([
-      'ms-1',
-      'ms-1',
-    ]);
+    // Each row cites its own workspace's milestone. This assertion used to require both tenants to
+    // name the identical milestone id, which was only possible while `milestone_id` referenced
+    // nothing; `202611250001` made it a real foreign key and `id` is globally unique, so a shared
+    // milestone across tenants is now unrepresentable — which is the stronger property, and what is
+    // asserted instead.
+    expect(mine.map((row) => row.milestoneId)).toEqual([chain(WORKSPACE).milestoneId]);
+    expect(theirs.map((row) => row.milestoneId)).toEqual([chain(OTHER_WORKSPACE).milestoneId]);
+    expect(chain(WORKSPACE).milestoneId).not.toBe(chain(OTHER_WORKSPACE).milestoneId);
   }, 300_000);
 
   it('refuses a second execution workspace for the same milestone in one workspace', async () => {
@@ -729,7 +798,7 @@ describe('integration: natural uniqueness is enforced per workspace', () => {
             id,
             workspaceId,
             workItemId: `wi-${id}`,
-            milestoneId: 'ms-1',
+            milestoneId: chain(workspaceId).milestoneId,
             certificateNumber: 'CERT-000001',
             acceptanceDecisionId: `accept-${id}`,
             canonicalHash: 'a'.repeat(64),
@@ -768,7 +837,7 @@ describe('integration: natural uniqueness is enforced per workspace', () => {
           id: 'cert-second',
           workspaceId: WORKSPACE,
           workItemId: 'wi-cert-a',
-          milestoneId: 'ms-1',
+          milestoneId: chain(WORKSPACE).milestoneId,
           certificateNumber: 'CERT-000002',
           acceptanceDecisionId: 'accept-cert-a',
           canonicalHash: 'b'.repeat(64),
