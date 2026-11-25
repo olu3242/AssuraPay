@@ -3636,9 +3636,9 @@
     }
   ],
   "identity": {
-    "branch": "feat/flow-relay-worker",
+    "branch": "claude/git-pull-cqc04u",
     "clean": false,
-    "head": "8d687a385251f42c686e9d8c641a547492ee959a",
+    "head": "8476cbdf09efc64057da652dac080f5aeaccf5ee",
     "repository": "assurapay",
     "version": "0.1.0"
   },
@@ -3730,7 +3730,7 @@
     "released": 76,
     "validated": 0
   },
-  "manifestDigest": "1ec6c13cff51",
+  "manifestDigest": "4b5f32dceead",
   "missingCapabilities": [],
   "packages": [
     {
