@@ -1040,3 +1040,11 @@ export * from './registration';
  * corrected — above all that no action class at any level reaches a money authority.
  */
 export * from './autonomy';
+
+/**
+ * Constitutional dispatch, and the durable escalation that replaces a silent drop.
+ *
+ * Exported after `autonomy` because it depends on it: the engine acts on a verdict it does not
+ * compute, so it cannot widen the ceiling that verdict enforces.
+ */
+export * from './dispatch';

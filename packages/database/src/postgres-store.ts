@@ -74,6 +74,10 @@ const GOVERNED_DOCUMENTS = Object.freeze([
   'atlasProposals','authenticationMethods','beneficiaryAccounts','consents','delegations','devices','evidenceLedgerEntries','fieldPermissions','authorityRules','invitations','identities','legalHolds','legalPolicies','legalPolicyVersions','notifications','organizationUnits','parties','policyAcceptances','policyAssignments','segregationRules','sessions','signaturePolicies','stepUpChallenges','trustAssessments','trustOrganizations','verificationRequests','verificationResults',
   // Flow OS durable documents. These are intentionally explicit: a durable store still refuses every unknown collection.
   'flowInstances','flowStepInstances','flowSignals','humanTasks',
+  // Agent escalations: a task beyond an agent's mandate, waiting on a person. A governed
+  // document rather than a new table, and not folded into `agentApprovalRequests` or
+  // `humanTasks` — `dispatch.ts` explains why both would have required inventing an id.
+  'agentEscalations',
 ]);
 
 export const POSTGRES_IDENTITY_PLANE_COLLECTIONS: readonly string[] = Object.freeze(['authenticationMethods','devices','identities','sessions','stepUpChallenges']);

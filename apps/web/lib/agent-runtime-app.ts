@@ -6,6 +6,7 @@ import {
   type ModelProvider,
 } from '@assurapay/agent-runtime';
 import { ContractAnalysisEngine } from '@assurapay/agreement-intelligence';
+import { AgenticDispatchEngine } from '@assurapay/agent-runtime';
 import { AtlasConvergenceService } from '@assurapay/agreement-atlas';
 import { intelligence, trust, trustStore } from './trust-app';
 import { createGovernedAnalysisGateway } from './governed-analysis';
@@ -125,4 +126,27 @@ export function getAtlas(): AtlasConvergenceService {
     });
   }
   return atlas;
+}
+
+let dispatch: AgenticDispatchEngine | undefined;
+
+/**
+ * Constitutional dispatch, composed against the same governed runtime everything else uses.
+ *
+ * Composed here rather than left as an exported class, because the governance gate is right to
+ * refuse one: `runtime/unregistered-engine` fired on the first run of this batch, and an engine
+ * instantiated in no composition root is unreachable at run time. That is precisely the defect this
+ * work was rebuilt to avoid — `DomainEventFlowBridge` carried a comment describing the worker that
+ * would call it and had zero callers for months. A class nobody composes is a class nobody runs.
+ *
+ * It takes the runtime's single shared `AgentRuntimeEngine`, so a dispatched task inherits the same
+ * capability contract, prompt allowlist, governance policy, rate limit and telemetry as every other
+ * agent run. There is deliberately no second runtime to dispatch into.
+ */
+export function getAgenticDispatch(): AgenticDispatchEngine {
+  if (!dispatch) {
+    const runtime = getAgentRuntime();
+    dispatch = new AgenticDispatchEngine({ runtime: runtime.runtime, store: trustStore });
+  }
+  return dispatch;
 }

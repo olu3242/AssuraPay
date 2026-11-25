@@ -5,8 +5,8 @@
 | Field | Value |
 | --- | --- |
 | Branch | feat/agentic-autonomy |
-| HEAD | 9ac8f812f1ef131501569ce313be8df8b94cf1fe |
-| Generated at | 2026-11-25T20:39:52.903Z |
+| HEAD | eb9d54e17059cf1ae515b41babba92823c6bfc7c |
+| Generated at | 2026-11-25T20:56:30.230Z |
 | Result | **PASSED** |
 | Steps | 11 passed, 0 failed, 0 skipped |
 
@@ -14,14 +14,14 @@
 
 | Step | Description | Result | Duration | Findings |
 | --- | --- | --- | --- | --- |
-| lint | ESLint across the workspace | pass | 5520 ms | — |
-| typecheck | TypeScript project typecheck | pass | 1822 ms | — |
-| test:unit | Unit tests | pass | 23851 ms | — |
-| test:integration | Integration tests | pass | 11441 ms | — |
-| test:e2e | End-to-end tests | pass | 23442 ms | — |
-| architecture | Architecture validation | pass | 514 ms | — |
-| dependencies | Dependency validation | pass | 12 ms | 2 |
-| security | Security validation | pass | 35 ms | — |
-| contract | Execution contract validation | pass | 12 ms | — |
-| governance | Reconciliation governance policy | pass | 1 ms | 15 |
-| build | Production build | pass | 22199 ms | — |
+| lint | ESLint across the workspace | pass | 5099 ms | — |
+| typecheck | TypeScript project typecheck | pass | 1835 ms | — |
+| test:unit | Unit tests | pass | 24245 ms | — |
+| test:integration | Integration tests | pass | 11111 ms | — |
+| test:e2e | End-to-end tests | pass | 23174 ms | — |
+| architecture | Architecture validation | pass | 465 ms | — |
+| dependencies | Dependency validation | pass | 11 ms | 2 |
+| security | Security validation | pass | 36 ms | — |
+| contract | Execution contract validation | pass | 13 ms | 1 |
+| governance | Reconciliation governance policy | pass | 0 ms | 15 |
+| build | Production build | pass | 20150 ms | — |
