@@ -439,6 +439,20 @@ export const REQUIRED_TRUST_MIGRATIONS: readonly string[] = Object.freeze([
   // trigger applies to rows written after it, and an existing over-reserved commitment is reported as
   // a warning rather than rewritten.
   '202608110023_fund_reservations_cannot_exceed_committed_funds',
+  // Stops a reservation backing more live release than it holds — the same invariant as `…0023` one
+  // level down, and the one that stops money leaving twice. Required: the engine compares each
+  // request with the reservation and never sums across requests, and nothing marks a reservation
+  // consumed, so a host without this trigger can settle three 600,000 releases against a 1,000,000
+  // reservation. Not a race — sequential requests do it. Safe on populated tables, with an existing
+  // breach reported rather than rewritten.
+  '202608110024_release_requests_cannot_exceed_their_reservation',
+  // Keys a release request to its own invoice's reservation, entitlement and milestone. Required:
+  // `draft` reads all three parents and compares none of them, so milestone A's entitlement could
+  // authorise an amount that milestone B's reservation paid — with every existing constraint
+  // satisfied. Composite foreign keys rather than a trigger, the same technique the schema already
+  // uses for currency. Safe on populated tables: added NOT VALID, so the rule binds every later write
+  // without failing the migration on rows that predate it.
+  '202608110025_a_release_draws_only_on_its_own_invoice',
 ]);
 
 export type SchemaCompatibility = {

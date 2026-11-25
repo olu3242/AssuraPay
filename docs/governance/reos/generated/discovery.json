@@ -2180,6 +2180,20 @@
       "id": "202608110023",
       "name": "fund_reservations_cannot_exceed_committed_funds",
       "path": "supabase/migrations/202608110023_fund_reservations_cannot_exceed_committed_funds.sql"
+    },
+    {
+      "declaresPolicies": 0,
+      "declaresRowLevelSecurity": false,
+      "id": "202608110024",
+      "name": "release_requests_cannot_exceed_their_reservation",
+      "path": "supabase/migrations/202608110024_release_requests_cannot_exceed_their_reservation.sql"
+    },
+    {
+      "declaresPolicies": 0,
+      "declaresRowLevelSecurity": false,
+      "id": "202608110025",
+      "name": "a_release_draws_only_on_its_own_invoice",
+      "path": "supabase/migrations/202608110025_a_release_draws_only_on_its_own_invoice.sql"
     }
   ],
   "packages": [
@@ -2404,7 +2418,7 @@
       "moduleType": null,
       "name": "@assurapay/database",
       "sourceFiles": 22,
-      "sourceLines": 11419,
+      "sourceLines": 11433,
       "testFiles": [
         "packages/database/src/async-conformance.test.ts",
         "packages/database/src/rls-certification.test.ts",
@@ -3063,7 +3077,7 @@
       "moduleType": null,
       "name": "@assurapay/settlement-assurance",
       "sourceFiles": 1,
-      "sourceLines": 546,
+      "sourceLines": 582,
       "testFiles": [
         "packages/settlement-assurance/src/persisted-contracts-batch-c.test.ts",
         "packages/settlement-assurance/src/persisted-contracts.test.ts",
@@ -3262,10 +3276,11 @@
         "packages/database/src/migrations.ts",
         "packages/settlement-assurance/src/index.ts",
         "packages/settlement-assurance/src/settlement-assurance.non-custody.test.ts",
-        "supabase/migrations/202608110023_fund_reservations_cannot_exceed_committed_funds.sql"
+        "supabase/migrations/202608110024_release_requests_cannot_exceed_their_reservation.sql",
+        "supabase/migrations/202608110025_a_release_draws_only_on_its_own_invoice.sql"
       ],
-      "head": "ecf6223d55bfaea8a58ea08fac5a484b188d3ea9",
-      "headShort": "ecf6223",
+      "head": "c38c698c69fe8edbb0c67d2981c0279455176794",
+      "headShort": "c38c698",
       "reflogAvailable": true,
       "remotes": [
         "origin"
@@ -3478,7 +3493,7 @@
     "applications": 1,
     "documents": 157,
     "engines": 60,
-    "migrations": 50,
+    "migrations": 52,
     "packages": 30,
     "testFiles": 135
   },
