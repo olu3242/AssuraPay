@@ -468,6 +468,14 @@ export const REQUIRED_TRUST_MIGRATIONS: readonly string[] = Object.freeze([
   // tables: added NOT VALID, so the rule binds every later write without failing on rows that predate
   // it.
   '202611250001_the_settlement_chain_names_only_milestones_that_exist',
+  // The relay worker's durable queue. Required: `FlowSignalRelay.drain` had exactly one caller,
+  // a human POST, so engines committed their authoritative events and the flow tracking the
+  // journey sat where it was until somebody remembered. A host without this table runs no worker
+  // and advances nothing on its own. Carries an enqueue trigger on `trust_outbox_events` rather
+  // than relying on application code, because the bridge this replaces had zero callers for
+  // exactly as long as calling it was somebody's responsibility to remember. New table and new
+  // trigger only: it reads and rewrites no existing row.
+  '202611250002_the_flow_relay_has_a_durable_queue',
 ]);
 
 export type SchemaCompatibility = {

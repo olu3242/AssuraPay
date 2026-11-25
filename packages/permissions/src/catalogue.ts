@@ -166,6 +166,7 @@ export const PERMISSION_CATALOGUE: readonly RoleDefinition[] = Object.freeze([
       'kpi-definitions:retire',
       'model-registrations:create',
       'model-registrations:deprecate',
+      'flow-relay:read',
     ],
   },
   {
@@ -451,6 +452,7 @@ export const PERMISSION_CATALOGUE: readonly RoleDefinition[] = Object.freeze([
       'completion-certificates:read',
       'payment-eligibility:read',
       'audit-records:read',
+      'flow-relay:read',
     ],
   },
 ]);
