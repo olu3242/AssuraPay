@@ -151,6 +151,7 @@ export function PersonaWorkspaceConsole({ workspace }: { workspace: PersonaWorks
   const reachable = workspace.modules.filter(
     (item) => item.requires === undefined || phase.held.has(item.requires),
   );
+  const dashboard = <WorkspaceDashboard held={phase.held} />;
   const withheld = workspace.modules.filter(
     (item) => item.requires !== undefined && !phase.held.has(item.requires),
   );
@@ -169,6 +170,8 @@ export function PersonaWorkspaceConsole({ workspace }: { workspace: PersonaWorks
           </p>
         </section>
       )}
+
+      {dashboard}
 
       {reachable.length > 0 && (
         <section className="grid" data-testid="workspace-modules">
@@ -207,5 +210,153 @@ export function PersonaWorkspaceSwitcher({ current }: { current: PersonaWorkspac
         </Link>
       ))}
     </nav>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// The dashboard
+// ---------------------------------------------------------------------------
+
+type PositionRow = {
+  currency: string;
+  confirmedCommittedMinor: number;
+  reservedMinor: number;
+  unreservedMinor: number;
+  settledMinor: number;
+  inFlightMinor: number;
+  unmatchedReconciliations: number;
+};
+
+/**
+ * Figures, for the caller who may read them.
+ *
+ * ## A tile the caller cannot read is absent, never zero
+ *
+ * This is the rule the whole dashboard turns on. Rendering "Settled: 0" to someone who lacks
+ * `financial-position:read` states something false about the workspace — it says the platform looked and found
+ * nothing, when in fact it was not allowed to look. A zero is a measurement; an absent tile is an honest
+ * silence. So each tile is gated on the key its own endpoint requires, from the caller's own grants.
+ *
+ * ## Nothing here is computed from anything but a response
+ *
+ * The figures come from `/api/v1/financial-position`, which reports the workspace's own record of what a
+ * provider confirmed, reserved and settled, per currency, with no forecast and no cross-currency total. This
+ * component formats them and adds nothing. The `/workflow-intelligence` page in this repository once showed
+ * "Settlement readiness: 68%" as a constant in the source, which is the defect this is deliberately not.
+ *
+ * Amounts stay in minor units with their currency beside them. Dividing by 100 for display assumes a
+ * two-decimal currency, and `MONETARY_INVARIANTS.md` is explicit that scale derives from the governed currency
+ * definition rather than from a caller — so until a formatter reads that definition, the exact integer is shown
+ * rather than a plausible-looking wrong one.
+ */
+function WorkspaceDashboard({ held }: { held: Set<string> }) {
+  const [positions, setPositions] = useState<PositionRow[] | 'loading' | 'unavailable'>('loading');
+  const [waiting, setWaiting] = useState<number | 'loading' | 'unavailable'>('loading');
+
+  const mayReadPosition = held.has('financial-position:read');
+  const mayReadApprovals = held.has('executions:read');
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const read = async <T,>(path: string): Promise<T | undefined> => {
+      try {
+        const session = await fetch('/api/v1/auth/session', { cache: 'no-store' });
+        if (!session.ok) return undefined;
+        const { activeWorkspaceId } = (await session.json()) as { activeWorkspaceId?: string };
+        if (!activeWorkspaceId) return undefined;
+        const minted = await fetch('/api/v1/auth/assertion', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ workspaceId: activeWorkspaceId }),
+        });
+        if (!minted.ok) return undefined;
+        const { assertion } = (await minted.json()) as { assertion: string };
+        const response = await fetch(path, {
+          cache: 'no-store',
+          headers: { 'x-assurapay-identity-assertion': assertion },
+        });
+        if (!response.ok) return undefined;
+        return (await response.json()) as T;
+      } catch {
+        return undefined;
+      }
+    };
+
+    void (async () => {
+      if (mayReadPosition) {
+        const body = await read<{ positions: PositionRow[] }>('/api/v1/financial-position');
+        // `undefined` is "we could not find out", which is not the same as "there is nothing" — an empty
+        // `positions` array is a real answer and renders as one.
+        if (!cancelled) setPositions(body ? body.positions : 'unavailable');
+      }
+      if (mayReadApprovals) {
+        const body = await read<{ entries: unknown[] }>('/api/v1/approvals');
+        if (!cancelled) setWaiting(body ? body.entries.length : 'unavailable');
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [mayReadPosition, mayReadApprovals]);
+
+  if (!mayReadPosition && !mayReadApprovals) return null;
+
+  return (
+    <section className="grid" data-testid="workspace-dashboard">
+      {mayReadApprovals && (
+        <article className="card" data-testid="tile-approvals">
+          <p className="eyebrow">Waiting for your decision</p>
+          {waiting === 'loading' ? (
+            <p>Checking…</p>
+          ) : waiting === 'unavailable' ? (
+            <p>We could not read your approvals.</p>
+          ) : (
+            <p>
+              <strong data-testid="tile-approvals-count">{waiting}</strong>{' '}
+              {waiting === 1 ? 'approval needs you' : 'approvals need you'}.{' '}
+              <Link href="/approvals">Open approvals</Link>
+            </p>
+          )}
+        </article>
+      )}
+
+      {mayReadPosition && (
+        <article className="card" data-testid="tile-position">
+          <p className="eyebrow">Financial position</p>
+          {positions === 'loading' ? (
+            <p>Checking…</p>
+          ) : positions === 'unavailable' ? (
+            <p>We could not read the position.</p>
+          ) : positions.length === 0 ? (
+            // An empty workspace has no position, not a position of zeroes.
+            <p data-testid="tile-position-empty">
+              No funding, reservation or settlement has been recorded in this workspace.
+            </p>
+          ) : (
+            <dl data-testid="tile-position-rows">
+              {positions.map((row) => (
+                <div key={row.currency}>
+                  <dt>{row.currency}</dt>
+                  <dd>
+                    {row.confirmedCommittedMinor} confirmed · {row.reservedMinor} reserved ·{' '}
+                    {row.unreservedMinor} unreserved · {row.settledMinor} settled
+                    {row.unmatchedReconciliations > 0
+                      ? ` · ${row.unmatchedReconciliations} unmatched`
+                      : ''}
+                    <span> (minor units)</span>
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          )}
+          <p>
+            AssuraPay holds no funds. These are this workspace’s records of what a certified provider
+            confirmed and settled.
+          </p>
+        </article>
+      )}
+    </section>
   );
 }

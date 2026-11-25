@@ -10,9 +10,9 @@
 | Repository | assurapay |
 | Version | 0.1.0 |
 | Branch | feat/ui-speak-the-users-language |
-| HEAD | b6c0d7dd252ce7c36781c0491f30357aff54c48c |
+| HEAD | 686f93b837606656bedc01ebab5cbfab4d5aa0ef |
 | Worktree clean | no |
-| Manifest digest | 6786b1e46a05 |
+| Manifest digest | d8bab067616c |
 | REOS version | 1.0.0 |
 
 ## Architecture

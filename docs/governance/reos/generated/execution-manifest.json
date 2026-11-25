@@ -3638,7 +3638,7 @@
   "identity": {
     "branch": "feat/ui-speak-the-users-language",
     "clean": false,
-    "head": "b6c0d7dd252ce7c36781c0491f30357aff54c48c",
+    "head": "686f93b837606656bedc01ebab5cbfab4d5aa0ef",
     "repository": "assurapay",
     "version": "0.1.0"
   },
@@ -3730,7 +3730,7 @@
     "released": 76,
     "validated": 0
   },
-  "manifestDigest": "6786b1e46a05",
+  "manifestDigest": "d8bab067616c",
   "missingCapabilities": [],
   "packages": [
     {

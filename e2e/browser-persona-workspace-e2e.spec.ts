@@ -110,6 +110,45 @@ test.describe('browser-persona-workspace-e2e: the workspace reflects real author
   });
 });
 
+test.describe('browser-persona-workspace-e2e: the dashboard shows only what it read', () => {
+  test('omits a tile the caller may not read, rather than showing it as zero', async ({ page }) => {
+    // The rule the dashboard turns on. "Settled: 0" to someone who lacks `financial-position:read` states
+    // something false — that the platform looked and found nothing, when it was not allowed to look. The
+    // founding administrator holds no financial key, so the tile must be absent.
+    await foundWorkspace(page, 'notiles');
+    await page.goto('/workspace/finance');
+
+    await expect(page.getByTestId('persona-workspace')).toBeVisible();
+    await expect(page.getByTestId('tile-position')).toHaveCount(0);
+  });
+
+  test('shows an honest empty position once the caller may read it', async ({ page }) => {
+    const { workspaceId, userId } = await foundWorkspace(page, 'tiles');
+    await grantRole(page, workspaceId, userId, 'ASSURANCE_ANALYST');
+
+    await page.goto('/workspace/finance');
+    await expect(page.getByTestId('tile-position')).toBeVisible();
+
+    // A fresh workspace has no position at all, which is a different statement from a row of zeroes.
+    await expect(page.getByTestId('tile-position-empty')).toBeVisible();
+    await expect(page.getByTestId('tile-position-rows')).toHaveCount(0);
+
+    // And the non-custody statement travels with the figures rather than living in documentation.
+    await expect(page.getByTestId('tile-position')).toContainText('holds no funds');
+  });
+
+  test('counts the caller’s own approvals rather than the workspace’s', async ({ page }) => {
+    const { workspaceId, userId } = await foundWorkspace(page, 'queue');
+    await grantRole(page, workspaceId, userId, 'EXECUTION_MANAGER');
+
+    await page.goto('/workspace/enterprise');
+    await expect(page.getByTestId('tile-approvals')).toBeVisible();
+    // Nothing is in flight in a new workspace, so the honest count is zero — and here a zero is a
+    // measurement, because the caller holds the key and the platform did look.
+    await expect(page.getByTestId('tile-approvals-count')).toHaveText('0');
+  });
+});
+
 test.describe('browser-persona-workspace-e2e: presentation is not policy', () => {
   test('reaching a workspace by URL grants nothing the caller did not already hold', async ({ page }) => {
     const { workspaceId } = await foundWorkspace(page, 'url');
