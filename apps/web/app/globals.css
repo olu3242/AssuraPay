@@ -6,6 +6,42 @@
   --ap-green: #169c50;
   --ap-border: rgba(6, 25, 68, 0.16);
 }
+/* ------------------------------------------------------------------ persona workspaces
+ *
+ * One accent per workspace, set on an ancestor via `data-workspace` and read by the chrome through
+ * `--ap-accent`. A component asks for the accent; it never asks which workspace it is in, so adding a ninth
+ * workspace is a token here rather than a condition in every component.
+ *
+ * Every value clears WCAG AA for normal text both on `--ap-canvas` and inverted behind white — measured, and
+ * `workspaces.test.ts` recomputes the ratios so a later tweak cannot quietly drop one below the threshold.
+ * The lowest is the verifier's amber at 4.80:1.
+ *
+ * `--ap-accent` defaults to the brand blue, so an unthemed page is AssuraPay rather than unstyled. The brand
+ * tokens above are untouched: a workspace recolours its own chrome, not the product's identity.
+ */
+:root {
+  --ap-canvas: #f8fafc;
+  --ap-surface: #ffffff;
+  --ap-ink: #0f172a;
+  --ap-accent: var(--ap-blue);
+
+  /* Status, deliberately outside the persona system. Red, amber and green mean the same thing in every
+   * workspace: a failed payment must not look different depending on who is looking at it. No
+   * `[data-workspace]` rule below redefines these, and a test asserts no workspace claims them. */
+  --ap-status-blocked: #b91c1c;
+  --ap-status-pending: #b45309;
+  --ap-status-confirmed: #047857;
+}
+
+[data-workspace='buyer'] { --ap-accent: #1d4ed8; }
+[data-workspace='seller'] { --ap-accent: #047857; }
+[data-workspace='enterprise'] { --ap-accent: #4338ca; }
+[data-workspace='finance'] { --ap-accent: #0e7490; }
+[data-workspace='verifier'] { --ap-accent: #b45309; }
+[data-workspace='disputes'] { --ap-accent: #7e22ce; }
+[data-workspace='compliance'] { --ap-accent: #475569; }
+[data-workspace='admin'] { --ap-accent: #172554; }
+
 :root {
   color-scheme: light;
   font-family: Inter, Arial, sans-serif;

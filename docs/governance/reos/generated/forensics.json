@@ -1469,7 +1469,9 @@
             "apps/web/lib/personas.ts",
             "apps/web/lib/route-coverage.test.ts",
             "apps/web/lib/route-permissions.test.ts",
-            "apps/web/lib/route-permissions.ts"
+            "apps/web/lib/route-permissions.ts",
+            "apps/web/lib/workspaces.test.ts",
+            "apps/web/lib/workspaces.ts"
           ],
           "query": "ROUTE_PERMISSION_REQUIREMENTS",
           "satisfied": true
@@ -1803,7 +1805,7 @@
       "totalProbes": 5
     }
   ],
-  "head": "ba8424ee25109454f96c8af89f6535b132c4a063",
+  "head": "5d8d348ce973f8f96bed4d0c22ddb894e9b6a10f",
   "reosVersion": "1.0.0",
   "stage": "forensics",
   "summary": {
