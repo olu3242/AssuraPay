@@ -1465,13 +1465,13 @@
             "apps/web/lib/approval-inbox.test.ts",
             "apps/web/lib/financial-reads.test.ts",
             "apps/web/lib/grant-administration.test.ts",
+            "apps/web/lib/persona-workspaces.test.ts",
+            "apps/web/lib/persona-workspaces.ts",
             "apps/web/lib/personas.test.ts",
             "apps/web/lib/personas.ts",
             "apps/web/lib/route-coverage.test.ts",
             "apps/web/lib/route-permissions.test.ts",
-            "apps/web/lib/route-permissions.ts",
-            "apps/web/lib/workspaces.test.ts",
-            "apps/web/lib/workspaces.ts"
+            "apps/web/lib/route-permissions.ts"
           ],
           "query": "ROUTE_PERMISSION_REQUIREMENTS",
           "satisfied": true
@@ -1607,6 +1607,7 @@
             "apps/web/app/api/v1/legal/holds/route.ts",
             "apps/web/app/api/v1/legal/policies/route.ts",
             "apps/web/app/api/v1/legal/policy-versions/[id]/accept/route.ts",
+            "apps/web/app/api/v1/me/permissions/route.ts",
             "apps/web/app/api/v1/me/workspaces/route.ts",
             "apps/web/app/api/v1/milestones/[id]/assurance/route.ts",
             "apps/web/app/api/v1/milestones/route.ts",
@@ -1805,7 +1806,7 @@
       "totalProbes": 5
     }
   ],
-  "head": "5d8d348ce973f8f96bed4d0c22ddb894e9b6a10f",
+  "head": "b6c0d7dd252ce7c36781c0491f30357aff54c48c",
   "reosVersion": "1.0.0",
   "stage": "forensics",
   "summary": {

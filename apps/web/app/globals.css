@@ -33,14 +33,56 @@
   --ap-status-confirmed: #047857;
 }
 
-[data-workspace='buyer'] { --ap-accent: #1d4ed8; }
-[data-workspace='seller'] { --ap-accent: #047857; }
-[data-workspace='enterprise'] { --ap-accent: #4338ca; }
-[data-workspace='finance'] { --ap-accent: #0e7490; }
-[data-workspace='verifier'] { --ap-accent: #b45309; }
-[data-workspace='disputes'] { --ap-accent: #7e22ce; }
-[data-workspace='compliance'] { --ap-accent: #475569; }
-[data-workspace='admin'] { --ap-accent: #172554; }
+/* The chrome that reads the accent. Without these the token is declared and nothing consumes it, which is a
+ * palette rather than a difference — all eight workspaces would render identically. Every rule below asks for
+ * `--ap-accent` and never for a workspace id, so the set of workspaces lives in one table and one token list. */
+.workspace-switcher {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  margin: 0 0 1.5rem;
+  padding: 0 0 0.75rem;
+  border-bottom: 1px solid var(--ap-border);
+  font-size: 0.9rem;
+}
+
+.workspace-switcher a {
+  padding: 0.35rem 0;
+  color: var(--ap-navy);
+  opacity: 0.65;
+  border-bottom: 2px solid transparent;
+}
+
+.workspace-switcher a:hover {
+  opacity: 1;
+}
+
+/* The current workspace, marked by `aria-current` rather than a class: the attribute that tells a screen
+ * reader where it is is the same one that colours the tab, so the two cannot disagree. */
+.workspace-switcher a[aria-current='page'] {
+  color: var(--ap-accent);
+  border-bottom-color: var(--ap-accent);
+  opacity: 1;
+  font-weight: 600;
+}
+
+[data-persona] .eyebrow {
+  color: var(--ap-accent);
+}
+
+[data-persona] .button--primary {
+  background: var(--ap-accent);
+  border-color: var(--ap-accent);
+}
+
+[data-persona='buyer'] { --ap-accent: #1d4ed8; }
+[data-persona='seller'] { --ap-accent: #047857; }
+[data-persona='enterprise'] { --ap-accent: #4338ca; }
+[data-persona='finance'] { --ap-accent: #0e7490; }
+[data-persona='verifier'] { --ap-accent: #b45309; }
+[data-persona='disputes'] { --ap-accent: #7e22ce; }
+[data-persona='compliance'] { --ap-accent: #475569; }
+[data-persona='admin'] { --ap-accent: #172554; }
 
 :root {
   color-scheme: light;

@@ -4,12 +4,13 @@ import { describe, expect, it } from 'vitest';
 import { MONEY_AUTHORITIES, PERSONAS } from './personas';
 import { ROUTE_PERMISSION_REQUIREMENTS } from './route-permissions';
 import {
-  WORKSPACES,
-  WORKSPACE_PERSONA_GAPS,
+  PERSONA_WORKSPACES,
+  PERSONA_WORKSPACE_GAPS,
   personasWithoutWorkspace,
+  personaWorkspacesFor,
   unreachableModules,
   workspaceGrants,
-} from './workspaces';
+} from './persona-workspaces';
 
 /**
  * Persona workspaces present authority; they never confer it.
@@ -38,13 +39,13 @@ describe('a workspace advertises only what its personas can reach', () => {
   it('names no navItem its personas do not hold the key for', () => {
     // The assertion that makes navigation derived rather than declared. A hand-written menu drifts from the
     // route table the moment a key changes, and the drift reaches a user as an item that 403s.
-    for (const entry of WORKSPACES)
+    for (const entry of PERSONA_WORKSPACES)
       expect(unreachableModules(entry).map((navItem) => navItem.label), entry.id).toEqual([]);
   });
 
   it('links only to routes that exist', () => {
     // Followed to the filesystem rather than assumed. A workspace whose nav 404s is worse than no workspace.
-    for (const entry of WORKSPACES)
+    for (const entry of PERSONA_WORKSPACES)
       for (const navItem of entry.modules)
         expect(routeExists(navItem.href), `${entry.id} → ${navItem.href}`).toBe(true);
   });
@@ -55,14 +56,14 @@ describe('a workspace advertises only what its personas can reach', () => {
         requirement.access === 'permission' ? [requirement.permissionKey] : [],
       ),
     );
-    for (const entry of WORKSPACES)
+    for (const entry of PERSONA_WORKSPACES)
       for (const navItem of entry.modules)
         if (navItem.requires) expect(real.has(navItem.requires), `${entry.id} → ${navItem.requires}`).toBe(true);
   });
 
   it('names only personas that exist', () => {
     const known = new Set(PERSONAS.map((entry) => entry.id));
-    for (const entry of WORKSPACES)
+    for (const entry of PERSONA_WORKSPACES)
       for (const id of entry.personas) expect(known.has(id), `${entry.id} → ${id}`).toBe(true);
   });
 });
@@ -71,7 +72,7 @@ describe('a workspace confers no authority of its own', () => {
   it('derives every grant from its personas and adds nothing', () => {
     // `workspaceGrants` is a union of persona grants by construction. Asserted anyway, because the failure
     // mode this guards against is someone adding a `grants` field to a workspace later.
-    for (const entry of WORKSPACES) {
+    for (const entry of PERSONA_WORKSPACES) {
       const fromPersonas = new Set(entry.personas.flatMap((id) => PERSONAS.find((p) => p.id === id)!.grants));
       for (const key of workspaceGrants(entry)) expect(fromPersonas.has(key), `${entry.id} → ${key}`).toBe(true);
     }
@@ -82,7 +83,7 @@ describe('a workspace confers no authority of its own', () => {
     // personas could reassemble certify + approve + pay out of parts that are individually safe. Enterprise and
     // Administrator each name two personas, which is exactly where that could happen.
     const { certify, approveRelease, submitPayment } = MONEY_AUTHORITIES;
-    for (const entry of WORKSPACES) {
+    for (const entry of PERSONA_WORKSPACES) {
       const held = new Set(workspaceGrants(entry));
       const authorities = [certify, approveRelease, submitPayment].filter((key) => held.has(key));
       expect(authorities.length, `${entry.id} holds ${authorities.join(' + ')}`).toBeLessThanOrEqual(1);
@@ -93,7 +94,7 @@ describe('a workspace confers no authority of its own', () => {
     // The structural guarantee behind "UI visibility is not authorization". If an API route ever imports this
     // module, presentation has become policy.
     // Matched as an import specifier, not as the word. `workspaces` appears all over the API surface
-    // legitimately — `/api/v1/me/workspaces`, `execution-workspaces`, `activeWorkspaceId` — and a substring
+    // legitimately — `/api/v1/me/workspaces`, `execution-workspaces`, `activePersonaWorkspaceId` — and a substring
     // check flagged twelve innocent routes, which is a test that fails for the wrong reason.
     const imports = /from\s+['"][^'"]*\/workspaces['"]/;
     const offenders: string[] = [];
@@ -110,11 +111,59 @@ describe('a workspace confers no authority of its own', () => {
   });
 });
 
+describe('which workspaces a caller’s own keys open', () => {
+  it('opens a workspace when any one of its gated modules is reachable', () => {
+    // Partial authority still belongs somewhere. A finance user holding `payment-instructions:create` but not
+    // `:submit` is in the finance workspace; requiring every key would leave them with nowhere to go.
+    const opened = personaWorkspacesFor(['payment-instructions:create']).map((entry) => entry.id);
+    expect(opened).toContain('finance');
+  });
+
+  it('opens nothing for a caller holding nothing', () => {
+    expect(personaWorkspacesFor([])).toEqual([]);
+  });
+
+  it('never opens a workspace whose gated modules the caller cannot reach', () => {
+    // The property that matters: the menu cannot offer a room whose doors are all locked.
+    for (const keys of [['contracts:read'], ['roles:read'], ['acceptance-decisions:create']]) {
+      const held = new Set(keys);
+      for (const entry of personaWorkspacesFor(keys))
+        expect(
+          entry.modules.some((item) => item.requires !== undefined && held.has(item.requires)),
+          `${entry.id} opened by ${keys.join(',')}`,
+        ).toBe(true);
+    }
+  });
+
+  it('opens no workspace that has no gated module at all', () => {
+    // `disputes` has no persona and therefore no gated module. An empty room with a door is worse than no door.
+    expect(personaWorkspacesFor(routePermissionKeysForTest()).map((entry) => entry.id)).not.toContain('disputes');
+  });
+
+  it('is reachable by a caller asking only about itself', () => {
+    // Identity-class, beside `/me/workspaces`. Gating it on `permissions:evaluate` — a key only an
+    // administrator holds — would leave an ordinary caller unable to learn its own authority, which is the
+    // gap that made honest navigation impossible.
+    expect(ROUTE_PERMISSION_REQUIREMENTS['/api/v1/me/permissions|GET']?.access).toBe('identity');
+  });
+});
+
+/** Every key any route requires, for the "opens nothing ungated" check above. */
+function routePermissionKeysForTest(): string[] {
+  return [
+    ...new Set(
+      Object.values(ROUTE_PERMISSION_REQUIREMENTS).flatMap((requirement) =>
+        requirement.access === 'permission' ? [requirement.permissionKey] : [],
+      ),
+    ),
+  ];
+}
+
 describe('the mismatch between the proposed workspaces and the platform’s personas', () => {
   it('records that the release approver has no workspace', () => {
     // `approver` holds the authority that lets money move, and the proposed eight workspaces have no home for
     // it. Asserted rather than described, so settling it requires changing this test rather than forgetting.
-    expect(personasWithoutWorkspace()).toContain(WORKSPACE_PERSONA_GAPS.personaWithoutWorkspace);
+    expect(personasWithoutWorkspace()).toContain(PERSONA_WORKSPACE_GAPS.personaWithoutWorkspace);
     expect(PERSONAS.find((entry) => entry.id === 'approver')?.grants).toContain(
       MONEY_AUTHORITIES.approveRelease,
     );
@@ -124,11 +173,11 @@ describe('the mismatch between the proposed workspaces and the platform’s pers
     // Six dispute routes are gated on `disputes:*` keys that no persona holds. The workspace therefore ships
     // without a dispute module rather than with one that refuses — a menu item nobody can use is a dead link
     // with extra steps.
-    expect(WORKSPACE_PERSONA_GAPS.unclaimedDisputeKeys.length).toBeGreaterThan(0);
+    expect(PERSONA_WORKSPACE_GAPS.unclaimedDisputeKeys.length).toBeGreaterThan(0);
     const held = new Set(PERSONAS.flatMap((entry) => entry.grants));
-    for (const key of WORKSPACE_PERSONA_GAPS.unclaimedDisputeKeys) expect(held.has(key), key).toBe(false);
+    for (const key of PERSONA_WORKSPACE_GAPS.unclaimedDisputeKeys) expect(held.has(key), key).toBe(false);
 
-    const disputes = WORKSPACES.find((entry) => entry.id === 'disputes')!;
+    const disputes = PERSONA_WORKSPACES.find((entry) => entry.id === 'disputes')!;
     expect(disputes.personas).toEqual([]);
     expect(disputes.modules.every((navItem) => navItem.requires === undefined)).toBe(true);
   });
@@ -136,7 +185,7 @@ describe('the mismatch between the proposed workspaces and the platform’s pers
 
 describe('the accents distinguish workspaces without recolouring meaning', () => {
   it('gives every workspace its own accent', () => {
-    const accents = WORKSPACES.map((entry) => entry.accent);
+    const accents = PERSONA_WORKSPACES.map((entry) => entry.accent);
     expect(new Set(accents).size).toBe(accents.length);
   });
 
@@ -154,7 +203,7 @@ describe('the accents distinguish workspaces without recolouring meaning', () =>
       return (light + 0.05) / (dark + 0.05);
     };
 
-    for (const entry of WORKSPACES) {
+    for (const entry of PERSONA_WORKSPACES) {
       expect(contrast(entry.accent, '#F8FAFC'), `${entry.id} on canvas`).toBeGreaterThanOrEqual(4.5);
       expect(contrast('#FFFFFF', entry.accent), `white on ${entry.id}`).toBeGreaterThanOrEqual(4.5);
     }
@@ -164,20 +213,31 @@ describe('the accents distinguish workspaces without recolouring meaning', () =>
     // Two sources for one colour is one source too many. The stylesheet is what a browser reads and this table
     // is what the tests reason about, so they are asserted equal rather than kept in step by hand.
     const css = readFileSync(path.join(APP, 'globals.css'), 'utf8');
-    for (const entry of WORKSPACES) {
+    for (const entry of PERSONA_WORKSPACES) {
       const rule = new RegExp(
-        `\\[data-workspace=['"]${entry.id}['"]\\]\\s*\\{[^}]*--ap-accent:\\s*${entry.accent}`,
+        `\\[data-persona=['"]${entry.id}['"]\\]\\s*\\{[^}]*--ap-accent:\\s*${entry.accent}`,
         'i',
       );
       expect(rule.test(css), `${entry.id} → ${entry.accent}`).toBe(true);
     }
   });
 
+  it('is actually consumed by the chrome, not merely declared', () => {
+    // A token nothing reads is a palette, not a difference: all eight workspaces would render identically
+    // while every colour test still passed. This asserts at least one rule asks for the accent — which caught
+    // exactly that gap when the tokens were first added.
+    const css = readFileSync(path.join(APP, 'globals.css'), 'utf8');
+    expect((css.match(/var\(--ap-accent\)/g) ?? []).length).toBeGreaterThan(0);
+    // And that the current workspace is marked by the attribute a screen reader uses, so the visual state and
+    // the announced state cannot disagree.
+    expect(css).toMatch(/aria-current=['"]page['"]\]\s*\{[^}]*--ap-accent/);
+  });
+
   it('leaves the status tokens outside the persona system', () => {
     // No workspace rule may redefine them. If one did, a blocked payment would change colour with the viewer.
     const css = readFileSync(path.join(APP, 'globals.css'), 'utf8');
-    const workspaceRules = css.match(/\[data-workspace=[^\]]*\]\s*\{[^}]*\}/g) ?? [];
-    expect(workspaceRules.length).toBe(WORKSPACES.length);
+    const workspaceRules = css.match(/\[data-persona=[^\]]*\]\s*\{[^}]*\}/g) ?? [];
+    expect(workspaceRules.length).toBe(PERSONA_WORKSPACES.length);
     for (const rule of workspaceRules) expect(rule).not.toMatch(/--ap-status-/);
   });
 
@@ -185,7 +245,7 @@ describe('the accents distinguish workspaces without recolouring meaning', () =>
     // Red, amber and green mean the same thing in every workspace. A failed payment must not look different
     // depending on who is looking at it, so the status palette is off limits to persona theming.
     const statuses = ['#B91C1C', '#B45309', '#047857'];
-    const accents = WORKSPACES.map((entry) => entry.accent.toUpperCase());
+    const accents = PERSONA_WORKSPACES.map((entry) => entry.accent.toUpperCase());
     // Two accents deliberately sit in the amber and emerald families, so this asserts the *status tokens* are
     // not themselves redefined per workspace rather than that no accent is ever warm.
     expect(statuses.filter((status) => accents.includes(status)).length).toBeLessThanOrEqual(2);

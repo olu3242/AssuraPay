@@ -164,6 +164,9 @@ export const ROUTE_PERMISSION_REQUIREMENTS: Readonly<Record<string, RouteAccess>
   '/api/v1/legal/holds|POST': { access: 'permission', permissionKey: 'legal:create' },
   '/api/v1/legal/policies|POST': { access: 'permission', permissionKey: 'legal:create' },
   '/api/v1/legal/policy-versions/[id]/accept|POST': { access: 'permission', permissionKey: 'legal:accept' },
+  // Identity-class beside `/me/workspaces`: asking what *I* may do is not an administrative act, and
+  // gating it on `permissions:evaluate` would leave an ordinary caller unable to learn its own authority.
+  '/api/v1/me/permissions|GET': { access: 'identity' },
   '/api/v1/me/workspaces|GET': { access: 'identity' },
   '/api/v1/workspaces/[id]/found|POST': { access: 'identity' },
   '/api/v1/roles|GET': { access: 'permission', permissionKey: 'roles:read' },

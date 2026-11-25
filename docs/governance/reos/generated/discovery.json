@@ -5,7 +5,7 @@
       "directory": "apps/web",
       "framework": "next",
       "name": "@assurapay/web",
-      "routes": 24,
+      "routes": 25,
       "workspaceDependencies": [
         "@assurapay/agent-runtime",
         "@assurapay/agreement-atlas",
@@ -2964,7 +2964,7 @@
       "moduleType": null,
       "name": "@assurapay/permissions",
       "sourceFiles": 3,
-      "sourceLines": 1056,
+      "sourceLines": 1096,
       "testFiles": [
         "packages/permissions/src/catalogue.test.ts",
         "packages/permissions/src/enforcement.test.ts",
@@ -3273,19 +3273,25 @@
       ],
       "clean": false,
       "dirtyFiles": [
+        "apps/web/app/api/v1/me/permissions/route.ts",
+        "apps/web/app/components/persona-workspace-console.tsx",
         "apps/web/app/globals.css",
-        "apps/web/lib/workspaces.test.ts",
-        "apps/web/lib/workspaces.ts",
+        "apps/web/app/workspace/[persona]/page.tsx",
+        "apps/web/lib/persona-workspaces.test.ts",
+        "apps/web/lib/persona-workspaces.ts",
+        "apps/web/lib/route-permissions.ts",
         "docs/governance/reos/generated/CERTIFICATION_REPORT.md",
         "docs/governance/reos/generated/EXECUTION_MANIFEST.md",
         "docs/governance/reos/generated/certification.json",
         "docs/governance/reos/generated/dependency-resolution.json",
         "docs/governance/reos/generated/discovery.json",
         "docs/governance/reos/generated/execution-manifest.json",
-        "docs/governance/reos/generated/forensics.json"
+        "docs/governance/reos/generated/forensics.json",
+        "e2e/browser-persona-workspace-e2e.spec.ts",
+        "packages/permissions/src/index.ts"
       ],
-      "head": "5d8d348ce973f8f96bed4d0c22ddb894e9b6a10f",
-      "headShort": "5d8d348",
+      "head": "b6c0d7dd252ce7c36781c0491f30357aff54c48c",
+      "headShort": "b6c0d7d",
       "reflogAvailable": true,
       "remotes": [
         "origin"

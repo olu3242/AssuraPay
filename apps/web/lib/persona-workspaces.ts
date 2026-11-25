@@ -33,7 +33,7 @@ import { ROUTE_PERMISSION_REQUIREMENTS } from './route-permissions';
  * moment a key changed, and the drift would surface to a user as a menu item that 403s.
  */
 
-export type WorkspaceId =
+export type PersonaWorkspaceId =
   | 'buyer'
   | 'seller'
   | 'enterprise'
@@ -43,7 +43,7 @@ export type WorkspaceId =
   | 'compliance'
   | 'admin';
 
-export type WorkspaceModule = {
+export type PersonaWorkspaceModule = {
   readonly label: string;
   /** An existing application route. The suite follows every one of these rather than trusting it. */
   readonly href: string;
@@ -56,8 +56,8 @@ export type WorkspaceModule = {
   readonly requires?: string;
 };
 
-export type Workspace = {
-  readonly id: WorkspaceId;
+export type PersonaWorkspace = {
+  readonly id: PersonaWorkspaceId;
   readonly title: string;
   /** What the person in this workspace is trying to achieve, in their language rather than the platform's. */
   readonly purpose: string;
@@ -78,16 +78,16 @@ export type Workspace = {
    * "Administrator" spans the organization and workspace administrators.
    */
   readonly personas: readonly PersonaId[];
-  readonly modules: readonly WorkspaceModule[];
+  readonly modules: readonly PersonaWorkspaceModule[];
 };
 
 /** Modules every workspace carries, because every signed-in person needs them. */
-const ACCOUNT: readonly WorkspaceModule[] = Object.freeze([
+const ACCOUNT: readonly PersonaWorkspaceModule[] = Object.freeze([
   { label: 'Account & workspace', href: '/start' },
   { label: 'Settings', href: '/settings' },
 ]);
 
-export const WORKSPACES: readonly Workspace[] = Object.freeze([
+export const PERSONA_WORKSPACES: readonly PersonaWorkspace[] = Object.freeze([
   {
     id: 'buyer',
     title: 'Buyer',
@@ -205,9 +205,9 @@ export const WORKSPACES: readonly Workspace[] = Object.freeze([
  *   gates six dispute routes on them. The workspace exists here with no dispute module rather than with a module
  *   that 403s.
  */
-export const WORKSPACE_PERSONA_GAPS = Object.freeze({
+export const PERSONA_WORKSPACE_GAPS = Object.freeze({
   personaWithoutWorkspace: 'approver' as PersonaId,
-  workspaceWithoutPersona: 'disputes' as WorkspaceId,
+  workspaceWithoutPersona: 'disputes' as PersonaWorkspaceId,
   unclaimedDisputeKeys: Object.freeze(
     Object.values(ROUTE_PERMISSION_REQUIREMENTS)
       .flatMap((requirement) =>
@@ -220,14 +220,14 @@ export const WORKSPACE_PERSONA_GAPS = Object.freeze({
   ),
 });
 
-export function workspace(id: WorkspaceId): Workspace {
-  const found = WORKSPACES.find((entry) => entry.id === id);
+export function workspace(id: PersonaWorkspaceId): PersonaWorkspace {
+  const found = PERSONA_WORKSPACES.find((entry) => entry.id === id);
   if (!found) throw new Error(`unknown workspace: ${id}`);
   return found;
 }
 
 /** Every permission key this workspace's personas hold, which is the whole of its authority. */
-export function workspaceGrants(entry: Workspace): string[] {
+export function workspaceGrants(entry: PersonaWorkspace): string[] {
   const personas: Persona[] = entry.personas.map((id) => persona(id));
   return [...new Set(personas.flatMap((held) => held.grants))].sort();
 }
@@ -239,13 +239,34 @@ export function workspaceGrants(entry: Workspace): string[] {
  * rather than merely stated: navigation is derived from grants, so it cannot advertise a destination the
  * gateway would refuse.
  */
-export function unreachableModules(entry: Workspace): WorkspaceModule[] {
+export function unreachableModules(entry: PersonaWorkspace): PersonaWorkspaceModule[] {
   const held = new Set(workspaceGrants(entry));
   return entry.modules.filter((navItem) => navItem.requires !== undefined && !held.has(navItem.requires));
 }
 
+/**
+ * The workspaces a caller holding these keys can actually use.
+ *
+ * "Can use" means at least one gated module opens, not that every one does: a finance user who holds
+ * `payment-instructions:create` but not `:submit` still belongs in the finance workspace, and hiding it until
+ * they hold every key would leave them nowhere to go.
+ *
+ * A workspace whose modules are all ungated — today only `disputes`, which has no persona — opens for nobody.
+ * That is deliberate: offering a workspace containing nothing but the account screens would be an empty room
+ * with a door, and the gap it stands for is recorded in `PERSONA_WORKSPACE_GAPS` rather than papered over.
+ *
+ * The keys come from the caller's own grants, so this is a presentation filter over authority that already
+ * exists. It never widens anything: a workspace listed here still has every one of its routes enforced.
+ */
+export function personaWorkspacesFor(permissionKeys: readonly string[]): PersonaWorkspace[] {
+  const held = new Set(permissionKeys);
+  return PERSONA_WORKSPACES.filter((entry) =>
+    entry.modules.some((item) => item.requires !== undefined && held.has(item.requires)),
+  );
+}
+
 /** Personas presented by no workspace. A persona nobody can see is a persona nobody can use. */
 export function personasWithoutWorkspace(): PersonaId[] {
-  const presented = new Set(WORKSPACES.flatMap((entry) => entry.personas));
+  const presented = new Set(PERSONA_WORKSPACES.flatMap((entry) => entry.personas));
   return PERSONAS.map((entry) => entry.id).filter((id) => !presented.has(id));
 }
