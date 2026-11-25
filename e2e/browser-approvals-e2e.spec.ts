@@ -204,7 +204,7 @@ test.describe('browser-approvals-e2e: the route behind the screen', () => {
     expect(response.ok()).toBe(false);
   });
 
-  test('accepts a replayed assertion on the read path, which is the documented behaviour and a gap', async ({
+  test('accepts a replayed assertion on a read, which is what verify-without-consume is for', async ({
     page,
   }) => {
     const workspaceId = await foundWorkspace(page, 'replay');
@@ -215,21 +215,45 @@ test.describe('browser-approvals-e2e: the route behind the screen', () => {
     const first = await page.request.get('/api/v1/approvals', { headers });
     expect(first.ok(), await first.text()).toBe(true);
 
-    // Asserted as it is, not as it ought to be.
-    //
-    // `requestContext` "verifies without consuming, so it is safe on every request and leaves the
-    // assertion's single use available to an acting path" — so a replay on a *read* is intended.
-    // What is not intended is that the acting path never runs: `actingRequestContext` is exported
-    // and has no callers, so every route authenticates without consuming and the gateway's
-    // `ASSERTION_REPLAYED` refusal, which its own unit tests prove works, is unreachable over HTTP.
-    // An assertion is therefore replayable within its validity window on acting routes too,
-    // including the decision route this screen posts to.
-    //
-    // This test pins the live behaviour so the gap is visible and so wiring the consuming context
-    // fails here loudly rather than silently breaking a client. It asserts no claim that replay is
-    // safe. Recorded as a finding rather than fixed in passing, because changing the context class
-    // of every acting route is not a change to make inside a screen.
+    // Intended, and the complement of the refusal below. The gateway "verifies without consuming,
+    // so it is safe on every request and leaves the assertion's single use available to an acting
+    // path" — a read must not burn the nonce, or fetching a page would spend the authority needed to
+    // act on what it shows.
     const replayed = await page.request.get('/api/v1/approvals', { headers });
     expect(replayed.ok()).toBe(true);
+  });
+
+  test('refuses a replayed assertion on a route that acts', async ({ page }) => {
+    const workspaceId = await foundWorkspace(page, 'replay-act');
+    const userId = (await page.getByTestId('session-user').innerText()).trim();
+
+    // No extra role: the founding administrator already holds `roles:assign`, which is the only
+    // authority this test needs. The roles granted below are chosen to hold no key the segregation
+    // catalogue keeps apart from another — an earlier version granted CERTIFIER to a caller already
+    // holding EXECUTION_MANAGER and was correctly refused with CATALOGUE_SEGREGATION_CONFLICT,
+    // which would have made this test look like a replay failure.
+    const headers = { 'x-assurapay-identity-assertion': await assertion(page, workspaceId) };
+    const first = await page.request.post('/api/v1/roles/assignments', {
+      headers,
+      data: { userId, role: 'ASSURANCE_ANALYST' },
+    });
+    expect(first.status(), await first.text()).toBe(201);
+
+    const replayed = await page.request.post('/api/v1/roles/assignments', {
+      headers,
+      data: { userId, role: 'DISPUTE_MANAGER' },
+    });
+    expect(replayed.ok()).toBe(false);
+    // Named, so this cannot pass because the second request failed for some unrelated reason — a
+    // duplicate-grant refusal or a segregation conflict would look identical on status alone.
+    expect(await replayed.text()).toContain('ASSERTION_REPLAYED');
+
+    // And a fresh assertion performs the same action, so what was refused was the replay and not
+    // the request.
+    const retried = await page.request.post('/api/v1/roles/assignments', {
+      headers: { 'x-assurapay-identity-assertion': await assertion(page, workspaceId) },
+      data: { userId, role: 'DISPUTE_MANAGER' },
+    });
+    expect(retried.status(), await retried.text()).toBe(201);
   });
 });

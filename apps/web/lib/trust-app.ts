@@ -354,11 +354,44 @@ export async function requestContext(request: Request): Promise<RequestContext> 
 /**
  * Verified identity context for a path that acts, consuming the assertion so it
  * cannot authorise a second action.
+ *
+ * Kept for a caller outside the route policy table. Every mapped route reaches
+ * consumption through `authorizedContextForRoute`, which decides by method.
  */
 export async function actingRequestContext(request: Request): Promise<RequestContext> {
   const correlationId = correlationOf(request);
   const identity = await getIdentityGateway().consumeRequestContext(request, correlationId);
   return resolveMemberships(identity, membershipReader);
+}
+
+/**
+ * Methods that only read. Everything else acts, and acting consumes the assertion.
+ *
+ * Derived from the request rather than declared per route, deliberately. The gateway has always
+ * had two entry points — `authenticate`, which verifies and leaves the nonce, and
+ * `consumeRequestContext`, which burns it — and `consumeIdentityAssertion`'s own unit tests prove
+ * the refusal works. Nothing called it. `actingRequestContext` was exported with no callers, so
+ * every one of the 177 mapped routes authenticated through the verify-without-consume path and
+ * `ASSERTION_REPLAYED` was unreachable over HTTP: an assertion could authorise an unlimited number
+ * of actions inside its validity window.
+ *
+ * A per-route `consumes` flag would have been the other option and is worse. It is 177 entries to
+ * annotate, it defaults to unsafe when a new route forgets, and the thing it would express is
+ * already carried by the method. This way a route cannot opt out of replay protection by omission,
+ * and a new acting route gets it without anyone remembering to ask.
+ *
+ * The consequence is deliberate and is the point: one assertion authorises one action, so a client
+ * performing two writes mints two assertions. The application's own clients already do — both
+ * `bootstrap-console.tsx` and `approval-inbox.tsx` fetch a fresh assertion at every call site.
+ *
+ * A read-only POST, were there one, would consume an assertion it did not need to. That is
+ * wasteful and safe; the reverse — an acting route that forgets to consume — is the hole this
+ * closes. So the default is to consume, and no exception list exists until a route needs one.
+ */
+const READ_ONLY_METHODS: ReadonlySet<string> = new Set(['GET', 'HEAD', 'OPTIONS']);
+
+export function methodActs(method: string): boolean {
+  return !READ_ONLY_METHODS.has(method.toUpperCase());
 }
 
 /**
@@ -410,6 +443,32 @@ export async function authorizedContextForRoute(request: Request): Promise<Reque
   scope.tenantId = identity.tenantId;
   scope.workspaceId = identity.activeWorkspaceId;
   scope.actorId = identity.actorUserId;
+
+  // Burn the nonce, for a method that acts. See `methodActs` for why the method decides.
+  //
+  // ## Why this is here and not above
+  //
+  // The order is load-bearing, and the obvious arrangement is broken. `consume` writes an
+  // `IdentityAssertionConsumed` audit record carrying the assertion's own `tenantId`, and
+  // `trust_audit_records` admits an insert only when `tenant_id IS NULL` — an untenanted platform
+  // event — or when it equals `trust_current_tenant()`. Consuming before the scope above is bound
+  // gives a record that is neither: it names the caller's tenant while the session has no scope
+  // set, so forced row-level security refuses it and the whole request fails.
+  //
+  // Found by clicking, not by reading. Consuming first took the browser suite from 21 passing to 13
+  // failing, and the bootstrap journey reported "Tenant founding succeeded, but administration could
+  // not be founded: new row violates row-level security policy for table trust_audit_records" —
+  // which is the audit boundary working exactly as designed, on a write that had no business being
+  // unscoped. Authenticating first costs one extra signature verification and nothing else.
+  //
+  // Still before the route runs, and before enforcement below, so a replayed assertion is refused
+  // without the handler being reached. The authorization work done after this point is wasted on a
+  // replay, which is the right trade: the alternative is enforcing first and burning the nonce only
+  // once a request is known to be allowed, which would let an attacker probe permissions with one
+  // assertion indefinitely.
+  if (methodActs(request.method)) {
+    await getIdentityGateway().consumeRequestContext(request, correlationId);
+  }
 
   // An identity-class route is authenticated and membership-scoped, but carries no
   // permission requirement; see route-permissions.ts for why that is not a gap.

@@ -5,8 +5,8 @@
 | Field | Value |
 | --- | --- |
 | Branch | feat/ui-speak-the-users-language |
-| HEAD | dfcb839991cf100bd359442e5a8e434b0e7b1cde |
-| Generated at | 2026-11-25T00:23:00.209Z |
+| HEAD | a3f632a59674fe9cb5ef5339097a95d7e8fe2053 |
+| Generated at | 2026-11-25T09:22:55.463Z |
 | Result | **PASSED** |
 | Steps | 11 passed, 0 failed, 0 skipped |
 
@@ -14,14 +14,14 @@
 
 | Step | Description | Result | Duration | Findings |
 | --- | --- | --- | --- | --- |
-| lint | ESLint across the workspace | pass | 8407 ms | — |
-| typecheck | TypeScript project typecheck | pass | 3045 ms | — |
-| test:unit | Unit tests | pass | 35090 ms | — |
-| test:integration | Integration tests | pass | 15941 ms | — |
-| test:e2e | End-to-end tests | pass | 27781 ms | — |
-| architecture | Architecture validation | pass | 863 ms | — |
-| dependencies | Dependency validation | pass | 25 ms | 2 |
-| security | Security validation | pass | 54 ms | — |
-| contract | Execution contract validation | pass | 27 ms | 2 |
+| lint | ESLint across the workspace | pass | 5913 ms | — |
+| typecheck | TypeScript project typecheck | pass | 1708 ms | — |
+| test:unit | Unit tests | pass | 22588 ms | — |
+| test:integration | Integration tests | pass | 10480 ms | — |
+| test:e2e | End-to-end tests | pass | 20467 ms | — |
+| architecture | Architecture validation | pass | 427 ms | — |
+| dependencies | Dependency validation | pass | 12 ms | 2 |
+| security | Security validation | pass | 32 ms | — |
+| contract | Execution contract validation | pass | 17 ms | 2 |
 | governance | Reconciliation governance policy | pass | 0 ms | 15 |
-| build | Production build | pass | 28718 ms | — |
+| build | Production build | pass | 18127 ms | — |
