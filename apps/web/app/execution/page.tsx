@@ -1,4 +1,3 @@
-import Link from 'next/link';
 
 /**
  * The execution section's entry point.
@@ -14,12 +13,12 @@ import Link from 'next/link';
  */
 export default function ExecutionPage() {
   return (
-    <main>
-      <nav>
-        <Link href="/">Dashboard</Link>
-        <Link href="/execution">Execution</Link>
-        <Link href="/settlements">Settlements</Link>
-      </nav>
+    <main className="shell">
+      {/* The in-page navigation that stood here duplicated the global header, which renders on
+          every route from `layout.tsx` and already marks the current section. Two navigations on
+          one screen disagree the moment either changes — and this one listed three destinations
+          where the header lists seven. */}
+      <p className="eyebrow">Execution assurance</p>
       <section className="card">
         <h1>Execution workspace</h1>
         <p>Operational milestones, evidence, validation and certification.</p>

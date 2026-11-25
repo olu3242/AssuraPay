@@ -55,8 +55,11 @@ describe('the interface does not expose the engine catalogue', () => {
   });
 
   it('renders no engine number', () => {
-    // `Engine {16 + i}` was the exact shape, so both the interpolated and literal forms are refused.
-    const offenders = pages.filter((page) => /Engine\s*\{|Engine\s+\d/.test(page.source));
+    // `Engine {16 + i}` was the exact shape, so both the interpolated and literal forms are
+    // refused — and the plural with them. `Engine\s+\d` cannot match "Engines 01–05", because the
+    // `s` breaks the whitespace, which is exactly how `trust-console.tsx` kept showing readers
+    // "Trust Foundation · Engines 01–05" through every run of this suite.
+    const offenders = pages.filter((page) => /Engines?\s*\{|Engines?\s+\d/.test(page.source));
     expect(offenders.map((page) => page.file)).toEqual([]);
   });
 

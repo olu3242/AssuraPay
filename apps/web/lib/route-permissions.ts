@@ -127,6 +127,7 @@ export const ROUTE_PERMISSION_REQUIREMENTS: Readonly<Record<string, RouteAccess>
   '/api/v1/approvals|GET': { access: 'permission', permissionKey: 'executions:read' },
   '/api/v1/flow-tasks|GET': { access: 'permission', permissionKey: 'executions:read' },
   '/api/v1/flow-tasks/[id]/decisions|POST': { access: 'permission', permissionKey: 'authorization-decisions:approve', segregatedFrom: ['payment-instructions:submit'] },
+  '/api/v1/flow-relay/status|GET': { access: 'permission', permissionKey: 'flow-relay:read' },
   '/api/v1/flows/[id]|GET': { access: 'permission', permissionKey: 'executions:read' },
   // Advancing a flow from committed domain events transitions it, so it is gated as a transition
   // rather than a read — a read-only principal must not cause state changes by looking.

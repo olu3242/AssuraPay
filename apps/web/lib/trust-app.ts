@@ -147,6 +147,7 @@ const globalTrust = globalThis as typeof globalThis & {
  */
 export { trustStore } from './persistence';
 import { getPersistenceRuntime } from './persistence';
+import { ensureFlowRelayWorker } from './flow-app';
 import { DurableAssertionReplayStore } from './assertion-replay';
 
 /**
@@ -448,6 +449,11 @@ export async function authorizedContextForRoute(request: Request): Promise<Reque
   // scope at all. Under forced RLS those reads returned nothing, so `GET /v1/me/workspaces` answered
   // `[]` to a caller holding an ACTIVE membership. `enterMutableTrustScope` explains the measurement.
   const scope = enterMutableTrustScope();
+  // Starts the flow relay worker on the first request this process serves, at most once, and never
+  // awaited — `ensureFlowRelayWorker` explains why the worker cannot be started from
+  // `instrumentation.ts` where it belongs. The guard is a boolean flipped synchronously, so this
+  // costs one comparison per request and does not touch the scope ordering above.
+  ensureFlowRelayWorker();
   const access = requirementForRoute(new URL(request.url).pathname, request.method);
   const correlationId = correlationOf(request);
 

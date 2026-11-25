@@ -364,7 +364,7 @@ export function BootstrapConsole() {
 
   return (
     <main className="shell" data-testid="bootstrap-console">
-      <p className="eyebrow">Trust Foundation · Engines 01–05</p>
+      <p className="eyebrow">Account & workspace</p>
       <h1>Get started</h1>
       <p className="lead">
         Register an identity, sign in, found your organization and choose the workspace you are working in.

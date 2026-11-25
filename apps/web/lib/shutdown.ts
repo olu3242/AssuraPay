@@ -27,6 +27,12 @@ export function registerPersistenceShutdown(): void {
     if (shuttingDown) return;
     shuttingDown = true;
     try {
+      // The relay worker stops before the pool closes, for the same reason readiness goes false
+      // first: a pass that started would otherwise find its connections pulled mid-drain. Stopping
+      // it does not abandon work — an in-flight pass holds leases that expire on their own, and the
+      // next process to run picks those workspaces up, because `drain` is idempotent.
+      const { stopFlowRelayWorker } = await import('./flow-app');
+      stopFlowRelayWorker();
       await disposePersistenceRuntime();
       console.info(
         JSON.stringify({ component: 'persistence-runtime', event: 'shutdown.complete', signal }),

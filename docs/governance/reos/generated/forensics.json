@@ -41,6 +41,7 @@
             "apps/web/lib/assurance-read-model.ts",
             "apps/web/lib/financial-reads.ts",
             "apps/web/lib/flow-app.ts",
+            "apps/web/lib/flow-relay-queue.ts",
             "apps/web/lib/persistence.ts",
             "packages/agent-runtime/src/index.ts",
             "packages/agent-runtime/src/registration.ts",
@@ -465,6 +466,7 @@
           "kind": "symbol",
           "matches": [
             "apps/web/lib/assertion-replay.postgres.test.ts",
+            "apps/web/lib/flow-relay-queue.postgres.test.ts",
             "apps/web/lib/record-reads.postgres.test.ts",
             "packages/database-testing/src/atlas.postgres.test.ts",
             "packages/database-testing/src/flow-trigger.postgres.test.ts",
@@ -766,6 +768,7 @@
         {
           "kind": "symbol",
           "matches": [
+            "apps/web/lib/flow-relay-worker.ts",
             "packages/database-testing/src/approval-inbox.postgres.test.ts",
             "packages/database-testing/src/atlas.postgres.test.ts",
             "packages/database-testing/src/flow-postgres-store.postgres.test.ts",
@@ -1466,6 +1469,7 @@
             "apps/web/lib/agent-route-governance.test.ts",
             "apps/web/lib/approval-inbox.test.ts",
             "apps/web/lib/financial-reads.test.ts",
+            "apps/web/lib/flow-relay-worker.test.ts",
             "apps/web/lib/grant-administration.test.ts",
             "apps/web/lib/persona-workspaces.test.ts",
             "apps/web/lib/persona-workspaces.ts",
@@ -1591,6 +1595,7 @@
             "apps/web/app/api/v1/financial-forecasts/[id]/review/route.ts",
             "apps/web/app/api/v1/financial-forecasts/route.ts",
             "apps/web/app/api/v1/financial-position/route.ts",
+            "apps/web/app/api/v1/flow-relay/status/route.ts",
             "apps/web/app/api/v1/flow-tasks/[id]/decisions/route.ts",
             "apps/web/app/api/v1/flow-tasks/route.ts",
             "apps/web/app/api/v1/flows/[id]/advance/route.ts",
@@ -1742,8 +1747,10 @@
           "kind": "symbol",
           "matches": [
             "apps/web/app/api/v1/contracts/route.ts",
+            "apps/web/app/api/v1/flow-relay/status/route.ts",
             "apps/web/app/api/v1/workspaces/route.ts",
             "apps/web/lib/financial-reads.ts",
+            "apps/web/lib/flow-relay-worker.test.ts",
             "apps/web/lib/record-reads.ts",
             "apps/web/lib/record-route.ts",
             "apps/web/lib/trust-app.ts",
@@ -1831,7 +1838,7 @@
       "totalProbes": 5
     }
   ],
-  "head": "d6fd1d9333879b941b432ee3923c1dd1a510a156",
+  "head": "8d687a385251f42c686e9d8c641a547492ee959a",
   "reosVersion": "1.0.0",
   "stage": "forensics",
   "summary": {

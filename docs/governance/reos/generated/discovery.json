@@ -2209,6 +2209,13 @@
       "id": "202611250001",
       "name": "the_settlement_chain_names_only_milestones_that_exist",
       "path": "supabase/migrations/202611250001_the_settlement_chain_names_only_milestones_that_exist.sql"
+    },
+    {
+      "declaresPolicies": 1,
+      "declaresRowLevelSecurity": true,
+      "id": "202611250002",
+      "name": "the_flow_relay_has_a_durable_queue",
+      "path": "supabase/migrations/202611250002_the_flow_relay_has_a_durable_queue.sql"
     }
   ],
   "packages": [
@@ -2433,7 +2440,7 @@
       "moduleType": null,
       "name": "@assurapay/database",
       "sourceFiles": 22,
-      "sourceLines": 11448,
+      "sourceLines": 11456,
       "testFiles": [
         "packages/database/src/async-conformance.test.ts",
         "packages/database/src/rls-certification.test.ts",
@@ -2971,7 +2978,7 @@
       "moduleType": null,
       "name": "@assurapay/permissions",
       "sourceFiles": 3,
-      "sourceLines": 1125,
+      "sourceLines": 1127,
       "testFiles": [
         "packages/permissions/src/catalogue.test.ts",
         "packages/permissions/src/enforcement.test.ts",
@@ -3216,10 +3223,11 @@
   "reosVersion": "1.0.0",
   "repository": {
     "git": {
-      "branch": "feat/record-pages",
+      "branch": "feat/flow-relay-worker",
       "branches": [
         "claude/git-pull-cqc04u",
         "feat/ai-runtime-atlas-convergence",
+        "feat/flow-relay-worker",
         "feat/record-pages",
         "feat/ui-speak-the-users-language",
         "integration/probe-agent-stack",
@@ -3249,6 +3257,7 @@
         "origin/feat/flow-orchestration-os",
         "origin/feat/flow-os-operations",
         "origin/feat/flow-os-recovery-operator",
+        "origin/feat/flow-relay-worker",
         "origin/feat/g1-batch-f-agreement-creation",
         "origin/feat/h1-batch-h-governance-core",
         "origin/feat/i1-batch-i-agreement-intelligence",
@@ -3271,6 +3280,7 @@
         "origin/feat/rc1-phase-e-certification-engine-guard",
         "origin/feat/rc1-phases-b-d-convergence",
         "origin/feat/rc1-production-e2e-convergence",
+        "origin/feat/record-pages",
         "origin/feat/reos-product-experiment-layer",
         "origin/feat/ui-speak-the-users-language",
         "origin/fix/wave5-codex-followups",
@@ -3281,33 +3291,14 @@
       ],
       "clean": false,
       "dirtyFiles": [
-        "apps/web/app/api/v1/audit-trail/[type]/[id]/route.ts",
-        "apps/web/app/api/v1/completion-certificates/[id]/route.ts",
-        "apps/web/app/api/v1/contracts/[id]/route.ts",
-        "apps/web/app/api/v1/definition-of-done-packages/[id]/route.ts",
-        "apps/web/app/api/v1/disputes/[id]/route.ts",
-        "apps/web/app/api/v1/execution-workspaces/[id]/route.ts",
-        "apps/web/app/api/v1/final-settlement-accounts/[id]/route.ts",
-        "apps/web/app/api/v1/financial-entitlements/[id]/route.ts",
-        "apps/web/app/api/v1/fund-reservations/[id]/route.ts",
-        "apps/web/app/api/v1/funding-commitments/[id]/route.ts",
-        "apps/web/app/api/v1/invoices/[id]/route.ts",
-        "apps/web/app/api/v1/ledger-entries/[id]/route.ts",
-        "apps/web/app/api/v1/milestones/[id]/route.ts",
-        "apps/web/app/api/v1/payment-eligibility/[id]/route.ts",
-        "apps/web/app/api/v1/payment-instructions/[id]/route.ts",
-        "apps/web/app/api/v1/performance-blueprints/[id]/route.ts",
-        "apps/web/app/api/v1/reconciliation-records/[id]/route.ts",
-        "apps/web/app/api/v1/release-requests/[id]/route.ts",
-        "apps/web/app/components/record-view.tsx",
-        "apps/web/app/components/scoped-fetch.ts",
+        "apps/web/app/components/app-navigation.tsx",
+        "apps/web/app/components/bootstrap-console.tsx",
+        "apps/web/app/components/trust-console.tsx",
+        "apps/web/app/execution/page.tsx",
         "apps/web/app/globals.css",
-        "apps/web/app/records/[type]/[id]/page.tsx",
-        "apps/web/lib/record-reads.postgres.test.ts",
-        "apps/web/lib/record-reads.test.ts",
-        "apps/web/lib/record-reads.ts",
-        "apps/web/lib/record-route.ts",
-        "apps/web/lib/route-permissions.ts",
+        "apps/web/app/settlements/page.tsx",
+        "apps/web/lib/app-chrome.test.ts",
+        "apps/web/lib/ui-vocabulary.test.ts",
         "docs/governance/reos/generated/CERTIFICATION_REPORT.md",
         "docs/governance/reos/generated/EXECUTION_MANIFEST.md",
         "docs/governance/reos/generated/certification.json",
@@ -3315,20 +3306,10 @@
         "docs/governance/reos/generated/discovery.json",
         "docs/governance/reos/generated/execution-manifest.json",
         "docs/governance/reos/generated/forensics.json",
-        "e2e/browser-record-page-e2e.spec.ts",
-        "packages/database-testing/src/wave4-batch-a-repository.postgres.test.ts",
-        "packages/database-testing/src/wave4-trust-authority.postgres.test.ts",
-        "packages/database-testing/src/wave5-batch-b-repository.postgres.test.ts",
-        "packages/database-testing/src/wave5-batch-c-repository.postgres.test.ts",
-        "packages/database-testing/src/wave5-batch-d-repository.postgres.test.ts",
-        "packages/database-testing/src/wave6-batch-e-repository.postgres.test.ts",
-        "packages/database-testing/src/wave6-batch-g-repository.postgres.test.ts",
-        "packages/database/src/migrations.ts",
-        "packages/permissions/src/catalogue.ts",
-        "supabase/migrations/202611250001_the_settlement_chain_names_only_milestones_that_exist.sql"
+        "e2e/browser-app-chrome-e2e.spec.ts"
       ],
-      "head": "d6fd1d9333879b941b432ee3923c1dd1a510a156",
-      "headShort": "d6fd1d9",
+      "head": "8d687a385251f42c686e9d8c641a547492ee959a",
+      "headShort": "8d687a3",
       "reflogAvailable": true,
       "remotes": [
         "origin"
@@ -3336,7 +3317,7 @@
       "tags": [
         "rc-engine-60"
       ],
-      "upstream": "origin/main"
+      "upstream": "origin/feat/flow-relay-worker"
     },
     "name": "assurapay",
     "packageManager": "pnpm@11.3.0",
@@ -3541,7 +3522,7 @@
     "applications": 1,
     "documents": 157,
     "engines": 60,
-    "migrations": 54,
+    "migrations": 55,
     "packages": 30,
     "testFiles": 135
   },
