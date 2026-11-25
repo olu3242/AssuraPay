@@ -9,10 +9,10 @@
 | --- | --- |
 | Repository | assurapay |
 | Version | 0.1.0 |
-| Branch | feat/flow-relay-worker |
-| HEAD | 8d687a385251f42c686e9d8c641a547492ee959a |
+| Branch | claude/git-pull-cqc04u |
+| HEAD | 8476cbdf09efc64057da652dac080f5aeaccf5ee |
 | Worktree clean | no |
-| Manifest digest | 1ec6c13cff51 |
+| Manifest digest | 4b5f32dceead |
 | REOS version | 1.0.0 |
 
 ## Architecture

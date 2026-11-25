@@ -88,15 +88,27 @@ describe('there is one header, and it is the one that renders', () => {
 });
 
 describe('the chrome is styled in tokens, because there is no Tailwind', () => {
-  it('has no Tailwind configured, which is why utility classes must not be written', () => {
-    // Asserted rather than assumed: if Tailwind is ever adopted, this fails and the next assertion
-    // can be reconsidered deliberately instead of silently becoming wrong.
-    const root = path.join(__dirname, '..', '..', '..');
-    const configured = readdirSync(root).some((entry) => entry.startsWith('tailwind.config'));
-    expect(configured).toBe(false);
+  it('confines Tailwind to the landing components, so a utility in the app shell would not exist', () => {
+    // Rewritten, because the original claim became false while still passing.
+    //
+    // It asserted "no Tailwind is configured" and looked in the repository root. Tailwind arrived in
+    // `apps/web/tailwind.config.js` — a different directory — so the assertion stayed green and
+    // stopped being true, which is the exact failure mode this suite exists to prevent elsewhere.
+    //
+    // The conclusion survives on better evidence. The config is deliberately scoped: `content`
+    // covers only `src/components/assurapay`, `important` is the landing's own id, and preflight is
+    // off. So a utility class written under `app/` is not merely discouraged — Tailwind never
+    // generates it, and the class does nothing. That is what the next assertion enforces.
+    const config = readFileSync(path.join(__dirname, '..', 'tailwind.config.js'), 'utf8');
+    expect(config).toContain('src/components/assurapay');
+    expect(config).toContain("important: '#assurapay-landing'");
+    expect(config).toContain('preflight: false');
+    // The app shell is outside `content`. If it is ever added, this fails and the assertion below
+    // has to be reconsidered deliberately rather than quietly becoming wrong again.
+    expect(config).not.toMatch(/content:[^\]]*\bapp\b/);
   });
 
-  it('writes no Tailwind utility class in the application', () => {
+  it('writes no Tailwind utility class in the app shell, where none would be generated', () => {
     // The specific shapes the audit asked for, plus the families they belong to. A class that does
     // nothing is worse than a wrong one: the diff reads as finished and the browser disagrees.
     const utilities =
@@ -119,37 +131,49 @@ describe('the chrome is styled in tokens, because there is no Tailwind', () => {
 });
 
 describe('the landing page and the application share one palette', () => {
-  it('derives the landing tokens from the brand tokens rather than restating them', () => {
-    // The audit's premise was that the landing page and the subpages had diverged. They had not, at
-    // the level that matters: `landing.css` is a semantic layer over `--ap-*`. This is the assertion
-    // that keeps it that way — and that would have failed had the audit's hexes been applied.
-    const landing = readFileSync(
-      path.join(__dirname, '..', 'src', 'components', 'preferred-landing', 'landing.css'),
+  it('records that the live landing does NOT share the shell palette, which is a known gap', () => {
+    // This assertion originally claimed the opposite, and was true of the wrong file.
+    //
+    // `preferred-landing/landing.css` does derive from the brand tokens — `--blue: var(--ap-blue)`.
+    // But `app/page.tsx` no longer renders `PreferredLanding`: it renders
+    // `src/components/assurapay/AssuraPayLanding`, whose stylesheet declares its own `--ap-*` set
+    // with different values (`--ap-primary: #2563eb` against the shell's `--ap-blue: #005ee9`) and
+    // adds a dark theme the shell does not have.
+    //
+    // So the divergence the information-architecture audit reported is real, and arrived with the
+    // landing modernization rather than with the subpages. It is recorded here as a fact rather
+    // than asserted away, because closing it means choosing one palette — a brand decision, not a
+    // refactor. If someone unifies them, this test fails and should be replaced with the
+    // derivation assertion it is standing in for.
+    const live = readFileSync(
+      path.join(__dirname, '..', 'src', 'components', 'assurapay', 'landing.css'),
       'utf8',
     );
-    for (const derivation of [
-      '--blue: var(--ap-blue)',
-      '--navy: var(--ap-navy)',
-      '--pale: var(--ap-pale)',
-      '--success: var(--ap-green)',
-    ]) {
-      expect(landing, `landing.css must derive ${derivation}`).toContain(derivation);
-    }
+    expect(live, 'the live landing declares its own primary').toContain('--ap-primary');
+    expect(live, 'and does not derive it from the shell').not.toContain('--ap-primary: var(--ap-blue)');
+
+    // The shell's own brand tokens are untouched by it, which is the part that matters today: the
+    // two palettes are separate, not fighting.
+    const globals = files.find((entry) => entry.file === 'globals.css')!.source;
+    expect(globals).toContain('--ap-blue: #005ee9');
   });
 
   it('keeps the landing stylesheet scoped so it cannot restyle the application', () => {
     // A plain CSS import is global in Next. Every selector in `landing.css` is prefixed with
     // `#preferred-landing`, which is the only reason importing it from `app/page.tsx` does not
     // reach every other page. Asserted because one unscoped rule would be invisible until it was not.
-    const landing = readFileSync(
-      path.join(__dirname, '..', 'src', 'components', 'preferred-landing', 'landing.css'),
-      'utf8',
-    );
-    const unscoped = landing
-      .split('\n')
-      .filter((line) => /^[.#a-zA-Z*\[]/.test(line) && line.includes('{'))
-      .filter((line) => !line.startsWith('#preferred-landing'));
-    expect(unscoped).toEqual([]);
+    // Checked for both stylesheets: the live one and the orphaned one that is still on disk.
+    for (const [file, prefix] of [
+      [path.join('assurapay', 'landing.css'), '#assurapay-landing'],
+      [path.join('preferred-landing', 'landing.css'), '#preferred-landing'],
+    ] as const) {
+      const landing = readFileSync(path.join(__dirname, '..', 'src', 'components', file), 'utf8');
+      const unscoped = landing
+        .split('\n')
+        .filter((line) => /^[.#a-zA-Z*\[]/.test(line) && line.includes('{'))
+        .filter((line) => !line.startsWith(prefix));
+      expect(unscoped, `${file} must be scoped under ${prefix}`).toEqual([]);
+    }
   });
 
   it('keeps the per-persona accents, which one flat palette would have erased', () => {
