@@ -2779,7 +2779,93 @@ button:disabled {
   background: var(--ap-white);
 }
 
-.app-navigation { display:flex; align-items:center; flex-wrap:wrap; gap:1rem; padding:.5rem 1.5rem; border-bottom:1px solid var(--ap-border); background:var(--ap-white); }
+/* ---------------------------------------------------------------------------
+   The application chrome.
+
+   Sticky and translucent, expressed in the `--ap-*` tokens rather than in
+   Tailwind utilities — this application has no Tailwind, so a class like
+   `backdrop-blur-md bg-white/80` would be an inert string: a header that looks
+   finished in the diff and unchanged in the browser.
+
+   `color-mix` against `--ap-white` rather than a literal rgba, so the surface
+   follows the token if the palette ever moves, and a plain `background` is
+   declared first for engines without it. The blur is additive: where
+   `backdrop-filter` is unsupported the header is simply opaque, which is a
+   worse-looking header and never an unreadable one.
+   --------------------------------------------------------------------------- */
+.app-navigation {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: .5rem 1.5rem;
+  border-bottom: 1px solid var(--ap-border);
+  background: var(--ap-white);
+  background: color-mix(in srgb, var(--ap-white) 82%, transparent);
+  backdrop-filter: blur(12px);
+  position: sticky;
+  top: 0;
+  /* Above page content and below any modal. The chrome must not cover a dialog
+     that is asking for a decision. */
+  z-index: 20;
+}
+
+/* The current section, marked with the persona accent the workspace already
+   carries rather than a second highlight colour. */
+.app-navigation nav a[aria-current='page'] {
+  box-shadow: inset 0 -2px 0 0 var(--ap-accent, var(--ap-blue));
+  font-weight: 600;
+}
+
+/* Pushed to the end of the row, and allowed to wrap underneath on a narrow
+   viewport rather than squeezing the section links out of reach. */
+.app-navigation__actions {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  margin-left: auto;
+}
+
+.app-workspace {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  min-width: 0;
+}
+
+.app-workspace__label {
+  font-size: .78rem;
+  letter-spacing: .02em;
+  opacity: .72;
+  text-transform: uppercase;
+}
+
+.app-workspace select {
+  background: var(--ap-white);
+  border: 1px solid var(--ap-border);
+  border-radius: 8px;
+  color: inherit;
+  font: inherit;
+  max-width: 14rem;
+  padding: .3rem .5rem;
+}
+
+.app-workspace select:focus-visible {
+  outline: 2px solid var(--ap-accent, var(--ap-blue));
+  outline-offset: 2px;
+}
+
+.app-navigation__cta {
+  white-space: nowrap;
+}
+
+@media (max-width: 720px) {
+  /* The actions take their own row before the section links become unreachable. */
+  .app-navigation__actions {
+    margin-left: 0;
+    width: 100%;
+  }
+}
 .app-brand { display:inline-flex; align-items:center; gap:.5rem; color:var(--ap-navy); font-size:1.35rem; }
 .app-brand img { object-fit:contain; }
 .app-navigation nav { display:flex; flex-wrap:wrap; gap:1rem; margin:0; }

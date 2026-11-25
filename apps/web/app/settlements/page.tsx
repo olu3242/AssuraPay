@@ -1,4 +1,3 @@
-import Link from 'next/link';
 
 /**
  * The settlements section's entry point.
@@ -13,12 +12,10 @@ import Link from 'next/link';
  */
 export default function SettlementsPage() {
   return (
-    <main>
-      <nav>
-        <Link href="/">Dashboard</Link>
-        <Link href="/execution">Execution</Link>
-        <Link href="/settlements">Settlements</Link>
-      </nav>
+    <main className="shell">
+      {/* As on `/execution`: the global header owns navigation, and a second nav here listed three
+          of its seven destinations. */}
+      <p className="eyebrow">Settlement assurance</p>
       <section className="card">
         <h1>Settlement assurance</h1>
         <p>Settlement cases are derived from certified milestones and assessed payment eligibility.</p>

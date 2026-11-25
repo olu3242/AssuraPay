@@ -3257,6 +3257,7 @@
         "origin/feat/flow-orchestration-os",
         "origin/feat/flow-os-operations",
         "origin/feat/flow-os-recovery-operator",
+        "origin/feat/flow-relay-worker",
         "origin/feat/g1-batch-f-agreement-creation",
         "origin/feat/h1-batch-h-governance-core",
         "origin/feat/i1-batch-i-agreement-intelligence",
@@ -3290,15 +3291,14 @@
       ],
       "clean": false,
       "dirtyFiles": [
-        "apps/web/app/api/v1/flow-relay/status/route.ts",
-        "apps/web/lib/flow-app.ts",
-        "apps/web/lib/flow-relay-queue.postgres.test.ts",
-        "apps/web/lib/flow-relay-queue.ts",
-        "apps/web/lib/flow-relay-worker.test.ts",
-        "apps/web/lib/flow-relay-worker.ts",
-        "apps/web/lib/route-permissions.ts",
-        "apps/web/lib/shutdown.ts",
-        "apps/web/lib/trust-app.ts",
+        "apps/web/app/components/app-navigation.tsx",
+        "apps/web/app/components/bootstrap-console.tsx",
+        "apps/web/app/components/trust-console.tsx",
+        "apps/web/app/execution/page.tsx",
+        "apps/web/app/globals.css",
+        "apps/web/app/settlements/page.tsx",
+        "apps/web/lib/app-chrome.test.ts",
+        "apps/web/lib/ui-vocabulary.test.ts",
         "docs/governance/reos/generated/CERTIFICATION_REPORT.md",
         "docs/governance/reos/generated/EXECUTION_MANIFEST.md",
         "docs/governance/reos/generated/certification.json",
@@ -3306,13 +3306,10 @@
         "docs/governance/reos/generated/discovery.json",
         "docs/governance/reos/generated/execution-manifest.json",
         "docs/governance/reos/generated/forensics.json",
-        "e2e/browser-flow-relay-e2e.spec.ts",
-        "packages/database/src/migrations.ts",
-        "packages/permissions/src/catalogue.ts",
-        "supabase/migrations/202611250002_the_flow_relay_has_a_durable_queue.sql"
+        "e2e/browser-app-chrome-e2e.spec.ts"
       ],
-      "head": "a3f3967fa91da35b111236069a5cd86712428361",
-      "headShort": "a3f3967",
+      "head": "8d687a385251f42c686e9d8c641a547492ee959a",
+      "headShort": "8d687a3",
       "reflogAvailable": true,
       "remotes": [
         "origin"
@@ -3320,7 +3317,7 @@
       "tags": [
         "rc-engine-60"
       ],
-      "upstream": "origin/main"
+      "upstream": "origin/feat/flow-relay-worker"
     },
     "name": "assurapay",
     "packageManager": "pnpm@11.3.0",
