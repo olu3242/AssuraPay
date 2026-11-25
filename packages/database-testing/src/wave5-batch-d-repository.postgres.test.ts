@@ -105,6 +105,22 @@ async function foundChain(
     // The authority the eligibility cites, made storable by Batch G. `202608110009` turned
     // `paymentEligibilities.paymentTriggerRuleId` into a foreign key, and the rule hangs off a blueprint
     // milestone, which hangs off a deliverable and a blueprint.
+    // The contract the blueprint plans. Seeded because `202611250001` makes
+    // `performance_blueprints.contract_id` a real foreign key: before it a blueprint could plan a
+    // contract that had never existed, and this fixture did exactly that. The same reason
+    // `202608110009` made this seed reach the payment trigger rule — a chain the fixture cannot
+    // build is a chain the database should not accept.
+    await store.append('agreements', {
+      id: k('c-1'),
+      workspaceId,
+      contractNumber: k('C-0001'),
+      title: 'Seeded agreement',
+      contractType: 'PROCUREMENT',
+      ownerUserId: 'user-contract-owner',
+      status: 'DRAFT',
+      createdAt: stamp,
+      version: 1,
+    });
     await store.append('performanceBlueprints', {
       id: k('bp-1'),
       workspaceId,
@@ -170,6 +186,34 @@ async function foundChain(
       currency: 'NGN',
       status: 'ACTIVE',
       createdAt: stamp,
+    });
+    // The attestation the eligibility cites. `202611250001` made
+    // `payment_eligibilities.completion_certificate_id` a real foreign key, so the fixture has to
+    // produce a certificate — and a certificate requires the acceptance decision it rests on. An
+    // eligibility citing a certificate that does not exist is a payment justified by an
+    // attestation nobody made, which is what the key now refuses.
+    await store.append('acceptanceDecisions', {
+      id: k('accept-1'),
+      workspaceId,
+      workItemId: k('wi-1'),
+      decision: 'FULL',
+      rationale: 'Slab poured and inspected.',
+      conditions: [],
+      status: 'ACTIVE',
+      decidedBy: 'user-reviewer',
+      decidedAt: stamp,
+    });
+    await store.append('completionCertificates', {
+      id: k('cert-1'),
+      workspaceId,
+      workItemId: k('wi-1'),
+      milestoneId: k('ms-1'),
+      certificateNumber: k('CERT-000001'),
+      acceptanceDecisionId: k('accept-1'),
+      canonicalHash: 'a'.repeat(64),
+      status: 'CERTIFIED',
+      issuedBy: 'user-certifier',
+      issuedAt: stamp,
     });
     await store.append('paymentEligibilities', {
       id: k('pe-1'),

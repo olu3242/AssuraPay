@@ -222,6 +222,22 @@ async function foundReadiness(
   await withTrustScope({ tenantId, workspaceId, actorId: ACTOR }, async () => {
     const store = new PostgresTrustStore(database.sql);
     await store.append('trustWorkspaces', { id: workspaceId, tenantId, status: 'ACTIVE', version: 1 });
+    // The contract the blueprint plans. Seeded because `202611250001` makes
+    // `performance_blueprints.contract_id` a real foreign key: before it a blueprint could plan a
+    // contract that had never existed, and this fixture did exactly that. The same reason
+    // `202608110009` made this seed reach the payment trigger rule — a chain the fixture cannot
+    // build is a chain the database should not accept.
+    await store.append('agreements', {
+      id: k('c-1'),
+      workspaceId,
+      contractNumber: k('C-0001'),
+      title: 'Seeded agreement',
+      contractType: 'PROCUREMENT',
+      ownerUserId: 'user-contract-owner',
+      status: 'DRAFT',
+      createdAt: stamp,
+      version: 1,
+    });
     await store.append('performanceBlueprints', {
       id: k('bp-1'),
       workspaceId,
