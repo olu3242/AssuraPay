@@ -4,7 +4,7 @@
       "directory": "apps/web",
       "framework": "next",
       "name": "@assurapay/web",
-      "routes": 25,
+      "routes": 26,
       "workspaceDependencies": [
         "@assurapay/agent-runtime",
         "@assurapay/agreement-atlas",
@@ -3638,7 +3638,7 @@
   "identity": {
     "branch": "feat/ui-speak-the-users-language",
     "clean": false,
-    "head": "686f93b837606656bedc01ebab5cbfab4d5aa0ef",
+    "head": "8616afd32ea4e87ccff3f13d315f687fe9895f01",
     "repository": "assurapay",
     "version": "0.1.0"
   },
@@ -3730,7 +3730,7 @@
     "released": 76,
     "validated": 0
   },
-  "manifestDigest": "d8bab067616c",
+  "manifestDigest": "159244bce784",
   "missingCapabilities": [],
   "packages": [
     {

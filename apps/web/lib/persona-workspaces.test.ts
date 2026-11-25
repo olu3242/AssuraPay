@@ -68,6 +68,49 @@ describe('a workspace advertises only what its personas can reach', () => {
   });
 });
 
+describe('release approval is one shared capability, not one per workspace', () => {
+  it('offers the canonical inbox from every workspace', () => {
+    // One capability, one inbox. A persona-specific approval screen would be a second approval system over
+    // the same records, and two queues over one set of decisions is how a release is approved twice or not
+    // at all.
+    for (const entry of PERSONA_WORKSPACES) {
+      const approval = entry.modules.filter((item) => item.href === '/approvals');
+      expect(approval, `${entry.id}`).toHaveLength(1);
+      expect(approval[0], `${entry.id}`).toMatchObject({
+        requires: 'authorization-decisions:approve',
+        contextual: true,
+      });
+    }
+  });
+
+  it('lists no module twice', () => {
+    // A duplicate renders the same link twice and is invisible in review. One occurred while wiring the
+    // shared approval module in, which is why this is asserted rather than assumed.
+    for (const entry of PERSONA_WORKSPACES) {
+      const hrefs = entry.modules.map((item) => item.href);
+      expect(new Set(hrefs).size, `${entry.id} repeats a destination`).toBe(hrefs.length);
+    }
+  });
+
+  it('never composes two personas the model says must not meet', () => {
+    // The reason release approval is contextual rather than a persona added to Buyer and Enterprise.
+    // `agreement-owner.mustNotHold` names `approval-requests:decide`, which `approver` grants — so an
+    // Enterprise workspace presenting both would stand on both sides of an explicit prohibition, drafting an
+    // agreement and deciding it. This asserts no workspace does that with any pair.
+    for (const entry of PERSONA_WORKSPACES) {
+      const held = entry.personas.map((id) => PERSONAS.find((p) => p.id === id)!);
+      for (const one of held)
+        for (const other of held)
+          if (one !== other)
+            for (const forbidden of one.mustNotHold)
+              expect(
+                other.grants.includes(forbidden),
+                `${entry.id}: ${one.id} must not hold ${forbidden}, which ${other.id} grants`,
+              ).toBe(false);
+    }
+  });
+});
+
 describe('a workspace confers no authority of its own', () => {
   it('derives every grant from its personas and adds nothing', () => {
     // `workspaceGrants` is a union of persona grants by construction. Asserted anyway, because the failure
@@ -135,9 +178,17 @@ describe('which workspaces a caller’s own keys open', () => {
     }
   });
 
-  it('opens no workspace that has no gated module at all', () => {
-    // `disputes` has no persona and therefore no gated module. An empty room with a door is worse than no door.
-    expect(personaWorkspacesFor(routePermissionKeysForTest()).map((entry) => entry.id)).not.toContain('disputes');
+  it('leaves no workspace that nobody can open', () => {
+    // `disputes` used to be exactly that: a workspace with no persona and so no gated module, an empty room
+    // with a door. Now every workspace has at least one gated destination, and a caller holding every key
+    // opens all of them — so none of the eight is decorative.
+    for (const entry of PERSONA_WORKSPACES)
+      expect(
+        entry.modules.some((navItem) => navItem.requires !== undefined),
+        `${entry.id} gates nothing`,
+      ).toBe(true);
+
+    expect(personaWorkspacesFor(routePermissionKeysForTest())).toHaveLength(PERSONA_WORKSPACES.length);
   });
 
   it('is reachable by a caller asking only about itself', () => {
@@ -159,27 +210,45 @@ function routePermissionKeysForTest(): string[] {
   ];
 }
 
-describe('the mismatch between the proposed workspaces and the platform’s personas', () => {
-  it('records that the release approver has no workspace', () => {
-    // `approver` holds the authority that lets money move, and the proposed eight workspaces have no home for
-    // it. Asserted rather than described, so settling it requires changing this test rather than forgetting.
-    expect(personasWithoutWorkspace()).toContain(PERSONA_WORKSPACE_GAPS.personaWithoutWorkspace);
+describe('how the two persona gaps were resolved', () => {
+  it('gives the release approver no workspace of its own, by design', () => {
+    // The gap was real: `approver` holds the authority that lets money move and the eight workspaces had no
+    // home for it. The resolution is not to invent a ninth workspace but to treat release approval as a
+    // shared governed capability — so `approver` is still presented by no workspace's persona list, and that
+    // is now correct rather than an oversight.
+    expect(personasWithoutWorkspace()).toContain('approver');
     expect(PERSONAS.find((entry) => entry.id === 'approver')?.grants).toContain(
       MONEY_AUTHORITIES.approveRelease,
     );
+    // Its capability reaches every workspace all the same, for whoever actually holds the key.
+    for (const entry of PERSONA_WORKSPACES)
+      expect(
+        entry.modules.some(
+          (navItem) => navItem.requires === MONEY_AUTHORITIES.approveRelease && navItem.contextual === true,
+        ),
+        entry.id,
+      ).toBe(true);
   });
 
-  it('records that the dispute workspace has no persona, and offers no dispute navItem', () => {
-    // Six dispute routes are gated on `disputes:*` keys that no persona holds. The workspace therefore ships
-    // without a dispute module rather than with one that refuses — a menu item nobody can use is a dead link
-    // with extra steps.
-    expect(PERSONA_WORKSPACE_GAPS.unclaimedDisputeKeys.length).toBeGreaterThan(0);
+  it('gives the dispute workspace a persona, and the register that persona can open', () => {
+    // Six dispute routes were gated on `disputes:*` keys no persona held — authority the platform enforced
+    // and nobody could be granted. `dispute-manager` now holds them.
     const held = new Set(PERSONAS.flatMap((entry) => entry.grants));
-    for (const key of PERSONA_WORKSPACE_GAPS.unclaimedDisputeKeys) expect(held.has(key), key).toBe(false);
+    for (const key of PERSONA_WORKSPACE_GAPS.unclaimedDisputeKeys) expect(held.has(key), key).toBe(true);
 
     const disputes = PERSONA_WORKSPACES.find((entry) => entry.id === 'disputes')!;
-    expect(disputes.personas).toEqual([]);
-    expect(disputes.modules.every((navItem) => navItem.requires === undefined)).toBe(true);
+    expect(disputes.personas).toEqual(['dispute-manager']);
+    expect(disputes.modules.some((navItem) => navItem.href === '/disputes')).toBe(true);
+  });
+
+  it('keeps the dispute manager away from the money its decisions move', () => {
+    // A dispute decides whether a release is held. Deciding that and then executing it would put both sides
+    // of the question in one pair of hands, which is the separation the role was defined around.
+    const manager = PERSONAS.find((entry) => entry.id === 'dispute-manager')!;
+    for (const authority of Object.values(MONEY_AUTHORITIES)) {
+      expect(manager.grants, authority).not.toContain(authority);
+      expect(manager.mustNotHold, authority).toContain(authority);
+    }
   });
 });
 

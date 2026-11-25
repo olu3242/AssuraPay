@@ -5,7 +5,7 @@
       "directory": "apps/web",
       "framework": "next",
       "name": "@assurapay/web",
-      "routes": 25,
+      "routes": 26,
       "workspaceDependencies": [
         "@assurapay/agent-runtime",
         "@assurapay/agreement-atlas",
@@ -3273,11 +3273,15 @@
       ],
       "clean": false,
       "dirtyFiles": [
-        "apps/web/app/components/persona-workspace-console.tsx",
-        "e2e/browser-persona-workspace-e2e.spec.ts"
+        "apps/web/app/components/dispute-register.tsx",
+        "apps/web/app/disputes/page.tsx",
+        "apps/web/lib/persona-workspaces.test.ts",
+        "apps/web/lib/persona-workspaces.ts",
+        "apps/web/lib/personas.test.ts",
+        "apps/web/lib/personas.ts"
       ],
-      "head": "686f93b837606656bedc01ebab5cbfab4d5aa0ef",
-      "headShort": "686f93b",
+      "head": "8616afd32ea4e87ccff3f13d315f687fe9895f01",
+      "headShort": "8616afd",
       "reflogAvailable": true,
       "remotes": [
         "origin"

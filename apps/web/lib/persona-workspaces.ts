@@ -54,6 +54,23 @@ export type PersonaWorkspaceModule = {
    * public — reachable by any signed-in caller — which is true of the account and onboarding screens.
    */
   readonly requires?: string;
+  /**
+   * A capability shared across workspaces rather than owned by this one's personas.
+   *
+   * Release approval is the case this exists for. It is a governed capability surfaced wherever an authorized
+   * person is working — the approvals inbox stays canonical at `/approvals`, and each workspace links to the
+   * same records rather than growing its own approval system.
+   *
+   * It cannot be expressed by composing the `approver` persona into those workspaces, and the reason is worth
+   * stating. `agreement-owner.mustNotHold` names `approval-requests:decide`, which `approver` grants, so an
+   * Enterprise workspace presenting both would stand on both sides of a prohibition the persona model makes
+   * explicitly — drafting an agreement and deciding it. Marking the module contextual keeps the separation: the
+   * workspace offers it, and only a caller who actually holds the key ever sees it.
+   *
+   * `unreachableModules` therefore skips these, because the workspace's personas are not expected to hold the
+   * key. Everything else still applies: the key must be real, and the route must exist.
+   */
+  readonly contextual?: true;
 };
 
 export type PersonaWorkspace = {
@@ -87,6 +104,20 @@ const ACCOUNT: readonly PersonaWorkspaceModule[] = Object.freeze([
   { label: 'Settings', href: '/settings' },
 ]);
 
+/**
+ * Release approval, offered in every workspace and visible only to whoever may actually decide.
+ *
+ * One capability, one inbox. `/approvals` stays canonical — a persona-specific approval screen would be a
+ * second approval system over the same records, and two queues over one set of decisions is how a release
+ * ends up approved twice or not at all.
+ */
+const RELEASE_APPROVAL: PersonaWorkspaceModule = Object.freeze({
+  label: 'Release approvals',
+  href: '/approvals',
+  requires: 'authorization-decisions:approve',
+  contextual: true,
+});
+
 export const PERSONA_WORKSPACES: readonly PersonaWorkspace[] = Object.freeze([
   {
     id: 'buyer',
@@ -98,6 +129,7 @@ export const PERSONA_WORKSPACES: readonly PersonaWorkspace[] = Object.freeze([
       { label: 'Agreements', href: '/contracts' },
       { label: 'Delivery', href: '/execution' },
       { label: 'Payments', href: '/settlements' },
+      RELEASE_APPROVAL,
       ...ACCOUNT,
     ],
   },
@@ -111,6 +143,7 @@ export const PERSONA_WORKSPACES: readonly PersonaWorkspace[] = Object.freeze([
       { label: 'Agreements', href: '/contracts' },
       { label: 'Delivery & evidence', href: '/execution' },
       { label: 'Payments', href: '/settlements' },
+      RELEASE_APPROVAL,
       ...ACCOUNT,
     ],
   },
@@ -125,6 +158,7 @@ export const PERSONA_WORKSPACES: readonly PersonaWorkspace[] = Object.freeze([
       { label: 'Delivery plan', href: '/performance-blueprint', requires: 'blueprint-milestones:create' },
       { label: 'Execution', href: '/execution' },
       { label: 'Portfolio', href: '/enterprise-analytics' },
+      RELEASE_APPROVAL,
       ...ACCOUNT,
     ],
   },
@@ -138,6 +172,7 @@ export const PERSONA_WORKSPACES: readonly PersonaWorkspace[] = Object.freeze([
       { label: 'Payments', href: '/settlements', requires: 'payment-instructions:create' },
       { label: 'Settlement', href: '/settlement-execution', requires: 'payment-instructions:submit' },
       { label: 'Agreements', href: '/contracts' },
+      RELEASE_APPROVAL,
       ...ACCOUNT,
     ],
   },
@@ -151,6 +186,7 @@ export const PERSONA_WORKSPACES: readonly PersonaWorkspace[] = Object.freeze([
       { label: 'Acceptance', href: '/completion-assurance', requires: 'acceptance-decisions:create' },
       { label: 'Delivery', href: '/execution' },
       { label: 'Agreements', href: '/contracts' },
+      RELEASE_APPROVAL,
       ...ACCOUNT,
     ],
   },
@@ -159,10 +195,13 @@ export const PERSONA_WORKSPACES: readonly PersonaWorkspace[] = Object.freeze([
     title: 'Dispute resolution',
     purpose: 'Handle contested execution without deciding who benefits from it.',
     accent: '#7E22CE',
-    // No persona holds a `disputes:*` key, so this workspace presents none and its dispute module is
-    // deliberately absent rather than linked to a screen the server would refuse. See DISPUTE_PERSONA_GAP.
-    personas: [],
-    modules: [...ACCOUNT],
+    personas: ['dispute-manager'],
+    modules: [
+      { label: 'Dispute register', href: '/disputes', requires: 'disputes:read' },
+      { label: 'Releases under dispute', href: '/settlements', requires: 'release-requests:read' },
+      RELEASE_APPROVAL,
+      ...ACCOUNT,
+    ],
   },
   {
     id: 'compliance',
@@ -174,6 +213,7 @@ export const PERSONA_WORKSPACES: readonly PersonaWorkspace[] = Object.freeze([
       { label: 'Agreements', href: '/contracts', requires: 'contracts:read' },
       { label: 'Trust & verification', href: '/parties' },
       { label: 'Legal', href: '/legal' },
+      RELEASE_APPROVAL,
       ...ACCOUNT,
     ],
   },
@@ -187,6 +227,7 @@ export const PERSONA_WORKSPACES: readonly PersonaWorkspace[] = Object.freeze([
       { label: 'Organization', href: '/organization', requires: 'roles:read' },
       { label: 'Parties', href: '/parties' },
       { label: 'Legal', href: '/legal' },
+      RELEASE_APPROVAL,
       ...ACCOUNT,
     ],
   },
@@ -241,7 +282,12 @@ export function workspaceGrants(entry: PersonaWorkspace): string[] {
  */
 export function unreachableModules(entry: PersonaWorkspace): PersonaWorkspaceModule[] {
   const held = new Set(workspaceGrants(entry));
-  return entry.modules.filter((navItem) => navItem.requires !== undefined && !held.has(navItem.requires));
+  // Contextual modules are skipped: they belong to a capability shared across workspaces rather than to this
+  // one's personas, so expecting those personas to hold the key would be the wrong question.
+  return entry.modules.filter(
+    (navItem) =>
+      navItem.contextual !== true && navItem.requires !== undefined && !held.has(navItem.requires),
+  );
 }
 
 /**

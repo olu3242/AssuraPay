@@ -149,6 +149,39 @@ test.describe('browser-persona-workspace-e2e: the dashboard shows only what it r
   });
 });
 
+test.describe('browser-persona-workspace-e2e: the dispute workspace', () => {
+  test('opens the register for a dispute manager, and refuses it to everyone else', async ({ page }) => {
+    const { workspaceId, userId } = await foundWorkspace(page, 'disputes');
+
+    // Before the role: the register refuses, in words. Six dispute routes used to be gated on keys no
+    // persona held at all, so this was unreachable by anyone.
+    await page.goto('/disputes');
+    await expect(page.getByTestId('disputes-forbidden')).toBeVisible();
+
+    await grantRole(page, workspaceId, userId, 'DISPUTE_MANAGER');
+    await page.reload();
+
+    // After: an honest empty register, not a refusal and not a fabricated case.
+    await expect(page.getByTestId('disputes-empty')).toBeVisible();
+    await expect(page.getByTestId('disputes-forbidden')).toHaveCount(0);
+  });
+
+  test('does not hand the dispute manager the money its decisions move', async ({ page }) => {
+    const { workspaceId, userId } = await foundWorkspace(page, 'disputemoney');
+    await grantRole(page, workspaceId, userId, 'DISPUTE_MANAGER');
+
+    const headers = await assertion(page, workspaceId);
+    const permissions = await page.request.get('/api/v1/me/permissions', { headers });
+    const { permissionKeys } = (await permissions.json()) as { permissionKeys: string[] };
+
+    // A dispute decides whether a release is held. Deciding that and then executing it would put both sides
+    // of the question in one pair of hands.
+    expect(permissionKeys).toContain('disputes:decide');
+    expect(permissionKeys).not.toContain('payment-instructions:submit');
+    expect(permissionKeys).not.toContain('authorization-decisions:approve');
+  });
+});
+
 test.describe('browser-persona-workspace-e2e: presentation is not policy', () => {
   test('reaching a workspace by URL grants nothing the caller did not already hold', async ({ page }) => {
     const { workspaceId } = await foundWorkspace(page, 'url');
