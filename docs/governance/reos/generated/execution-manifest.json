@@ -3637,7 +3637,7 @@
   "identity": {
     "branch": "feat/ui-speak-the-users-language",
     "clean": false,
-    "head": "c38c698c69fe8edbb0c67d2981c0279455176794",
+    "head": "dfcb839991cf100bd359442e5a8e434b0e7b1cde",
     "repository": "assurapay",
     "version": "0.1.0"
   },
@@ -3729,7 +3729,7 @@
     "released": 76,
     "validated": 0
   },
-  "manifestDigest": "e0b7e7eda9df",
+  "manifestDigest": "087f2c4c4cb9",
   "missingCapabilities": [],
   "packages": [
     {
@@ -4491,7 +4491,7 @@
       "moduleType": null,
       "name": "@assurapay/permissions",
       "sourceFiles": 3,
-      "sourceLines": 1028,
+      "sourceLines": 1056,
       "testFiles": [
         "packages/permissions/src/catalogue.test.ts",
         "packages/permissions/src/enforcement.test.ts",
@@ -4773,6 +4773,7 @@
           "kind": "symbol",
           "matches": [
             "apps/web/lib/assurance-read-model.ts",
+            "apps/web/lib/financial-reads.ts",
             "apps/web/lib/flow-app.ts",
             "apps/web/lib/persistence.ts",
             "packages/agent-runtime/src/index.ts",
@@ -6194,6 +6195,7 @@
           "matches": [
             "apps/web/lib/agent-route-governance.test.ts",
             "apps/web/lib/approval-inbox.test.ts",
+            "apps/web/lib/financial-reads.test.ts",
             "apps/web/lib/grant-administration.test.ts",
             "apps/web/lib/personas.test.ts",
             "apps/web/lib/personas.ts",
@@ -6306,6 +6308,7 @@
             "apps/web/app/api/v1/financial-entitlements/route.ts",
             "apps/web/app/api/v1/financial-forecasts/[id]/review/route.ts",
             "apps/web/app/api/v1/financial-forecasts/route.ts",
+            "apps/web/app/api/v1/financial-position/route.ts",
             "apps/web/app/api/v1/flow-tasks/[id]/decisions/route.ts",
             "apps/web/app/api/v1/flow-tasks/route.ts",
             "apps/web/app/api/v1/flows/[id]/advance/route.ts",
@@ -6446,6 +6449,7 @@
           "matches": [
             "apps/web/app/api/v1/contracts/route.ts",
             "apps/web/app/api/v1/workspaces/route.ts",
+            "apps/web/lib/financial-reads.ts",
             "apps/web/lib/trust-app.ts",
             "packages/database-testing/src/store-boundary.postgres.test.ts"
           ],
