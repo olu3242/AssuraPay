@@ -453,6 +453,11 @@ export const REQUIRED_TRUST_MIGRATIONS: readonly string[] = Object.freeze([
   // uses for currency. Safe on populated tables: added NOT VALID, so the rule binds every later write
   // without failing the migration on rows that predate it.
   '202608110025_a_release_draws_only_on_its_own_invoice',
+  // The shared state that makes assertion replay protection hold across replicas. Required: acting
+  // routes now consume the assertion, and without this table the only store is process-local, so a
+  // deployment behind a load balancer admits the same assertion once per instance. Also the table
+  // the durable store writes on every acting request, so a host missing it fails that write outright.
+  '202608110026_assertion_nonces_are_consumed_once_across_replicas',
 ]);
 
 export type SchemaCompatibility = {

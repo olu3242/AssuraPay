@@ -364,8 +364,12 @@ export interface AssertionReplayStore {
    * Returns true when this caller won the race, false when the nonce was already
    * consumed. `now` is the instant the verifier judged the validity window
    * against, so the store never prunes on a clock the verifier did not use.
+   *
+   * Asynchronous because a distributed store is a round trip. An implementation must still make
+   * the decision in one atomic step: returning a promise is not licence to check, await, and then
+   * insert, which is the race this contract exists to forbid.
    */
-  consumeIfAbsent(nonce: string, expiresAt: string, now: Date): boolean;
+  consumeIfAbsent(nonce: string, expiresAt: string, now: Date): Promise<boolean>;
 }
 
 /**
@@ -382,7 +386,14 @@ export class InMemoryAssertionReplayStore implements AssertionReplayStore {
 
   private readonly seen = new Map<string, number>();
 
-  consumeIfAbsent(nonce: string, expiresAt: string, now: Date = new Date()): boolean {
+  /**
+   * Declared `async` for the interface; the body is deliberately synchronous.
+   *
+   * There is no `await` between the lookup and the insert, which is what keeps this atomic with
+   * respect to other tasks in the process. Introducing one — even an innocuous-looking log or
+   * metric — would reopen the check-then-insert race the contract forbids.
+   */
+  async consumeIfAbsent(nonce: string, expiresAt: string, now: Date = new Date()): Promise<boolean> {
     const instant = now.getTime();
     this.prune(instant);
     if (this.seen.has(nonce)) return false;
@@ -408,14 +419,14 @@ export class InMemoryAssertionReplayStore implements AssertionReplayStore {
  * Verifies an assertion and consumes its nonce, so the same assertion cannot
  * authorise two actions. This is the entry point for any acting path.
  */
-export function consumeIdentityAssertion(
+export async function consumeIdentityAssertion(
   token: string,
   keyring: AssertionKeyring,
   store: AssertionReplayStore,
   options: VerifyAssertionOptions = {},
-): IdentityAssertionClaims {
+): Promise<IdentityAssertionClaims> {
   const claims = verifyIdentityAssertion(token, keyring, options);
-  const won = store.consumeIfAbsent(claims.nonce, claims.expiresAt, options.now ?? new Date());
+  const won = await store.consumeIfAbsent(claims.nonce, claims.expiresAt, options.now ?? new Date());
   if (!won) {
     throw new IdentityAssertionError('ASSERTION_REPLAYED', `nonce=${claims.nonce}`);
   }
@@ -517,7 +528,7 @@ export class IdentityAssertionService {
     options: VerifyAssertionOptions = {},
   ): Promise<IdentityAssertionClaims> {
     try {
-      const claims = consumeIdentityAssertion(token, this.keyring, this.replayStore, options);
+      const claims = await consumeIdentityAssertion(token, this.keyring, this.replayStore, options);
       await this.store.audit({
         actorId: claims.subject,
         eventType: 'IdentityAssertionAccepted',

@@ -10,7 +10,7 @@ import {
   certifySchemaOwnership,
   verifySchemaCompatibility,
 } from '@assurapay/database';
-import type { PostgresPool } from '@assurapay/database';
+import type { PostgresPool, SqlClient } from '@assurapay/database';
 import { describePersistenceConfig, isDurableDeployment, loadPersistenceConfig } from './config';
 import type { PersistenceRuntimeConfig } from './config';
 
@@ -75,6 +75,21 @@ export type PersistenceRuntime = {
   readonly runtimeId: string;
   readonly store: TrustPersistence;
   readonly adapter: 'postgres' | 'memory';
+  /**
+   * This runtime's SQL client, for the one adapter that has one.
+   *
+   * Exposed for a durable component the `TrustPersistence` port cannot express: assertion replay
+   * needs an atomic insert-if-absent *and* a delete path for expired nonces, and the port has
+   * neither — it lists whole collections and never deletes, so nonces kept through it would grow
+   * without bound and any future `list` of them would be ruinous.
+   *
+   * Handing out the runtime's own client rather than letting a caller build a pool is deliberate
+   * and is what this module already warns about: "a pool created in a request handler has no
+   * disposal path". A second pool would also duplicate the TLS and credential handling that
+   * `loadPersistenceConfig` exists to centralise. Absent on the memory adapter, so a caller must
+   * decide what to do without one instead of assuming it is there.
+   */
+  readonly sql?: SqlClient;
   readonly config: PersistenceRuntimeConfig;
 
   getState(): PersistenceRuntimeState;
@@ -309,6 +324,7 @@ function postgresRuntime(
     runtimeId,
     store,
     adapter: 'postgres',
+    sql: pool.sql,
     config,
     getState: () => state,
 

@@ -39,7 +39,9 @@ class FakeDistributedReplayStore implements AssertionReplayStore {
   private readonly seen = new Set<string>();
   readonly calls: string[] = [];
 
-  consumeIfAbsent(nonce: string): boolean {
+  // Async for the interface, synchronous in body: no await between the lookup and the insert, so
+  // the double cannot pass a race the real stores would fail.
+  async consumeIfAbsent(nonce: string): Promise<boolean> {
     this.calls.push(nonce);
     if (this.seen.has(nonce)) return false;
     this.seen.add(nonce);

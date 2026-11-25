@@ -464,6 +464,7 @@
         {
           "kind": "symbol",
           "matches": [
+            "apps/web/lib/assertion-replay.postgres.test.ts",
             "packages/database-testing/src/atlas.postgres.test.ts",
             "packages/database-testing/src/flow-trigger.postgres.test.ts",
             "packages/database-testing/src/index.ts",
@@ -599,6 +600,7 @@
         {
           "kind": "symbol",
           "matches": [
+            "apps/web/lib/trust-app.ts",
             "packages/runtime/src/config.test.ts",
             "packages/runtime/src/config.ts",
             "packages/runtime/src/persistence-runtime.postgres.test.ts",
@@ -1801,7 +1803,7 @@
       "totalProbes": 5
     }
   ],
-  "head": "a3f632a59674fe9cb5ef5339097a95d7e8fe2053",
+  "head": "f8564dae1731f5ab5586125651f6c2704bc7806d",
   "reosVersion": "1.0.0",
   "stage": "forensics",
   "summary": {

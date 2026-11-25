@@ -3,6 +3,7 @@ import {
   IdentityGateway,
   IdentityService,
   InMemoryAssertionReplayStore,
+  type AssertionReplayStore,
   issueAssertionForSession,
   type IssueAssertionInput,
   type IssuedAssertion,
@@ -145,6 +146,8 @@ const globalTrust = globalThis as typeof globalThis & {
  * server-only configuration that refuses an in-memory adapter in any durable deployment.
  */
 export { trustStore } from './persistence';
+import { getPersistenceRuntime } from './persistence';
+import { DurableAssertionReplayStore } from './assertion-replay';
 
 /**
  * Replay guard state must survive a dev-server reload, or a reload would forget
@@ -170,7 +173,27 @@ export function getIdentityAssertions(): IdentityAssertionService {
   return identityAssertions;
 }
 
-let identityGateway: IdentityGateway | undefined;
+let identityGateway: Promise<IdentityGateway> | undefined;
+
+/**
+ * The replay store this deployment actually has, chosen by its persistence adapter.
+ *
+ * Not a fallback, and the distinction matters. `loadPersistenceConfig` refuses an in-memory adapter
+ * for every durable deployment class, so a runtime without SQL *is* a non-durable deployment — a
+ * test or a developer's machine — where one process is the whole system and `process-local` is the
+ * accurate guarantee rather than a downgrade of a better one. A runtime with SQL gets the shared
+ * table, and its guarantee is `distributed` because it genuinely is.
+ *
+ * Deciding here rather than declaring a guarantee up front is the reason this function, and the
+ * gateway built from it, are asynchronous. The adapter is known only once the runtime resolves, and
+ * `ReplayProtectionGuarantee` exists so "a deployment cannot accidentally present process-local
+ * protection as distributed" — which a store that claimed `distributed` before knowing whether it
+ * had a database would do.
+ */
+async function replayStoreForDeployment(): Promise<AssertionReplayStore> {
+  const runtime = await getPersistenceRuntime();
+  return runtime.sql ? new DurableAssertionReplayStore(runtime.sql) : assertionReplayStore;
+}
 
 /**
  * The governed identity boundary. Built on first use so an unconfigured
@@ -179,15 +202,25 @@ let identityGateway: IdentityGateway | undefined;
  *
  * Construction refuses a process-local replay store when the configuration
  * requires distributed protection, so production cannot silently run on
- * single-process replay semantics.
+ * single-process replay semantics — and since `replayStoreForDeployment` now supplies a distributed
+ * store wherever there is a database, that guard stops being a rule every production deployment had
+ * to opt out of.
  */
-export function getIdentityGateway(): IdentityGateway {
-  identityGateway ??= new IdentityGateway(
-    trustStore,
-    loadAssertionKeyring(process.env),
-    assertionReplayStore,
-    loadGatewayConfig(process.env),
-  );
+export function getIdentityGateway(): Promise<IdentityGateway> {
+  // The promise is cached, not the instance, so two concurrent first requests await one
+  // construction — the same reason `getPersistenceRuntime` caches a promise. A rejection is
+  // cleared rather than cached: an unconfigured keyring must fail closed on every attempt, not
+  // poison the process against a later fix.
+  identityGateway ??= (async () =>
+    new IdentityGateway(
+      trustStore,
+      loadAssertionKeyring(process.env),
+      await replayStoreForDeployment(),
+      loadGatewayConfig(process.env),
+    ))().catch((error: unknown) => {
+    identityGateway = undefined;
+    throw error;
+  });
   return identityGateway;
 }
 export const trust = {
@@ -344,7 +377,7 @@ function correlationOf(request: Request): string {
  */
 export async function requestContext(request: Request): Promise<RequestContext> {
   const correlationId = correlationOf(request);
-  const identity = await getIdentityGateway().authenticate(request, correlationId);
+  const identity = await (await getIdentityGateway()).authenticate(request, correlationId);
   // The gateway proves identity and refuses to resolve membership. Enforcement
   // resolves it from the authoritative record, so workspace-scoped engines see
   // proven membership rather than a claim.
@@ -360,7 +393,7 @@ export async function requestContext(request: Request): Promise<RequestContext> 
  */
 export async function actingRequestContext(request: Request): Promise<RequestContext> {
   const correlationId = correlationOf(request);
-  const identity = await getIdentityGateway().consumeRequestContext(request, correlationId);
+  const identity = await (await getIdentityGateway()).consumeRequestContext(request, correlationId);
   return resolveMemberships(identity, membershipReader);
 }
 
@@ -430,7 +463,7 @@ export async function authorizedContextForRoute(request: Request): Promise<Reque
   // audited must be refused, not served.
   await requireReadyPersistence();
 
-  const identity = await getIdentityGateway().authenticate(request, correlationId);
+  const identity = await (await getIdentityGateway()).authenticate(request, correlationId);
 
   // The tenancy scope Row Level Security reads, established here because this is the one
   // place every protected route passes through. Without it, forced RLS denies every read —
@@ -467,7 +500,7 @@ export async function authorizedContextForRoute(request: Request): Promise<Reque
   // once a request is known to be allowed, which would let an attacker probe permissions with one
   // assertion indefinitely.
   if (methodActs(request.method)) {
-    await getIdentityGateway().consumeRequestContext(request, correlationId);
+    await (await getIdentityGateway()).consumeRequestContext(request, correlationId);
   }
 
   // An identity-class route is authenticated and membership-scoped, but carries no
@@ -495,7 +528,7 @@ export async function authorizedContext(
   requirement: PermissionRequirement,
 ): Promise<RequestContext> {
   const correlationId = correlationOf(request);
-  const identity = await getIdentityGateway().authenticate(request, correlationId);
+  const identity = await (await getIdentityGateway()).authenticate(request, correlationId);
   return await enforcePermission(identity, requirement, {
     memberships: membershipReader,
     permissions: trust.permissions,
@@ -578,7 +611,7 @@ export async function issueSessionAssertion(input: IssueAssertionInput): Promise
   }
 
   return await issueAssertionForSession(
-    getIdentityGateway(),
+    await getIdentityGateway(),
     trust.identity,
     trustStore,
     input,

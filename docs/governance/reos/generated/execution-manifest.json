@@ -13,6 +13,7 @@
         "@assurapay/audit-ledger",
         "@assurapay/completion-assurance",
         "@assurapay/database",
+        "@assurapay/database-testing",
         "@assurapay/domain",
         "@assurapay/enterprise-analytics",
         "@assurapay/enterprise-intelligence",
@@ -318,7 +319,7 @@
       ],
       "dependsOn": [],
       "id": "engine:01",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -386,7 +387,7 @@
         "engine:01"
       ],
       "id": "engine:02",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -453,7 +454,7 @@
         "engine:02"
       ],
       "id": "engine:03",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -519,7 +520,7 @@
         "engine:03"
       ],
       "id": "engine:04",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -584,7 +585,7 @@
         "engine:04"
       ],
       "id": "engine:05",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -719,7 +720,7 @@
         "engine:06"
       ],
       "id": "engine:08",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -848,7 +849,7 @@
         "engine:09"
       ],
       "id": "engine:11",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -906,7 +907,7 @@
         "engine:11"
       ],
       "id": "engine:12",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -963,7 +964,7 @@
         "engine:12"
       ],
       "id": "engine:13",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -1019,7 +1020,7 @@
         "engine:13"
       ],
       "id": "engine:14",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -1074,7 +1075,7 @@
         "engine:14"
       ],
       "id": "engine:15",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -1128,7 +1129,7 @@
         "engine:15"
       ],
       "id": "engine:16",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -1181,7 +1182,7 @@
         "engine:16"
       ],
       "id": "engine:17",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -1233,7 +1234,7 @@
         "engine:17"
       ],
       "id": "engine:18",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -1284,7 +1285,7 @@
         "engine:18"
       ],
       "id": "engine:19",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -1334,7 +1335,7 @@
         "engine:19"
       ],
       "id": "engine:20",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -1383,7 +1384,7 @@
         "engine:20"
       ],
       "id": "engine:21",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -1431,7 +1432,7 @@
         "engine:21"
       ],
       "id": "engine:22",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -1478,7 +1479,7 @@
         "engine:22"
       ],
       "id": "engine:23",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -1524,7 +1525,7 @@
         "engine:23"
       ],
       "id": "engine:24",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -1569,7 +1570,7 @@
         "engine:24"
       ],
       "id": "engine:25",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -1613,7 +1614,7 @@
         "engine:25"
       ],
       "id": "engine:26",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -1656,7 +1657,7 @@
         "engine:26"
       ],
       "id": "engine:27",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -1698,7 +1699,7 @@
         "engine:27"
       ],
       "id": "engine:28",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -1739,7 +1740,7 @@
         "engine:28"
       ],
       "id": "engine:29",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -1779,7 +1780,7 @@
         "engine:29"
       ],
       "id": "engine:30",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -1818,7 +1819,7 @@
         "engine:30"
       ],
       "id": "engine:31",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -1856,7 +1857,7 @@
         "engine:31"
       ],
       "id": "engine:32",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -1893,7 +1894,7 @@
         "engine:32"
       ],
       "id": "engine:33",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -1929,7 +1930,7 @@
         "engine:33"
       ],
       "id": "engine:34",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -1964,7 +1965,7 @@
         "engine:34"
       ],
       "id": "engine:35",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -1998,7 +1999,7 @@
         "engine:35"
       ],
       "id": "engine:36",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -2031,7 +2032,7 @@
         "engine:36"
       ],
       "id": "engine:37",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -2063,7 +2064,7 @@
         "engine:37"
       ],
       "id": "engine:38",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -2094,7 +2095,7 @@
         "engine:38"
       ],
       "id": "engine:39",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -2124,7 +2125,7 @@
         "engine:39"
       ],
       "id": "engine:40",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -2153,7 +2154,7 @@
         "engine:40"
       ],
       "id": "engine:41",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -2181,7 +2182,7 @@
         "engine:41"
       ],
       "id": "engine:42",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -2208,7 +2209,7 @@
         "engine:42"
       ],
       "id": "engine:43",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -2234,7 +2235,7 @@
         "engine:43"
       ],
       "id": "engine:44",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -2259,7 +2260,7 @@
         "engine:44"
       ],
       "id": "engine:45",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -2283,7 +2284,7 @@
         "engine:45"
       ],
       "id": "engine:46",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -2306,7 +2307,7 @@
         "engine:46"
       ],
       "id": "engine:47",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -2328,7 +2329,7 @@
         "engine:47"
       ],
       "id": "engine:48",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -2349,7 +2350,7 @@
         "engine:48"
       ],
       "id": "engine:49",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -2369,7 +2370,7 @@
         "engine:49"
       ],
       "id": "engine:50",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -2388,7 +2389,7 @@
         "engine:50"
       ],
       "id": "engine:51",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -2406,7 +2407,7 @@
         "engine:51"
       ],
       "id": "engine:52",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -2423,7 +2424,7 @@
         "engine:52"
       ],
       "id": "engine:53",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -2439,7 +2440,7 @@
         "engine:53"
       ],
       "id": "engine:54",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -2454,7 +2455,7 @@
         "engine:54"
       ],
       "id": "engine:55",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -2468,7 +2469,7 @@
         "engine:55"
       ],
       "id": "engine:56",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -2481,7 +2482,7 @@
         "engine:56"
       ],
       "id": "engine:57",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -2493,7 +2494,7 @@
         "engine:57"
       ],
       "id": "engine:58",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -2504,7 +2505,7 @@
         "engine:58"
       ],
       "id": "engine:59",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -2513,7 +2514,7 @@
         "engine:59"
       ],
       "id": "engine:60",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -2525,7 +2526,7 @@
         "persistence.schema-ownership-reconciliation"
       ],
       "id": "persistence.async-domain-repository-interface",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -2542,7 +2543,7 @@
         "persistence.repository-conformance"
       ],
       "id": "persistence.async-repository-interface",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -2551,7 +2552,7 @@
         "persistence.domain-store-environment-gate"
       ],
       "id": "persistence.domain-store-durability",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -2562,7 +2563,7 @@
         "persistence.async-domain-repository-interface"
       ],
       "id": "persistence.domain-store-environment-gate",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -2578,7 +2579,7 @@
         "persistence.async-repository-interface"
       ],
       "id": "persistence.postgres-repository",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -2593,7 +2594,7 @@
         "persistence.postgres-repository"
       ],
       "id": "persistence.production-runtime-wiring",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -2611,7 +2612,7 @@
         "trust.permission-enforcement"
       ],
       "id": "persistence.repository-conformance",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -2626,7 +2627,7 @@
         "persistence.production-runtime-wiring"
       ],
       "id": "persistence.rls-certification",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -2639,7 +2640,7 @@
         "persistence.rls-certification"
       ],
       "id": "persistence.schema-ownership-reconciliation",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -2666,7 +2667,7 @@
       ],
       "dependsOn": [],
       "id": "reos.execution-os",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -2675,7 +2676,7 @@
         "trust.permission-enforcement"
       ],
       "id": "runtime.agent-registration",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -2684,7 +2685,7 @@
         "reos.execution-os"
       ],
       "id": "settlement.non-custody-guard",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -2693,7 +2694,7 @@
         "trust.session-assertion-issuance"
       ],
       "id": "trust.grant-administration-api",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -2720,7 +2721,7 @@
         "reos.execution-os"
       ],
       "id": "trust.identity-assertions",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -2746,7 +2747,7 @@
         "trust.identity-assertions"
       ],
       "id": "trust.identity-gateway",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -2771,7 +2772,7 @@
         "trust.identity-gateway"
       ],
       "id": "trust.permission-enforcement",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -2784,7 +2785,7 @@
         "trust.route-permission-integration"
       ],
       "id": "trust.permission-grant-catalogue",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -2798,7 +2799,7 @@
         "trust.permission-enforcement"
       ],
       "id": "trust.route-permission-integration",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -2810,7 +2811,7 @@
         "trust.permission-grant-catalogue"
       ],
       "id": "trust.route-permission-rollout",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     },
     {
@@ -2821,7 +2822,7 @@
         "trust.route-permission-rollout"
       ],
       "id": "trust.session-assertion-issuance",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "status": "implemented"
     }
   ],
@@ -2831,7 +2832,7 @@
       "declaredStatus": "Conditionally implemented",
       "divergent": true,
       "id": "01",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "name": "Identity & Digital Trust",
       "observedStatus": "implemented",
       "packageDirectory": "packages/identity",
@@ -2842,7 +2843,7 @@
       "declaredStatus": "Conditionally implemented",
       "divergent": true,
       "id": "02",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "name": "Organization & Multi-Tenant",
       "observedStatus": "implemented",
       "packageDirectory": "packages/organizations",
@@ -2853,7 +2854,7 @@
       "declaredStatus": "Conditionally implemented",
       "divergent": true,
       "id": "03",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "name": "Roles, Permissions & Governance",
       "observedStatus": "implemented",
       "packageDirectory": "packages/permissions",
@@ -2864,7 +2865,7 @@
       "declaredStatus": "Conditionally implemented",
       "divergent": true,
       "id": "04",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "name": "Party Verification",
       "observedStatus": "implemented",
       "packageDirectory": "packages/parties",
@@ -2875,7 +2876,7 @@
       "declaredStatus": "Conditionally implemented",
       "divergent": true,
       "id": "05",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "name": "Legal Governance",
       "observedStatus": "implemented",
       "packageDirectory": "packages/legal",
@@ -2908,7 +2909,7 @@
       "declaredStatus": "Conditionally implemented",
       "divergent": true,
       "id": "08",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "name": "Audit & Evidence Ledger",
       "observedStatus": "implemented",
       "packageDirectory": "packages/audit-ledger",
@@ -2941,7 +2942,7 @@
       "declaredStatus": null,
       "divergent": false,
       "id": "11",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "name": "Contract Authoring",
       "observedStatus": "implemented",
       "packageDirectory": "packages/agreement-creation",
@@ -2952,7 +2953,7 @@
       "declaredStatus": null,
       "divergent": false,
       "id": "12",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "name": "Clause Intelligence",
       "observedStatus": "implemented",
       "packageDirectory": "packages/agreement-creation",
@@ -2963,7 +2964,7 @@
       "declaredStatus": null,
       "divergent": false,
       "id": "13",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "name": "Negotiation",
       "observedStatus": "implemented",
       "packageDirectory": "packages/agreement-creation",
@@ -2974,7 +2975,7 @@
       "declaredStatus": null,
       "divergent": false,
       "id": "14",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "name": "Approval Workflow",
       "observedStatus": "implemented",
       "packageDirectory": "packages/agreement-creation",
@@ -2985,7 +2986,7 @@
       "declaredStatus": null,
       "divergent": false,
       "id": "15",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "name": "Digital Execution",
       "observedStatus": "implemented",
       "packageDirectory": "packages/agreement-creation",
@@ -2996,7 +2997,7 @@
       "declaredStatus": null,
       "divergent": false,
       "id": "16",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "name": "AI Contract Analysis",
       "observedStatus": "implemented",
       "packageDirectory": "packages/agreement-intelligence",
@@ -3007,7 +3008,7 @@
       "declaredStatus": null,
       "divergent": false,
       "id": "17",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "name": "Contract Risk",
       "observedStatus": "implemented",
       "packageDirectory": "packages/agreement-intelligence",
@@ -3018,7 +3019,7 @@
       "declaredStatus": null,
       "divergent": false,
       "id": "18",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "name": "Contract Version",
       "observedStatus": "implemented",
       "packageDirectory": "packages/agreement-intelligence",
@@ -3029,7 +3030,7 @@
       "declaredStatus": null,
       "divergent": false,
       "id": "19",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "name": "Contract Repository",
       "observedStatus": "implemented",
       "packageDirectory": "packages/agreement-intelligence",
@@ -3040,7 +3041,7 @@
       "declaredStatus": null,
       "divergent": false,
       "id": "20",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "name": "Agreement Intelligence",
       "observedStatus": "implemented",
       "packageDirectory": "packages/agreement-intelligence",
@@ -3051,7 +3052,7 @@
       "declaredStatus": null,
       "divergent": false,
       "id": "21",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "name": "Performance Blueprint",
       "observedStatus": "implemented",
       "packageDirectory": "packages/performance-blueprint",
@@ -3062,7 +3063,7 @@
       "declaredStatus": null,
       "divergent": false,
       "id": "22",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "name": "Scope Definition",
       "observedStatus": "implemented",
       "packageDirectory": "packages/performance-blueprint",
@@ -3073,7 +3074,7 @@
       "declaredStatus": null,
       "divergent": false,
       "id": "23",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "name": "Deliverables",
       "observedStatus": "implemented",
       "packageDirectory": "packages/performance-blueprint",
@@ -3084,7 +3085,7 @@
       "declaredStatus": null,
       "divergent": false,
       "id": "24",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "name": "Milestone Planning",
       "observedStatus": "implemented",
       "packageDirectory": "packages/performance-blueprint",
@@ -3095,7 +3096,7 @@
       "declaredStatus": null,
       "divergent": false,
       "id": "25",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "name": "Definition of Done",
       "observedStatus": "implemented",
       "packageDirectory": "packages/performance-blueprint",
@@ -3106,7 +3107,7 @@
       "declaredStatus": null,
       "divergent": false,
       "id": "26",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "name": "Acceptance Criteria",
       "observedStatus": "implemented",
       "packageDirectory": "packages/performance-readiness",
@@ -3117,7 +3118,7 @@
       "declaredStatus": null,
       "divergent": false,
       "id": "27",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "name": "Success Metrics",
       "observedStatus": "implemented",
       "packageDirectory": "packages/performance-readiness",
@@ -3128,7 +3129,7 @@
       "declaredStatus": null,
       "divergent": false,
       "id": "28",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "name": "Dependency Intelligence",
       "observedStatus": "implemented",
       "packageDirectory": "packages/performance-readiness",
@@ -3139,7 +3140,7 @@
       "declaredStatus": null,
       "divergent": false,
       "id": "29",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "name": "Payment Trigger",
       "observedStatus": "implemented",
       "packageDirectory": "packages/performance-readiness",
@@ -3150,7 +3151,7 @@
       "declaredStatus": null,
       "divergent": false,
       "id": "30",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "name": "Performance Baseline",
       "observedStatus": "implemented",
       "packageDirectory": "packages/performance-readiness",
@@ -3161,7 +3162,7 @@
       "declaredStatus": null,
       "divergent": false,
       "id": "31",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "name": "Execution Orchestration",
       "observedStatus": "implemented",
       "packageDirectory": "packages/execution-orchestration",
@@ -3172,7 +3173,7 @@
       "declaredStatus": null,
       "divergent": false,
       "id": "32",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "name": "Progress Measurement",
       "observedStatus": "implemented",
       "packageDirectory": "packages/execution-orchestration",
@@ -3183,7 +3184,7 @@
       "declaredStatus": null,
       "divergent": false,
       "id": "33",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "name": "Evidence Management",
       "observedStatus": "implemented",
       "packageDirectory": "packages/execution-orchestration",
@@ -3194,7 +3195,7 @@
       "declaredStatus": null,
       "divergent": false,
       "id": "34",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "name": "Validation & Acceptance Testing",
       "observedStatus": "implemented",
       "packageDirectory": "packages/execution-orchestration",
@@ -3205,7 +3206,7 @@
       "declaredStatus": null,
       "divergent": false,
       "id": "35",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "name": "Quality Assurance",
       "observedStatus": "implemented",
       "packageDirectory": "packages/execution-orchestration",
@@ -3216,7 +3217,7 @@
       "declaredStatus": null,
       "divergent": false,
       "id": "36",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "name": "Inspection & Field Verification",
       "observedStatus": "implemented",
       "packageDirectory": "packages/completion-assurance",
@@ -3227,7 +3228,7 @@
       "declaredStatus": null,
       "divergent": false,
       "id": "37",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "name": "Issue, Risk & Corrective Action",
       "observedStatus": "implemented",
       "packageDirectory": "packages/completion-assurance",
@@ -3238,7 +3239,7 @@
       "declaredStatus": null,
       "divergent": false,
       "id": "38",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "name": "Change Control",
       "observedStatus": "implemented",
       "packageDirectory": "packages/completion-assurance",
@@ -3249,7 +3250,7 @@
       "declaredStatus": null,
       "divergent": false,
       "id": "39",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "name": "Acceptance & Decision",
       "observedStatus": "implemented",
       "packageDirectory": "packages/completion-assurance",
@@ -3260,7 +3261,7 @@
       "declaredStatus": null,
       "divergent": false,
       "id": "40",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "name": "Completion Certification",
       "observedStatus": "implemented",
       "packageDirectory": "packages/completion-assurance",
@@ -3271,7 +3272,7 @@
       "declaredStatus": null,
       "divergent": false,
       "id": "41",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "name": "Payment Eligibility",
       "observedStatus": "implemented",
       "packageDirectory": "packages/settlement-assurance",
@@ -3282,7 +3283,7 @@
       "declaredStatus": null,
       "divergent": false,
       "id": "42",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "name": "Financial Entitlement",
       "observedStatus": "implemented",
       "packageDirectory": "packages/settlement-assurance",
@@ -3293,7 +3294,7 @@
       "declaredStatus": null,
       "divergent": false,
       "id": "43",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "name": "Invoice & Claim Management",
       "observedStatus": "implemented",
       "packageDirectory": "packages/settlement-assurance",
@@ -3304,7 +3305,7 @@
       "declaredStatus": null,
       "divergent": false,
       "id": "44",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "name": "Escrow & Funding Assurance",
       "observedStatus": "implemented",
       "packageDirectory": "packages/settlement-assurance",
@@ -3315,7 +3316,7 @@
       "declaredStatus": null,
       "divergent": false,
       "id": "45",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "name": "Conditional Release Orchestration",
       "observedStatus": "implemented",
       "packageDirectory": "packages/settlement-assurance",
@@ -3326,7 +3327,7 @@
       "declaredStatus": null,
       "divergent": false,
       "id": "46",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "name": "Financial Approval & Authority",
       "observedStatus": "implemented",
       "packageDirectory": "packages/settlement-execution",
@@ -3337,7 +3338,7 @@
       "declaredStatus": null,
       "divergent": false,
       "id": "47",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "name": "Payment Execution & Treasury Integration",
       "observedStatus": "implemented",
       "packageDirectory": "packages/settlement-execution",
@@ -3348,7 +3349,7 @@
       "declaredStatus": null,
       "divergent": false,
       "id": "48",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "name": "Reconciliation & Financial Ledger",
       "observedStatus": "implemented",
       "packageDirectory": "packages/settlement-execution",
@@ -3359,7 +3360,7 @@
       "declaredStatus": null,
       "divergent": false,
       "id": "49",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "name": "Dispute, Claim & Appeal Resolution",
       "observedStatus": "implemented",
       "packageDirectory": "packages/settlement-execution",
@@ -3370,7 +3371,7 @@
       "declaredStatus": null,
       "divergent": false,
       "id": "50",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "name": "Final Settlement & Financial Closure",
       "observedStatus": "implemented",
       "packageDirectory": "packages/settlement-execution",
@@ -3381,7 +3382,7 @@
       "declaredStatus": null,
       "divergent": false,
       "id": "51",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "name": "Execution Assurance Index",
       "observedStatus": "implemented",
       "packageDirectory": "packages/enterprise-intelligence",
@@ -3392,7 +3393,7 @@
       "declaredStatus": null,
       "divergent": false,
       "id": "52",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "name": "Settlement Assurance Index",
       "observedStatus": "implemented",
       "packageDirectory": "packages/enterprise-intelligence",
@@ -3403,7 +3404,7 @@
       "declaredStatus": null,
       "divergent": false,
       "id": "53",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "name": "Enterprise KPI",
       "observedStatus": "implemented",
       "packageDirectory": "packages/enterprise-intelligence",
@@ -3414,7 +3415,7 @@
       "declaredStatus": null,
       "divergent": false,
       "id": "54",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "name": "Executive Dashboard",
       "observedStatus": "implemented",
       "packageDirectory": "packages/enterprise-intelligence",
@@ -3425,7 +3426,7 @@
       "declaredStatus": null,
       "divergent": false,
       "id": "55",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "name": "Predictive Execution Intelligence",
       "observedStatus": "implemented",
       "packageDirectory": "packages/enterprise-intelligence",
@@ -3436,7 +3437,7 @@
       "declaredStatus": null,
       "divergent": false,
       "id": "56",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "name": "Financial & Payment Intelligence",
       "observedStatus": "implemented",
       "packageDirectory": "packages/enterprise-analytics",
@@ -3447,7 +3448,7 @@
       "declaredStatus": null,
       "divergent": false,
       "id": "57",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "name": "Vendor & Customer Performance",
       "observedStatus": "implemented",
       "packageDirectory": "packages/enterprise-analytics",
@@ -3458,7 +3459,7 @@
       "declaredStatus": null,
       "divergent": false,
       "id": "58",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "name": "Portfolio Analytics",
       "observedStatus": "implemented",
       "packageDirectory": "packages/enterprise-analytics",
@@ -3469,7 +3470,7 @@
       "declaredStatus": null,
       "divergent": false,
       "id": "59",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "name": "Renewal & Relationship Intelligence",
       "observedStatus": "implemented",
       "packageDirectory": "packages/enterprise-analytics",
@@ -3480,7 +3481,7 @@
       "declaredStatus": null,
       "divergent": false,
       "id": "60",
-      "lifecycle": "released",
+      "lifecycle": "implemented",
       "name": "AI Decision Support & Continuous Improvement",
       "observedStatus": "implemented",
       "packageDirectory": "packages/enterprise-analytics",
@@ -3637,7 +3638,7 @@
   "identity": {
     "branch": "feat/ui-speak-the-users-language",
     "clean": false,
-    "head": "a3f632a59674fe9cb5ef5339097a95d7e8fe2053",
+    "head": "f8564dae1731f5ab5586125651f6c2704bc7806d",
     "repository": "assurapay",
     "version": "0.1.0"
   },
@@ -3722,14 +3723,14 @@
   "lifecycleSummary": {
     "certified": 0,
     "deferred": 2,
-    "implemented": 0,
+    "implemented": 76,
     "implementing": 2,
     "missing": 0,
     "planned": 0,
-    "released": 76,
+    "released": 0,
     "validated": 0
   },
-  "manifestDigest": "b10f3bec70fb",
+  "manifestDigest": "6078c1b39235",
   "missingCapabilities": [],
   "packages": [
     {
@@ -3953,7 +3954,7 @@
       "moduleType": null,
       "name": "@assurapay/database",
       "sourceFiles": 22,
-      "sourceLines": 11433,
+      "sourceLines": 11438,
       "testFiles": [
         "packages/database/src/async-conformance.test.ts",
         "packages/database/src/rls-certification.test.ts",
@@ -4282,7 +4283,7 @@
       "moduleType": null,
       "name": "@assurapay/identity",
       "sourceFiles": 5,
-      "sourceLines": 1370,
+      "sourceLines": 1381,
       "testFiles": [
         "packages/identity/src/assertions.test.ts",
         "packages/identity/src/gateway.test.ts",
@@ -4576,7 +4577,7 @@
       "moduleType": null,
       "name": "@assurapay/runtime",
       "sourceFiles": 3,
-      "sourceLines": 701,
+      "sourceLines": 717,
       "testFiles": [
         "packages/runtime/src/config.test.ts",
         "packages/runtime/src/persistence-runtime.postgres.test.ts",
@@ -5198,6 +5199,7 @@
         {
           "kind": "symbol",
           "matches": [
+            "apps/web/lib/assertion-replay.postgres.test.ts",
             "packages/database-testing/src/atlas.postgres.test.ts",
             "packages/database-testing/src/flow-trigger.postgres.test.ts",
             "packages/database-testing/src/index.ts",
@@ -5333,6 +5335,7 @@
         {
           "kind": "symbol",
           "matches": [
+            "apps/web/lib/trust-app.ts",
             "packages/runtime/src/config.test.ts",
             "packages/runtime/src/config.ts",
             "packages/runtime/src/persistence-runtime.postgres.test.ts",
