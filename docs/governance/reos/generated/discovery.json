@@ -2238,8 +2238,8 @@
       "main": "src/index.ts",
       "moduleType": null,
       "name": "@assurapay/agent-runtime",
-      "sourceFiles": 2,
-      "sourceLines": 1221,
+      "sourceFiles": 3,
+      "sourceLines": 1410,
       "testFiles": [
         "packages/agent-runtime/src/agent-runtime.e2e.test.ts",
         "packages/agent-runtime/src/agent-runtime.integration.test.ts",
@@ -2247,6 +2247,7 @@
         "packages/agent-runtime/src/agent-runtime.registration.test.ts",
         "packages/agent-runtime/src/agent-runtime.security.test.ts",
         "packages/agent-runtime/src/agent-runtime.test.ts",
+        "packages/agent-runtime/src/autonomy.test.ts",
         "packages/agent-runtime/src/persisted-contracts.test.ts"
       ],
       "tests": {
@@ -2254,7 +2255,7 @@
         "integration": 1,
         "performance": 1,
         "security": 1,
-        "unit": 3
+        "unit": 4
       },
       "workspaceDependencies": [
         "@assurapay/database",
@@ -3223,9 +3224,10 @@
   "reosVersion": "1.0.0",
   "repository": {
     "git": {
-      "branch": "claude/git-pull-cqc04u",
+      "branch": "feat/agentic-autonomy",
       "branches": [
         "claude/git-pull-cqc04u",
+        "feat/agentic-autonomy",
         "feat/ai-runtime-atlas-convergence",
         "feat/flow-relay-worker",
         "feat/record-pages",
@@ -3291,10 +3293,14 @@
       ],
       "clean": false,
       "dirtyFiles": [
-        "apps/web/lib/app-chrome.test.ts"
+        "apps/web/lib/persona-agents.test.ts",
+        "apps/web/lib/persona-agents.ts",
+        "packages/agent-runtime/src/autonomy.test.ts",
+        "packages/agent-runtime/src/autonomy.ts",
+        "packages/agent-runtime/src/index.ts"
       ],
-      "head": "8476cbdf09efc64057da652dac080f5aeaccf5ee",
-      "headShort": "8476cbd",
+      "head": "9ac8f812f1ef131501569ce313be8df8b94cf1fe",
+      "headShort": "9ac8f81",
       "reflogAvailable": true,
       "remotes": [
         "origin"
@@ -3499,9 +3505,9 @@
       "integration": 15,
       "performance": 2,
       "security": 3,
-      "unit": 100
+      "unit": 101
     },
-    "files": 135
+    "files": 136
   },
   "totals": {
     "applications": 1,
@@ -3509,7 +3515,7 @@
     "engines": 60,
     "migrations": 55,
     "packages": 30,
-    "testFiles": 135
+    "testFiles": 136
   },
   "workflows": [
     {

@@ -1032,3 +1032,11 @@ export class AgentRuntimeEngine {
 }
 
 export * from './registration';
+
+/**
+ * Agent autonomy: levels, action classes, risk ceilings and the dispatch verdict.
+ *
+ * Rebuilt from PR #46 on current `main`. `autonomy.ts` explains what was kept and what was
+ * corrected — above all that no action class at any level reaches a money authority.
+ */
+export * from './autonomy';
