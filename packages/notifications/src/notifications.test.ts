@@ -82,6 +82,7 @@ const TASK_VARIABLES = {
   stepTitle: 'Independent release approval',
   requiredRole: 'RELEASE_APPROVER',
   flowReference: 'COMMERCIAL_COMMITMENT_FLOW / txn-1',
+  actionPath: '/approvals?task=task-1',
 };
 
 async function raiseTask(engine: NotificationEngine, ctx = context(), key = 'human-task:t-1:raised') {

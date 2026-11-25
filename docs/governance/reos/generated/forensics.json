@@ -39,6 +39,7 @@
           "kind": "symbol",
           "matches": [
             "apps/web/lib/assurance-read-model.ts",
+            "apps/web/lib/financial-reads.ts",
             "apps/web/lib/flow-app.ts",
             "apps/web/lib/persistence.ts",
             "packages/agent-runtime/src/index.ts",
@@ -48,6 +49,7 @@
             "packages/agreement-intelligence/src/index.ts",
             "packages/audit-ledger/src/index.ts",
             "packages/completion-assurance/src/index.ts",
+            "packages/database-testing/src/approval-inbox.postgres.test.ts",
             "packages/database-testing/src/durability-coverage.test.ts",
             "packages/database-testing/src/postgres-store.postgres.test.ts",
             "packages/database-testing/src/wave4-batch-a-repository.postgres.test.ts",
@@ -397,12 +399,14 @@
           "kind": "symbol",
           "matches": [
             "packages/audit-ledger/src/audit-ledger.postgres.test.ts",
+            "packages/database-testing/src/approval-inbox.postgres.test.ts",
             "packages/database-testing/src/atlas.postgres.test.ts",
             "packages/database-testing/src/durability-coverage.test.ts",
             "packages/database-testing/src/flow-postgres-store.postgres.test.ts",
             "packages/database-testing/src/flow-trigger.postgres.test.ts",
             "packages/database-testing/src/identity-plane-rls.postgres.test.ts",
             "packages/database-testing/src/index.ts",
+            "packages/database-testing/src/notifications.postgres.test.ts",
             "packages/database-testing/src/postgres-store.postgres.test.ts",
             "packages/database-testing/src/progressive-trust.postgres.test.ts",
             "packages/database-testing/src/rls-certification.postgres.test.ts",
@@ -460,6 +464,7 @@
         {
           "kind": "symbol",
           "matches": [
+            "apps/web/lib/assertion-replay.postgres.test.ts",
             "packages/database-testing/src/atlas.postgres.test.ts",
             "packages/database-testing/src/flow-trigger.postgres.test.ts",
             "packages/database-testing/src/index.ts",
@@ -595,6 +600,7 @@
         {
           "kind": "symbol",
           "matches": [
+            "apps/web/lib/trust-app.ts",
             "packages/runtime/src/config.test.ts",
             "packages/runtime/src/config.ts",
             "packages/runtime/src/persistence-runtime.postgres.test.ts",
@@ -759,9 +765,11 @@
         {
           "kind": "symbol",
           "matches": [
+            "packages/database-testing/src/approval-inbox.postgres.test.ts",
             "packages/database-testing/src/atlas.postgres.test.ts",
             "packages/database-testing/src/flow-postgres-store.postgres.test.ts",
             "packages/database-testing/src/flow-trigger.postgres.test.ts",
+            "packages/database-testing/src/notifications.postgres.test.ts",
             "packages/database-testing/src/progressive-trust.postgres.test.ts",
             "packages/database-testing/src/rls-certification.postgres.test.ts",
             "packages/database-testing/src/schema-ownership.postgres.test.ts",
@@ -1392,6 +1400,7 @@
           "kind": "symbol",
           "matches": [
             "apps/web/lib/trust-app.ts",
+            "packages/database-testing/src/approval-inbox.postgres.test.ts",
             "packages/permissions/src/catalogue.test.ts",
             "packages/permissions/src/catalogue.ts"
           ],
@@ -1453,7 +1462,11 @@
           "kind": "symbol",
           "matches": [
             "apps/web/lib/agent-route-governance.test.ts",
+            "apps/web/lib/approval-inbox.test.ts",
+            "apps/web/lib/financial-reads.test.ts",
             "apps/web/lib/grant-administration.test.ts",
+            "apps/web/lib/persona-workspaces.test.ts",
+            "apps/web/lib/persona-workspaces.ts",
             "apps/web/lib/personas.test.ts",
             "apps/web/lib/personas.ts",
             "apps/web/lib/route-coverage.test.ts",
@@ -1487,6 +1500,7 @@
             "apps/web/app/api/v1/approval-requests/[id]/decisions/route.ts",
             "apps/web/app/api/v1/approval-requests/route.ts",
             "apps/web/app/api/v1/approval-thresholds/route.ts",
+            "apps/web/app/api/v1/approvals/route.ts",
             "apps/web/app/api/v1/atlas/proposals/[id]/decision/route.ts",
             "apps/web/app/api/v1/atlas/proposals/[id]/publish/route.ts",
             "apps/web/app/api/v1/atlas/proposals/[id]/route.ts",
@@ -1564,6 +1578,7 @@
             "apps/web/app/api/v1/financial-entitlements/route.ts",
             "apps/web/app/api/v1/financial-forecasts/[id]/review/route.ts",
             "apps/web/app/api/v1/financial-forecasts/route.ts",
+            "apps/web/app/api/v1/financial-position/route.ts",
             "apps/web/app/api/v1/flow-tasks/[id]/decisions/route.ts",
             "apps/web/app/api/v1/flow-tasks/route.ts",
             "apps/web/app/api/v1/flows/[id]/advance/route.ts",
@@ -1592,6 +1607,7 @@
             "apps/web/app/api/v1/legal/holds/route.ts",
             "apps/web/app/api/v1/legal/policies/route.ts",
             "apps/web/app/api/v1/legal/policy-versions/[id]/accept/route.ts",
+            "apps/web/app/api/v1/me/permissions/route.ts",
             "apps/web/app/api/v1/me/workspaces/route.ts",
             "apps/web/app/api/v1/milestones/[id]/assurance/route.ts",
             "apps/web/app/api/v1/milestones/route.ts",
@@ -1704,6 +1720,7 @@
           "matches": [
             "apps/web/app/api/v1/contracts/route.ts",
             "apps/web/app/api/v1/workspaces/route.ts",
+            "apps/web/lib/financial-reads.ts",
             "apps/web/lib/trust-app.ts",
             "packages/database-testing/src/store-boundary.postgres.test.ts"
           ],
@@ -1789,7 +1806,7 @@
       "totalProbes": 5
     }
   ],
-  "head": "7568bd7963afdf3ecc3683b7cf17bd2202969c0b",
+  "head": "8616afd32ea4e87ccff3f13d315f687fe9895f01",
   "reosVersion": "1.0.0",
   "stage": "forensics",
   "summary": {

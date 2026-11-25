@@ -36,12 +36,23 @@ export type NotificationTemplateId =
 
 const SIGN_OFF = 'Sign in to AssuraPay to act on this. This message carries no agreement details.';
 
+/**
+ * Why the action is a path and not a link.
+ *
+ * A notification should lead somewhere, and `human-task-raised` now names the exact page that holds
+ * the decision — `/approvals?task=…`, which marks that approval in the recipient's own inbox. It is a
+ * path rather than a URL because this deployment has no configured public base address, and
+ * inventing a host would produce a link that either goes nowhere or, worse, goes somewhere wrong.
+ * Making it absolute is a configuration change: state the public address the way
+ * `ASSURAPAY_DATABASE_SSL` is stated, with no default, and render it in front of this path.
+ */
+
 export const NOTIFICATION_TEMPLATES: Record<NotificationTemplateId, NotificationTemplate> =
   Object.freeze({
     'human-task-raised': {
       id: 'human-task-raised',
       version: 1,
-      requiredVariables: ['recipientName', 'stepTitle', 'requiredRole', 'flowReference'],
+      requiredVariables: ['recipientName', 'stepTitle', 'requiredRole', 'flowReference', 'actionPath'],
       subject: 'Action required: {{stepTitle}}',
       body: [
         'Hello {{recipientName}},',
@@ -51,6 +62,7 @@ export const NOTIFICATION_TEMPLATES: Record<NotificationTemplateId, Notification
         '',
         'Step: {{stepTitle}}',
         'Journey reference: {{flowReference}}',
+        'Where to act: {{actionPath}}',
         '',
         SIGN_OFF,
       ].join('\n'),

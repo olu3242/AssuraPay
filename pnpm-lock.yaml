@@ -81,6 +81,9 @@ importers:
       '@assurapay/database':
         specifier: workspace:*
         version: link:../../packages/database
+      '@assurapay/database-testing':
+        specifier: workspace:*
+        version: link:../../packages/database-testing
       '@assurapay/domain':
         specifier: workspace:*
         version: link:../../packages/domain

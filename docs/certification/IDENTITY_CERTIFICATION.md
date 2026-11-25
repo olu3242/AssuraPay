@@ -8,7 +8,7 @@ Unit-certified for signature integrity (tampered claims, swapped subject, trunca
 
 Two properties are asserted directly rather than left to review: the claims contain no authorization data, and no metadata key handed to the store matches the credential-shaped pattern.
 
-The in-process replay guard is correct within a single process only. A multi-instance deployment needs a shared guard; that is a persistence concern and is tracked separately.
+The in-process replay guard is correct within a single process only. A multi-instance deployment needs a shared guard, which it now has — see *Replay protection* below; the in-process guard remains the right adapter for a deployment with no database.
 
 ## Identity gateway
 
@@ -16,11 +16,21 @@ Unit-certified for construction and fail-closed configuration, issuance from a t
 
 Structural invariants asserted rather than reviewed: sixteen authorization-shaped names are absent from issuance input, encoded claims, verified claims and the resulting identity context; `memberships` is always empty; assurance cannot exceed what was signed; no exchange surface exists.
 
-### Replay protection — not certified for distributed deployment
+### Replay protection — certified for distributed deployment
 
-The gateway is certified **only with a process-local replay adapter**. `InMemoryAssertionReplayStore` declares `guarantee: 'process-local'` and is correct within a single process; it says nothing about other replicas.
+Two things were missing, and both are now closed.
 
-Production rollout remains **blocked** on a durable atomic replay store. The gateway refuses a non-distributed store at construction whenever configuration requires distributed protection, and `loadGatewayConfig` sets that requirement in production unless a single-process deployment explicitly accepts the limitation via `IDENTITY_ASSERTION_ACCEPT_PROCESS_LOCAL_REPLAY`. A multi-replica deployment therefore fails closed at startup rather than silently running with weaker guarantees.
+**The control was unreachable.** The gateway always had `consumeRequestContext`, and this package's own tests always proved its refusal, but no HTTP route called it: `actingRequestContext` was exported with zero callers, so all 177 mapped routes authenticated through verify-without-consume and `ASSERTION_REPLAYED` could not be reached over HTTP. One assertion authorised unlimited actions inside its validity window. `authorizedContextForRoute` now consumes whenever the request method acts, after binding the trust scope — the audit record a consumption writes names the caller's tenant, and `trust_audit_records` refuses it when no scope is set. `e2e/browser-approvals-e2e.spec.ts` presents one assertion twice to an acting route and asserts the refusal by name.
 
-The durable adapter cannot honestly be built in this capability: it requires the Postgres repository, which is `persistence.postgres-repository` — a capability that sits *downstream* of this one in the dependency graph. Implementing it here would invert the declared order.
+**The guarantee was process-local.** `InMemoryAssertionReplayStore` is correct within one process and worth nothing across replicas, so with consumption live a load-balanced deployment would have admitted the same assertion once per instance.
+
+`DurableAssertionReplayStore` (`apps/web/lib/assertion-replay.ts`) closes that over the shared `trust_assertion_nonces` table, added by `202608110026`. Uniqueness is the mechanism: `INSERT ... ON CONFLICT DO NOTHING RETURNING` resolves inside one statement, so of two concurrent callers presenting one nonce exactly one gets a row. It declares `guarantee: 'distributed'` because it is.
+
+The earlier note here — that the durable adapter could not honestly be built in this capability, because it needs the Postgres repository which sits *downstream* in the dependency graph — was right, and determined where it went. It is not in `@assurapay/identity` and not in `@assurapay/database`; it is in the composition root, the one place that already holds both the `AssertionReplayStore` contract and a `SqlClient`, so neither package gained a dependency on the other. The runtime exposes its own pool rather than letting a caller build one, which `persistence-runtime.ts` already warned against: "a pool created in a request handler has no disposal path."
+
+The store is chosen by adapter, not by fallback: a runtime without SQL *is* a non-durable deployment, because `loadPersistenceConfig` refuses an in-memory adapter for every durable class, and there `process-local` is the accurate guarantee rather than a downgrade. Choosing it needs the resolved runtime, which is why the gateway is now built asynchronously — a store that claimed `distributed` before knowing whether it had a database would be the exact misreport `ReplayProtectionGuarantee` exists to prevent.
+
+`IDENTITY_ASSERTION_ACCEPT_PROCESS_LOCAL_REPLAY` is no longer something a production deployment has to set. It stays as an escape hatch for a deployment that knowingly runs one process without a database, and `playwright.config.ts` deliberately leaves it unset so the browser suite is itself the proof: `NODE_ENV=production` makes distributed protection a requirement, and `IdentityGateway` refuses to construct against a store that does not provide it — so the 22 passing browser cases would fail at the gateway if the durable store were not wired.
+
+Certified by 8 cases in `apps/web/lib/assertion-replay.postgres.test.ts` against real PostgreSQL, including two independent stores standing in for two replicas, and two concurrent callers of which exactly one may win. A check-then-insert implementation passes the sequential cases and fails that one, which is why it is there.
 

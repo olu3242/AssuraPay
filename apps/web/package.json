@@ -9,12 +9,13 @@
   },
   "dependencies": {
     "@assurapay/agent-runtime": "workspace:*",
-    "@assurapay/agreement-creation": "workspace:*",
     "@assurapay/agreement-atlas": "workspace:*",
+    "@assurapay/agreement-creation": "workspace:*",
     "@assurapay/agreement-intelligence": "workspace:*",
     "@assurapay/audit-ledger": "workspace:*",
     "@assurapay/completion-assurance": "workspace:*",
     "@assurapay/database": "workspace:*",
+    "@assurapay/database-testing": "workspace:*",
     "@assurapay/domain": "workspace:*",
     "@assurapay/enterprise-analytics": "workspace:*",
     "@assurapay/enterprise-intelligence": "workspace:*",
@@ -29,6 +30,7 @@
     "@assurapay/performance-blueprint": "workspace:*",
     "@assurapay/performance-readiness": "workspace:*",
     "@assurapay/permissions": "workspace:*",
+    "@assurapay/progressive-trust": "workspace:*",
     "@assurapay/runtime": "workspace:*",
     "@assurapay/settlement-assurance": "workspace:*",
     "@assurapay/settlement-execution": "workspace:*",
@@ -36,7 +38,6 @@
     "@assurapay/workflow-intelligence": "workspace:*",
     "next": "^14.2.15",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "@assurapay/progressive-trust": "workspace:*"
+    "react-dom": "^18.3.1"
   }
 }

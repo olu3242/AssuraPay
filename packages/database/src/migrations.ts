@@ -432,6 +432,32 @@ export const REQUIRED_TRUST_MIGRATIONS: readonly string[] = Object.freeze([
   // to found a new organization on every visit, because `GET /v1/me/workspaces` runs before the
   // caller has a tenant and both policies it reads required one.
   '202608110022_membership_discovery_precedes_tenant_scope',
+  // Stops a funding commitment being reserved beyond what the provider confirmed. Required rather
+  // than optional: the engine's own check is a read-then-write that two concurrent reservations both
+  // pass, so a host without this trigger can promise the same custodied funds twice and only find out
+  // when the provider refuses a release a human already approved. Safe on populated tables — the
+  // trigger applies to rows written after it, and an existing over-reserved commitment is reported as
+  // a warning rather than rewritten.
+  '202608110023_fund_reservations_cannot_exceed_committed_funds',
+  // Stops a reservation backing more live release than it holds — the same invariant as `…0023` one
+  // level down, and the one that stops money leaving twice. Required: the engine compares each
+  // request with the reservation and never sums across requests, and nothing marks a reservation
+  // consumed, so a host without this trigger can settle three 600,000 releases against a 1,000,000
+  // reservation. Not a race — sequential requests do it. Safe on populated tables, with an existing
+  // breach reported rather than rewritten.
+  '202608110024_release_requests_cannot_exceed_their_reservation',
+  // Keys a release request to its own invoice's reservation, entitlement and milestone. Required:
+  // `draft` reads all three parents and compares none of them, so milestone A's entitlement could
+  // authorise an amount that milestone B's reservation paid — with every existing constraint
+  // satisfied. Composite foreign keys rather than a trigger, the same technique the schema already
+  // uses for currency. Safe on populated tables: added NOT VALID, so the rule binds every later write
+  // without failing the migration on rows that predate it.
+  '202608110025_a_release_draws_only_on_its_own_invoice',
+  // The shared state that makes assertion replay protection hold across replicas. Required: acting
+  // routes now consume the assertion, and without this table the only store is process-local, so a
+  // deployment behind a load balancer admits the same assertion once per instance. Also the table
+  // the durable store writes on every acting request, so a host missing it fails that write outright.
+  '202608110026_assertion_nonces_are_consumed_once_across_replicas',
 ]);
 
 export type SchemaCompatibility = {

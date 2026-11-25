@@ -27,8 +27,12 @@ describe('the persona catalogue names only permissions that exist', () => {
     ).toEqual([]);
   });
 
-  it('covers the ten personas RC1 names', () => {
-    expect(PERSONAS).toHaveLength(10);
+  it('covers the ten personas RC1 names, plus the dispute manager', () => {
+    // RC1 named ten. `dispute-manager` is the eleventh, added deliberately rather than discovered: the route
+    // table gates six `disputes:*` keys that no persona held, so dispute handling was authority the platform
+    // enforced and nobody could be given. The roster stays an exact list — a persona added without a decision
+    // should fail here, which is the point of asserting the names rather than only the count.
+    expect(PERSONAS).toHaveLength(11);
     expect(PERSONAS.map((entry) => entry.id)).toEqual([
       'organization-administrator',
       'workspace-administrator',
@@ -39,6 +43,7 @@ describe('the persona catalogue names only permissions that exist', () => {
       'finance',
       'supplier',
       'customer',
+      'dispute-manager',
       'auditor',
     ]);
     // Not vacuous: a catalogue of ten empty personas would satisfy the count.

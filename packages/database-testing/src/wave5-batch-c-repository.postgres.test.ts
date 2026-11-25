@@ -954,6 +954,245 @@ describe('integration: Batch C mutation boundaries', () => {
     expect(String(direct)).toContain('append-only table');
   }, 300_000);
 
+  it('refuses reservations that together exceed the committed funds, including two raced', async () => {
+    // The invariant: the RESERVED reservations against a funding commitment may never exceed what the
+    // provider actually confirmed. Over-reserving means the platform has promised the same custodied
+    // naira twice, and the second release fails at the provider — after a human approved it.
+    //
+    // `EscrowFundingAssuranceEngine.reserve` sums the active reservations and compares before
+    // appending. That read-then-write is not atomic and runs in no transaction, so it is the same
+    // shape as the closure-certificate count above: two concurrent callers both read the old total,
+    // both pass, and both insert. `MONETARY_INVARIANTS.md` is explicit that "an invariant that
+    // PostgreSQL can enforce must not exist only as an application check", and this is one it can.
+    //
+    // The fixture leaves 1,075,000 of 2,000,000 unreserved (fr-1 holds 925,000).
+    const remaining = 2_000_000 - 925_000;
+    const half = Math.floor(remaining / 2) + 50_000; // each alone fits; together they do not
+
+    const store = new PostgresTrustStore(database.sql);
+    const reserve = (id: string, amount: number) =>
+      withTrustScope({ tenantId: TENANT, workspaceId: WORKSPACE, actorId: ACTOR }, () =>
+        store.append('fundReservations', {
+          id,
+          workspaceId: WORKSPACE,
+          fundingCommitmentId: 'fc-1',
+          invoiceId: 'inv-1',
+          reservedAmountMinor: amount,
+          status: 'RESERVED',
+          createdAt: stamp,
+        }),
+      );
+
+    // Raced deliberately, in two transactions, because a sequential pair proves only the sum and not
+    // the atomicity. One must survive and one must be refused.
+    const outcomes = await Promise.allSettled([
+      reserve('fr-race-a', half),
+      reserve('fr-race-b', half),
+    ]);
+    const rejected = outcomes.filter((outcome) => outcome.status === 'rejected');
+    expect(rejected, 'one of two raced over-reservations must be refused').toHaveLength(1);
+
+    // And the committed total is what actually matters: whatever the engine or a direct writer did,
+    // the database must not hold more reserved than was committed.
+    const [total] = await raw(database, (tx) => tx<{ reserved: string }[]>`
+      SELECT coalesce(sum(reserved_amount_minor), 0)::text AS reserved
+        FROM fund_reservations
+       WHERE funding_commitment_id = ${'fc-1'} AND status = 'RESERVED'
+    `);
+    expect(Number(total.reserved)).toBeLessThanOrEqual(2_000_000);
+  }, 300_000);
+
+  it('refuses release requests that together exceed the reservation they draw on', async () => {
+    // The gap this closes is not a race — a race is only the fast version of it.
+    //
+    // `ConditionalReleaseOrchestrationEngine.draft` compares each request with the reservation it
+    // names and never sums across requests, and nothing in the platform ever marks a reservation
+    // consumed: `releaseReservation` is a separate HTTP call no engine triggers, so a reservation
+    // stays RESERVED through any number of releases. Three sequential requests of 600,000 against a
+    // reservation of 1,000,000 therefore all pass, all reach CONDITIONS_MET, and each can carry its
+    // own payment instruction — the instruction idempotency key is per instruction, not per
+    // reservation. That is 1,800,000 of custodied funds released against 1,000,000 reserved.
+    //
+    // The fixture's fr-1 reserves 925,000 and rr-1 already requests all of it, so any further live
+    // request against fr-1 over-releases. CANCELLED requests are excluded, because cancelling is how
+    // a claim is given back — `POST /release-requests/{id}/cancel` exists for exactly that.
+    const store = new PostgresTrustStore(database.sql);
+    const scoped = <T>(work: () => Promise<T>) =>
+      withTrustScope({ tenantId: TENANT, workspaceId: WORKSPACE, actorId: ACTOR }, work);
+
+    const request = (id: string, reservationId: string, amount: number) => ({
+      id,
+      workspaceId: WORKSPACE,
+      milestoneId: 'ms-1',
+      financialEntitlementId: 'fe-1',
+      invoiceId: 'inv-1',
+      fundReservationId: reservationId,
+      releaseType: 'PARTIAL' as const,
+      requestedAmountMinor: amount,
+      currency: 'NGN',
+      status: 'DRAFT' as const,
+      blockers: [],
+      requestedBy: ACTOR,
+      createdAt: stamp,
+    });
+
+    // Sequential, and refused. One naira past a fully claimed reservation is still the platform
+    // promising money the provider is not holding for it.
+    const sequential = await scoped(() =>
+      store.append('releaseRequests', request('rr-over', 'fr-1', 1)).catch((caught: unknown) => caught),
+    );
+    expect(String(sequential)).toContain('RELEASES_EXCEED_RESERVED_FUNDS');
+
+    // And raced, on a reservation with room. Deliberately on its own funding commitment rather than
+    // fc-1: suites in this block share one database, and the reservation tests above consume fc-1's
+    // remaining room, so borrowing it would make this test's fixture depend on execution order and
+    // fail against `fund_reservations_within_commitment` instead of the trigger under test.
+    await scoped(async () => {
+      await store.append('fundingCommitments', {
+        id: 'fc-rel',
+        workspaceId: WORKSPACE,
+        milestoneId: 'ms-1',
+        providerKey: 'partner-bank',
+        externalCustodyReference: 'CUSTODY-RELEASE-1',
+        committedAmountMinor: 1_000_000,
+        currency: 'NGN',
+        status: 'PENDING_CONFIRMATION',
+        createdAt: stamp,
+      });
+      await store.append('fundReservations', {
+        id: 'fr-2',
+        workspaceId: WORKSPACE,
+        fundingCommitmentId: 'fc-rel',
+        invoiceId: 'inv-1',
+        reservedAmountMinor: 900_000,
+        status: 'RESERVED',
+        createdAt: stamp,
+      });
+    });
+    const raced = await Promise.allSettled([
+      scoped(() => store.append('releaseRequests', request('rr-race-a', 'fr-2', 600_000))),
+      scoped(() => store.append('releaseRequests', request('rr-race-b', 'fr-2', 600_000))),
+    ]);
+    expect(
+      raced.filter((outcome) => outcome.status === 'rejected'),
+      'one of two raced over-releases must be refused',
+    ).toHaveLength(1);
+
+    // The property that matters, stated over the rows rather than over the calls: no reservation
+    // backs more live release than it holds.
+    const breached = await raw(database, (tx) => tx<{ id: string }[]>`
+      SELECT r.id::text AS id
+        FROM fund_reservations r
+        JOIN release_requests q
+          ON q.fund_reservation_id = r.id AND q.status <> 'CANCELLED'
+       GROUP BY r.id, r.reserved_amount_minor
+      HAVING sum(q.requested_amount_minor) > r.reserved_amount_minor
+    `);
+    expect(breached).toHaveLength(0);
+  }, 300_000);
+
+  it('refuses a release that draws on funds reserved for a different invoice', async () => {
+    // Cross-aggregate integrity. `draft` reads the entitlement, the invoice and the reservation and
+    // never compares them: it checks amounts and types, and nothing requires the reservation to be
+    // the one made for this invoice, or the entitlement to be the one the invoice was raised against.
+    //
+    // So milestone A's entitlement can authorise an amount while milestone B's reservation pays it.
+    // Both parents are real, both are in the caller's workspace, both agree on currency — every
+    // constraint that existed was satisfied. The money comes out of the wrong pot, and the invoice
+    // whose funds were taken still looks funded.
+    //
+    // Enforced structurally rather than by a trigger, with composite foreign keys, because that is
+    // the technique this schema already uses to make a currency mismatch impossible.
+    const store = new PostgresTrustStore(database.sql);
+    const scoped = <T>(work: () => Promise<T>) =>
+      withTrustScope({ tenantId: TENANT, workspaceId: WORKSPACE, actorId: ACTOR }, work);
+
+    // A second invoice on the same entitlement, and a reservation made for *it*.
+    await scoped(async () => {
+      await store.append('invoices', {
+        id: 'inv-2',
+        workspaceId: WORKSPACE,
+        milestoneId: 'ms-1',
+        financialEntitlementId: 'fe-1',
+        invoiceNumber: 'INV-0002',
+        amountMinor: 500_000,
+        currency: 'NGN',
+        status: 'SUBMITTED',
+        submittedBy: ACTOR,
+        createdAt: stamp,
+      });
+      await store.append('fundingCommitments', {
+        id: 'fc-xref',
+        workspaceId: WORKSPACE,
+        milestoneId: 'ms-1',
+        providerKey: 'partner-bank',
+        externalCustodyReference: 'CUSTODY-XREF-1',
+        committedAmountMinor: 500_000,
+        currency: 'NGN',
+        status: 'PENDING_CONFIRMATION',
+        createdAt: stamp,
+      });
+      // Reserved against inv-2, deliberately.
+      await store.append('fundReservations', {
+        id: 'fr-xref',
+        workspaceId: WORKSPACE,
+        fundingCommitmentId: 'fc-xref',
+        invoiceId: 'inv-2',
+        reservedAmountMinor: 500_000,
+        status: 'RESERVED',
+        createdAt: stamp,
+      });
+    });
+
+    // A release for inv-1 that spends inv-2's reservation.
+    const crossed = await scoped(() =>
+      store
+        .append('releaseRequests', {
+          id: 'rr-xref',
+          workspaceId: WORKSPACE,
+          milestoneId: 'ms-1',
+          financialEntitlementId: 'fe-1',
+          invoiceId: 'inv-1',
+          fundReservationId: 'fr-xref',
+          releaseType: 'PARTIAL',
+          requestedAmountMinor: 100_000,
+          currency: 'NGN',
+          status: 'DRAFT',
+          blockers: [],
+          requestedBy: ACTOR,
+          createdAt: stamp,
+        })
+        .catch((caught: unknown) => caught),
+    );
+    expect(crossed).toBeInstanceOf(PostgresStoreError);
+    // The store maps every foreign-key violation to PERSISTENCE_SCOPE_INVALID, because the usual
+    // cause is a reference that reaches outside the caller's tenant. So the code alone would be
+    // satisfied by any of this table's six keys refusing — the constraint is named here to prove it
+    // was the invoice pairing and not, say, the workspace key.
+    expect((crossed as PostgresStoreError).code).toBe('PERSISTENCE_SCOPE_INVALID');
+    expect(String(crossed)).toContain('release_requests_reservation_matches_invoice_fk');
+
+    // The same release against its own invoice's reservation is accepted, so the key constrains the
+    // pairing and not the operation.
+    await scoped(() =>
+      store.append('releaseRequests', {
+        id: 'rr-xref-ok',
+        workspaceId: WORKSPACE,
+        milestoneId: 'ms-1',
+        financialEntitlementId: 'fe-1',
+        invoiceId: 'inv-2',
+        fundReservationId: 'fr-xref',
+        releaseType: 'PARTIAL',
+        requestedAmountMinor: 100_000,
+        currency: 'NGN',
+        status: 'DRAFT',
+        blockers: [],
+        requestedBy: ACTOR,
+        createdAt: stamp,
+      }),
+    );
+  }, 300_000);
+
   it('permits confirming a funding commitment, which Batch B converged but never wrote', async () => {
     await as(database, (store) =>
       store.replace('fundingCommitments', {

@@ -285,29 +285,29 @@ describe('Engine 01 identity assertions — assurance floor', () => {
 });
 
 describe('Engine 01 identity assertions — replay resistance', () => {
-  it('accepts an assertion once and rejects the same one again', () => {
+  it('accepts an assertion once and rejects the same one again', async () => {
     const store = new InMemoryAssertionReplayStore();
     const { token } = createIdentityAssertion(subject, keyring);
 
-    expect(consumeIdentityAssertion(token, keyring, store, { now: NOW }).nonce).toBeDefined();
-    expect(() => consumeIdentityAssertion(token, keyring, store, { now: NOW })).toThrow(
+    expect((await consumeIdentityAssertion(token, keyring, store, { now: NOW })).nonce).toBeDefined();
+    await expect(consumeIdentityAssertion(token, keyring, store, { now: NOW })).rejects.toThrow(
       'ASSERTION_REPLAYED',
     );
   });
 
-  it('treats two assertions for the same session as independent', () => {
+  it('treats two assertions for the same session as independent', async () => {
     const store = new InMemoryAssertionReplayStore();
     const first = createIdentityAssertion(subject, keyring);
     const second = createIdentityAssertion(subject, keyring);
 
-    expect(() => consumeIdentityAssertion(first.token, keyring, store, { now: NOW })).not.toThrow();
-    expect(() => consumeIdentityAssertion(second.token, keyring, store, { now: NOW })).not.toThrow();
+    await expect(consumeIdentityAssertion(first.token, keyring, store, { now: NOW })).resolves.toBeDefined();
+    await expect(consumeIdentityAssertion(second.token, keyring, store, { now: NOW })).resolves.toBeDefined();
   });
 
-  it('prunes consumed nonces once they expire, so the guard stays bounded', () => {
+  it('prunes consumed nonces once they expire, so the guard stays bounded', async () => {
     const store = new InMemoryAssertionReplayStore();
-    store.consumeIfAbsent('nonce-expired', new Date(NOW.getTime() - 1_000).toISOString(), NOW);
-    store.consumeIfAbsent('nonce-live', new Date(NOW.getTime() + 60_000).toISOString(), NOW);
+    await store.consumeIfAbsent('nonce-expired', new Date(NOW.getTime() - 1_000).toISOString(), NOW);
+    await store.consumeIfAbsent('nonce-live', new Date(NOW.getTime() + 60_000).toISOString(), NOW);
     expect(store.sizeAt(NOW)).toBe(1);
   });
 
@@ -315,33 +315,34 @@ describe('Engine 01 identity assertions — replay resistance', () => {
     expect(new InMemoryAssertionReplayStore().guarantee).toBe('process-local');
   });
 
-  it('reports whether the caller won the race, atomically', () => {
+  it('reports whether the caller won the race, atomically', async () => {
     // One operation, not check-then-insert: two concurrent callers cannot both
     // observe an absent nonce and both proceed.
     const store = new InMemoryAssertionReplayStore();
-    expect(store.consumeIfAbsent('n', new Date(NOW.getTime() + 1000).toISOString(), NOW)).toBe(true);
-    expect(store.consumeIfAbsent('n', new Date(NOW.getTime() + 1000).toISOString(), NOW)).toBe(false);
+    const expiresAt = new Date(NOW.getTime() + 1000).toISOString();
+    expect(await store.consumeIfAbsent('n', expiresAt, NOW)).toBe(true);
+    expect(await store.consumeIfAbsent('n', expiresAt, NOW)).toBe(false);
   });
 
-  it('prunes on the verifier clock, not wall-clock', () => {
+  it('prunes on the verifier clock, not wall-clock', async () => {
     // A guard pruning on its own clock would drop a nonce the verifier still
     // considers live, silently re-admitting the replay it exists to stop.
     const store = new InMemoryAssertionReplayStore();
     const { token } = createIdentityAssertion(subject, keyring);
 
-    consumeIdentityAssertion(token, keyring, store, { now: NOW });
-    expect(() => consumeIdentityAssertion(token, keyring, store, { now: NOW })).toThrow(
+    await consumeIdentityAssertion(token, keyring, store, { now: NOW });
+    await expect(consumeIdentityAssertion(token, keyring, store, { now: NOW })).rejects.toThrow(
       'ASSERTION_REPLAYED',
     );
   });
 
-  it('verifies without consuming, so inspection cannot burn an assertion', () => {
+  it('verifies without consuming, so inspection cannot burn an assertion', async () => {
     const store = new InMemoryAssertionReplayStore();
     const { token } = createIdentityAssertion(subject, keyring);
 
     verifyIdentityAssertion(token, keyring, { now: NOW });
     verifyIdentityAssertion(token, keyring, { now: NOW });
-    expect(() => consumeIdentityAssertion(token, keyring, store, { now: NOW })).not.toThrow();
+    await expect(consumeIdentityAssertion(token, keyring, store, { now: NOW })).resolves.toBeDefined();
   });
 });
 

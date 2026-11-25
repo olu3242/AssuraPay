@@ -381,6 +381,18 @@ export class EscrowFundingAssuranceEngine {
     const commitment = await get<FundingCommitment>(this.store, 'fundingCommitments', context, input.fundingCommitmentId);
     if (commitment.status !== 'CONFIRMED') throw new Error('FUNDING_COMMITMENT_NOT_CONFIRMED');
     const workspaceId = ws(context);
+    // A fast, well-named refusal — not the guarantee.
+    //
+    // This is a read-then-write: two concurrent reservations both read the same total, both pass
+    // here, and both would insert. The invariant is therefore enforced in the database, by
+    // `fund_reservations_within_commitment` (migration `202608110023`), which locks the parent
+    // commitment before summing so the second caller blocks and then sees the first. That trigger
+    // raises `FUND_RESERVATIONS_EXCEED_COMMITTED_FUNDS`, and it is what holds for a writer this
+    // engine never mediated.
+    //
+    // Kept because it gives the ordinary single-caller case a clear domain error instead of a raw
+    // database exception. Do not read it as the control: `docs/finance/MONETARY_INVARIANTS.md`
+    // forbids enforcing a monetary invariant only in TypeScript, and this one is not.
     const activeReserved = (await this.store
       .list<FundReservation>('fundReservations'))
       .filter((x) => x.workspaceId === workspaceId && x.fundingCommitmentId === commitment.id && x.status === 'RESERVED')
@@ -473,9 +485,45 @@ export class ConditionalReleaseOrchestrationEngine {
     );
     const invoice = await get<Invoice>(this.store, 'invoices', context, input.invoiceId);
     const reservation = await get<FundReservation>(this.store, 'fundReservations', context, input.fundReservationId);
+    // The three parents must describe one transaction.
+    //
+    // Nothing used to compare them, so milestone A's entitlement could authorise an amount that
+    // milestone B's reservation paid — with every constraint satisfied, because all three were real,
+    // in the right workspace and in the same currency. The money left the wrong pot and the invoice
+    // whose funds were taken still looked funded.
+    //
+    // Keyed in the database too, by `202608110025`, which is what holds for a writer this engine
+    // never mediated; these checks name the mismatch instead of surfacing a foreign-key violation.
+    if (reservation.invoiceId !== input.invoiceId)
+      throw new Error('RESERVATION_BELONGS_TO_ANOTHER_INVOICE');
+    if (invoice.financialEntitlementId !== input.financialEntitlementId)
+      throw new Error('INVOICE_BELONGS_TO_ANOTHER_ENTITLEMENT');
+    if (invoice.milestoneId !== input.milestoneId)
+      throw new Error('INVOICE_BELONGS_TO_ANOTHER_MILESTONE');
     if (input.releaseType === 'FULL' && input.requestedAmountMinor !== entitlement.netPayableAmountMinor)
       throw new Error('FULL_RELEASE_MUST_MATCH_ENTITLEMENT');
     if (input.requestedAmountMinor > reservation.reservedAmountMinor) throw new Error('REQUESTED_EXCEEDS_RESERVED');
+    // Against the reservation's *remaining* room, not just its total.
+    //
+    // Comparing one request with the whole reservation permits several requests that each fit and
+    // together do not, and nothing marks a reservation consumed — `releaseReservation` is a separate
+    // call no engine triggers — so the reservation stays RESERVED and backs them all. Three
+    // sequential 600,000 releases against 1,000,000 reserved used to pass here.
+    //
+    // Live means not CANCELLED: cancelling is how a claim is given back. As with reservations this is
+    // a read-then-write and therefore the fast, friendly refusal rather than the guarantee; the
+    // control is `release_requests_within_reservation` (migration `202608110024`), which locks the
+    // reservation before summing and holds for a writer this engine never mediated.
+    const liveRequested = (await this.store.list<ReleaseRequest>('releaseRequests'))
+      .filter(
+        (candidate) =>
+          candidate.workspaceId === ws(context) &&
+          candidate.fundReservationId === reservation.id &&
+          candidate.status !== 'CANCELLED',
+      )
+      .reduce((sum, candidate) => sum + candidate.requestedAmountMinor, 0);
+    if (liveRequested + input.requestedAmountMinor > reservation.reservedAmountMinor)
+      throw new Error('RELEASES_EXCEED_RESERVED_FUNDS');
     const request: ReleaseRequest = {
       id: randomUUID(),
       workspaceId: ws(context),

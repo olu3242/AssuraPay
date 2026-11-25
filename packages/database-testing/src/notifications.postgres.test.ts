@@ -91,6 +91,7 @@ const TASK_VARIABLES = {
   stepTitle: 'Independent release approval',
   requiredRole: 'RELEASE_APPROVER',
   flowReference: 'COMMERCIAL_COMMITMENT_FLOW / txn-1',
+  actionPath: '/approvals?task=task-1',
 };
 
 describe('integration: notification evidence survives PostgreSQL', () => {

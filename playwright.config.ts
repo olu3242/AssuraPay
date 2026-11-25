@@ -161,12 +161,18 @@ export default defineConfig({
       IDENTITY_ASSERTION_ACTIVE_KEY_ID: 'e2e',
       IDENTITY_ASSERTION_ISSUER: 'assurapay-e2e',
       IDENTITY_ASSERTION_AUDIENCE: 'assurapay-web',
-      // One process, so process-local replay protection is the accurate statement rather than a
-      // relaxation: `loadGatewayConfig` requires distributed replay protection under
-      // `NODE_ENV=production` precisely because a multi-instance deployment cannot detect replay
-      // in memory. This deployment is a single `next start`, which can. A horizontally scaled
-      // deployment must not set this, and the variable is named so that saying so is unavoidable.
-      IDENTITY_ASSERTION_ACCEPT_PROCESS_LOCAL_REPLAY: 'true',
+      // `IDENTITY_ASSERTION_ACCEPT_PROCESS_LOCAL_REPLAY` is deliberately *not* set.
+      //
+      // It used to be, with a note explaining that one `next start` can detect replay in memory.
+      // That was true and is no longer necessary: the replay store is now the shared
+      // `trust_assertion_nonces` table, so it reports a `distributed` guarantee and
+      // `loadGatewayConfig`'s production requirement is satisfied for real rather than waived.
+      //
+      // Leaving it unset makes this suite the end-to-end proof of that. `requireDistributedReplayProtection`
+      // is true here because `NODE_ENV=production` is set above, and `IdentityGateway` refuses to
+      // construct against a store whose guarantee is not `distributed` — so if the durable store
+      // were not wired, every authenticated request in this suite would fail at the gateway rather
+      // than pass. Re-adding this variable would hide exactly that regression.
     },
   },
 });

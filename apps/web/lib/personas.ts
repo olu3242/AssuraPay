@@ -44,6 +44,7 @@ export type PersonaId =
   | 'finance'
   | 'supplier'
   | 'customer'
+  | 'dispute-manager'
   | 'auditor';
 
 export type Persona = {
@@ -181,6 +182,28 @@ export const PERSONAS: readonly Persona[] = Object.freeze([
       'holds no execution or payment authority.',
     grants: ['deliverables:confirm'],
     mustNotHold: [CERTIFY, APPROVE_RELEASE, SUBMIT_PAYMENT],
+  },
+  {
+    id: 'dispute-manager',
+    title: 'Dispute Manager',
+    rationale:
+      'Handles contested execution end to end: cases, positions, evidence and the decision that closes them. ' +
+      'Holds no certification, release or payment authority, so a dispute outcome is never decided by whoever ' +
+      'benefits from releasing — and reads the releases and instructions under dispute without being able to ' +
+      'move either.',
+    grants: [
+      'disputes:create',
+      'disputes:add-evidence',
+      'disputes:add-position',
+      'disputes:decide',
+      'disputes:appeal',
+      'disputes:close',
+      'disputes:read',
+      'release-requests:read',
+      'payment-instructions:read',
+    ],
+    // Deciding a dispute must not carry the authority to act on its financial consequence.
+    mustNotHold: [CERTIFY, APPROVE_RELEASE, SUBMIT_PAYMENT, 'payment-instructions:reverse'],
   },
   {
     id: 'auditor',

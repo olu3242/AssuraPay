@@ -247,7 +247,7 @@ export class IdentityGateway {
   ): Promise<IdentityAssertionClaims> {
     const present = await this.requireToken(token, correlationId);
     try {
-      const claims = consumeIdentityAssertion(
+      const claims = await consumeIdentityAssertion(
         present,
         this.keyring,
         this.replayStore,

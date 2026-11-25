@@ -159,6 +159,9 @@ export class FlowNotificationDispatcher {
             stepTitle: this.stepTitle(flow.flowDefinitionId, stepTitles.get(task.stepInstanceId)),
             requiredRole: task.requiredRole,
             flowReference: this.reference(flow),
+            // The page that holds this decision, with the task marked in the recipient's own
+            // inbox. A path, not a URL: see the note on SIGN_OFF in templates.ts.
+            actionPath: `/approvals?task=${task.id}`,
           },
           subjectType: 'HumanTask',
           subjectId: task.id,
