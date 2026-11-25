@@ -1,0 +1,1934 @@
+@tailwind components;
+@tailwind utilities;
+
+#assurapay-landing {
+  --ap-bg: #fff;
+  --ap-surface: #fff;
+  --ap-soft: #f7f9fd;
+  --ap-text: #0f1b35;
+  --ap-muted: #58677f;
+  --ap-line: #e2e8f2;
+  --ap-primary: #2563eb;
+  --ap-light-blue: #edf4ff;
+  --ap-header: rgba(255, 255, 255, 0.88);
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
+  color: var(--ap-text);
+  background: var(--ap-bg);
+  font-size: 16px;
+  line-height: 1.6;
+  overflow: clip;
+  color-scheme: light;
+}
+#assurapay-landing[data-theme='dark'] {
+  --ap-bg: #0b1220;
+  --ap-surface: #111d31;
+  --ap-soft: #0e1829;
+  --ap-text: #edf3ff;
+  --ap-muted: #a6b5cd;
+  --ap-line: #29364e;
+  --ap-primary: #78a7ff;
+  --ap-light-blue: #172846;
+  --ap-header: rgba(11, 18, 32, 0.9);
+  color-scheme: dark;
+}
+#assurapay-landing *,
+#assurapay-landing *::before,
+#assurapay-landing *::after {
+  box-sizing: border-box;
+}
+#assurapay-landing :is(h1, h2, h3, h4, p) {
+  margin: 0;
+}
+#assurapay-landing :is(button, input, textarea) {
+  font: inherit;
+}
+#assurapay-landing button {
+  cursor: pointer;
+}
+#assurapay-landing button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+#assurapay-landing a {
+  text-decoration: none;
+}
+#assurapay-landing button {
+  color: inherit;
+}
+#assurapay-landing svg {
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+#assurapay-landing img {
+  display: block;
+}
+#assurapay-landing :focus-visible {
+  outline: 3px solid #538fff;
+  outline-offset: 4px;
+}
+#assurapay-landing [id] {
+  scroll-margin-top: 108px;
+}
+#assurapay-landing .ap-container {
+  width: min(1240px, 100% - 96px);
+  margin-inline: auto;
+}
+#assurapay-landing .ap-main {
+  max-width: none;
+  padding: 0;
+  margin: 0;
+}
+#assurapay-landing nav {
+  margin: 0;
+}
+#assurapay-landing .ap-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  clip: rect(0, 0, 0, 0);
+  overflow: hidden;
+  white-space: nowrap;
+}
+#assurapay-landing .ap-skip-link {
+  position: fixed;
+  z-index: 100;
+  top: 10px;
+  left: 20px;
+  background: var(--ap-surface);
+  padding: 12px;
+  transform: translateY(-150%);
+}
+#assurapay-landing .ap-skip-link:focus {
+  transform: translateY(0);
+}
+#assurapay-landing .ap-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: var(--ap-header);
+  border-bottom: 1px solid transparent;
+  backdrop-filter: blur(16px);
+  transition:
+    box-shadow 0.2s,
+    border-color 0.2s;
+}
+#assurapay-landing .ap-header-scrolled {
+  border-color: var(--ap-line);
+  box-shadow: 0 4px 24px #0b244408;
+}
+#assurapay-landing .ap-header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 88px;
+  gap: 24px;
+}
+#assurapay-landing .ap-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  flex-shrink: 0;
+}
+#assurapay-landing .ap-brand > span {
+  font-size: 25px;
+  font-weight: 750;
+  letter-spacing: -0.9px;
+}
+#assurapay-landing .ap-brand > span > span {
+  color: var(--ap-primary);
+}
+#assurapay-landing .ap-brand img {
+  object-fit: contain;
+}
+#assurapay-landing .ap-desktop-nav {
+  display: flex;
+  align-items: center;
+  gap: 29px;
+}
+#assurapay-landing .ap-desktop-nav a {
+  font-size: 14px;
+  font-weight: 550;
+  color: var(--ap-muted);
+}
+#assurapay-landing .ap-desktop-nav a:hover {
+  color: var(--ap-primary);
+}
+#assurapay-landing .ap-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 19px;
+}
+#assurapay-landing .ap-login {
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+#assurapay-landing .ap-button {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 50px;
+  padding: 12px 23px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.5;
+  transition:
+    transform 0.18s,
+    background 0.18s,
+    box-shadow 0.18s;
+  white-space: nowrap;
+}
+#assurapay-landing .ap-button:hover {
+  transform: translateY(-2px);
+}
+#assurapay-landing .ap-button:active {
+  transform: scale(0.95);
+}
+#assurapay-landing .ap-button-primary {
+  color: #fff;
+  background: #2563eb;
+  box-shadow: 0 4px 8px #2563eb17;
+}
+#assurapay-landing .ap-button-primary:hover {
+  background: #1d4ed8;
+  box-shadow: 0 6px 20px #2563eb26;
+}
+#assurapay-landing .ap-button-secondary {
+  background: transparent;
+  border-color: var(--ap-line);
+  color: var(--ap-text);
+}
+#assurapay-landing .ap-button-secondary:hover {
+  background: var(--ap-light-blue);
+  border-color: var(--ap-primary);
+}
+#assurapay-landing .ap-header-cta {
+  min-height: 42px;
+  padding: 10px 17px;
+  font-size: 13px;
+}
+#assurapay-landing .ap-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 43px;
+  height: 43px;
+  border: 1px solid var(--ap-line);
+  border-radius: 50%;
+  background: var(--ap-surface);
+  transition:
+    background 0.2s,
+    transform 0.2s;
+}
+#assurapay-landing .ap-icon-button:hover {
+  background: var(--ap-light-blue);
+}
+#assurapay-landing .ap-icon-button:active {
+  transform: scale(0.95);
+}
+#assurapay-landing .ap-theme-toggle {
+  width: 34px;
+  height: 34px;
+  border-color: transparent;
+  background: transparent;
+}
+#assurapay-landing .ap-menu-button {
+  display: none;
+}
+#assurapay-landing .ap-mobile-nav {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 24px 25px;
+  gap: 15px;
+  border-bottom: 1px solid var(--ap-line);
+}
+#assurapay-landing .ap-hero {
+  position: relative;
+  padding: 66px 0 64px;
+  background: radial-gradient(
+    ellipse at 87% 40%,
+    #dceaff85 0%,
+    transparent 55%
+  );
+}
+#assurapay-landing[data-theme='dark'] .ap-hero {
+  background: radial-gradient(
+    ellipse at 87% 40%,
+    #1d3c713f 0%,
+    transparent 60%
+  );
+}
+#assurapay-landing .ap-hero-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.05fr;
+  align-items: center;
+  gap: 68px;
+}
+#assurapay-landing .ap-hero-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #d4e3ff;
+  border-radius: 50px;
+  background: var(--ap-light-blue);
+  color: var(--ap-primary);
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+#assurapay-landing .ap-hero h1 {
+  font-size: clamp(48px, 4.75vw, 67px);
+  font-weight: 760;
+  letter-spacing: -3.4px;
+  line-height: 1.065;
+  margin-top: 24px;
+}
+#assurapay-landing .ap-hero h1 > span {
+  color: var(--ap-primary);
+}
+#assurapay-landing .ap-hero-description {
+  margin-top: 24px;
+  max-width: 465px;
+  font-size: 17px;
+  line-height: 1.85;
+  color: var(--ap-muted);
+}
+#assurapay-landing .ap-hero-buttons {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 29px;
+}
+#assurapay-landing .ap-hero-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--ap-muted);
+  margin-top: 13px;
+}
+#assurapay-landing .ap-hero-note svg {
+  color: #059669;
+}
+#assurapay-landing .ap-hero-proof {
+  display: flex;
+  gap: 13px;
+  align-items: center;
+  margin-top: 37px;
+  padding-top: 24px;
+  border-top: 1px solid var(--ap-line);
+  max-width: 385px;
+}
+#assurapay-landing .ap-proof-icon {
+  display: grid;
+  place-items: center;
+  color: #059669;
+  width: 39px;
+  height: 42px;
+  background: #10b9810d;
+  border-radius: 9px;
+}
+#assurapay-landing .ap-hero-proof p {
+  color: var(--ap-muted);
+  font-size: 12px;
+  line-height: 1.85;
+}
+#assurapay-landing .ap-hero-proof strong {
+  color: var(--ap-text);
+  font-weight: 600;
+}
+#assurapay-landing .ap-intake {
+  min-width: 0;
+}
+#assurapay-landing .ap-upload-panel {
+  background: var(--ap-surface);
+  border: 1px dashed #9bb9f2;
+  border-radius: 12px;
+  padding: 16px 19px 11px;
+  transition:
+    border-color 0.2s,
+    background 0.2s;
+}
+#assurapay-landing .ap-dragging {
+  background: var(--ap-light-blue);
+  border: 2px dashed #2563eb;
+}
+#assurapay-landing .ap-upload-target {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  text-align: left;
+}
+#assurapay-landing .ap-upload-icon {
+  width: 45px;
+  height: 45px;
+  display: grid;
+  place-items: center;
+  background: var(--ap-light-blue);
+  color: var(--ap-primary);
+  border-radius: 9px;
+  flex-shrink: 0;
+}
+#assurapay-landing .ap-upload-target strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 650;
+}
+#assurapay-landing .ap-upload-target small {
+  color: var(--ap-muted);
+  font-size: 12px;
+  display: block;
+  margin-top: 2px;
+}
+#assurapay-landing .ap-intake-options {
+  display: flex;
+  justify-content: flex-end;
+  gap: 18px;
+  padding-top: 8px;
+}
+#assurapay-landing .ap-intake-options button {
+  border: 0;
+  padding: 3px 0;
+  background: none;
+  color: var(--ap-primary);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+}
+#assurapay-landing .ap-file-error {
+  color: #dc2626;
+  font-size: 13px;
+  margin-top: 10px;
+}
+#assurapay-landing .ap-text-editor {
+  margin-top: 12px;
+}
+#assurapay-landing .ap-text-editor label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+}
+#assurapay-landing .ap-text-editor label span {
+  display: block;
+  color: var(--ap-muted);
+  font-weight: 400;
+}
+#assurapay-landing .ap-text-editor textarea {
+  background: var(--ap-soft);
+  color: var(--ap-text);
+  width: 100%;
+  resize: vertical;
+  min-height: 130px;
+  padding: 10px;
+  border: 1px solid var(--ap-line);
+  border-radius: 6px;
+  margin-top: 7px;
+  font: 12px/1.6 monospace;
+}
+#assurapay-landing .ap-text-editor > small {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ap-muted);
+  display: block;
+}
+#assurapay-landing .ap-intake-connector {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+  color: var(--ap-primary);
+  padding: 12px 0;
+  font-size: 12px;
+}
+#assurapay-landing .ap-intake-connector > span:first-child,
+#assurapay-landing .ap-intake-connector > span:last-child {
+  width: 20px;
+  height: 1px;
+  background: var(--ap-line);
+}
+#assurapay-landing .ap-room {
+  background: var(--ap-surface);
+  border: 1px solid var(--ap-line);
+  border-radius: 12px;
+  box-shadow:
+    0 14px 48px #213e7b10,
+    0 2px 4px #213e7b04;
+  overflow: hidden;
+}
+#assurapay-landing .ap-room-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 20px;
+  border-bottom: 1px solid var(--ap-line);
+  font-size: 12px;
+  font-weight: 650;
+}
+#assurapay-landing .ap-room-toolbar > span:first-child {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+#assurapay-landing .ap-room-mark {
+  color: var(--ap-primary);
+}
+#assurapay-landing .ap-sample-label {
+  padding: 3px 6px;
+  font-size: 12px;
+  line-height: 1.6;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  font-weight: 650;
+  color: var(--ap-muted);
+  border: 1px solid var(--ap-line);
+  border-radius: 4px;
+  white-space: nowrap;
+}
+#assurapay-landing .ap-room-body {
+  padding: 22px 21px 16px;
+}
+#assurapay-landing .ap-room-title-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+#assurapay-landing .ap-kicker {
+  font-size: 12px;
+  color: var(--ap-muted);
+  letter-spacing: 1.3px;
+  font-weight: 600;
+}
+#assurapay-landing .ap-room h2 {
+  font-size: 18px;
+  letter-spacing: -0.5px;
+  line-height: 1.35;
+  margin-top: 3px;
+  overflow-wrap: anywhere;
+}
+#assurapay-landing .ap-draft-pill {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--ap-light-blue);
+  color: var(--ap-primary);
+  font-size: 12px;
+  padding: 4px 7px;
+  border-radius: 30px;
+  white-space: nowrap;
+  margin-top: 4px;
+}
+#assurapay-landing .ap-room-parties {
+  display: grid;
+  grid-template-columns: 1fr 1px 1fr;
+  gap: 21px;
+  margin-top: 21px;
+}
+#assurapay-landing .ap-room-parties span {
+  display: block;
+  font-size: 12px;
+  color: var(--ap-muted);
+}
+#assurapay-landing .ap-room-parties strong {
+  display: block;
+  font-size: 12px;
+  font-weight: 550;
+  margin-top: 2px;
+  overflow-wrap: anywhere;
+}
+#assurapay-landing .ap-party-divider {
+  background: var(--ap-line);
+}
+#assurapay-landing .ap-room-value {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 0;
+  margin-top: 18px;
+  border-block: 1px solid var(--ap-line);
+  gap: 10px;
+}
+#assurapay-landing .ap-room-value > span:first-child {
+  font-size: 12px;
+  color: var(--ap-muted);
+}
+#assurapay-landing .ap-room-value strong {
+  font-size: 28px;
+  display: block;
+  line-height: 1.25;
+  color: var(--ap-text);
+  font-weight: 700;
+  letter-spacing: -0.8px;
+}
+#assurapay-landing .ap-room-value-note {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--ap-muted);
+}
+#assurapay-landing .ap-room-milestone-heading {
+  display: flex;
+  justify-content: space-between;
+  margin: 17px 0 9px;
+  font-size: 12px;
+}
+#assurapay-landing .ap-room-milestone-heading > span {
+  font-size: 12px;
+  color: var(--ap-muted);
+}
+#assurapay-landing .ap-room-milestone {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--ap-line);
+}
+#assurapay-landing .ap-room-milestone:last-child {
+  border-bottom: 0;
+}
+#assurapay-landing .ap-milestone-number {
+  font-size: 12px;
+  color: var(--ap-primary);
+  background: var(--ap-light-blue);
+  width: 25px;
+  height: 25px;
+  display: grid;
+  place-items: center;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+#assurapay-landing .ap-room-milestone > span:nth-child(2) {
+  flex: 1;
+  min-width: 0;
+}
+#assurapay-landing .ap-room-milestone strong {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+#assurapay-landing .ap-room-milestone small {
+  font-size: 12px;
+  color: var(--ap-muted);
+  display: block;
+  margin-top: 1px;
+}
+#assurapay-landing .ap-room-milestone b {
+  font-size: 12px;
+  white-space: nowrap;
+  font-weight: 650;
+}
+#assurapay-landing .ap-room-review {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 10px;
+  background: #10b9810c;
+  color: #047857;
+  border-radius: 5px;
+  font-size: 12px;
+  margin-top: 13px;
+}
+#assurapay-landing[data-theme='dark'] .ap-room-review {
+  color: #6ee7b7;
+}
+#assurapay-landing .ap-room-review > svg:last-child {
+  margin-left: auto;
+}
+#assurapay-landing .ap-room-footer {
+  padding: 10px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  color: var(--ap-muted);
+  font-size: 12px;
+  border-top: 1px solid var(--ap-line);
+  background: var(--ap-soft);
+}
+#assurapay-landing .ap-empty-milestones {
+  color: var(--ap-muted);
+  padding: 15px 0;
+  font-size: 12px;
+}
+#assurapay-landing .ap-intake-caption {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--ap-muted);
+  font-size: 12px;
+  padding-top: 17px;
+}
+#assurapay-landing .ap-caption-line {
+  width: 25px;
+  height: 1px;
+  background: var(--ap-line);
+}
+#assurapay-landing .ap-principle-strip {
+  border-block: 1px solid var(--ap-line);
+  background: var(--ap-soft);
+}
+#assurapay-landing .ap-principle-strip > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding-block: 24px;
+}
+#assurapay-landing .ap-principle-strip span {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 550;
+}
+#assurapay-landing .ap-principle-strip svg {
+  color: var(--ap-primary);
+}
+#assurapay-landing .ap-principle-strip .ap-strip-caption {
+  color: var(--ap-muted);
+  font-weight: 400;
+  font-size: 12px;
+}
+#assurapay-landing .ap-section {
+  padding-block: 92px;
+}
+#assurapay-landing .ap-eyebrow {
+  color: var(--ap-primary);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.7px;
+  display: block;
+  margin-bottom: 15px;
+}
+#assurapay-landing .ap-section h2 {
+  font-size: 39px;
+  line-height: 1.18;
+  font-weight: 720;
+  letter-spacing: -1.6px;
+}
+#assurapay-landing .ap-section-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 35px;
+  margin-bottom: 34px;
+}
+#assurapay-landing .ap-section-heading p {
+  color: var(--ap-muted);
+  font-size: 16px;
+  margin-top: 15px;
+  line-height: 1.8;
+}
+#assurapay-landing .ap-process-heading > p {
+  margin-bottom: 5px;
+  max-width: 400px;
+}
+#assurapay-landing .ap-process-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 23px;
+}
+#assurapay-landing .ap-process-card {
+  border: 1px solid var(--ap-line);
+  border-radius: 11px;
+  padding: 24px;
+  background: var(--ap-surface);
+}
+#assurapay-landing .ap-step {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ap-primary);
+}
+#assurapay-landing .ap-step > span {
+  color: var(--ap-muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1.1px;
+  font-weight: 600;
+}
+#assurapay-landing .ap-process-art {
+  margin: 23px 0 26px;
+  height: 138px;
+  background: var(--ap-soft);
+  border-radius: 7px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#assurapay-landing .ap-mini-document {
+  width: 76px;
+  height: 95px;
+  background: var(--ap-surface);
+  border: 1px solid var(--ap-line);
+  border-radius: 6px;
+  transform: rotate(-8deg);
+  padding: 13px;
+  box-shadow: 0 6px 12px #0f1b3507;
+  color: var(--ap-primary);
+}
+#assurapay-landing .ap-mini-document i {
+  display: block;
+  height: 3px;
+  background: var(--ap-line);
+  margin-top: 8px;
+  border-radius: 3px;
+}
+#assurapay-landing .ap-mini-document i:last-child {
+  width: 60%;
+}
+#assurapay-landing .ap-art-icon {
+  width: 36px;
+  height: 36px;
+  background: #2563eb;
+  color: white;
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+  margin-left: -5px;
+  z-index: 1;
+  margin-top: -30px;
+}
+#assurapay-landing .ap-art-chip {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  position: absolute;
+  bottom: 14px;
+  right: 15px;
+  border: 1px solid var(--ap-line);
+  border-radius: 5px;
+  background: var(--ap-surface);
+  padding: 5px 8px;
+  font-size: 12px;
+  color: var(--ap-primary);
+  box-shadow: 0 3px 6px #0f1b3505;
+}
+#assurapay-landing .ap-process-art-plan {
+  flex-direction: column;
+  gap: 7px;
+  padding: 18px;
+}
+#assurapay-landing .ap-mini-check {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 180px;
+  padding: 6px 9px;
+  border: 1px solid var(--ap-line);
+  background: var(--ap-surface);
+  font-size: 12px;
+  border-radius: 5px;
+}
+#assurapay-landing .ap-mini-check svg {
+  color: #059669;
+}
+#assurapay-landing .ap-mini-check-pending svg {
+  color: var(--ap-primary);
+}
+#assurapay-landing .ap-art-shield {
+  color: #059669;
+  padding: 15px;
+  background: #10b9810c;
+  border: 1px solid #10b98121;
+  border-radius: 21px;
+}
+#assurapay-landing .ap-process-art-release .ap-art-chip {
+  color: #047857;
+}
+#assurapay-landing .ap-process-card h3 {
+  font-size: 18px;
+  letter-spacing: -0.5px;
+  font-weight: 650;
+}
+#assurapay-landing .ap-process-card p {
+  color: var(--ap-muted);
+  font-size: 14px;
+  line-height: 1.85;
+  margin-top: 10px;
+}
+#assurapay-landing .ap-template-section {
+  background: var(--ap-soft);
+  border-top: 1px solid var(--ap-line);
+}
+#assurapay-landing .ap-carousel-controls {
+  display: flex;
+  gap: 9px;
+}
+#assurapay-landing .ap-template-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+#assurapay-landing .ap-template-tabs button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: 1px solid var(--ap-line);
+  padding: 10px 16px;
+  border-radius: 7px;
+  font-size: 12px;
+  color: var(--ap-muted);
+}
+#assurapay-landing .ap-template-tabs button[aria-pressed='true'] {
+  background: var(--ap-surface);
+  color: var(--ap-primary);
+  border-color: var(--ap-primary);
+  box-shadow: 0 2px 5px #0f1b3505;
+}
+#assurapay-landing .ap-carousel-shell {
+  border: 1px solid var(--ap-line);
+  border-radius: 13px;
+  background: var(--ap-surface);
+  box-shadow: 0 12px 36px #0f1b3505;
+  overflow: hidden;
+}
+#assurapay-landing .ap-template-slide {
+  padding: 31px;
+}
+#assurapay-landing .ap-template-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--ap-line);
+}
+#assurapay-landing .ap-template-top h3 {
+  font-size: 22px;
+  letter-spacing: -0.6px;
+  line-height: 1.35;
+}
+#assurapay-landing .ap-template-icon {
+  display: grid;
+  place-items: center;
+  color: var(--ap-primary);
+  width: 51px;
+  height: 51px;
+  background: var(--ap-surface);
+  border: 1px solid var(--ap-line);
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+#assurapay-landing .ap-template-badge {
+  display: inline-block;
+  border: 1px solid;
+  border-radius: 5px;
+  font-size: 12px;
+  padding: 2px 6px;
+  margin-top: 7px;
+  font-weight: 600;
+}
+#assurapay-landing .ap-small-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 9px;
+  color: var(--ap-muted);
+  font-size: 12px;
+  background: var(--ap-surface);
+  border-radius: 5px;
+  border: 1px solid var(--ap-line);
+}
+#assurapay-landing .ap-small-tag svg {
+  color: #059669;
+}
+#assurapay-landing .ap-template-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.25fr;
+  gap: 47px;
+  padding-top: 27px;
+}
+#assurapay-landing .ap-template-description > p {
+  color: var(--ap-muted);
+  font-size: 14px;
+  line-height: 1.85;
+  min-height: 79px;
+}
+#assurapay-landing .ap-template-detail {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  margin-top: 20px;
+}
+#assurapay-landing .ap-template-detail > svg {
+  color: var(--ap-primary);
+  margin-top: 4px;
+}
+#assurapay-landing .ap-template-detail span {
+  display: block;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: var(--ap-muted);
+  margin-bottom: 4px;
+}
+#assurapay-landing .ap-template-detail strong {
+  font-size: 12px;
+  display: block;
+  font-weight: 550;
+}
+#assurapay-landing .ap-template-description > button {
+  margin-top: 25px;
+  min-height: 44px;
+}
+#assurapay-landing .ap-milestone-preview {
+  background: var(--ap-surface);
+  border: 1px solid var(--ap-line);
+  border-radius: 9px;
+  padding: 20px;
+  align-self: start;
+}
+#assurapay-landing .ap-preview-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+#assurapay-landing .ap-preview-heading > span:first-child {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1.15px;
+  font-weight: 650;
+}
+#assurapay-landing .ap-preview-hint {
+  font-size: 12px;
+  color: var(--ap-muted);
+  margin-top: 5px;
+}
+#assurapay-landing .ap-template-milestones {
+  display: grid;
+  gap: 9px;
+  margin-top: 17px;
+}
+#assurapay-landing .ap-template-milestone {
+  width: 100%;
+  background: var(--ap-soft);
+  border: 1px solid var(--ap-line);
+  border-radius: 7px;
+  padding: 12px 10px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  text-align: left;
+  transition:
+    border-color 0.2s,
+    background 0.2s;
+}
+#assurapay-landing .ap-template-milestone:hover {
+  border-color: var(--ap-primary);
+  background: var(--ap-light-blue);
+}
+#assurapay-landing .ap-status-completed {
+  color: #059669;
+}
+#assurapay-landing .ap-status-in_progress {
+  color: var(--ap-primary);
+}
+#assurapay-landing .ap-status-pending {
+  color: var(--ap-muted);
+}
+#assurapay-landing .ap-milestone-name {
+  flex: 1;
+  min-width: 0;
+}
+#assurapay-landing .ap-milestone-name strong {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+}
+#assurapay-landing .ap-milestone-name small {
+  display: block;
+  font-size: 12px;
+  color: var(--ap-muted);
+  margin-top: 2px;
+}
+#assurapay-landing .ap-milestone-amount {
+  padding: 3px 7px;
+  background: var(--ap-surface);
+  border: 1px solid var(--ap-line);
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+#assurapay-landing .ap-progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--ap-muted);
+  margin: 19px 0 8px;
+}
+#assurapay-landing .ap-progress-label strong {
+  color: var(--ap-primary);
+}
+#assurapay-landing .ap-progress-track {
+  background: var(--ap-line);
+  height: 5px;
+  border-radius: 9px;
+  overflow: hidden;
+}
+#assurapay-landing .ap-progress-track > div {
+  height: 100%;
+  background: #2563eb;
+  border-radius: inherit;
+}
+#assurapay-landing .ap-preview-footnote {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--ap-muted);
+  margin-top: 12px;
+}
+#assurapay-landing .ap-carousel-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 30px;
+  border-top: 1px solid var(--ap-line);
+  background: var(--ap-surface);
+  font-size: 12px;
+  font-weight: 650;
+}
+#assurapay-landing .ap-carousel-dots {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+}
+#assurapay-landing .ap-carousel-dots button {
+  width: 24px;
+  height: 26px;
+  padding: 8px;
+  background: none;
+  border: 0;
+}
+#assurapay-landing .ap-carousel-dots button::after {
+  content: '';
+  display: block;
+  width: 8px;
+  height: 8px;
+  background: var(--ap-line);
+  border-radius: 9px;
+  transition:
+    width 0.2s,
+    background 0.2s;
+}
+#assurapay-landing .ap-carousel-dots button[aria-current] {
+  width: 42px;
+}
+#assurapay-landing .ap-carousel-dots button[aria-current]::after {
+  width: 26px;
+  background: #2563eb;
+}
+#assurapay-landing .ap-muted {
+  color: var(--ap-muted);
+}
+#assurapay-landing .ap-trust {
+  background: #0e1c36;
+  color: #fff;
+  padding: 85px 0 33px;
+}
+#assurapay-landing .ap-trust-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 44px 85px;
+  align-items: center;
+}
+#assurapay-landing .ap-trust .ap-eyebrow {
+  color: #8eb8ff;
+}
+#assurapay-landing .ap-trust h2 {
+  font-size: 43px;
+  line-height: 1.18;
+  font-weight: 700;
+  letter-spacing: -1.7px;
+}
+#assurapay-landing .ap-trust h2 > span {
+  color: #8eb8ff;
+}
+#assurapay-landing .ap-trust-copy > p {
+  color: #b8c6dd;
+  font-size: 15px;
+  line-height: 1.85;
+  max-width: 440px;
+  margin-top: 22px;
+}
+#assurapay-landing .ap-trust-principles {
+  display: grid;
+  gap: 14px;
+  margin-top: 28px;
+}
+#assurapay-landing .ap-trust-principles > span {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: #d5e0f3;
+}
+#assurapay-landing .ap-trust-principles svg {
+  color: #88b4ff;
+}
+#assurapay-landing .ap-governance-card {
+  background: #172842;
+  border: 1px solid #31415b;
+  border-radius: 12px;
+  padding: 9px;
+}
+#assurapay-landing .ap-governance-tabs {
+  display: flex;
+  padding: 4px;
+  border-radius: 7px;
+  background: #101e35;
+  gap: 4px;
+}
+#assurapay-landing .ap-governance-tabs button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex: 1;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  padding: 10px;
+  color: #b7c8e1;
+  font-size: 12px;
+  background: transparent;
+}
+#assurapay-landing .ap-governance-tabs button[aria-selected='true'] {
+  background: #2a3c59;
+  border-color: #415472;
+  color: #fff;
+  box-shadow: 0 2px 5px #0001;
+}
+#assurapay-landing .ap-governance-panel {
+  padding: 27px 22px 15px;
+  min-height: 348px;
+}
+#assurapay-landing .ap-governance-icon {
+  display: grid;
+  place-items: center;
+  width: 51px;
+  height: 51px;
+  background: #2563eb24;
+  color: #9bbfff;
+  border: 1px solid #2563eb40;
+  border-radius: 12px;
+  margin-bottom: 18px;
+}
+#assurapay-landing .ap-governance-panel h3 {
+  font-size: 21px;
+  letter-spacing: -0.5px;
+}
+#assurapay-landing .ap-governance-panel p {
+  font-size: 13px;
+  color: #bccbe1;
+  margin-top: 10px;
+  line-height: 1.8;
+}
+#assurapay-landing .ap-governance-panel ul {
+  padding: 0;
+  margin: 20px 0;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+}
+#assurapay-landing .ap-governance-panel li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+#assurapay-landing .ap-governance-panel li svg {
+  color: #6ee7b7;
+}
+#assurapay-landing .ap-governance-boundary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-top: 1px solid #34445d;
+  padding-top: 15px;
+  font-size: 12px;
+  color: #b6c6e0;
+}
+#assurapay-landing .ap-security-badges {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  padding-top: 28px;
+  border-top: 1px solid #2a3b57;
+}
+#assurapay-landing .ap-security-badges > div {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+#assurapay-landing .ap-security-badges svg {
+  color: #9db9e7;
+}
+#assurapay-landing .ap-security-badges strong {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+}
+#assurapay-landing .ap-security-badges small {
+  display: block;
+  font-size: 12px;
+  color: #acbdd6;
+  margin-top: 3px;
+}
+#assurapay-landing .ap-security-badges > p {
+  grid-column: 1 / -1;
+  color: #aabbd4;
+  font-size: 12px;
+  text-align: center;
+  line-height: 1.7;
+}
+#assurapay-landing .ap-faq {
+  display: grid;
+  grid-template-columns: 0.8fr 1.2fr;
+  gap: 90px;
+}
+#assurapay-landing .ap-faq > div > p {
+  margin-top: 18px;
+  font-size: 15px;
+  color: var(--ap-muted);
+  max-width: 320px;
+}
+#assurapay-landing .ap-faq-list details {
+  border-bottom: 1px solid var(--ap-line);
+  padding: 21px 0;
+}
+#assurapay-landing .ap-faq-list details:first-child {
+  padding-top: 0;
+}
+#assurapay-landing .ap-faq-list summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  font-size: 15px;
+  font-weight: 600;
+}
+#assurapay-landing .ap-faq-list summary::-webkit-details-marker {
+  display: none;
+}
+#assurapay-landing .ap-faq-list summary svg {
+  transition: transform 0.2s;
+  color: var(--ap-muted);
+}
+#assurapay-landing .ap-faq-list details[open] summary svg {
+  transform: rotate(180deg);
+}
+#assurapay-landing .ap-faq-list details p {
+  color: var(--ap-muted);
+  font-size: 14px;
+  line-height: 1.9;
+  margin-top: 14px;
+}
+#assurapay-landing .ap-final-cta {
+  text-align: center;
+  padding: 68px 0 77px;
+  background: var(--ap-light-blue);
+  border-block: 1px solid var(--ap-line);
+}
+#assurapay-landing .ap-final-cta h2 {
+  font-size: 44px;
+  line-height: 1.16;
+  letter-spacing: -1.7px;
+  font-weight: 740;
+}
+#assurapay-landing .ap-final-cta p {
+  color: var(--ap-muted);
+  font-size: 15px;
+  margin-top: 18px;
+}
+#assurapay-landing .ap-final-cta .ap-hero-buttons {
+  justify-content: center;
+}
+#assurapay-landing .ap-footer {
+  padding-top: 48px;
+}
+#assurapay-landing .ap-footer-top {
+  display: grid;
+  grid-template-columns: 1.8fr 1fr 1fr;
+  gap: 50px;
+  padding-bottom: 38px;
+}
+#assurapay-landing .ap-footer-top > div > p {
+  color: var(--ap-muted);
+  font-size: 12px;
+  line-height: 1.85;
+  margin-top: 13px;
+}
+#assurapay-landing .ap-footer nav {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  align-items: flex-start;
+  font-size: 12px;
+}
+#assurapay-landing .ap-footer nav > strong {
+  color: var(--ap-text);
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+#assurapay-landing .ap-footer nav > a {
+  color: var(--ap-muted);
+}
+#assurapay-landing .ap-footer nav > a:hover {
+  color: var(--ap-primary);
+}
+#assurapay-landing .ap-footer-bottom {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  border-top: 1px solid var(--ap-line);
+  padding-block: 20px;
+  font-size: 12px;
+  color: var(--ap-muted);
+}
+#assurapay-landing .ap-footer-bottom > div {
+  display: flex;
+  gap: 21px;
+}
+@media (min-width: 1600px) {
+  #assurapay-landing .ap-hero {
+    padding-block: 85px;
+  }
+}
+@media (max-width: 1100px) {
+  #assurapay-landing .ap-container {
+    width: calc(100% - 56px);
+  }
+  #assurapay-landing .ap-desktop-nav {
+    gap: 17px;
+  }
+  #assurapay-landing .ap-desktop-nav a {
+    font-size: 12px;
+  }
+  #assurapay-landing .ap-header-actions {
+    gap: 12px;
+  }
+  #assurapay-landing .ap-hero-grid {
+    gap: 30px;
+  }
+  #assurapay-landing .ap-hero h1 {
+    font-size: 52px;
+    letter-spacing: -2.6px;
+  }
+  #assurapay-landing .ap-hero-description {
+    font-size: 16px;
+  }
+  #assurapay-landing .ap-strip-caption {
+    display: none;
+  }
+  #assurapay-landing .ap-template-grid {
+    gap: 28px;
+  }
+  #assurapay-landing .ap-trust-grid {
+    gap: 40px;
+  }
+  #assurapay-landing .ap-small-tag {
+    max-width: 190px;
+  }
+}
+@media (max-width: 800px) {
+  #assurapay-landing .ap-header-inner {
+    min-height: 76px;
+  }
+  #assurapay-landing .ap-desktop-nav,
+  #assurapay-landing .ap-header-cta {
+    display: none;
+  }
+  #assurapay-landing .ap-menu-button {
+    display: inline-flex;
+  }
+  #assurapay-landing .ap-hero {
+    padding-block: 40px 47px;
+  }
+  #assurapay-landing .ap-hero-grid {
+    grid-template-columns: 1fr;
+    gap: 35px;
+    max-width: 620px;
+  }
+  #assurapay-landing .ap-hero h1 {
+    font-size: clamp(45px, 7.5vw, 62px);
+  }
+  #assurapay-landing .ap-desktop-break {
+    display: none;
+  }
+  #assurapay-landing .ap-hero-description {
+    max-width: 520px;
+  }
+  #assurapay-landing .ap-hero-proof {
+    margin-top: 22px;
+    padding-top: 18px;
+  }
+  #assurapay-landing .ap-principle-strip > div {
+    gap: 13px;
+    padding-block: 18px;
+  }
+  #assurapay-landing .ap-principle-strip span {
+    font-size: 12px;
+    gap: 7px;
+  }
+  #assurapay-landing .ap-principle-strip svg {
+    width: 15px;
+  }
+  #assurapay-landing .ap-section {
+    padding-block: 62px;
+  }
+  #assurapay-landing .ap-section h2 {
+    font-size: 34px;
+  }
+  #assurapay-landing .ap-process-heading {
+    align-items: flex-start;
+  }
+  #assurapay-landing .ap-process-heading > p {
+    max-width: 260px;
+    font-size: 14px;
+  }
+  #assurapay-landing .ap-process-grid {
+    gap: 12px;
+  }
+  #assurapay-landing .ap-process-card {
+    padding: 16px;
+  }
+  #assurapay-landing .ap-process-card h3 {
+    font-size: 17px;
+  }
+  #assurapay-landing .ap-process-card p {
+    font-size: 13px;
+  }
+  #assurapay-landing .ap-process-art {
+    height: 120px;
+  }
+  #assurapay-landing .ap-step {
+    align-items: flex-start;
+  }
+  #assurapay-landing .ap-step > span {
+    font-size: 12px;
+  }
+  #assurapay-landing .ap-mini-check {
+    width: 100%;
+    font-size: 12px;
+    padding: 5px;
+    gap: 4px;
+  }
+  #assurapay-landing .ap-art-chip {
+    right: 5px;
+    font-size: 12px;
+    padding: 3px 4px;
+  }
+  #assurapay-landing .ap-template-grid {
+    grid-template-columns: 1fr;
+  }
+  #assurapay-landing .ap-template-description > p {
+    min-height: auto;
+  }
+  #assurapay-landing .ap-template-slide {
+    padding: 24px;
+  }
+  #assurapay-landing .ap-template-top h3 {
+    font-size: 20px;
+  }
+  #assurapay-landing .ap-template-top {
+    flex-wrap: wrap;
+  }
+  #assurapay-landing .ap-small-tag {
+    max-width: none;
+  }
+  #assurapay-landing .ap-template-tabs {
+    gap: 7px;
+  }
+  #assurapay-landing .ap-template-tabs button {
+    padding: 9px 11px;
+    font-size: 12px;
+  }
+  #assurapay-landing .ap-trust {
+    padding-top: 60px;
+  }
+  #assurapay-landing .ap-trust-grid {
+    grid-template-columns: 1fr;
+  }
+  #assurapay-landing .ap-trust h2 {
+    font-size: 38px;
+  }
+  #assurapay-landing .ap-security-badges {
+    gap: 22px 16px;
+  }
+  #assurapay-landing .ap-security-badges > div {
+    align-items: flex-start;
+    gap: 8px;
+  }
+  #assurapay-landing .ap-security-badges svg {
+    width: 19px;
+  }
+  #assurapay-landing .ap-security-badges strong {
+    font-size: 12px;
+  }
+  #assurapay-landing .ap-security-badges small {
+    font-size: 12px;
+  }
+  #assurapay-landing .ap-faq {
+    gap: 35px;
+    grid-template-columns: 1fr;
+  }
+  #assurapay-landing .ap-faq > div > p {
+    max-width: none;
+  }
+}
+@media (max-width: 540px) {
+  #assurapay-landing .ap-container {
+    width: calc(100% - 40px);
+  }
+  #assurapay-landing .ap-header-inner {
+    gap: 10px;
+    min-height: 70px;
+  }
+  #assurapay-landing .ap-brand > span {
+    font-size: 22px;
+  }
+  #assurapay-landing .ap-brand img {
+    width: 24px;
+    height: 33px;
+  }
+  #assurapay-landing .ap-header-actions {
+    gap: 8px;
+  }
+  #assurapay-landing .ap-login {
+    font-size: 12px;
+  }
+  #assurapay-landing .ap-menu-button {
+    width: 34px;
+    height: 34px;
+  }
+  #assurapay-landing .ap-hero h1 {
+    font-size: 46px;
+    letter-spacing: -2.3px;
+    margin-top: 19px;
+  }
+  #assurapay-landing .ap-hero-description {
+    margin-top: 20px;
+    font-size: 16px;
+    line-height: 1.75;
+  }
+  #assurapay-landing .ap-button {
+    padding: 12px 17px;
+    font-size: 13px;
+  }
+  #assurapay-landing .ap-hero-buttons {
+    gap: 9px;
+  }
+  #assurapay-landing .ap-hero-proof {
+    max-width: none;
+  }
+  #assurapay-landing .ap-upload-panel {
+    padding: 13px;
+  }
+  #assurapay-landing .ap-upload-target {
+    gap: 9px;
+  }
+  #assurapay-landing .ap-upload-target strong {
+    font-size: 13px;
+  }
+  #assurapay-landing .ap-upload-target small {
+    font-size: 12px;
+  }
+  #assurapay-landing .ap-upload-icon {
+    width: 37px;
+    height: 40px;
+  }
+  #assurapay-landing .ap-room-toolbar {
+    padding-inline: 14px;
+  }
+  #assurapay-landing .ap-room-body {
+    padding: 17px 14px 13px;
+  }
+  #assurapay-landing .ap-room h2 {
+    font-size: 16px;
+  }
+  #assurapay-landing .ap-room-title-row {
+    gap: 8px;
+  }
+  #assurapay-landing .ap-draft-pill {
+    font-size: 12px;
+    padding: 4px 5px;
+  }
+  #assurapay-landing .ap-room-parties {
+    gap: 12px;
+  }
+  #assurapay-landing .ap-room-value strong {
+    font-size: 25px;
+  }
+  #assurapay-landing .ap-room-value-note {
+    font-size: 12px;
+  }
+  #assurapay-landing .ap-room-milestone {
+    gap: 7px;
+  }
+  #assurapay-landing .ap-room-milestone strong {
+    font-size: 12px;
+  }
+  #assurapay-landing .ap-room-milestone small {
+    font-size: 12px;
+  }
+  #assurapay-landing .ap-room-milestone b {
+    font-size: 12px;
+  }
+  #assurapay-landing .ap-room-footer {
+    font-size: 12px;
+  }
+  #assurapay-landing .ap-principle-strip > div {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px 18px;
+  }
+  #assurapay-landing .ap-principle-strip span {
+    font-size: 12px;
+  }
+  #assurapay-landing .ap-section h2 {
+    font-size: 32px;
+    letter-spacing: -1.1px;
+  }
+  #assurapay-landing .ap-eyebrow {
+    font-size: 12px;
+    letter-spacing: 1.4px;
+  }
+  #assurapay-landing .ap-section-heading {
+    gap: 18px;
+    margin-bottom: 26px;
+  }
+  #assurapay-landing .ap-section-heading p {
+    font-size: 14px;
+  }
+  #assurapay-landing .ap-process-heading {
+    flex-direction: column;
+  }
+  #assurapay-landing .ap-process-heading > p {
+    max-width: none;
+    margin-top: 0;
+  }
+  #assurapay-landing .ap-process-grid {
+    grid-template-columns: 1fr;
+    gap: 17px;
+  }
+  #assurapay-landing .ap-process-card {
+    padding: 22px;
+  }
+  #assurapay-landing .ap-process-card h3 {
+    font-size: 20px;
+  }
+  #assurapay-landing .ap-process-card p {
+    font-size: 15px;
+  }
+  #assurapay-landing .ap-step > span {
+    font-size: 12px;
+  }
+  #assurapay-landing .ap-process-art {
+    height: 135px;
+  }
+  #assurapay-landing .ap-mini-check {
+    max-width: 190px;
+    font-size: 12px;
+    padding: 5px 10px;
+    gap: 7px;
+  }
+  #assurapay-landing .ap-art-chip {
+    font-size: 12px;
+    padding: 4px 7px;
+    right: 15px;
+  }
+  #assurapay-landing .ap-carousel-controls {
+    align-self: flex-end;
+  }
+  #assurapay-landing .ap-carousel-controls .ap-icon-button {
+    width: 35px;
+    height: 35px;
+  }
+  #assurapay-landing .ap-template-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  #assurapay-landing .ap-template-tabs button {
+    padding: 10px;
+    justify-content: center;
+  }
+  #assurapay-landing .ap-template-slide {
+    padding: 18px;
+  }
+  #assurapay-landing .ap-template-top h3 {
+    font-size: 18px;
+  }
+  #assurapay-landing .ap-template-icon {
+    width: 42px;
+    height: 44px;
+  }
+  #assurapay-landing .ap-template-top {
+    gap: 14px;
+    padding-bottom: 18px;
+  }
+  #assurapay-landing .ap-template-grid {
+    gap: 23px;
+    padding-top: 18px;
+  }
+  #assurapay-landing .ap-template-description > p {
+    font-size: 15px;
+  }
+  #assurapay-landing .ap-template-detail strong {
+    font-size: 13px;
+  }
+  #assurapay-landing .ap-milestone-preview {
+    padding: 13px;
+  }
+  #assurapay-landing .ap-preview-heading {
+    gap: 5px;
+  }
+  #assurapay-landing .ap-preview-heading > span:first-child {
+    font-size: 12px;
+  }
+  #assurapay-landing .ap-milestone-name strong {
+    font-size: 12px;
+  }
+  #assurapay-landing .ap-template-milestone {
+    padding: 11px 7px;
+    gap: 7px;
+  }
+  #assurapay-landing .ap-milestone-amount {
+    font-size: 12px;
+    padding: 3px 5px;
+  }
+  #assurapay-landing .ap-status-icon svg {
+    width: 17px;
+  }
+  #assurapay-landing .ap-carousel-footer {
+    padding-inline: 17px;
+  }
+  #assurapay-landing .ap-trust h2 {
+    font-size: 35px;
+  }
+  #assurapay-landing .ap-governance-tabs button {
+    font-size: 12px;
+    padding: 10px 5px;
+    gap: 5px;
+  }
+  #assurapay-landing .ap-governance-panel {
+    padding: 22px 14px 15px;
+    min-height: 380px;
+  }
+  #assurapay-landing .ap-security-badges {
+    grid-template-columns: 1fr;
+  }
+  #assurapay-landing .ap-security-badges strong {
+    font-size: 13px;
+  }
+  #assurapay-landing .ap-security-badges small {
+    font-size: 12px;
+  }
+  #assurapay-landing .ap-security-badges > div {
+    align-items: center;
+    gap: 12px;
+  }
+  #assurapay-landing .ap-security-badges > p {
+    font-size: 12px;
+    text-align: left;
+  }
+  #assurapay-landing .ap-final-cta h2 {
+    font-size: 36px;
+  }
+  #assurapay-landing .ap-footer-top {
+    grid-template-columns: 1fr 1fr;
+    gap: 30px 20px;
+  }
+  #assurapay-landing .ap-footer-top > div:first-child {
+    grid-column: 1 / -1;
+  }
+  #assurapay-landing .ap-footer nav {
+    font-size: 12px;
+  }
+  #assurapay-landing .ap-footer-bottom {
+    flex-direction: column;
+    gap: 12px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #assurapay-landing *,
+  #assurapay-landing *::before,
+  #assurapay-landing *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Keep the interactive preview readable at every viewport size. */
+#assurapay-landing
+  :is(
+    .ap-process-card p,
+    .ap-template-description > p,
+    .ap-governance-panel p,
+    .ap-faq-list details p,
+    .ap-faq > div > p,
+    .ap-final-cta p
+  ) {
+  font-size: 16px;
+}
+#assurapay-landing
+  :is(
+    .ap-room-milestone strong,
+    .ap-room-milestone b,
+    .ap-room-parties strong,
+    .ap-milestone-name strong,
+    .ap-milestone-amount,
+    .ap-template-detail strong,
+    .ap-governance-panel li,
+    .ap-governance-tabs button,
+    .ap-template-tabs button,
+    .ap-footer nav,
+    .ap-footer-top > div > p
+  ) {
+  font-size: 14px;
+}
+#assurapay-landing .ap-room-milestone {
+  align-items: flex-start;
+}
+#assurapay-landing .ap-room-milestone b {
+  margin-top: 1px;
+}
+#assurapay-landing .ap-room h2 {
+  color: var(--ap-text);
+}
+#assurapay-landing[data-theme='dark'] .ap-process-art-release .ap-art-chip {
+  color: #6ee7b7;
+}

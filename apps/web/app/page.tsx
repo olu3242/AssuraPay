@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
-import PreferredLanding from '../src/components/preferred-landing/PreferredLanding';
-import '../src/components/preferred-landing/landing.css';
+import AssuraPayLanding from '../src/components/assurapay/AssuraPayLanding';
+import '../src/components/assurapay/landing.css';
 
 export const metadata: Metadata = {
   title: 'AssuraPay | Clear Agreements. Confident Payments.',
@@ -9,5 +9,5 @@ export const metadata: Metadata = {
 };
 
 export default function Home() {
-  return <PreferredLanding />;
+  return <AssuraPayLanding />;
 }
