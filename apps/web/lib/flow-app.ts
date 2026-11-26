@@ -8,7 +8,10 @@ import {
 import {
   FlowNotificationDispatcher,
   NotificationEngine,
+  createSmtpTransport,
+  loadSmtpConfig,
   unconfiguredEmailTransport,
+  type NotificationTransport,
 } from '@assurapay/notifications';
 import type { RequestContext } from '@assurapay/shared';
 import { getPersistenceRuntime, trustStore } from './persistence';
@@ -49,21 +52,43 @@ export const flowSignalRelay = new FlowSignalRelay(
 );
 
 /**
+ * The email transport this deployment sends through.
+ *
+ * SMTP when `ASSURAPAY_SMTP_HOST` and `ASSURAPAY_SMTP_FROM` are set; `unconfiguredEmailTransport`
+ * otherwise. The second is the honest state rather than a broken one: every notification is still
+ * raised and still durable, and `deliverPending` records a `FAILED` naming
+ * `NOTIFICATION_TRANSPORT_NOT_CONFIGURED`, so an operator can see exactly how many obligations are
+ * waiting on a relay nobody configured.
+ *
+ * **It does not catch up.** `deliverPending` selects `status === 'PENDING'` only, so a notification
+ * that failed is never attempted again — configuring a relay makes *subsequent* notifications
+ * deliverable and leaves the earlier ones failed for ever. `transport.ts` and an earlier version of
+ * this comment both claimed the backlog became deliverable on the next pass; it does not, and
+ * `notifications.test.ts` has always asserted the narrower truth ("does not resend an already
+ * delivered notification") without anyone noticing the gap between it and the prose.
+ *
+ * Closing it means a bounded retry — a delivery-attempt count on the record, so a relay outage is
+ * retried and a recipient the relay permanently rejected is not. That is a change to the engine's
+ * record shape and is deliberately not smuggled in here.
+ *
+ * A *half*-configured relay throws instead, from `loadSmtpConfig`. That is deliberate and it is the
+ * one case that stops the module loading: an operator who set two of the four variables believes
+ * mail is working, and silently behaving like an unconfigured deployment would hide that from them
+ * until someone noticed nothing had arrived.
+ */
+function emailTransport(): NotificationTransport {
+  const smtp = loadSmtpConfig(process.env);
+  return smtp ? createSmtpTransport(smtp) : unconfiguredEmailTransport;
+}
+
+/**
  * Engine 09, composed for this deployment.
  *
- * The transport is `unconfiguredEmailTransport`, because no email provider is configured for this
- * repository. That is a deliberate, visible state rather than a silent one: every notification is
- * raised and stays durable, and `deliverPending` records an honest `FAILED` naming
- * `NOTIFICATION_TRANSPORT_NOT_CONFIGURED`. Configuring a real transport makes the queue deliverable
- * on the next pass rather than having lost anything.
- *
- * Registering one is a deployment change: implement `NotificationTransport` beside whatever
- * credential handling the provider needs and swap it in here.
+ * The engine was complete before this: versioned templates, masked recipients,
+ * verified-address-only delivery, idempotency, suppression and per-subject delivery evidence. What
+ * it lacked was anything to send through, which is what `emailTransport` now supplies.
  */
-export const notificationEngine = new NotificationEngine(
-  trustStore,
-  unconfiguredEmailTransport,
-);
+export const notificationEngine = new NotificationEngine(trustStore, emailTransport());
 
 /**
  * The dispatcher that raises notifications from changes in the flow process.
@@ -103,10 +128,50 @@ export const flowNotifications = new FlowNotificationDispatcher(
  * retried on the next pass. Letting it propagate here would turn a working relay into a workspace
  * that fails, backs off, and is eventually dead-lettered for want of an email server.
  */
+/**
+ * One workspace pass: drain the relay, raise notifications, send them.
+ *
+ * The three phases are isolated, and which failure propagates is the point.
+ *
+ * They used to be three sequential awaits, so a refusal from `drain` stopped the two behind it. That
+ * turned one stalled journey into a workspace with no notifications at all — and the message most
+ * worth sending is exactly the one about a journey that stopped. A suspended flow reproduced it
+ * exactly: `drain` threw `FLOW_NOT_EXECUTABLE`, so nobody was told the journey had suspended.
+ *
+ * So the drain's failure is held rather than swallowed. Notifications are raised and delivered
+ * whatever it did, and then it is rethrown, because the caller is a durable queue that has to record
+ * the attempt, back off and eventually dead-letter. Swallowing it would trade a loud stall for a
+ * silent one, which is the trade this repository keeps refusing.
+ *
+ * The phases are parameters so the ordering can be asserted without a database; `advanceWorkspace`
+ * binds them to this deployment's composition.
+ */
+export async function runWorkspacePass(phases: {
+  drain: () => Promise<unknown>;
+  dispatch: () => Promise<unknown>;
+  deliver: () => Promise<unknown>;
+}): Promise<void> {
+  let drainFailure: unknown;
+  try {
+    await phases.drain();
+  } catch (error) {
+    drainFailure = error;
+  }
+
+  // Raising is separate from sending, so a transport outage cannot stop an obligation being
+  // recorded, and neither can a drain failure.
+  await phases.dispatch().catch(() => undefined);
+  await phases.deliver().catch(() => undefined);
+
+  if (drainFailure !== undefined) throw drainFailure;
+}
+
 export async function advanceWorkspace(context: RequestContext): Promise<void> {
-  await flowSignalRelay.drain(context);
-  await flowNotifications.dispatch(context);
-  await notificationEngine.deliverPending(context).catch(() => undefined);
+  await runWorkspacePass({
+    drain: () => flowSignalRelay.drain(context),
+    dispatch: () => flowNotifications.dispatch(context),
+    deliver: () => notificationEngine.deliverPending(context),
+  });
 }
 
 /**

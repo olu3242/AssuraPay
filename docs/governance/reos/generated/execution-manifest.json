@@ -3636,9 +3636,9 @@
     }
   ],
   "identity": {
-    "branch": "feat/persona-test-provisioning",
-    "clean": true,
-    "head": "aa0d2794d5844ad2c496f5665b4960a298e58140",
+    "branch": "feat/email-notifications",
+    "clean": false,
+    "head": "944e9af4537a975bb02aceabcc93eedced70c5ce",
     "repository": "assurapay",
     "version": "0.1.0"
   },
@@ -3730,7 +3730,7 @@
     "released": 76,
     "validated": 0
   },
-  "manifestDigest": "5bb144eb25fe",
+  "manifestDigest": "4359858e55e2",
   "missingCapabilities": [],
   "packages": [
     {
@@ -4210,7 +4210,7 @@
       "moduleType": null,
       "name": "@assurapay/flow-orchestration",
       "sourceFiles": 6,
-      "sourceLines": 1064,
+      "sourceLines": 1102,
       "testFiles": [
         "packages/flow-orchestration/src/canonical-chain.test.ts",
         "packages/flow-orchestration/src/flow-orchestration.test.ts",
@@ -4335,23 +4335,27 @@
         "FlowNotificationDispatcher",
         "NotificationEngine",
         "NotificationError",
-        "NotificationTemplateError"
+        "NotificationTemplateError",
+        "SmtpConfigError"
       ],
-      "externalDependencies": [],
+      "externalDependencies": [
+        "nodemailer"
+      ],
       "main": "src/index.ts",
       "moduleType": null,
       "name": "@assurapay/notifications",
-      "sourceFiles": 4,
-      "sourceLines": 712,
+      "sourceFiles": 5,
+      "sourceLines": 878,
       "testFiles": [
-        "packages/notifications/src/notifications.test.ts"
+        "packages/notifications/src/notifications.test.ts",
+        "packages/notifications/src/smtp-transport.test.ts"
       ],
       "tests": {
         "e2e": 0,
         "integration": 0,
         "performance": 0,
         "security": 0,
-        "unit": 1
+        "unit": 2
       },
       "workspaceDependencies": [
         "@assurapay/database",

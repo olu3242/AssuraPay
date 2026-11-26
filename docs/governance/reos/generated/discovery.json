@@ -2696,7 +2696,7 @@
       "moduleType": null,
       "name": "@assurapay/flow-orchestration",
       "sourceFiles": 6,
-      "sourceLines": 1064,
+      "sourceLines": 1102,
       "testFiles": [
         "packages/flow-orchestration/src/canonical-chain.test.ts",
         "packages/flow-orchestration/src/flow-orchestration.test.ts",
@@ -2821,23 +2821,27 @@
         "FlowNotificationDispatcher",
         "NotificationEngine",
         "NotificationError",
-        "NotificationTemplateError"
+        "NotificationTemplateError",
+        "SmtpConfigError"
       ],
-      "externalDependencies": [],
+      "externalDependencies": [
+        "nodemailer"
+      ],
       "main": "src/index.ts",
       "moduleType": null,
       "name": "@assurapay/notifications",
-      "sourceFiles": 4,
-      "sourceLines": 712,
+      "sourceFiles": 5,
+      "sourceLines": 878,
       "testFiles": [
-        "packages/notifications/src/notifications.test.ts"
+        "packages/notifications/src/notifications.test.ts",
+        "packages/notifications/src/smtp-transport.test.ts"
       ],
       "tests": {
         "e2e": 0,
         "integration": 0,
         "performance": 0,
         "security": 0,
-        "unit": 1
+        "unit": 2
       },
       "workspaceDependencies": [
         "@assurapay/database",
@@ -3223,11 +3227,12 @@
   "reosVersion": "1.0.0",
   "repository": {
     "git": {
-      "branch": "feat/persona-test-provisioning",
+      "branch": "feat/email-notifications",
       "branches": [
         "claude/git-pull-cqc04u",
         "feat/agentic-autonomy",
         "feat/ai-runtime-atlas-convergence",
+        "feat/email-notifications",
         "feat/flow-relay-worker",
         "feat/global-design-system",
         "feat/persona-test-provisioning",
@@ -3295,10 +3300,30 @@
         "origin/wip/persistence-async-migration",
         "origin/wip/persistence-async-repository-interface"
       ],
-      "clean": true,
-      "dirtyFiles": [],
-      "head": "aa0d2794d5844ad2c496f5665b4960a298e58140",
-      "headShort": "aa0d279",
+      "clean": false,
+      "dirtyFiles": [
+        "apps/web/lib/flow-app.ts",
+        "apps/web/lib/workspace-pass.test.ts",
+        "docs/governance/reos/generated/CERTIFICATION_REPORT.md",
+        "docs/governance/reos/generated/EXECUTION_MANIFEST.md",
+        "docs/governance/reos/generated/certification.json",
+        "docs/governance/reos/generated/dependency-resolution.json",
+        "docs/governance/reos/generated/discovery.json",
+        "docs/governance/reos/generated/execution-manifest.json",
+        "docs/governance/reos/generated/forensics.json",
+        "package.json",
+        "packages/flow-orchestration/src/index.ts",
+        "packages/flow-orchestration/src/relay.test.ts",
+        "packages/flow-orchestration/src/relay.ts",
+        "packages/notifications/package.json",
+        "packages/notifications/src/index.ts",
+        "packages/notifications/src/smtp-transport.test.ts",
+        "packages/notifications/src/smtp-transport.ts",
+        "packages/notifications/src/transport.ts",
+        "pnpm-lock.yaml"
+      ],
+      "head": "944e9af4537a975bb02aceabcc93eedced70c5ce",
+      "headShort": "944e9af",
       "reflogAvailable": true,
       "remotes": [
         "origin"
@@ -3306,7 +3331,7 @@
       "tags": [
         "rc-engine-60"
       ],
-      "upstream": "origin/feat/persona-test-provisioning"
+      "upstream": "origin/main"
     },
     "name": "assurapay",
     "packageManager": "pnpm@11.3.0",
@@ -3503,9 +3528,9 @@
       "integration": 15,
       "performance": 2,
       "security": 3,
-      "unit": 100
+      "unit": 101
     },
-    "files": 135
+    "files": 136
   },
   "totals": {
     "applications": 1,
@@ -3513,7 +3538,7 @@
     "engines": 60,
     "migrations": 55,
     "packages": 30,
-    "testFiles": 135
+    "testFiles": 136
   },
   "workflows": [
     {

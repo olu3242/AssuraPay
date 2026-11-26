@@ -5,6 +5,7 @@ import { requireActiveWorkspace } from '@assurapay/shared';
 export * from './flow-notifications';
 export * from './templates';
 export * from './transport';
+export * from './smtp-transport';
 
 import { NOTIFICATION_TEMPLATES, renderTemplate, type NotificationTemplateId } from './templates';
 import type { NotificationTransport } from './transport';

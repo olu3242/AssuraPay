@@ -8,6 +8,39 @@ const ws = (context: RequestContext) => {
   return context.activeWorkspaceId;
 };
 
+/**
+ * States in which no step may be dispatched.
+ *
+ * Exported because the relay has to ask the same question, and for a while it asked a different one.
+ * `FlowSignalRelay` kept its own `TERMINAL_STATES` — `COMPLETED`, `FAILED`, `CANCELLED` — and treated
+ * everything else as live, including `SUSPENDED`. So the relay dispatched steps on a suspended
+ * journey, `dispatch` refused with `FLOW_NOT_EXECUTABLE`, and the throw escaped `drain`.
+ *
+ * The consequence was worse than a stalled journey. In the deployed composition `drain` is the first
+ * of three phases in one workspace pass, so the refusal stopped the notification dispatch behind it —
+ * meaning a journey that suspended never told anyone it had suspended, which is precisely the
+ * template that exists for it. And because the pass is driven by a durable queue with a retry budget,
+ * five refusals dead-lettered the workspace's row and stopped *every* flow and notification in that
+ * workspace, not just the suspended one.
+ *
+ * The two questions are genuinely different and both are needed:
+ *
+ * - **Terminal** — will this flow ever move again? `COMPLETED`, `FAILED`, `CANCELLED`. The relay
+ *   skips these entirely, signals included.
+ * - **Non-dispatchable** — may a step be started *right now*? The terminal three plus `SUSPENDED`. A
+ *   suspended journey still accepts signals, because events keep arriving while a human has paused
+ *   it and must be applied when they resume; it simply starts nothing.
+ *
+ * Stated as a denylist for the reason the relay's own list gives: a waiting state added later is
+ * treated as live, which stalls nothing, rather than silently excluded, which stalls everything.
+ */
+export const NON_DISPATCHABLE_STATES: ReadonlySet<FlowState> = new Set<FlowState>([
+  'COMPLETED',
+  'FAILED',
+  'CANCELLED',
+  'SUSPENDED',
+]);
+
 export type FlowState =
   | 'READY'
   | 'RUNNING'
@@ -319,7 +352,7 @@ export class FlowOrchestrator {
 
   async dispatch(context: RequestContext, flowId: string, stepDefinitionId: string) {
     const flow = await this.get(context, flowId);
-    if (['FAILED', 'CANCELLED', 'COMPLETED', 'SUSPENDED'].includes(flow.state)) throw new Error('FLOW_NOT_EXECUTABLE');
+    if (NON_DISPATCHABLE_STATES.has(flow.state)) throw new Error('FLOW_NOT_EXECUTABLE');
     const definition = this.registry.get(flow.flowDefinitionId, flow.flowVersion);
     const stepDefinition = definition.steps.find((step) => step.id === stepDefinitionId);
     if (!stepDefinition) throw new Error('FLOW_STEP_DEFINITION_NOT_FOUND');
