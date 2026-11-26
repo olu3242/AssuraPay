@@ -3636,9 +3636,9 @@
     }
   ],
   "identity": {
-    "branch": "feat/global-design-system",
-    "clean": false,
-    "head": "9ac8f812f1ef131501569ce313be8df8b94cf1fe",
+    "branch": "feat/persona-test-provisioning",
+    "clean": true,
+    "head": "aa0d2794d5844ad2c496f5665b4960a298e58140",
     "repository": "assurapay",
     "version": "0.1.0"
   },
@@ -3730,7 +3730,7 @@
     "released": 76,
     "validated": 0
   },
-  "manifestDigest": "f39d3516547a",
+  "manifestDigest": "5bb144eb25fe",
   "missingCapabilities": [],
   "packages": [
     {
@@ -6106,6 +6106,7 @@
           "matches": [
             "apps/web/lib/agent-route-governance.test.ts",
             "apps/web/lib/grant-administration.ts",
+            "apps/web/lib/persona-provisioning.test.ts",
             "packages/permissions/src/catalogue.test.ts",
             "packages/permissions/src/catalogue.ts"
           ],
@@ -6115,6 +6116,7 @@
         {
           "kind": "symbol",
           "matches": [
+            "apps/web/lib/persona-provisioning.test.ts",
             "apps/web/lib/route-permissions.test.ts",
             "packages/permissions/src/catalogue.test.ts",
             "packages/permissions/src/catalogue.ts"
@@ -6138,6 +6140,7 @@
         {
           "kind": "symbol",
           "matches": [
+            "apps/web/lib/persona-provisioning.test.ts",
             "apps/web/lib/trust-app.ts",
             "packages/database-testing/src/approval-inbox.postgres.test.ts",
             "packages/permissions/src/catalogue.test.ts",

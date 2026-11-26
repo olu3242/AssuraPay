@@ -3223,13 +3223,14 @@
   "reosVersion": "1.0.0",
   "repository": {
     "git": {
-      "branch": "feat/global-design-system",
+      "branch": "feat/persona-test-provisioning",
       "branches": [
         "claude/git-pull-cqc04u",
         "feat/agentic-autonomy",
         "feat/ai-runtime-atlas-convergence",
         "feat/flow-relay-worker",
         "feat/global-design-system",
+        "feat/persona-test-provisioning",
         "feat/record-pages",
         "feat/ui-speak-the-users-language",
         "integration/probe-agent-stack",
@@ -3262,6 +3263,7 @@
         "origin/feat/flow-os-recovery-operator",
         "origin/feat/flow-relay-worker",
         "origin/feat/g1-batch-f-agreement-creation",
+        "origin/feat/global-design-system",
         "origin/feat/h1-batch-h-governance-core",
         "origin/feat/i1-batch-i-agreement-intelligence",
         "origin/feat/j1-retire-file-domain-store",
@@ -3278,6 +3280,7 @@
         "origin/feat/persistence-production-runtime-wiring",
         "origin/feat/persistence-rls-certification",
         "origin/feat/persistence-schema-ownership-reconciliation",
+        "origin/feat/persona-test-provisioning",
         "origin/feat/production-mvp-completion",
         "origin/feat/rc1-phase-e-certification-engine",
         "origin/feat/rc1-phase-e-certification-engine-guard",
@@ -3292,25 +3295,10 @@
         "origin/wip/persistence-async-migration",
         "origin/wip/persistence-async-repository-interface"
       ],
-      "clean": false,
-      "dirtyFiles": [
-        "apps/web/app/components/app-navigation.tsx",
-        "apps/web/app/components/hero-carousel.tsx",
-        "apps/web/app/components/theme-contract.ts",
-        "apps/web/app/components/theme.tsx",
-        "apps/web/app/globals.css",
-        "apps/web/app/layout.tsx",
-        "apps/web/lib/app-chrome.test.ts",
-        "apps/web/lib/persona-workspaces.test.ts",
-        "apps/web/lib/persona-workspaces.ts",
-        "apps/web/src/components/assurapay/AssuraPayLanding.tsx",
-        "apps/web/src/components/assurapay/landing.css",
-        "apps/web/src/components/preferred-landing/PreferredLanding.tsx",
-        "apps/web/src/components/preferred-landing/landing.css",
-        "apps/web/src/components/preferred-landing/markup.ts"
-      ],
-      "head": "9ac8f812f1ef131501569ce313be8df8b94cf1fe",
-      "headShort": "9ac8f81",
+      "clean": true,
+      "dirtyFiles": [],
+      "head": "aa0d2794d5844ad2c496f5665b4960a298e58140",
+      "headShort": "aa0d279",
       "reflogAvailable": true,
       "remotes": [
         "origin"
@@ -3318,7 +3306,7 @@
       "tags": [
         "rc-engine-60"
       ],
-      "upstream": "origin/main"
+      "upstream": "origin/feat/persona-test-provisioning"
     },
     "name": "assurapay",
     "packageManager": "pnpm@11.3.0",

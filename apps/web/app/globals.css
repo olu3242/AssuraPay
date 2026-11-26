@@ -455,6 +455,20 @@ main,
   border-bottom: none;
 }
 
+/* The workspace name leads and takes the free space, so the identifier beside it reads as a
+   reference rather than as the label. Both are in the row because a tester needs the name to
+   choose and the id to correlate with an API response. */
+.membership__name {
+  flex: 1 1 14rem;
+  font-weight: 600;
+}
+
+.membership__id {
+  color: var(--ap-muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.8125rem;
+}
+
 .grid {
   display: grid;
   gap: 1rem;
@@ -641,7 +655,7 @@ main,
 }
 
 .app-workspace select {
-  max-width: 14rem;
+  max-width: 18rem;
   padding: 0.4rem 0.6rem;
   border-radius: var(--ap-radius-sm);
   color: inherit;

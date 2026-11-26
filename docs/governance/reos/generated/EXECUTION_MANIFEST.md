@@ -9,10 +9,10 @@
 | --- | --- |
 | Repository | assurapay |
 | Version | 0.1.0 |
-| Branch | feat/global-design-system |
-| HEAD | 9ac8f812f1ef131501569ce313be8df8b94cf1fe |
-| Worktree clean | no |
-| Manifest digest | f39d3516547a |
+| Branch | feat/persona-test-provisioning |
+| HEAD | aa0d2794d5844ad2c496f5665b4960a298e58140 |
+| Worktree clean | yes |
+| Manifest digest | 5bb144eb25fe |
 | REOS version | 1.0.0 |
 
 ## Architecture

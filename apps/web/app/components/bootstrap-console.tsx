@@ -454,9 +454,23 @@ export function BootstrapConsole() {
             <ul data-testid="memberships">
               {memberships.map((workspace) => {
                 const id = workspaceIdOf(workspace);
+                const name = typeof workspace.name === 'string' ? workspace.name.trim() : '';
                 return (
                   <li key={id} data-testid="membership">
-                    <span data-testid="membership-workspace">{id}</span>
+                    {/* The name first, because this list is how a person chooses where to work and a
+                        column of UUIDs does not let them. `listAuthorizedWorkspaces` returns the whole
+                        workspace record, so the name was already on the wire and only this component
+                        was dropping it — which is survivable with one workspace and unusable with ten.
+
+                        The id stays, in its own element and still exactly the id: seven browser suites
+                        read `membership-workspace` as the identifier to drive the rest of their journey,
+                        so putting a name in it would have been a rename disguised as a label. */}
+                    <span className="membership__name" data-testid="membership-name">
+                      {name || 'Unnamed workspace'}
+                    </span>
+                    <span className="membership__id" data-testid="membership-workspace">
+                      {id}
+                    </span>
                     <button
                       type="button"
                       className="button button--secondary"
