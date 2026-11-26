@@ -25,8 +25,15 @@ export type NotificationTransport = {
  *
  * It throws, which `NotificationEngine.deliverPending` records as a `FAILED` notification carrying
  * this reason. The obligation stays durable and visible: an operator can see exactly how many
- * notifications are waiting on a transport nobody configured, and configuring one makes them
- * deliverable on the next pass rather than lost.
+ * notifications were raised while no transport was configured.
+ *
+ * This comment used to end "and configuring one makes them deliverable on the next pass rather than
+ * lost". That was false. `deliverPending` selects `status === 'PENDING'`, so a record it marked
+ * `FAILED` is never attempted again: configuring a relay makes *later* notifications deliverable and
+ * leaves the earlier ones failed for ever. Corrected rather than fixed, because fixing it means a
+ * bounded retry with a delivery-attempt count on the record — so that a relay outage is retried and a
+ * recipient the relay permanently rejected is not — which is a change to this engine's record shape
+ * and deserves its own change.
  */
 export const unconfiguredEmailTransport: NotificationTransport = {
   id: 'unconfigured',

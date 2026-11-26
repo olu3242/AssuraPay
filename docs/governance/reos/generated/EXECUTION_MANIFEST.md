@@ -9,10 +9,10 @@
 | --- | --- |
 | Repository | assurapay |
 | Version | 0.1.0 |
-| Branch | feat/persona-test-provisioning |
-| HEAD | aa0d2794d5844ad2c496f5665b4960a298e58140 |
-| Worktree clean | yes |
-| Manifest digest | 5bb144eb25fe |
+| Branch | feat/email-notifications |
+| HEAD | 944e9af4537a975bb02aceabcc93eedced70c5ce |
+| Worktree clean | no |
+| Manifest digest | 4359858e55e2 |
 | REOS version | 1.0.0 |
 
 ## Architecture

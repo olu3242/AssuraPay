@@ -1,6 +1,7 @@
 import type { OutboxEvent, RequestContext, TrustPersistence } from '@assurapay/shared';
 import { requireActiveWorkspace } from '@assurapay/shared';
 import type { FlowInstance, FlowOrchestrator, FlowRegistry, FlowState } from './index';
+import { NON_DISPATCHABLE_STATES } from './index';
 import { CANONICAL_DOMAIN_EVENTS } from './canonical-chain';
 import { DomainEventFlowBridge } from './domain-event-bridge';
 
@@ -140,6 +141,11 @@ export class FlowSignalRelay {
       // Evaluate first, so a step whose dependencies were satisfied by the previous pass becomes
       // READY before this pass tries to dispatch it.
       for (const flow of flows) {
+        // A suspended journey is live — it still accepts signals, and `relayEvents` below still
+        // applies them — but nothing may be *started* in it. `dispatch` refuses with
+        // `FLOW_NOT_EXECUTABLE`, and that refusal used to escape this loop and abort the whole pass.
+        // Asked of the orchestrator's own set rather than restated, so the two cannot disagree again.
+        if (NON_DISPATCHABLE_STATES.has(flow.state)) continue;
         await this.flows.evaluate(context, flow.id);
         if (await this.dispatchReady(context, flow.id)) {
           dispatched++;

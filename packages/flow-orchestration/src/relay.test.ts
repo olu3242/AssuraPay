@@ -302,3 +302,75 @@ describe('an event is never delivered to a step that is not waiting for it', () 
     expect(result.signalled).toBeGreaterThanOrEqual(3);
   });
 });
+
+describe('a suspended journey pauses, and does not poison the pass around it', () => {
+  /**
+   * Found by suspending a real journey through the running application and watching no email arrive.
+   *
+   * The relay treated `SUSPENDED` as live — its `TERMINAL_STATES` named only `COMPLETED`, `FAILED`
+   * and `CANCELLED` — so it dispatched steps on a suspended flow, and `FlowOrchestrator.dispatch`
+   * refused with `FLOW_NOT_EXECUTABLE`. The throw escaped `drain`.
+   *
+   * In the deployed composition that was not a stalled journey but a stalled *workspace*: `drain` is
+   * the first of three phases in one pass, so the refusal stopped the notification dispatch behind
+   * it — the journey that suspended never told anyone — and the durable queue dead-lettered the
+   * workspace's row after five attempts, stopping every other flow in it too.
+   */
+  it('does not throw when a flow in the workspace is suspended', async () => {
+    const { store, flows, relay } = await harness();
+    const ctx = context();
+    const flow = await startFlow(flows, ctx);
+
+    // Suspended *before* the first drain, which is what the running application did: the first step
+    // of a freshly started journey is READY and has never been dispatched, so there is something for
+    // `dispatch` to refuse. Suspending after a drain leaves every step WAITING, `dispatchReady`
+    // iterates nothing, and the bug does not reproduce — the first version of this test made exactly
+    // that mistake and passed against the unfixed relay.
+    await flows.suspend(ctx, flow.id, 'Awaiting counterparty confirmation');
+    expect((await flows.get(ctx, flow.id)).state).toBe('SUSPENDED');
+    expect(
+      (await flows.steps(ctx, flow.id)).some((step) => step.state === 'READY'),
+      'no READY step, so this would not exercise the refusal',
+    ).toBe(true);
+
+    // The assertion. This rejected with FLOW_NOT_EXECUTABLE before the fix.
+    await expect(relay.drain(ctx)).resolves.toBeDefined();
+  });
+
+  it('starts nothing while suspended, and resumes where it left off', async () => {
+    const { store, flows, relay } = await harness();
+    const ctx = context();
+    const flow = await startFlow(flows, ctx);
+    await relay.drain(ctx);
+
+    await flows.suspend(ctx, flow.id, 'paused');
+    const paused = await stepStates(flows, ctx, flow.id);
+    await relay.drain(ctx);
+    // Nothing moved while it was paused: pausing a journey has to actually pause it.
+    expect(await stepStates(flows, ctx, flow.id)).toEqual(paused);
+
+    await flows.resume(ctx, flow.id);
+    await emitDomainEvent(store, ctx, 'ExecutionCertificateIssued');
+    await relay.drain(ctx);
+    // And the event that arrived during the pause is applied once it is live again.
+    expect((await stepStates(flows, ctx, flow.id))['agreement-executed']).toBe('COMPLETED');
+  });
+
+  it('keeps accepting signals while suspended, because events do not wait for a human', async () => {
+    // A suspended journey is not a terminal one. Events keep being committed by the engines around
+    // it, and discarding them would mean a resume that silently skipped whatever happened meanwhile.
+    const { store, flows, relay } = await harness();
+    const ctx = context();
+    const flow = await startFlow(flows, ctx);
+    await relay.drain(ctx);
+    await flows.suspend(ctx, flow.id, 'paused');
+
+    await emitDomainEvent(store, ctx, 'ExecutionCertificateIssued');
+    const result = await relay.drain(ctx);
+    expect(result.considered).toBeGreaterThan(0);
+
+    await flows.resume(ctx, flow.id);
+    await relay.drain(ctx);
+    expect((await stepStates(flows, ctx, flow.id))['agreement-executed']).toBe('COMPLETED');
+  });
+});

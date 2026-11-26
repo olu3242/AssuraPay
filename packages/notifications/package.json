@@ -5,6 +5,7 @@
   "main": "src/index.ts",
   "dependencies": {
     "@assurapay/database": "workspace:*",
-    "@assurapay/shared": "workspace:*"
+    "@assurapay/shared": "workspace:*",
+    "nodemailer": "^10.6.1"
   }
 }

@@ -14,6 +14,9 @@ importers:
       next:
         specifier: ^14.2.15
         version: 14.2.35(@playwright/test@1.62.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      nodemailer:
+        specifier: ^10.6.1
+        version: 10.6.1
       postgres:
         specifier: ^3.4.9
         version: 3.4.9
@@ -414,6 +417,9 @@ importers:
       '@assurapay/shared':
         specifier: workspace:*
         version: link:../shared
+      nodemailer:
+        specifier: ^10.6.1
+        version: 10.6.1
 
   packages/organizations:
     dependencies:
@@ -2178,6 +2184,10 @@ packages:
   node-releases@2.0.65:
     resolution: {integrity: sha512-PfvofsGQ+MiOQIPkX9fU8ELUWmy5zL74CdQaph/ismKszfFkfwXaw0cGiwbwym2hT9k5+mdyl8O5WQ1MD8EHmA==}
     engines: {node: '>=18'}
+
+  nodemailer@10.6.1:
+    resolution: {integrity: sha512-d7kfFfS/tR4Aca+SBvRaQ+MXKNv7d2JiRe5TxaRcFT/kYMh4GGPnW9aKksTIEvyEbA7d/7HYWE4YPDEHxzJj/g==}
+    engines: {node: '>=20.0.0'}
 
   normalize-path@3.0.0:
     resolution: {integrity: sha512-6eZs5Ls3WtCisHWp9S2GUy8dqkpGi4BVSz3GaqiE6ezub0512ESztXUwUB6C6IKbQkY2Pnb/mD4WYojCRwcwLA==}
@@ -4482,6 +4492,8 @@ snapshots:
       semver: 6.3.1
 
   node-releases@2.0.65: {}
+
+  nodemailer@10.6.1: {}
 
   normalize-path@3.0.0: {}
 
