@@ -3262,6 +3262,7 @@
         "origin/feat/flow-os-recovery-operator",
         "origin/feat/flow-relay-worker",
         "origin/feat/g1-batch-f-agreement-creation",
+        "origin/feat/global-design-system",
         "origin/feat/h1-batch-h-governance-core",
         "origin/feat/i1-batch-i-agreement-intelligence",
         "origin/feat/j1-retire-file-domain-store",
@@ -3294,23 +3295,21 @@
       ],
       "clean": false,
       "dirtyFiles": [
-        "apps/web/app/components/app-navigation.tsx",
-        "apps/web/app/components/hero-carousel.tsx",
-        "apps/web/app/components/theme-contract.ts",
-        "apps/web/app/components/theme.tsx",
+        "apps/web/app/components/bootstrap-console.tsx",
         "apps/web/app/globals.css",
-        "apps/web/app/layout.tsx",
-        "apps/web/lib/app-chrome.test.ts",
-        "apps/web/lib/persona-workspaces.test.ts",
-        "apps/web/lib/persona-workspaces.ts",
-        "apps/web/src/components/assurapay/AssuraPayLanding.tsx",
-        "apps/web/src/components/assurapay/landing.css",
-        "apps/web/src/components/preferred-landing/PreferredLanding.tsx",
-        "apps/web/src/components/preferred-landing/landing.css",
-        "apps/web/src/components/preferred-landing/markup.ts"
+        "apps/web/lib/persona-provisioning.test.ts",
+        "docs/governance/reos/generated/CERTIFICATION_REPORT.md",
+        "docs/governance/reos/generated/EXECUTION_MANIFEST.md",
+        "docs/governance/reos/generated/certification.json",
+        "docs/governance/reos/generated/dependency-resolution.json",
+        "docs/governance/reos/generated/discovery.json",
+        "docs/governance/reos/generated/execution-manifest.json",
+        "docs/governance/reos/generated/forensics.json",
+        "scripts/persona-test-roles.mjs",
+        "scripts/provision-persona-tester.mjs"
       ],
-      "head": "9ac8f812f1ef131501569ce313be8df8b94cf1fe",
-      "headShort": "9ac8f81",
+      "head": "7a6009498c1f8a43d2742243aeae859de0c787b6",
+      "headShort": "7a60094",
       "reflogAvailable": true,
       "remotes": [
         "origin"
@@ -3318,7 +3317,7 @@
       "tags": [
         "rc-engine-60"
       ],
-      "upstream": "origin/main"
+      "upstream": "origin/feat/global-design-system"
     },
     "name": "assurapay",
     "packageManager": "pnpm@11.3.0",

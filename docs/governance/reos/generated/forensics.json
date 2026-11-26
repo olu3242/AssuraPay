@@ -1371,6 +1371,7 @@
           "matches": [
             "apps/web/lib/agent-route-governance.test.ts",
             "apps/web/lib/grant-administration.ts",
+            "apps/web/lib/persona-provisioning.test.ts",
             "packages/permissions/src/catalogue.test.ts",
             "packages/permissions/src/catalogue.ts"
           ],
@@ -1380,6 +1381,7 @@
         {
           "kind": "symbol",
           "matches": [
+            "apps/web/lib/persona-provisioning.test.ts",
             "apps/web/lib/route-permissions.test.ts",
             "packages/permissions/src/catalogue.test.ts",
             "packages/permissions/src/catalogue.ts"
@@ -1403,6 +1405,7 @@
         {
           "kind": "symbol",
           "matches": [
+            "apps/web/lib/persona-provisioning.test.ts",
             "apps/web/lib/trust-app.ts",
             "packages/database-testing/src/approval-inbox.postgres.test.ts",
             "packages/permissions/src/catalogue.test.ts",
@@ -1838,7 +1841,7 @@
       "totalProbes": 5
     }
   ],
-  "head": "9ac8f812f1ef131501569ce313be8df8b94cf1fe",
+  "head": "7a6009498c1f8a43d2742243aeae859de0c787b6",
   "reosVersion": "1.0.0",
   "stage": "forensics",
   "summary": {
