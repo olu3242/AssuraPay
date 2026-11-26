@@ -258,10 +258,31 @@ describe('the accents distinguish workspaces without recolouring meaning', () =>
     expect(new Set(accents).size).toBe(accents.length);
   });
 
-  it('clears WCAG AA for normal text on the canvas, computed rather than assumed', () => {
+  it('clears WCAG AA in both themes, computed rather than assumed', () => {
     // An accent is used for navigation selection and primary actions, so it carries text. These ratios were
     // measured when the palette was adopted; this recomputes them so a later tweak cannot quietly drop one
     // below the threshold.
+    //
+    // Two jobs, two measurements, which is why there are two tokens. `accent` is the **fill** and carries
+    // white text in both themes. `accentDark` is the accent as **text**, and only has to work on the dark
+    // background — on the light one `globals.css` points `--ap-accent-text` straight at `--ap-accent`, so
+    // the first assertion covers it.
+    //
+    // The backgrounds are read out of the stylesheet rather than written here. The previous version of this
+    // test hard-coded `#F8FAFC` as the canvas, and the canvas moved to the landing page's `--ap-soft` when
+    // the design systems were unified: a measurement against a colour the product no longer renders.
+    const css = readFileSync(path.join(APP, 'globals.css'), 'utf8');
+    const token = (name: string, block: RegExp) => {
+      const scope = css.match(block);
+      expect(scope, `no ${block} block`).not.toBeNull();
+      const found = scope![0].match(new RegExp(`${name}:\\s*(#[0-9a-f]{6})`, 'i'));
+      expect(found, `${name} is not a literal in ${block}`).not.toBeNull();
+      return found![1];
+    };
+    const lightCanvas = token('--ap-soft', /:root \{[\s\S]*?\n\}/);
+    const darkCanvas = token('--ap-bg', /:root\[data-theme='dark'\] \{[\s\S]*?\n\}/);
+    expect(lightCanvas.toLowerCase()).not.toBe(darkCanvas.toLowerCase());
+
     const channel = (value: number) => (value <= 0.03928 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
     const luminance = (hex: string) => {
       const [r, g, b] = [1, 3, 5].map((index) => channel(parseInt(hex.slice(index, index + 2), 16) / 255));
@@ -273,21 +294,40 @@ describe('the accents distinguish workspaces without recolouring meaning', () =>
     };
 
     for (const entry of PERSONA_WORKSPACES) {
-      expect(contrast(entry.accent, '#F8FAFC'), `${entry.id} on canvas`).toBeGreaterThanOrEqual(4.5);
+      expect(contrast(entry.accent, lightCanvas), `${entry.id} on the light canvas`).toBeGreaterThanOrEqual(4.5);
       expect(contrast('#FFFFFF', entry.accent), `white on ${entry.id}`).toBeGreaterThanOrEqual(4.5);
+      expect(contrast(entry.accentDark, darkCanvas), `${entry.id} on the dark canvas`).toBeGreaterThanOrEqual(4.5);
     }
   });
 
-  it('declares the same accent in CSS as in this navItem', () => {
+  it('keeps the dark accents distinct, so the workspaces stay distinguishable', () => {
+    // The cheap way to pass the assertion above is to make all eight the same legible blue, which would erase
+    // the only thing the accent exists for.
+    const dark = PERSONA_WORKSPACES.map((entry) => entry.accentDark.toUpperCase());
+    expect(new Set(dark).size).toBe(dark.length);
+    // And each one is a different value from its own fill, since that is the whole reason it exists.
+    for (const entry of PERSONA_WORKSPACES) {
+      expect(entry.accentDark.toUpperCase(), entry.id).not.toBe(entry.accent.toUpperCase());
+    }
+  });
+
+  it('declares the same accents in CSS as in this table', () => {
     // Two sources for one colour is one source too many. The stylesheet is what a browser reads and this table
     // is what the tests reason about, so they are asserted equal rather than kept in step by hand.
     const css = readFileSync(path.join(APP, 'globals.css'), 'utf8');
     for (const entry of PERSONA_WORKSPACES) {
-      const rule = new RegExp(
+      const fill = new RegExp(
         `\\[data-persona=['"]${entry.id}['"]\\]\\s*\\{[^}]*--ap-accent:\\s*${entry.accent}`,
         'i',
       );
-      expect(rule.test(css), `${entry.id} → ${entry.accent}`).toBe(true);
+      expect(fill.test(css), `${entry.id} fill → ${entry.accent}`).toBe(true);
+      // The dark value is scoped to the theme, so the selector carries `:root[data-theme='dark']`. A rule
+      // written without it would recolour the light theme too.
+      const text = new RegExp(
+        `:root\\[data-theme=['"]dark['"]\\]\\s*\\[data-persona=['"]${entry.id}['"]\\]\\s*\\{[^}]*--ap-accent-text:\\s*${entry.accentDark}`,
+        'i',
+      );
+      expect(text.test(css), `${entry.id} dark text → ${entry.accentDark}`).toBe(true);
     }
   });
 
@@ -304,10 +344,32 @@ describe('the accents distinguish workspaces without recolouring meaning', () =>
 
   it('leaves the status tokens outside the persona system', () => {
     // No workspace rule may redefine them. If one did, a blocked payment would change colour with the viewer.
+    //
+    // Checked by reading every `[data-persona…]` rule rather than by counting them. The count used to be
+    // asserted equal to the number of workspaces, which stopped being the right number the moment the dark
+    // theme added a second rule per workspace — a true assertion about a stale shape. What has to hold is
+    // that none of these rules touches a status token, however many of them there are.
     const css = readFileSync(path.join(APP, 'globals.css'), 'utf8');
-    const workspaceRules = css.match(/\[data-persona=[^\]]*\]\s*\{[^}]*\}/g) ?? [];
-    expect(workspaceRules.length).toBe(PERSONA_WORKSPACES.length);
-    for (const rule of workspaceRules) expect(rule).not.toMatch(/--ap-status-/);
+    const workspaceRules = css.match(/\[data-persona=[^\]]*\][^{]*\{[^}]*\}/g) ?? [];
+    // Two per workspace — the fill and the dark text value — plus the untargeted default.
+    expect(workspaceRules.length).toBeGreaterThanOrEqual(PERSONA_WORKSPACES.length * 2);
+    for (const rule of workspaceRules) expect(rule, rule).not.toMatch(/--ap-status-/);
+  });
+
+  it('gives the status tokens a value in each theme, because one value cannot read on both', () => {
+    // `#b91c1c` on the dark background is 2.8:1. A blocked payment rendered in a colour nobody can read is
+    // worse than one rendered in the body colour, so the statuses follow the theme even though they never
+    // follow the persona. Asserted as "declared in both blocks" and measured by the ratio test above's
+    // sibling in `app-chrome.test.ts`.
+    const css = readFileSync(path.join(APP, 'globals.css'), 'utf8');
+    const dark = css.match(/:root\[data-theme='dark'\] \{[\s\S]*?\n\}/g) ?? [];
+    for (const name of ['--ap-status-blocked', '--ap-status-pending', '--ap-status-confirmed']) {
+      expect(css, `${name} has no light value`).toMatch(new RegExp(`${name}:\\s*#`));
+      expect(
+        dark.some((block) => block.includes(name)),
+        `${name} has no dark value`,
+      ).toBe(true);
+    }
   });
 
   it('claims no status colour as an accent', () => {

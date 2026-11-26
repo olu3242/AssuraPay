@@ -79,14 +79,29 @@ export type PersonaWorkspace = {
   /** What the person in this workspace is trying to achieve, in their language rather than the platform's. */
   readonly purpose: string;
   /**
-   * The accent that distinguishes this workspace's chrome.
+   * The accent that distinguishes this workspace's chrome, used as a **fill** behind white text.
    *
-   * Every one of these clears WCAG AA for normal text both as a foreground on the canvas and inverted behind
-   * white text — measured, not assumed; the lowest is the verifier's amber at 4.80:1 on `--ap-canvas`. Status
+   * Every one of these clears WCAG AA for normal text both as a foreground on the light canvas and inverted
+   * behind white text — measured, not assumed; the lowest is the verifier's amber at 4.80:1. Status
    * colours are deliberately not here: red, amber and green mean the same thing in every workspace, and
    * recolouring them per persona would make a failed payment look different depending on who was looking at it.
+   *
+   * It does not change with the theme. The primary action keeps one fill in both, which is what the landing
+   * page's own button does, and it means this value needs one measurement rather than two.
    */
   readonly accent: string;
+  /**
+   * The same accent as **text**, on the dark theme's background.
+   *
+   * The two jobs cannot share a value once there is a dark theme: `#172554` on `#0b1220` is 1.3:1. So the fill
+   * above stays put and this is what the eyebrow, the current section, the selected tab and the switcher use
+   * when `data-theme="dark"` — a lightened member of the same hue family, so the workspace stays recognisable
+   * rather than collapsing into one legible blue.
+   *
+   * On the light theme there is no second value: `globals.css` points `--ap-accent-text` at `--ap-accent`.
+   * Measured against `--ap-bg`'s dark value, and `persona-workspaces.test.ts` recomputes every ratio.
+   */
+  readonly accentDark: string;
   /**
    * The personas this workspace presents. Authority comes from these and from nowhere else in this file.
    *
@@ -124,6 +139,7 @@ export const PERSONA_WORKSPACES: readonly PersonaWorkspace[] = Object.freeze([
     title: 'Buyer',
     purpose: 'Protect funds and confirm that what was agreed was delivered.',
     accent: '#1D4ED8',
+    accentDark: '#93B4FF',
     personas: ['customer'],
     modules: [
       { label: 'Agreements', href: '/contracts' },
@@ -138,6 +154,7 @@ export const PERSONA_WORKSPACES: readonly PersonaWorkspace[] = Object.freeze([
     title: 'Seller',
     purpose: 'Deliver the work, evidence it, and get paid for it.',
     accent: '#047857',
+    accentDark: '#6EE7B7',
     personas: ['supplier'],
     modules: [
       { label: 'Agreements', href: '/contracts' },
@@ -152,6 +169,7 @@ export const PERSONA_WORKSPACES: readonly PersonaWorkspace[] = Object.freeze([
     title: 'Enterprise',
     purpose: 'Own the commercial relationship and run delivery across it.',
     accent: '#4338CA',
+    accentDark: '#A5B4FC',
     personas: ['agreement-owner', 'execution-lead'],
     modules: [
       { label: 'Agreements', href: '/contracts', requires: 'agreement-contracts:create' },
@@ -167,6 +185,7 @@ export const PERSONA_WORKSPACES: readonly PersonaWorkspace[] = Object.freeze([
     title: 'Financial operations',
     purpose: 'Fund, release and reconcile against work that was certified.',
     accent: '#0E7490',
+    accentDark: '#67E8F9',
     personas: ['finance'],
     modules: [
       { label: 'Payments', href: '/settlements', requires: 'payment-instructions:create' },
@@ -181,6 +200,7 @@ export const PERSONA_WORKSPACES: readonly PersonaWorkspace[] = Object.freeze([
     title: 'Independent verifier',
     purpose: 'Judge whether submitted evidence meets the definition of done.',
     accent: '#B45309',
+    accentDark: '#FCD34D',
     personas: ['reviewer'],
     modules: [
       { label: 'Acceptance', href: '/completion-assurance', requires: 'acceptance-decisions:create' },
@@ -195,6 +215,7 @@ export const PERSONA_WORKSPACES: readonly PersonaWorkspace[] = Object.freeze([
     title: 'Dispute resolution',
     purpose: 'Handle contested execution without deciding who benefits from it.',
     accent: '#7E22CE',
+    accentDark: '#D8B4FE',
     personas: ['dispute-manager'],
     modules: [
       { label: 'Dispute register', href: '/disputes', requires: 'disputes:read' },
@@ -208,6 +229,7 @@ export const PERSONA_WORKSPACES: readonly PersonaWorkspace[] = Object.freeze([
     title: 'Compliance & risk',
     purpose: 'Read the record and change nothing, which is what makes the reading trustworthy.',
     accent: '#475569',
+    accentDark: '#CBD5E1',
     personas: ['auditor'],
     modules: [
       { label: 'Agreements', href: '/contracts', requires: 'contracts:read' },
@@ -222,6 +244,7 @@ export const PERSONA_WORKSPACES: readonly PersonaWorkspace[] = Object.freeze([
     title: 'Platform administration',
     purpose: 'Administer the organization, its workspaces and who may act in them.',
     accent: '#172554',
+    accentDark: '#A5C4FF',
     personas: ['organization-administrator', 'workspace-administrator'],
     modules: [
       { label: 'Organization', href: '/organization', requires: 'roles:read' },

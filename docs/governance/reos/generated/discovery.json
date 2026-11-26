@@ -3223,11 +3223,13 @@
   "reosVersion": "1.0.0",
   "repository": {
     "git": {
-      "branch": "claude/git-pull-cqc04u",
+      "branch": "feat/global-design-system",
       "branches": [
         "claude/git-pull-cqc04u",
+        "feat/agentic-autonomy",
         "feat/ai-runtime-atlas-convergence",
         "feat/flow-relay-worker",
+        "feat/global-design-system",
         "feat/record-pages",
         "feat/ui-speak-the-users-language",
         "integration/probe-agent-stack",
@@ -3240,6 +3242,7 @@
         "origin/docs/assurapay-e2e-sop-runbook",
         "origin/feat/a1-batch-a-relational-repositories",
         "origin/feat/a1-domain-store-durability",
+        "origin/feat/agentic-autonomy",
         "origin/feat/agentic-os-persona-convergence",
         "origin/feat/agreement-intake-e2e-v2",
         "origin/feat/agreement-three-path-intake",
@@ -3291,10 +3294,23 @@
       ],
       "clean": false,
       "dirtyFiles": [
-        "apps/web/lib/app-chrome.test.ts"
+        "apps/web/app/components/app-navigation.tsx",
+        "apps/web/app/components/hero-carousel.tsx",
+        "apps/web/app/components/theme-contract.ts",
+        "apps/web/app/components/theme.tsx",
+        "apps/web/app/globals.css",
+        "apps/web/app/layout.tsx",
+        "apps/web/lib/app-chrome.test.ts",
+        "apps/web/lib/persona-workspaces.test.ts",
+        "apps/web/lib/persona-workspaces.ts",
+        "apps/web/src/components/assurapay/AssuraPayLanding.tsx",
+        "apps/web/src/components/assurapay/landing.css",
+        "apps/web/src/components/preferred-landing/PreferredLanding.tsx",
+        "apps/web/src/components/preferred-landing/landing.css",
+        "apps/web/src/components/preferred-landing/markup.ts"
       ],
-      "head": "8476cbdf09efc64057da652dac080f5aeaccf5ee",
-      "headShort": "8476cbd",
+      "head": "9ac8f812f1ef131501569ce313be8df8b94cf1fe",
+      "headShort": "9ac8f81",
       "reflogAvailable": true,
       "remotes": [
         "origin"

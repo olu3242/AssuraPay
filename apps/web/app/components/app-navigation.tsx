@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { scopedGet } from './scoped-fetch';
+import { ThemeToggle } from './theme';
 
 /**
  * The application chrome: brand, sections, the active workspace, and the one primary action.
@@ -134,7 +135,12 @@ export function AppNavigation() {
     <header className="app-navigation" data-testid="app-navigation">
       <Link href="/" className="app-brand" aria-label="AssuraPay home">
         <img src="/images/assurapay-symbol.png" width="40" height="55" alt="" />
-        <strong>AssuraPay</strong>
+        {/* Split so the second syllable takes the brand colour, as the landing's wordmark does.
+            A nested span rather than a `::after` carrying the text: generated content is not
+            reliably in the accessibility tree, and "Assura" is not the product's name. */}
+        <strong>
+          Assura<span>Pay</span>
+        </strong>
       </Link>
 
       <nav aria-label="Application">
@@ -179,6 +185,10 @@ export function AppNavigation() {
             New agreement
           </Link>
         )}
+        {/* Last in the row, and present whether or not a workspace is active: the theme is a reading
+            preference, not an authority. It is the same control the landing page has carried since it
+            was redesigned, which is what makes the two headers one header in two places. */}
+        <ThemeToggle />
       </div>
     </header>
   );

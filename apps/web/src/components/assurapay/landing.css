@@ -1,40 +1,27 @@
 @tailwind components;
 @tailwind utilities;
 
+/* The tokens this stylesheet reads — `--ap-bg`, `--ap-surface`, `--ap-soft`, `--ap-text`,
+ * `--ap-muted`, `--ap-line`, `--ap-primary`, `--ap-light-blue`, `--ap-header` — used to be declared
+ * here, on this id, with literal hex values. They now live at `:root` in `app/globals.css` and reach
+ * this subtree by inheritance, so this page and the rest of the application read one palette.
+ *
+ * That is the direction the unification had to run. These values *are* the design; the shell's old
+ * `--ap-blue: #005ee9` was the other one. Promoting them rather than converting them is what makes
+ * the landing page the source and every other route the consumer, and it is why this block now
+ * declares no colour at all.
+ *
+ * The dark theme moved with them. `:root[data-theme='dark']` carries the dark tokens, and the
+ * attribute is mirrored onto this element by `app/components/theme.tsx` — both because the rules
+ * further down this file are written as `#assurapay-landing[data-theme='dark']` for the handful of
+ * gradients and accents that are not expressible as tokens, and because a reader who toggles here
+ * must arrive in the application in the theme they chose. */
 #assurapay-landing {
-  --ap-bg: #fff;
-  --ap-surface: #fff;
-  --ap-soft: #f7f9fd;
-  --ap-text: #0f1b35;
-  --ap-muted: #58677f;
-  --ap-line: #e2e8f2;
-  --ap-primary: #2563eb;
-  --ap-light-blue: #edf4ff;
-  --ap-header: rgba(255, 255, 255, 0.88);
-  font-family:
-    Inter,
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    sans-serif;
   color: var(--ap-text);
   background: var(--ap-bg);
   font-size: 16px;
   line-height: 1.6;
   overflow: clip;
-  color-scheme: light;
-}
-#assurapay-landing[data-theme='dark'] {
-  --ap-bg: #0b1220;
-  --ap-surface: #111d31;
-  --ap-soft: #0e1829;
-  --ap-text: #edf3ff;
-  --ap-muted: #a6b5cd;
-  --ap-line: #29364e;
-  --ap-primary: #78a7ff;
-  --ap-light-blue: #172846;
-  --ap-header: rgba(11, 18, 32, 0.9);
-  color-scheme: dark;
 }
 #assurapay-landing *,
 #assurapay-landing *::before,
