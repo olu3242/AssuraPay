@@ -4,9 +4,9 @@
 
 | Field | Value |
 | --- | --- |
-| Branch | feat/global-design-system |
-| HEAD | 7a6009498c1f8a43d2742243aeae859de0c787b6 |
-| Generated at | 2026-11-26T00:50:14.471Z |
+| Branch | feat/persona-test-provisioning |
+| HEAD | aa0d2794d5844ad2c496f5665b4960a298e58140 |
+| Generated at | 2026-11-26T01:28:56.730Z |
 | Result | **PASSED** |
 | Steps | 11 passed, 0 failed, 0 skipped |
 
@@ -14,14 +14,14 @@
 
 | Step | Description | Result | Duration | Findings |
 | --- | --- | --- | --- | --- |
-| lint | ESLint across the workspace | pass | 5945 ms | — |
-| typecheck | TypeScript project typecheck | pass | 1951 ms | — |
-| test:unit | Unit tests | pass | 26094 ms | — |
-| test:integration | Integration tests | pass | 12112 ms | — |
-| test:e2e | End-to-end tests | pass | 26044 ms | — |
-| architecture | Architecture validation | pass | 484 ms | — |
-| dependencies | Dependency validation | pass | 13 ms | 2 |
-| security | Security validation | pass | 39 ms | — |
-| contract | Execution contract validation | pass | 17 ms | — |
+| lint | ESLint across the workspace | pass | 6370 ms | — |
+| typecheck | TypeScript project typecheck | pass | 2252 ms | — |
+| test:unit | Unit tests | pass | 24103 ms | — |
+| test:integration | Integration tests | pass | 11617 ms | — |
+| test:e2e | End-to-end tests | pass | 22506 ms | — |
+| architecture | Architecture validation | pass | 459 ms | — |
+| dependencies | Dependency validation | pass | 12 ms | 2 |
+| security | Security validation | pass | 33 ms | — |
+| contract | Execution contract validation | pass | 13 ms | — |
 | governance | Reconciliation governance policy | pass | 0 ms | 15 |
-| build | Production build | pass | 21591 ms | — |
+| build | Production build | pass | 19609 ms | — |
