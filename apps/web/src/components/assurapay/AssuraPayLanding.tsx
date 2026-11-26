@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { AnimatePresence, motion, MotionConfig } from 'framer-motion';
+import { useTheme } from '../../../app/components/theme';
 import {
   Menu,
   X,
@@ -203,22 +204,22 @@ function Governance() {
 
 export default function AssuraPayLanding() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [scrolled, setScrolled] = useState(false);
   const [text, setText] = useState(templateText(templates[0]));
   const menuButton = useRef<HTMLButtonElement>(null);
+  /**
+   * The theme is the document's, not this page's.
+   *
+   * It used to be `useState` here, written onto the `<div>` below, which is why a reader could choose
+   * dark on this page and be handed a white screen on `/settlements`. `useTheme` writes `data-theme`
+   * to `<html>` — where `globals.css` reads it — and mirrors it here, because the dark rules further
+   * down `landing.css` are still scoped to this id for the handful of gradients that are not tokens.
+   *
+   * One consumer per page: `AppNavigation` renders its own `ThemeToggle` but returns null on `/`, so
+   * this hook and that one never run in the same document.
+   */
+  const { theme, toggle: toggleTheme } = useTheme();
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem('assurapay-landing-theme');
-      setTheme(
-        saved === 'dark' ||
-          (!saved && matchMedia('(prefers-color-scheme: dark)').matches)
-          ? 'dark'
-          : 'light',
-      );
-    } catch {
-      /* Storage can be unavailable in private browsing. */
-    }
     function scroll() {
       setScrolled(window.scrollY > 16);
     }
@@ -226,15 +227,6 @@ export default function AssuraPayLanding() {
     window.addEventListener('scroll', scroll, { passive: true });
     return () => window.removeEventListener('scroll', scroll);
   }, []);
-  function toggleTheme() {
-    const next = theme === 'light' ? 'dark' : 'light';
-    setTheme(next);
-    try {
-      localStorage.setItem('assurapay-landing-theme', next);
-    } catch {
-      /* Theme still works without persistence. */
-    }
-  }
   function useTemplate(template: Template) {
     setText(templateText(template));
     document.getElementById('product')?.scrollIntoView({

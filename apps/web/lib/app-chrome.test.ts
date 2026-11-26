@@ -123,57 +123,165 @@ describe('the chrome is styled in tokens, because there is no Tailwind', () => {
     const header = globals!.source.slice(globals!.source.indexOf('.app-navigation {'));
     expect(header).toContain('position: sticky');
     expect(header).toContain('backdrop-filter');
-    // The surface follows the token rather than a literal, so the palette stays one source.
-    expect(header).toContain('var(--ap-white)');
+    // The surface follows the token rather than a literal, so the palette stays one source. Two
+    // declarations: the opaque fallback first, then the translucent one, so an engine without
+    // `backdrop-filter` gets a readable header rather than a transparent one.
+    expect(header).toContain('background: var(--ap-surface)');
+    expect(header).toContain('background: var(--ap-header)');
     // The current section is marked with the workspace's own accent, not a second highlight colour.
     expect(globals!.source).toContain("nav a[aria-current='page']");
   });
 });
 
-describe('the landing page and the application share one palette', () => {
-  it('records that the live landing does NOT share the shell palette, which is a known gap', () => {
-    // This assertion originally claimed the opposite, and was true of the wrong file.
-    //
-    // `preferred-landing/landing.css` does derive from the brand tokens — `--blue: var(--ap-blue)`.
-    // But `app/page.tsx` no longer renders `PreferredLanding`: it renders
-    // `src/components/assurapay/AssuraPayLanding`, whose stylesheet declares its own `--ap-*` set
-    // with different values (`--ap-primary: #2563eb` against the shell's `--ap-blue: #005ee9`) and
-    // adds a dark theme the shell does not have.
-    //
-    // So the divergence the information-architecture audit reported is real, and arrived with the
-    // landing modernization rather than with the subpages. It is recorded here as a fact rather
-    // than asserted away, because closing it means choosing one palette — a brand decision, not a
-    // refactor. If someone unifies them, this test fails and should be replaced with the
-    // derivation assertion it is standing in for.
-    const live = readFileSync(
-      path.join(__dirname, '..', 'src', 'components', 'assurapay', 'landing.css'),
-      'utf8',
-    );
-    expect(live, 'the live landing declares its own primary').toContain('--ap-primary');
-    expect(live, 'and does not derive it from the shell').not.toContain('--ap-primary: var(--ap-blue)');
+describe('the stylesheet styles things that render', () => {
+  const globals = () => files.find((entry) => entry.file === 'globals.css')!.source;
 
-    // The shell's own brand tokens are untouched by it, which is the part that matters today: the
-    // two palettes are separate, not fighting.
+  /** Every class token written in a `className` under `app/`. */
+  function classesUsed(): Set<string> {
+    const used = new Set<string>();
+    for (const entry of files) {
+      if (!entry.file.endsWith('.tsx')) continue;
+      for (const match of entry.source.matchAll(/className="([^"{]+)"/g)) {
+        for (const token of match[1].split(/\s+/)) if (token) used.add(token);
+      }
+    }
+    return used;
+  }
+
+  /**
+   * Every class token the stylesheet defines a rule for.
+   *
+   * Whole tokens, not substrings. The first version of the assertion below asked
+   * `css.includes('.' + name)`, which is satisfied by any longer name that starts the same way:
+   * renaming `.page-shell` to `.page-shell-renamed` left the guard green while the class the
+   * application writes went undefined. `.card` would have been "defined" by `.cardboard`.
+   *
+   * Comments are already stripped by `sources()`, so a prefix named in prose does not count as a
+   * rule — which matters here, because the comments in `globals.css` discuss the class names this
+   * change deleted.
+   */
+  function classesDefined(css: string): Set<string> {
+    return new Set([...css.matchAll(/\.(-?[_a-zA-Z][\w-]*)/g)].map((match) => match[1]));
+  }
+
+  it('defines every class the application actually writes', () => {
+    // `.page-shell` was the one that prompted this. `trust-console.tsx` has rendered
+    // `<main className="page-shell">` on every trust-foundation route since it was written, and the
+    // class was defined nowhere — so those routes silently fell back to the bare `main` rule and were
+    // visibly narrower than the rest of the application. A class used and not defined is the same
+    // defect as a class defined and not used, seen from the other side.
+    const defined = classesDefined(globals());
+    const missing = [...classesUsed()].filter((name) => !defined.has(name));
+    expect(missing).toEqual([]);
+  });
+
+  it('styles no class name the application no longer writes', () => {
+    // `globals.css` was 2,944 lines, of which roughly 2,200 styled `.console-*`, `.landing-*` and
+    // `.hero*` — a trust-console mockup, a marketing page and a carousel, all three replaced by
+    // `AssuraPayLanding` and none of them rendered by any component.
+    //
+    // That was not merely dead weight. Those rules had been flattened onto one tint for every
+    // background, border and fill, so the stylesheet read as a unified palette while the product
+    // showed two. Deleting them is what made the live surface small enough to see, and this guard is
+    // what stops the next replaced surface from leaving its stylesheet behind.
+    const used = classesUsed();
+    // Composed rather than written as a literal, so the `className="…"` scan cannot see them:
+    // `record-view.tsx` builds the tab's class from its selected state.
+    const COMPOSED = new Set(['tab', 'tab--current']);
+    const orphans = [...classesDefined(globals())].filter(
+      (name) => !used.has(name) && !COMPOSED.has(name),
+    );
+    expect(orphans).toEqual([]);
+  });
+});
+
+describe('the landing page and the application share one palette', () => {
+  /** The one live landing stylesheet. The orphaned `preferred-landing` set was deleted with this change. */
+  const LANDING = path.join(__dirname, '..', 'src', 'components', 'assurapay', 'landing.css');
+
+  it('declares the palette once, at the root, and lets the landing inherit it', () => {
+    // This is the assertion the previous version of this test said it was standing in for.
+    //
+    // It used to *record a gap*: the shell declared `--ap-blue: #005ee9` and the live landing
+    // declared `--ap-primary: #2563eb`, two independent palettes, and the note said that whoever
+    // unified them should replace the record with the derivation. That happened, and the direction
+    // matters — the landing page is the design, so its tokens were promoted to `:root` in
+    // `globals.css` rather than converted to the shell's.
+    //
+    // So the test is now: the landing stylesheet declares no colour of its own, and every token it
+    // reads is defined globally. That is a stronger claim than "they happen to match", because it
+    // cannot drift.
+    const landing = readFileSync(LANDING, 'utf8');
     const globals = files.find((entry) => entry.file === 'globals.css')!.source;
-    expect(globals).toContain('--ap-blue: #005ee9');
+
+    const SCALE = [
+      '--ap-bg',
+      '--ap-surface',
+      '--ap-soft',
+      '--ap-text',
+      '--ap-muted',
+      '--ap-line',
+      '--ap-primary',
+      '--ap-light-blue',
+      '--ap-header',
+    ];
+    for (const token of SCALE) {
+      expect(globals, `${token} is not declared globally`).toMatch(
+        new RegExp(`^\\s*${token}:`, 'm'),
+      );
+      // Declared in the dark block too, or the theme would only half apply.
+      const dark = globals.match(/:root\[data-theme='dark'\] \{[\s\S]*?\n\}/g) ?? [];
+      expect(dark.some((block) => block.includes(`${token}:`)), `${token} has no dark value`).toBe(true);
+      // And *not* re-declared on the landing's own id, which is what made two palettes possible.
+      expect(landing, `${token} is still declared on #assurapay-landing`).not.toMatch(
+        new RegExp(`#assurapay-landing[^{]*\\{[^}]*${token}:`),
+      );
+    }
   });
 
   it('keeps the landing stylesheet scoped so it cannot restyle the application', () => {
     // A plain CSS import is global in Next. Every selector in `landing.css` is prefixed with
-    // `#preferred-landing`, which is the only reason importing it from `app/page.tsx` does not
-    // reach every other page. Asserted because one unscoped rule would be invisible until it was not.
-    // Checked for both stylesheets: the live one and the orphaned one that is still on disk.
-    for (const [file, prefix] of [
-      [path.join('assurapay', 'landing.css'), '#assurapay-landing'],
-      [path.join('preferred-landing', 'landing.css'), '#preferred-landing'],
-    ] as const) {
-      const landing = readFileSync(path.join(__dirname, '..', 'src', 'components', file), 'utf8');
-      const unscoped = landing
-        .split('\n')
-        .filter((line) => /^[.#a-zA-Z*\[]/.test(line) && line.includes('{'))
-        .filter((line) => !line.startsWith(prefix));
-      expect(unscoped, `${file} must be scoped under ${prefix}`).toEqual([]);
-    }
+    // `#assurapay-landing`, which is the only reason importing it from `app/page.tsx` does not reach
+    // every other page. Asserted because one unscoped rule would be invisible until it was not.
+    //
+    // That matters more now, not less. The tokens are global and the landing inherits them, so an
+    // unscoped rule here would restyle the whole application from a file named after one page.
+    const landing = readFileSync(LANDING, 'utf8');
+    const unscoped = landing
+      .split('\n')
+      .filter((line) => /^[.#a-zA-Z*\[]/.test(line) && line.includes('{'))
+      .filter((line) => !line.startsWith('#assurapay-landing'));
+    expect(unscoped, 'landing.css must be scoped under #assurapay-landing').toEqual([]);
+  });
+
+  it('applies the theme to the document rather than to one page', () => {
+    // The landing page owned light/dark as React state on its own `<div>`, which is why a reader
+    // could choose dark there and be handed a white screen on `/settlements`. Applying the design
+    // globally means applying the theme, so `data-theme` is written on `<html>` — where
+    // `:root[data-theme='dark']` reads it — and mirrored onto the landing's id for the handful of
+    // its rules that are gradients rather than tokens.
+    const theme = files.find((entry) => entry.file === path.join('components', 'theme.tsx'));
+    expect(theme, 'there is no theme controller').toBeDefined();
+    expect(theme!.source).toContain('document.documentElement.setAttribute');
+    expect(theme!.source).toContain("getElementById('assurapay-landing')");
+
+    // Set before the first paint. React cannot, so a dark reader would see a white flash on every
+    // navigation; the bootstrap script in `<head>` is what prevents it.
+    const layout = files.find((entry) => entry.file === 'layout.tsx')!.source;
+    expect(layout).toContain('THEME_BOOTSTRAP');
+
+    // One storage key, so the choice survives the move between the two surfaces. Read directly:
+    // `sources()` walks `.tsx` and `.css`, and the contract is a plain `.ts` module precisely so a
+    // server component can read the bootstrap script without crossing the client boundary.
+    const contract = readFileSync(
+      path.join(__dirname, '..', 'app', 'components', 'theme-contract.ts'),
+      'utf8',
+    );
+    expect(contract).toContain("'assurapay-landing-theme'");
+    const landing = readFileSync(LANDING, 'utf8');
+    expect(landing, 'the landing still carries its own dark rules').toContain(
+      "#assurapay-landing[data-theme='dark']",
+    );
   });
 
   it('keeps the per-persona accents, which one flat palette would have erased', () => {

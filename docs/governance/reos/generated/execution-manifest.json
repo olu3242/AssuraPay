@@ -3636,9 +3636,9 @@
     }
   ],
   "identity": {
-    "branch": "claude/git-pull-cqc04u",
+    "branch": "feat/global-design-system",
     "clean": false,
-    "head": "8476cbdf09efc64057da652dac080f5aeaccf5ee",
+    "head": "9ac8f812f1ef131501569ce313be8df8b94cf1fe",
     "repository": "assurapay",
     "version": "0.1.0"
   },
@@ -3730,7 +3730,7 @@
     "released": 76,
     "validated": 0
   },
-  "manifestDigest": "4b5f32dceead",
+  "manifestDigest": "f39d3516547a",
   "missingCapabilities": [],
   "packages": [
     {

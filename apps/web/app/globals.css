@@ -1,98 +1,244 @@
+/* ===========================================================================
+   The AssuraPay design system.
+   ===========================================================================
+
+   One token system, one component vocabulary, applied to every route.
+
+   ## What this file used to be
+
+   2,944 lines, of which roughly 2,200 styled class names that **no component
+   rendered**. `.console-*` was a trust-console mockup; `.landing-*` was a
+   marketing page; `.hero*` was a carousel imported by nothing. Those surfaces
+   were replaced by `src/components/assurapay/AssuraPayLanding`, and their
+   stylesheets were left behind. A grep for each prefix across `app/` and `src/`
+   returns zero `className` matches, so none of it reached a browser.
+
+   That mattered for more than file size. The dead rules were the reason the
+   palette looked unified in the stylesheet and diverged in the product: they
+   had been flattened onto `--ap-pale` for every background, border and tint, so
+   `linear-gradient(135deg, var(--ap-blue), var(--ap-blue))` and
+   `background: var(--ap-pale); border-color: var(--ap-pale)` read as deliberate
+   design while rendering as nothing. Deleting them is what makes the real
+   surface small enough to see.
+
+   ## The direction of the unification
+
+   The landing page is the design. Its tokens are declared here at `:root`, and
+   `src/components/assurapay/landing.css` now *derives* its own
+   `#assurapay-landing` locals from them. Before this change the two palettes
+   were independent — the shell's `--ap-blue: #005ee9` against the landing's
+   `--ap-primary: #2563eb` — and `app-chrome.test.ts` recorded that divergence as
+   a known gap, with a note saying that whoever unified them should replace the
+   assertion with the derivation it stood in for. That is what happened.
+
+   The legacy names are kept as aliases rather than removed. They are read by
+   rules in this file and asserted by a browser test, and one indirection is
+   cheaper than a rename that has to be right in every file at once.
+   =========================================================================== */
+
 :root {
-  --ap-blue: #005ee9;
-  --ap-navy: #061944;
-  --ap-pale: #e8f6ff;
-  --ap-white: #ffffff;
-  --ap-green: #169c50;
-  --ap-border: rgba(6, 25, 68, 0.16);
+  /* ---- surfaces, from back to front ---- */
+  --ap-bg: #ffffff;
+  --ap-surface: #ffffff;
+  --ap-soft: #f7f9fd;
+  --ap-line: #e2e8f2;
+
+  /* ---- ink ---- */
+  --ap-text: #0f1b35;
+  --ap-muted: #58677f;
+
+  /* ---- brand ---- */
+  --ap-primary: #2563eb;
+  --ap-primary-strong: #1d4ed8;
+  --ap-light-blue: #edf4ff;
+  --ap-positive: #059669;
+
+  /* The chrome's own translucent surface. A literal rgba rather than a
+     `color-mix`, because the alpha is the point and both themes declare it. */
+  --ap-header: rgba(255, 255, 255, 0.88);
+
+  /* ---- elevation. Two steps; a third would be decoration. ---- */
+  --ap-shadow-card: 0 2px 4px rgba(33, 62, 123, 0.02);
+  --ap-shadow-raised:
+    0 14px 48px rgba(33, 62, 123, 0.06), 0 2px 4px rgba(33, 62, 123, 0.02);
+
+  --ap-radius: 12px;
+  --ap-radius-sm: 8px;
+
+  color-scheme: light;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
-/* ------------------------------------------------------------------ persona workspaces
+
+/* ---------------------------------------------------------------------------
+   Dark.
+
+   `data-theme` on `<html>`, written by `app/components/theme.tsx` from the same
+   storage key the landing page has always used — so a reader who chose dark on
+   the landing arrives in the application in dark, which is the whole point of
+   applying one design system rather than one palette.
+
+   An attribute rather than only `prefers-color-scheme`, because the choice has
+   to be overridable: the toggle existed on the landing before it existed
+   anywhere else, and a media query cannot be toggled.
+   --------------------------------------------------------------------------- */
+:root[data-theme='dark'] {
+  --ap-bg: #0b1220;
+  --ap-surface: #111d31;
+  --ap-soft: #0e1829;
+  --ap-line: #29364e;
+
+  --ap-text: #edf3ff;
+  --ap-muted: #a6b5cd;
+
+  --ap-primary: #78a7ff;
+  --ap-primary-strong: #9cbdff;
+  --ap-light-blue: #172846;
+  --ap-positive: #6ee7b7;
+
+  --ap-header: rgba(11, 18, 32, 0.9);
+
+  /* Shadows read as grime on a dark surface; the border carries the elevation
+     instead. */
+  --ap-shadow-card: none;
+  --ap-shadow-raised: 0 14px 48px rgba(0, 0, 0, 0.35);
+
+  color-scheme: dark;
+}
+
+/* ---------------------------------------------------------------------------
+   The legacy names, as aliases.
+
+   Every one of these was a hex value in its own right until this change, which
+   is how two palettes came to exist. They now resolve to the tokens above, so
+   there is one source and the old names keep working:
+
+   - `--ap-blue`   is the brand action colour → `--ap-primary`
+   - `--ap-navy`   was body ink              → `--ap-text`
+   - `--ap-pale`   was every tint and fill   → `--ap-light-blue`
+   - `--ap-white`  was every raised surface  → `--ap-surface`
+   - `--ap-border` was every hairline        → `--ap-line`
+   - `--ap-canvas` was the page background   → `--ap-bg`
+   - `--ap-ink`    was body ink              → `--ap-text`
+   - `--ap-green`  was the brand green       → `--ap-positive`
+
+   `browser-landing-e2e` reads `--ap-blue` and `--ap-navy` off
+   `document.documentElement` and asserts they are non-empty, which is a check
+   that the stylesheet loaded at all. The aliases keep that honest.
+   --------------------------------------------------------------------------- */
+:root {
+  --ap-blue: var(--ap-primary);
+  --ap-navy: var(--ap-text);
+  --ap-pale: var(--ap-light-blue);
+  --ap-white: var(--ap-surface);
+  --ap-border: var(--ap-line);
+  --ap-canvas: var(--ap-bg);
+  --ap-ink: var(--ap-text);
+  --ap-green: var(--ap-positive);
+}
+
+/* ------------------------------------------------------------------ status
  *
- * One accent per workspace, set on an ancestor via `data-workspace` and read by the chrome through
- * `--ap-accent`. A component asks for the accent; it never asks which workspace it is in, so adding a ninth
- * workspace is a token here rather than a condition in every component.
+ * Deliberately outside the persona system and outside the brand. Red, amber and
+ * green mean the same thing in every workspace: a failed payment must not look
+ * different depending on who is looking at it. No `[data-persona]` rule below
+ * redefines them, and `persona-workspaces.test.ts` asserts that.
  *
- * Every value clears WCAG AA for normal text both on `--ap-canvas` and inverted behind white — measured, and
- * `workspaces.test.ts` recomputes the ratios so a later tweak cannot quietly drop one below the threshold.
- * The lowest is the verifier's amber at 4.80:1.
- *
- * `--ap-accent` defaults to the brand blue, so an unthemed page is AssuraPay rather than unstyled. The brand
- * tokens above are untouched: a workspace recolours its own chrome, not the product's identity.
+ * They do change with the *theme*, because they have to. `#b91c1c` on the dark
+ * background is 2.8:1 — a blocked payment rendered in a colour nobody can read
+ * is worse than one rendered in the body colour. The dark values are measured
+ * against `--ap-bg`, and the same test recomputes them.
  */
 :root {
-  --ap-canvas: #f8fafc;
-  --ap-surface: #ffffff;
-  --ap-ink: #0f172a;
-  --ap-accent: var(--ap-blue);
-
-  /* Status, deliberately outside the persona system. Red, amber and green mean the same thing in every
-   * workspace: a failed payment must not look different depending on who is looking at it. No
-   * `[data-workspace]` rule below redefines these, and a test asserts no workspace claims them. */
   --ap-status-blocked: #b91c1c;
   --ap-status-pending: #b45309;
   --ap-status-confirmed: #047857;
 }
 
-/* The chrome that reads the accent. Without these the token is declared and nothing consumes it, which is a
- * palette rather than a difference — all eight workspaces would render identically. Every rule below asks for
- * `--ap-accent` and never for a workspace id, so the set of workspaces lives in one table and one token list. */
-.workspace-switcher {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem 1rem;
-  margin: 0 0 1.5rem;
-  padding: 0 0 0.75rem;
-  border-bottom: 1px solid var(--ap-border);
-  font-size: 0.9rem;
+:root[data-theme='dark'] {
+  --ap-status-blocked: #f87171;
+  --ap-status-pending: #fbbf24;
+  --ap-status-confirmed: #34d399;
 }
 
-.workspace-switcher a {
-  padding: 0.35rem 0;
-  color: var(--ap-navy);
-  opacity: 0.65;
-  border-bottom: 2px solid transparent;
+/* ------------------------------------------------------------------ persona workspaces
+ *
+ * One accent per workspace, set on an ancestor via `data-persona` and read by the chrome through
+ * `--ap-accent`. A component asks for the accent; it never asks which workspace it is in, so adding a
+ * ninth workspace is a token here rather than a condition in every component.
+ *
+ * ## Two tokens, because one cannot do both jobs
+ *
+ * The accent is used as a **fill** behind white text (the primary action) and as **text** on the page
+ * background (the eyebrow, the current tab, the selected section). In light mode one dark value serves
+ * both. In dark mode it cannot: `#172554` on `#0b1220` is 1.3:1.
+ *
+ * So `--ap-accent` stays the fill — unchanged in both themes, measured against white text, which is
+ * also why the primary button does not change colour when the theme does — and `--ap-accent-text` is
+ * the readable-on-canvas value. In light mode they are the same; in dark mode the second is a
+ * lightened member of the same hue family, so the workspace stays recognisable.
+ *
+ * Every value is measured, not assumed: `persona-workspaces.test.ts` recomputes the WCAG ratio for
+ * each accent as a fill behind white and for each accent-text against its own theme's background, so a
+ * later tweak cannot quietly drop one below 4.5:1. The lowest is the verifier's amber at 4.80:1.
+ *
+ * `--ap-accent` defaults to the brand blue, so an unthemed page is AssuraPay rather than unstyled. The
+ * brand tokens above are untouched: a workspace recolours its own chrome, not the product's identity.
+ */
+:root {
+  --ap-accent: var(--ap-primary);
+  --ap-accent-text: var(--ap-accent);
 }
 
-.workspace-switcher a:hover {
-  opacity: 1;
-}
-
-/* The current workspace, marked by `aria-current` rather than a class: the attribute that tells a screen
- * reader where it is is the same one that colours the tab, so the two cannot disagree. */
-.workspace-switcher a[aria-current='page'] {
-  color: var(--ap-accent);
-  border-bottom-color: var(--ap-accent);
-  opacity: 1;
-  font-weight: 600;
-}
-
-[data-persona] .eyebrow {
-  color: var(--ap-accent);
-}
-
-[data-persona] .button--primary {
-  background: var(--ap-accent);
-  border-color: var(--ap-accent);
-}
-
-[data-persona='buyer'] { --ap-accent: #1d4ed8; }
+[data-persona='buyer'] { --ap-accent: #1D4ED8; }
 [data-persona='seller'] { --ap-accent: #047857; }
-[data-persona='enterprise'] { --ap-accent: #4338ca; }
-[data-persona='finance'] { --ap-accent: #0e7490; }
-[data-persona='verifier'] { --ap-accent: #b45309; }
-[data-persona='disputes'] { --ap-accent: #7e22ce; }
+[data-persona='enterprise'] { --ap-accent: #4338CA; }
+[data-persona='finance'] { --ap-accent: #0E7490; }
+[data-persona='verifier'] { --ap-accent: #B45309; }
+[data-persona='disputes'] { --ap-accent: #7E22CE; }
 [data-persona='compliance'] { --ap-accent: #475569; }
 [data-persona='admin'] { --ap-accent: #172554; }
 
-:root {
-  color-scheme: light;
-  font-family: Inter, Arial, sans-serif;
+/* The light theme needs no second value: the fill is already the readable one. Declared once here so
+   the dark block below is the only place the two diverge. */
+[data-persona] { --ap-accent-text: var(--ap-accent); }
+
+:root[data-theme='dark'] [data-persona='buyer'] { --ap-accent-text: #93B4FF; }
+:root[data-theme='dark'] [data-persona='seller'] { --ap-accent-text: #6EE7B7; }
+:root[data-theme='dark'] [data-persona='enterprise'] { --ap-accent-text: #A5B4FC; }
+:root[data-theme='dark'] [data-persona='finance'] { --ap-accent-text: #67E8F9; }
+:root[data-theme='dark'] [data-persona='verifier'] { --ap-accent-text: #FCD34D; }
+:root[data-theme='dark'] [data-persona='disputes'] { --ap-accent-text: #D8B4FE; }
+:root[data-theme='dark'] [data-persona='compliance'] { --ap-accent-text: #CBD5E1; }
+:root[data-theme='dark'] [data-persona='admin'] { --ap-accent-text: #A5C4FF; }
+
+/* ===========================================================================
+   Base
+   =========================================================================== */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
+/* `--ap-soft` rather than `--ap-bg`, and the difference is the one place this
+   file reads the landing's *system* instead of copying its hero.
+
+   The landing's page background is white and its cards are white with a
+   hairline border, which works there because full-bleed `--ap-soft` bands
+   separate the sections. An application page is a stack of cards with no bands,
+   and white-on-white leaves the border doing all the work. So the application
+   takes the relationship the landing uses *inside* those bands: the soft tone
+   behind, the surface tone on top. Both tones are the landing's own, in both
+   themes, and `#assurapay-landing` sets its own background so the landing page
+   itself is unaffected. */
 body {
   margin: 0;
-  background: var(--ap-pale);
-  color: var(--ap-navy);
+  background: var(--ap-soft);
+  color: var(--ap-text);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
 }
 
 a {
@@ -100,202 +246,35 @@ a {
   text-decoration: none;
 }
 
-main {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 2rem 1.25rem 4rem;
+h1,
+h2,
+h3,
+h4 {
+  letter-spacing: -0.03em;
+  line-height: 1.2;
 }
 
-nav {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
+/* The landing's heading scale, so a section title is the same size on
+   `/settlements` as it is on the page that sold it. */
+h1 {
+  font-size: clamp(2rem, 3.4vw, 2.45rem);
+  font-weight: 720;
+  letter-spacing: -0.045em;
 }
 
-.hero {
-  display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(420px, 1.1fr);
-  gap: clamp(2rem, 5vw, 4.5rem);
-  align-items: center;
-  margin: 1rem 0 2rem;
-  padding: clamp(1.5rem, 4vw, 3rem);
-  overflow: hidden;
-  background: linear-gradient(135deg, var(--ap-pale), var(--ap-pale));
-  border: 1px solid var(--ap-border);
-  border-radius: 24px;
+h2 {
+  font-size: 1.35rem;
+  font-weight: 680;
 }
 
-.hero__content {
-  position: relative;
-  z-index: 1;
+h3 {
+  font-size: 1.125rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
 }
 
-.hero__eyebrow {
-  display: inline-block;
-  margin-bottom: 1rem;
-  color: var(--ap-blue);
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.hero h1 {
-  max-width: 12ch;
-  margin: 0;
-  font-size: clamp(2.25rem, 5vw, 4.25rem);
-  line-height: 0.98;
-  letter-spacing: -0.055em;
-}
-
-.hero__content p {
-  max-width: 52ch;
-  margin: 1.5rem 0 0;
-  color: var(--ap-navy);
-  font-size: 1.05rem;
-  line-height: 1.7;
-}
-
-.hero__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-top: 2rem;
-}
-
-.button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 46px;
-  padding: 0 1.15rem;
-  border: 1px solid transparent;
-  border-radius: 999px;
-  font-weight: 700;
-}
-
-.button--primary {
-  background: var(--ap-blue);
-  color: var(--ap-navy);
-}
-
-.button--secondary {
-  border-color: var(--ap-border);
-  background: var(--ap-pale);
-}
-
-.hero-carousel {
-  position: relative;
-  min-width: 0;
-}
-
-.hero-carousel__viewport {
-  position: relative;
-  aspect-ratio: 4 / 3;
-  overflow: hidden;
-  border-radius: 18px;
-  box-shadow: 0 28px 80px rgba(6, 25, 68, 0.12);
-}
-
-.hero-carousel__slide {
-  position: absolute;
-  inset: 0;
-  margin: 0;
-  opacity: 0;
-  transform: scale(1.03);
-  transition:
-    opacity 700ms ease,
-    transform 5s ease;
-  pointer-events: none;
-}
-
-.hero-carousel__slide.is-active {
-  z-index: 1;
-  opacity: 1;
-  transform: scale(1);
-}
-
-.hero-carousel__slide img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.hero-carousel__slide::after {
-  position: absolute;
-  inset: 35% 0 0;
-  content: '';
-  background: linear-gradient(transparent, var(--ap-pale));
-}
-
-.hero-carousel figcaption {
-  position: absolute;
-  z-index: 1;
-  right: 1.25rem;
-  bottom: 1.25rem;
-  left: 1.25rem;
-  display: grid;
-  gap: 0.25rem;
-}
-
-.hero-carousel figcaption span {
-  color: var(--ap-blue);
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.hero-carousel figcaption strong {
-  max-width: 24ch;
-  font-size: clamp(1rem, 2vw, 1.35rem);
-}
-
-.hero-carousel__controls {
-  position: absolute;
-  z-index: 2;
-  right: 1rem;
-  bottom: -1.6rem;
-  display: flex;
-  gap: 0.45rem;
-}
-
-.hero-carousel__controls button {
-  width: 9px;
-  height: 9px;
-  padding: 0;
-  cursor: pointer;
-  background: var(--ap-pale);
-  border: 0;
-  border-radius: 999px;
-  transition:
-    width 200ms ease,
-    background 200ms ease;
-}
-
-.hero-carousel__controls button.is-active {
-  width: 28px;
-  background: var(--ap-blue);
-}
-
-.hero-carousel__controls button:focus-visible,
-.button:focus-visible {
-  outline: 3px solid var(--ap-blue);
-  outline-offset: 3px;
-}
-
-.card {
-  background: var(--ap-pale);
-  border: 1px solid var(--ap-border);
-  border-radius: 16px;
-  padding: 1rem 1.2rem;
-  margin-bottom: 1rem;
-}
-
-.grid {
-  display: grid;
-  gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+p {
+  line-height: 1.75;
 }
 
 button,
@@ -305,84 +284,123 @@ textarea {
   font: inherit;
 }
 
-@media (max-width: 840px) {
-  .hero {
-    grid-template-columns: 1fr;
-  }
-
-  .hero h1 {
-    max-width: 14ch;
-  }
+button {
+  color: inherit;
+  cursor: pointer;
 }
 
-@media (max-width: 520px) {
-  main {
-    padding-right: 1rem;
-    padding-left: 1rem;
-  }
-
-  .hero {
-    padding: 1.25rem;
-    border-radius: 18px;
-  }
-
-  .hero-carousel__viewport {
-    aspect-ratio: 1 / 1;
-  }
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .hero-carousel__slide,
-  .hero-carousel__controls button {
-    transition: none;
-  }
+input,
+select,
+textarea {
+  background: var(--ap-surface);
+  color: var(--ap-text);
+  border: 1px solid var(--ap-line);
 }
 
-/*
- * The application shell.
- *
- * These class names were already used by every page under /contracts, /approvals, /settlements and the rest —
- * and none of them was defined, so those pages rendered as unstyled text. They are defined here because the
- * bootstrap console is the first surface a user is expected to complete a task in, and a form nobody can read
- * is not a certified journey.
- */
-.shell {
-  max-width: 60rem;
+/* The landing's focus ring, globally. Three pixels and offset four, so it
+   survives being drawn over a card edge. */
+:focus-visible {
+  outline: 3px solid var(--ap-primary);
+  outline-offset: 3px;
+}
+
+::selection {
+  background: var(--ap-light-blue);
+  color: var(--ap-text);
+}
+
+/* `.sr-only` used to live here and was written by nothing — the landing has its own
+   `.ap-visually-hidden`, which is the one in use. Removed rather than kept "in case": an unused
+   utility is the same defect as the 2,200 lines above it, just small enough to excuse. The guard in
+   `app-chrome.test.ts` is what found it. */
+
+/* ===========================================================================
+   Layout
+
+   `main` is the fallback for a page that uses neither container class, and the
+   two container classes exist because both are in the markup: `.shell` on 20
+   pages and `.page-shell` on every trust-foundation route through
+   `trust-console.tsx`. `.page-shell` was **used and defined nowhere**, so those
+   routes fell back to the bare `main` rule and were visibly narrower than the
+   rest of the application. They are now the same measure.
+   =========================================================================== */
+
+main,
+.shell,
+.page-shell {
+  width: min(1240px, 100% - 3rem);
+  max-width: 76rem;
   margin: 0 auto;
-  padding: 2.5rem 1.5rem 4rem;
+  padding: 2.75rem 0 5rem;
 }
 
+/* ===========================================================================
+   Type
+   =========================================================================== */
+
+/* The category label above every page heading. The landing calls it an eyebrow
+   and renders it as micro-caps in the accent; the application's version is the
+   same thing, which is why the audit that asked for "category pills" found most
+   pages already had one. */
 .eyebrow {
-  margin: 0 0 0.5rem;
-  font-size: 0.8125rem;
-  letter-spacing: 0.08em;
+  display: block;
+  margin: 0 0 0.75rem;
+  color: var(--ap-accent-text);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  opacity: 0.7;
 }
 
 .lead {
+  max-width: 44rem;
+  color: var(--ap-muted);
   font-size: 1.0625rem;
-  line-height: 1.6;
-  max-width: 46rem;
+  line-height: 1.8;
+}
+
+/* ===========================================================================
+   Surfaces
+   =========================================================================== */
+
+.card,
+.panel {
+  background: var(--ap-surface);
+  border: 1px solid var(--ap-line);
+  border-radius: var(--ap-radius);
+  box-shadow: var(--ap-shadow-card);
+}
+
+.card {
+  padding: 1.25rem 1.35rem;
+  margin-bottom: 1rem;
+}
+
+/* Inside a grid the gap already separates them, and the margin was adding a second one below the
+   last row only — visible as dead space under the card row on `/contracts`. */
+.grid > .card {
+  margin-bottom: 0;
 }
 
 .panel {
   margin: 1.5rem 0;
-  padding: 1.25rem 1.5rem;
-  border: 1px solid var(--ap-border);
-  border-radius: 14px;
+  padding: 1.35rem 1.5rem;
 }
 
 .panel h2 {
   margin-top: 0;
-  font-size: 1rem;
-  letter-spacing: 0.02em;
+  font-size: 1.0625rem;
 }
 
 .panel label {
   display: block;
-  margin: 0.75rem 0 0.25rem;
-  font-size: 0.875rem;
+  margin: 0.9rem 0 0.3rem;
+  font-size: 0.8125rem;
   font-weight: 600;
 }
 
@@ -390,12 +408,8 @@ textarea {
   display: block;
   width: 100%;
   max-width: 28rem;
-  padding: 0.5rem 0.625rem;
-  font: inherit;
-  border: 1px solid var(--ap-border);
-  border-radius: 8px;
-  background: transparent;
-  color: inherit;
+  padding: 0.6rem 0.7rem;
+  border-radius: var(--ap-radius-sm);
 }
 
 .panel .button {
@@ -405,20 +419,20 @@ textarea {
 .panel dl {
   display: grid;
   grid-template-columns: minmax(8rem, max-content) 1fr;
-  gap: 0.35rem 1rem;
+  gap: 0.4rem 1.25rem;
   margin: 0;
 }
 
 .panel dt {
-  font-size: 0.875rem;
+  color: var(--ap-muted);
+  font-size: 0.8125rem;
   font-weight: 600;
-  opacity: 0.75;
 }
 
 .panel dd {
   margin: 0;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   overflow-wrap: anywhere;
 }
 
@@ -433,2388 +447,173 @@ textarea {
   flex-wrap: wrap;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid var(--ap-border);
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--ap-line);
 }
 
 .panel li:last-child {
   border-bottom: none;
 }
 
-/* Trust console landing page */
-.console-page {
-  min-height: 100vh;
-  color: var(--ap-navy);
-  background:
-    radial-gradient(circle at 10% -10%, var(--ap-pale), transparent 34rem),
-    radial-gradient(circle at 92% 8%, var(--ap-pale), transparent 28rem),
-    var(--ap-pale);
-}
-
-.console-page,
-.console-page * {
-  box-sizing: border-box;
-}
-
-.console-header {
-  position: sticky;
-  top: 0;
-  z-index: 40;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  min-height: 68px;
-  padding: 0.75rem max(1rem, 5vw);
-  background: var(--ap-pale);
-  border-bottom: 1px solid var(--ap-border);
-  backdrop-filter: blur(18px);
-}
-
-.console-brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.7rem;
-  font-size: 1.05rem;
-  letter-spacing: -0.02em;
-}
-
-.console-brand > span {
+.grid {
   display: grid;
-  width: 34px;
-  height: 34px;
-  color: var(--ap-navy);
-  font-weight: 900;
-  place-items: center;
-  background: linear-gradient(135deg, var(--ap-blue), var(--ap-blue));
-  border-radius: 10px;
-  box-shadow: 0 10px 30px rgba(6, 25, 68, 0.12);
-}
-
-.console-nav {
-  display: flex;
-  align-items: center;
-  gap: 1.25rem;
-  margin: 0;
-}
-
-.console-nav > a {
-  color: var(--ap-navy);
-  font-size: 0.82rem;
-  font-weight: 650;
-}
-
-.console-nav > a:hover {
-  color: var(--ap-navy);
-}
-
-.console-demo-badge,
-.console-live-indicator {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  padding: 0.38rem 0.7rem;
-  color: var(--ap-blue);
-  font-size: 0.68rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  background: var(--ap-pale);
-  border: 1px solid var(--ap-border);
-  border-radius: 999px;
-}
-
-.console-main {
-  width: min(1240px, 100%);
-  max-width: none;
-  margin: 0 auto;
-  padding: clamp(2.5rem, 6vw, 5.5rem) max(1rem, 5vw) 5rem;
-}
-
-.console-intro {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 2rem;
-  margin-bottom: 2.25rem;
-}
-
-.console-intro h1 {
-  max-width: 14ch;
-  margin: 0.25rem 0 0.8rem;
-  font-size: clamp(2.35rem, 5vw, 4.6rem);
-  line-height: 0.98;
-  letter-spacing: -0.06em;
-}
-
-.console-intro > div > p:last-child {
-  max-width: 700px;
-  margin: 0;
-  color: var(--ap-navy);
-  font-size: clamp(0.98rem, 2vw, 1.15rem);
-  line-height: 1.65;
-}
-
-.console-kicker {
-  margin: 0 0 0.45rem;
-  color: var(--ap-blue) !important;
-  font-size: 0.68rem !important;
-  font-weight: 850;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.console-live-indicator {
-  flex: 0 0 auto;
-  margin-bottom: 0.3rem;
-  color: var(--ap-green);
-  background: var(--ap-pale);
-  border-color: var(--ap-border);
-}
-
-.console-live-indicator > span {
-  width: 7px;
-  height: 7px;
-  background: var(--ap-green);
-  border-radius: 50%;
-  box-shadow: 0 0 0 5px rgba(6, 25, 68, 0.12);
-}
-
-.console-grid {
-  display: grid;
-  grid-template-columns: minmax(290px, 0.78fr) minmax(0, 1.55fr);
-  gap: 1.25rem;
-  align-items: start;
-}
-
-.console-grid > * {
-  min-width: 0;
-}
-
-.console-card {
-  overflow: hidden;
-  background: linear-gradient(145deg, var(--ap-pale), var(--ap-pale));
-  border: 1px solid var(--ap-border);
-  border-radius: 20px;
-  box-shadow: 0 24px 70px rgba(6, 25, 68, 0.12);
-}
-
-.console-score-card {
-  padding: 1.4rem;
-}
-
-.console-card-heading {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
   gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
-.console-card-heading h2 {
-  margin: 0;
-  font-size: 1.05rem;
-  letter-spacing: -0.02em;
-}
+/* ===========================================================================
+   Controls
 
-.console-card-heading p:not(.console-kicker) {
-  margin: 0.35rem 0 0;
-  color: var(--ap-navy);
-  font-size: 0.76rem;
-}
+   The landing's button: 8px radius, a two-pixel lift on hover, a press that
+   scales. Copied in behaviour rather than in markup, because the landing's
+   `.ap-button` is Tailwind-adjacent and scoped to its own id — the application
+   has no Tailwind, and a utility class written here would not be generated.
+   =========================================================================== */
 
-.console-status {
-  display: inline-flex;
-  align-items: center;
-  width: max-content;
-  padding: 0.34rem 0.58rem;
-  font-size: 0.62rem;
-  font-weight: 850;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  border: 1px solid;
-  border-radius: 999px;
-}
-
-.console-status--healthy,
-.console-status--released {
-  color: var(--ap-green);
-  background: var(--ap-pale);
-  border-color: var(--ap-border);
-}
-
-.console-status--pending {
-  color: #fbbf24;
-  background: var(--ap-pale);
-  border-color: var(--ap-border);
-}
-
-.console-status--verifying {
-  color: var(--ap-blue);
-  background: var(--ap-pale);
-  border-color: var(--ap-border);
-}
-
-.console-score {
-  margin: 2.1rem 0 1.25rem;
-}
-.console-score-value {
-  display: flex;
-  align-items: baseline;
-  margin-bottom: 1.2rem;
-}
-.console-score-value strong {
-  font-size: clamp(3.6rem, 7vw, 5.5rem);
-  line-height: 0.8;
-  letter-spacing: -0.08em;
-}
-.console-score-value span {
-  margin-left: 0.35rem;
-  color: var(--ap-navy);
-  font-size: 0.85rem;
-  font-weight: 700;
-}
-
-.console-score-label {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 0.5rem;
-  color: var(--ap-navy);
-  font-size: 0.73rem;
-}
-
-.console-score-label strong {
-  color: var(--ap-blue);
-}
-
-.console-progress {
-  height: 8px;
-  overflow: hidden;
-  background: var(--ap-pale);
-  border: 1px solid var(--ap-border);
-  border-radius: 999px;
-}
-
-.console-progress > span {
-  display: block;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    var(--ap-blue),
-    var(--ap-blue) 55%,
-    var(--ap-green)
-  );
-  border-radius: inherit;
-  box-shadow: 0 0 18px rgba(6, 25, 68, 0.12);
-  transition: width 450ms ease;
-}
-
-.console-metrics {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.65rem;
-  margin-bottom: 1.25rem;
-}
-
-.console-metrics > div {
-  padding: 0.9rem;
-  background: var(--ap-pale);
-  border: 1px solid var(--ap-border);
-  border-radius: 12px;
-}
-
-.console-metrics span,
-.console-metrics strong {
-  display: block;
-}
-.console-metrics span {
-  color: var(--ap-navy);
-  font-size: 0.66rem;
-}
-.console-metrics strong {
-  margin-top: 0.35rem;
-  font-size: 0.85rem;
-}
-
-.console-actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.65rem;
-}
-
-.console-button {
+.button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 40px;
-  padding: 0.68rem 0.95rem;
-  color: var(--ap-navy);
-  font-size: 0.73rem;
-  font-weight: 780;
-  cursor: pointer;
+  gap: 0.5rem;
+  min-height: 46px;
+  padding: 0.7rem 1.35rem;
   border: 1px solid transparent;
-  border-radius: 10px;
-  transition:
-    transform 160ms ease,
-    opacity 160ms ease,
-    background 160ms ease;
-}
-
-.console-button:hover:not(:disabled) {
-  transform: translateY(-1px);
-}
-.console-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.38;
-}
-.console-button--primary {
-  background: linear-gradient(115deg, var(--ap-blue), var(--ap-blue));
-  box-shadow: 0 10px 28px rgba(6, 25, 68, 0.12);
-}
-.console-button--secondary {
-  background: var(--ap-pale);
-  border-color: var(--ap-border);
-}
-.console-button--secondary:hover {
-  background: var(--ap-pale);
-}
-.console-button--ghost {
-  color: var(--ap-navy);
-  background: transparent;
-}
-
-.console-ledger-heading {
-  align-items: center;
-  padding: 1.4rem 1.5rem 1.2rem;
-  border-bottom: 1px solid var(--ap-border);
-}
-
-.console-export {
-  min-height: 36px;
-}
-.console-table-wrap {
-  max-width: 100%;
-  overflow-x: auto;
-}
-.console-ledger table {
-  width: 100%;
-  border-collapse: collapse;
-  text-align: left;
-}
-
-.console-ledger th {
-  padding: 0.8rem 1.25rem;
-  color: var(--ap-navy);
-  font-size: 0.59rem;
-  font-weight: 850;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  background: var(--ap-pale);
-}
-
-.console-ledger td {
-  padding: 1rem 1.25rem;
-  color: var(--ap-navy);
-  font-size: 0.76rem;
-  white-space: nowrap;
-  border-top: 1px solid var(--ap-border);
-}
-
-.console-ledger tbody tr {
-  transition: background 160ms ease;
-}
-.console-ledger tbody tr:hover {
-  background: var(--ap-pale);
-}
-.console-ledger td strong,
-.console-ledger td span:not(.console-status) {
-  display: block;
-}
-.console-ledger td strong {
-  color: var(--ap-navy);
-  font-size: 0.78rem;
-}
-.console-ledger td span:not(.console-status) {
-  margin-top: 0.22rem;
-  color: var(--ap-navy);
-  font-size: 0.67rem;
-}
-
-.console-reference {
-  color: var(--ap-blue) !important;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 0.72rem;
-  font-weight: 700;
-}
-
-.console-amount {
-  color: var(--ap-navy) !important;
-  font-weight: 800;
-}
-
-.console-modal-backdrop {
-  position: fixed;
-  z-index: 100;
-  inset: 0;
-  display: grid;
-  padding: 1rem;
-  overflow-y: auto;
-  background: var(--ap-pale);
-  backdrop-filter: blur(12px);
-  place-items: center;
-}
-
-.console-modal {
-  width: min(540px, 100%);
-  overflow: hidden;
-  background: var(--ap-pale);
-  border: 1px solid var(--ap-border);
-  border-radius: 20px;
-  box-shadow: 0 35px 100px rgba(6, 25, 68, 0.12);
-}
-
-.console-modal-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 1.35rem 1.45rem 1.1rem;
-}
-
-.console-modal-header h2 {
-  margin: 0;
-  font-size: 1.2rem;
-}
-.console-modal-header p:not(.console-kicker) {
-  margin: 0.35rem 0 0;
-  color: var(--ap-navy);
-  font-size: 0.7rem;
-}
-
-.console-icon-button {
-  display: grid;
-  width: 34px;
-  height: 34px;
-  padding: 0;
-  color: var(--ap-navy);
-  font-size: 1.4rem;
-  line-height: 1;
-  cursor: pointer;
-  background: var(--ap-pale);
-  border: 1px solid var(--ap-border);
-  border-radius: 9px;
-  place-items: center;
-}
-
-.console-step-track {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.3rem;
-  padding: 0 1.45rem;
-}
-.console-step-track span {
-  height: 3px;
-  background: var(--ap-pale);
-  border-radius: 999px;
-}
-.console-step-track span.is-active {
-  background: linear-gradient(90deg, var(--ap-blue), var(--ap-blue));
-}
-.console-modal-body {
-  min-height: 320px;
-  padding: 1.5rem 1.45rem;
-}
-.console-step-panel > p:first-child {
-  margin-top: 0;
-  color: var(--ap-navy);
-  font-size: 0.84rem;
-  line-height: 1.55;
-}
-
-.console-release-summary {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.65rem;
-  margin: 1rem 0;
-}
-
-.console-release-summary > div {
-  padding: 0.85rem;
-  background: var(--ap-pale);
-  border: 1px solid var(--ap-border);
-  border-radius: 11px;
-}
-
-.console-release-summary span,
-.console-release-summary strong {
-  display: block;
-}
-.console-release-summary span {
-  color: var(--ap-navy);
-  font-size: 0.65rem;
-}
-.console-release-summary strong {
-  margin-top: 0.3rem;
-  font-size: 0.78rem;
-}
-
-.console-checklist {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.5rem;
-  margin: 1rem 0;
-  padding: 0;
-  list-style: none;
-}
-
-.console-checklist li {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: var(--ap-navy);
-  font-size: 0.68rem;
-}
-.console-checklist li > span {
-  display: grid;
-  flex: 0 0 auto;
-  width: 18px;
-  height: 18px;
-  color: var(--ap-green);
-  background: var(--ap-pale);
-  border: 1px solid var(--ap-border);
-  border-radius: 50%;
-  place-items: center;
-}
-
-.console-note {
-  padding: 0.75rem 0.85rem;
-  color: var(--ap-navy);
-  font-size: 0.68rem;
+  border-radius: var(--ap-radius-sm);
+  font-size: 0.875rem;
+  font-weight: 650;
   line-height: 1.5;
-  background: var(--ap-pale);
-  border-left: 2px solid var(--ap-border);
-  border-radius: 0 8px 8px 0;
-}
-
-.console-field-label {
-  display: block;
-  margin-bottom: 0.65rem;
-  color: var(--ap-navy);
-  font-size: 0.64rem;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.console-upload {
-  display: grid;
-  min-height: 190px;
-  padding: 1.5rem;
-  text-align: center;
-  cursor: pointer;
-  background: var(--ap-pale);
-  border: 1px dashed var(--ap-border);
-  border-radius: 14px;
-  place-content: center;
-  transition:
-    border-color 160ms ease,
-    background 160ms ease;
-}
-
-.console-upload:hover,
-.console-upload:focus-within {
-  background: var(--ap-pale);
-  border-color: var(--ap-border);
-}
-.console-upload input {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
   white-space: nowrap;
-}
-.console-upload-icon {
-  display: grid;
-  width: 38px;
-  height: 38px;
-  margin: 0 auto 0.7rem;
-  color: var(--ap-blue);
-  font-size: 1.25rem;
-  background: var(--ap-pale);
-  border: 1px solid var(--ap-border);
-  border-radius: 11px;
-  place-items: center;
-}
-.console-upload strong {
-  color: var(--ap-navy);
-  font-size: 0.8rem;
-}
-.console-upload small {
-  margin-top: 0.35rem;
-  color: var(--ap-navy);
-  font-size: 0.65rem;
-}
-
-.console-success {
-  display: grid;
-  min-height: 260px;
-  text-align: center;
-  place-content: center;
-}
-.console-success > div {
-  display: grid;
-  width: 54px;
-  height: 54px;
-  margin: 0 auto 1rem;
-  color: var(--ap-green);
-  font-size: 1.35rem;
-  font-weight: 900;
-  background: var(--ap-pale);
-  border: 1px solid var(--ap-border);
-  border-radius: 50%;
-  place-items: center;
-}
-.console-success h3 {
-  margin: 0 0 0.55rem;
-  font-size: 1.35rem;
-}
-.console-success > p:last-child {
-  max-width: 360px;
-  margin: 0 auto;
-  color: var(--ap-navy);
-  font-size: 0.78rem;
-  line-height: 1.55;
-}
-
-.console-modal-footer {
-  display: flex;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: 1rem 1.45rem 1.25rem;
-  background: var(--ap-pale);
-  border-top: 1px solid var(--ap-border);
-}
-
-.console-button:focus-visible,
-.console-icon-button:focus-visible,
-.console-nav a:focus-visible,
-.console-brand:focus-visible {
-  outline: 2px solid var(--ap-blue);
-  outline-offset: 3px;
-}
-
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-@media (max-width: 960px) {
-  .console-grid {
-    grid-template-columns: 1fr;
-  }
-  .console-score-card {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem 1.5rem;
-  }
-  .console-score-card .console-card-heading,
-  .console-score-card .console-actions {
-    grid-column: 1 / -1;
-  }
-  .console-score {
-    margin: 1.5rem 0 0;
-  }
-  .console-metrics {
-    align-self: end;
-    margin-bottom: 0;
-  }
-}
-
-@media (max-width: 700px) {
-  .console-header {
-    align-items: flex-start;
-  }
-  .console-nav > a,
-  .console-demo-badge {
-    display: none;
-  }
-  .console-intro {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-  .console-score-card {
-    display: block;
-  }
-  .console-score,
-  .console-metrics {
-    margin-bottom: 1.25rem;
-  }
-  .console-ledger-heading {
-    align-items: flex-start;
-  }
-  .console-checklist {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 480px) {
-  .console-header {
-    padding-right: 0.85rem;
-    padding-left: 0.85rem;
-  }
-  .console-nav {
-    gap: 0.5rem;
-  }
-  .console-nav .console-button {
-    padding-right: 0.7rem;
-    padding-left: 0.7rem;
-  }
-  .console-actions,
-  .console-release-summary {
-    grid-template-columns: 1fr;
-  }
-  .console-ledger-heading {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-  .console-modal-body {
-    min-height: 350px;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .console-progress > span,
-  .console-button,
-  .console-ledger tbody tr,
-  .console-upload {
-    transition: none;
-  }
-}
-
-/* Supplied Trust Console layout */
-.console-page {
-  background: var(--ap-pale);
-}
-
-.console-header {
-  min-height: auto;
-  padding: 1rem 5%;
-  background: var(--ap-pale);
-}
-
-.console-brand {
-  display: inline-block;
-  color: transparent;
-  font-size: 1.25rem;
-  font-weight: 800;
-  background: linear-gradient(90deg, var(--ap-navy), var(--ap-blue));
-  background-clip: text;
-}
-
-.console-nav {
-  gap: 1.5rem;
-}
-
-.console-main {
-  width: min(1200px, 100%);
-  padding: 2.5rem 5%;
-}
-
-.console-intro {
-  display: block;
-  margin-bottom: 2rem;
-}
-
-.console-intro h1 {
-  max-width: none;
-  margin: 0;
-  font-size: 1.875rem;
-  line-height: 1.2;
-  letter-spacing: -0.035em;
-}
-
-.console-intro > p {
-  margin: 0.25rem 0 0;
-  color: var(--ap-navy);
-  font-size: 0.875rem;
-  line-height: 1.5;
-}
-
-.console-grid {
-  grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
-  gap: 2rem;
-}
-
-.console-card {
-  background: var(--ap-pale);
-  border-color: var(--ap-border);
-  border-radius: 1rem;
-  box-shadow: 0 20px 45px rgba(6, 25, 68, 0.12);
-}
-
-.console-score-card {
-  padding: 1.5rem;
-}
-
-.console-card-heading {
-  align-items: center;
-  margin-bottom: 1.5rem;
-}
-
-.console-card-heading h2 {
-  font-size: 1.125rem;
-}
-
-.console-card-heading p:not(.console-kicker) {
-  color: var(--ap-navy);
-  font-size: 0.75rem;
-}
-
-.console-score {
-  margin: 0 0 1.5rem;
-}
-
-.console-score-label {
-  margin-bottom: 0.5rem;
-  color: var(--ap-navy);
-  font-size: 0.875rem;
-}
-
-.console-progress {
-  height: 0.75rem;
-  background: var(--ap-pale);
-}
-
-.console-metrics {
-  gap: 0.75rem;
-  margin-bottom: 1.5rem;
-}
-
-.console-metrics > div {
-  padding: 0.75rem;
-  background: var(--ap-pale);
-}
-
-.console-metrics span {
-  color: var(--ap-navy);
-  font-size: 0.75rem;
-}
-
-.console-metrics strong {
-  font-size: 1.125rem;
-}
-
-.console-actions {
-  display: flex;
-  gap: 0.75rem;
-}
-
-.console-actions .console-button {
-  flex: 1;
-}
-
-.console-ledger-heading {
-  margin: 0;
-  padding: 1.5rem;
-}
-
-.console-ledger th {
-  padding: 1rem 1.5rem;
-  color: var(--ap-navy);
-  font-size: 0.75rem;
-  background: var(--ap-pale);
-}
-
-.console-ledger td {
-  padding: 1rem 1.5rem;
-  font-size: 0.875rem;
-}
-
-.console-modal {
-  width: min(512px, 100%);
-  background: var(--ap-pale);
-  border-radius: 1rem;
-}
-
-.console-modal-header {
-  align-items: center;
-  padding: 1.5rem;
-  background: var(--ap-pale);
-  border-bottom: 1px solid var(--ap-border);
-}
-
-.console-modal-header h2 {
-  font-size: 1.125rem;
-}
-
-.console-modal-body {
-  min-height: 210px;
-  padding: 1.5rem;
-}
-
-.console-condition-summary {
-  padding: 1rem;
-  margin-top: 1rem;
-  background: var(--ap-pale);
-  border: 1px solid var(--ap-border);
-  border-radius: 0.75rem;
-}
-
-.console-condition-summary > div {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  font-size: 0.875rem;
-}
-
-.console-condition-summary > div + div {
-  margin-top: 0.5rem;
-}
-
-.console-condition-summary span {
-  color: var(--ap-navy);
-}
-
-.console-upload {
-  min-height: 160px;
-  border-width: 2px;
-}
-
-.console-modal-footer {
-  padding: 1.5rem;
-  background: var(--ap-pale);
-  border-top-color: var(--ap-border);
-}
-
-@media (max-width: 960px) {
-  .console-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .console-score-card {
-    display: block;
-  }
-}
-
-@media (max-width: 700px) {
-  .console-header {
-    align-items: center;
-  }
-
-  .console-demo-badge {
-    display: none;
-  }
-}
-
-@media (max-width: 480px) {
-  .console-actions {
-    flex-direction: column;
-  }
-
-  .console-ledger-heading {
-    align-items: flex-start;
-  }
-}
-
-/* AssuraPay marketing landing page */
-.landing-page {
-  --landing-bg: var(--ap-pale);
-  --landing-card: var(--ap-white);
-  --landing-muted: var(--ap-navy);
-  --landing-border: var(--ap-border);
-  min-height: 100vh;
-  overflow: hidden;
-  color: var(--ap-navy);
-  background: var(--landing-bg);
-  font-family: Inter, Arial, sans-serif;
-}
-
-.landing-page,
-.landing-page * {
-  box-sizing: border-box;
-}
-
-.landing-page main {
-  max-width: none;
-  padding: 0;
-  margin: 0;
-}
-
-.landing-header {
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  padding: 1rem 1.5rem;
-  background: var(--ap-pale);
-  border-bottom: 1px solid var(--landing-border);
-  backdrop-filter: blur(16px);
-}
-
-.landing-nav-shell {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  max-width: 1280px;
-  margin: 0 auto;
-}
-
-.landing-brand,
-.landing-footer-brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.6rem;
-  font-size: 1.25rem;
-  font-weight: 800;
-  letter-spacing: -0.025em;
-}
-
-.landing-brand > span:last-child {
-  color: transparent;
-  background: linear-gradient(90deg, var(--ap-navy), var(--ap-blue));
-  background-clip: text;
-}
-
-.landing-brand-mark {
-  display: grid;
-  width: 38px;
-  height: 38px;
-  color: var(--ap-navy);
-  background: linear-gradient(135deg, var(--ap-blue), var(--ap-green));
-  border-radius: 12px;
-  place-items: center;
-}
-
-.landing-nav {
-  display: flex;
-  gap: 2rem;
-  margin: 0;
-}
-
-.landing-nav a {
-  color: var(--landing-muted);
-  font-size: 0.875rem;
-  font-weight: 600;
-  transition: color 160ms ease;
-}
-
-.landing-nav a:hover,
-.landing-mobile-nav a:hover {
-  color: var(--ap-navy);
-}
-
-.landing-cta,
-.landing-secondary-cta {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  min-height: 40px;
-  padding: 0.65rem 1rem;
-  color: var(--ap-navy);
-  font-size: 0.875rem;
-  font-weight: 800;
-  background: linear-gradient(
-    100deg,
-    var(--ap-blue),
-    var(--ap-blue),
-    var(--ap-green)
-  );
-  border: 0;
-  border-radius: 9px;
-  box-shadow: 0 14px 34px rgba(6, 25, 68, 0.12);
-  transition:
-    opacity 160ms ease,
-    transform 160ms ease,
-    box-shadow 160ms ease;
-}
-
-.landing-cta:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 16px 40px rgba(6, 25, 68, 0.12);
-}
-
-.landing-menu-button {
-  display: none;
-  padding: 0.4rem;
-  color: var(--landing-muted);
-  cursor: pointer;
-  background: transparent;
-  border: 0;
-}
-
-.landing-mobile-nav {
-  display: none;
-}
-
-.landing-hero {
-  position: relative;
-  max-width: 1280px;
-  padding: 5rem 1.5rem 4rem;
-  margin: 0 auto;
-}
-
-.landing-glow {
-  position: absolute;
-  top: -8rem;
-  left: 50%;
-  width: 34rem;
-  height: 34rem;
-  pointer-events: none;
-  background: var(--ap-pale);
-  border-radius: 50%;
-  filter: blur(120px);
-  transform: translateX(-50%);
-}
-
-.landing-hero-grid {
-  position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 7fr) minmax(390px, 5fr);
-  gap: 3rem;
-  align-items: center;
-}
-
-.landing-hero-copy {
-  max-width: 760px;
-}
-
-.landing-eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.35rem 0.7rem;
-  color: var(--ap-blue);
-  font-size: 0.7rem;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  background: var(--ap-pale);
-  border: 1px solid var(--ap-border);
-  border-radius: 999px;
-}
-
-.landing-hero h1 {
-  max-width: 780px;
-  margin: 1.5rem 0 1.25rem;
-  font-size: clamp(2.75rem, 5.2vw, 4.4rem);
-  line-height: 1.08;
-  letter-spacing: -0.055em;
-}
-
-.landing-hero h1 span {
-  color: transparent;
-  background: linear-gradient(
-    90deg,
-    var(--ap-blue),
-    var(--ap-blue),
-    var(--ap-green)
-  );
-  background-clip: text;
-}
-
-.landing-hero-copy > p {
-  max-width: 680px;
-  margin: 0;
-  color: var(--landing-muted);
-  font-size: 1.08rem;
-  line-height: 1.75;
-}
-
-.landing-hero-actions {
-  display: flex;
-  gap: 1rem;
-  margin-top: 2rem;
-}
-
-.landing-cta-large,
-.landing-secondary-cta {
-  min-height: 52px;
-  padding: 0.85rem 1.5rem;
-  border-radius: 12px;
-}
-
-.landing-secondary-cta {
-  color: var(--ap-navy);
-  background: var(--landing-card);
-  border: 1px solid var(--landing-border);
-  box-shadow: none;
-}
-
-.landing-preview {
-  position: relative;
-  padding: 1.5rem;
-  background: var(--ap-pale);
-  border: 1px solid var(--landing-border);
-  border-radius: 18px;
-  box-shadow: 0 30px 80px rgba(6, 25, 68, 0.12);
-  backdrop-filter: blur(20px);
-}
-
-.landing-preview-top,
-.landing-preview-top > div,
-.landing-capital,
-.landing-transaction-details > div {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-}
-
-.landing-preview-top {
-  padding-bottom: 1rem;
-  color: var(--landing-muted);
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 0.72rem;
-  border-bottom: 1px solid var(--landing-border);
-}
-
-.landing-pulse {
-  width: 0.7rem;
-  height: 0.7rem;
-  background: var(--ap-green);
-  border-radius: 50%;
-  box-shadow: 0 0 0 5px rgba(6, 25, 68, 0.12);
-  animation: landing-pulse 1.8s ease-in-out infinite;
-}
-
-.landing-release-status {
-  padding: 0.32rem 0.55rem;
-  color: var(--ap-green);
-  font-family: Inter, Arial, sans-serif;
-  font-weight: 850;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  background: var(--ap-pale);
-  border: 1px solid var(--ap-border);
-  border-radius: 7px;
-}
-
-.landing-preview-label {
-  margin: 1.1rem 0 0.2rem;
-  color: var(--ap-navy);
-  font-size: 0.68rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.landing-capital {
-  padding: 0.65rem 0 1.15rem;
-}
-
-.landing-capital span {
-  color: var(--landing-muted);
-  font-size: 0.875rem;
-}
-
-.landing-capital strong {
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: clamp(1.4rem, 2.6vw, 1.85rem);
-}
-
-.landing-transaction-details {
-  padding: 0.85rem;
-  margin: 0;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 0.7rem;
-  background: var(--ap-pale);
-  border: 1px solid var(--ap-border);
-  border-radius: 10px;
-}
-
-.landing-transaction-details > div + div {
-  margin-top: 0.6rem;
-}
-
-.landing-transaction-details dt {
-  color: var(--landing-muted);
-}
-
-.landing-transaction-details dd {
-  margin: 0;
-  color: var(--ap-navy);
-  text-align: right;
-}
-
-.landing-transaction-details > div:nth-child(2) dd {
-  color: var(--ap-blue);
-}
-
-.landing-transaction-details > div:nth-child(3) dd {
-  color: var(--ap-green);
-}
-
-.landing-preview-footer {
-  padding-top: 1rem;
-  margin: 1rem 0 0;
-  color: var(--landing-muted);
-  font-size: 0.7rem;
-  text-align: center;
-  border-top: 1px solid var(--landing-border);
-}
-
-.landing-stats {
-  padding: 3rem 1.5rem;
-  background: var(--ap-pale);
-  border-top: 1px solid var(--landing-border);
-  border-bottom: 1px solid var(--landing-border);
-  scroll-margin-top: 5rem;
-}
-
-.landing-stats-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem;
-  max-width: 1280px;
-  margin: 0 auto;
-}
-
-.landing-stat {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1.5rem;
-  background: var(--landing-card);
-  border: 1px solid var(--landing-border);
-  border-radius: 12px;
-}
-
-.landing-stat-icon,
-.landing-step-icon {
-  display: grid;
-  flex: 0 0 auto;
-  width: 48px;
-  height: 48px;
-  border-radius: 10px;
-  place-items: center;
-}
-
-.landing-stat-icon--cyan {
-  color: var(--ap-blue);
-  background: var(--ap-pale);
-}
-.landing-stat-icon--green {
-  color: var(--ap-green);
-  background: var(--ap-pale);
-}
-.landing-stat-icon--blue {
-  color: var(--ap-blue);
-  background: var(--ap-pale);
-}
-
-.landing-stat strong,
-.landing-stat span {
-  display: block;
-}
-
-.landing-stat strong {
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 1.5rem;
-}
-
-.landing-stat div > span {
-  margin-top: 0.2rem;
-  color: var(--landing-muted);
-  font-size: 0.875rem;
-}
-
-.landing-flow,
-.landing-faq {
-  position: relative;
-  max-width: 1280px;
-  padding: 5rem 1.5rem;
-  margin: 0 auto;
-  scroll-margin-top: 5rem;
-}
-
-.landing-anchor {
-  position: absolute;
-  top: -5rem;
-}
-
-.landing-section-heading {
-  max-width: 690px;
-  margin: 0 auto 3.5rem;
-  text-align: center;
-}
-
-.landing-section-heading > p {
-  margin: 0 0 0.75rem;
-  color: var(--ap-blue);
-  font-size: 0.75rem;
-  font-weight: 800;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.landing-section-heading h2 {
-  margin: 0;
-  font-size: clamp(2rem, 4vw, 2.6rem);
-  line-height: 1.15;
-  letter-spacing: -0.04em;
-}
-
-.landing-section-heading > span {
-  display: block;
-  margin-top: 0.65rem;
-  color: var(--landing-muted);
-  font-size: 0.875rem;
-}
-
-.landing-steps {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 1.5rem;
-}
-
-.landing-step {
-  min-width: 0;
-  padding: 1.5rem;
-  color: var(--ap-navy);
-  text-align: left;
-  cursor: pointer;
-  background: var(--ap-pale);
-  border: 1px solid var(--landing-border);
-  border-radius: 16px;
   transition:
     transform 180ms ease,
-    border-color 180ms ease,
     background 180ms ease,
-    box-shadow 180ms ease;
-}
-
-.landing-step:hover {
-  background: var(--landing-card);
-  border-color: var(--ap-border);
-  transform: translateY(-2px);
-}
-
-.landing-step.is-active {
-  background: var(--landing-card);
-  border-color: var(--ap-border);
-  box-shadow:
-    0 14px 38px rgba(6, 25, 68, 0.12),
-    inset 0 0 0 1px #22d3ee;
-}
-
-.landing-step-top {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.landing-step-icon {
-  color: var(--ap-navy);
-  background: var(--ap-pale);
-}
-
-.landing-step.is-active .landing-step-icon {
-  color: var(--ap-navy);
-  background: var(--ap-blue);
-}
-
-.landing-step-status {
-  padding: 0.28rem 0.45rem;
-  color: var(--landing-muted);
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 0.65rem;
-  font-weight: 800;
-  background: var(--ap-pale);
-  border-radius: 5px;
-}
-
-.landing-step.is-active .landing-step-status {
-  color: var(--ap-green);
-  background: var(--ap-pale);
-  border: 1px solid var(--ap-border);
-}
-
-.landing-step > strong,
-.landing-step-description {
-  display: block;
-}
-
-.landing-step > strong {
-  margin-bottom: 0.55rem;
-  font-size: 1.05rem;
-}
-
-.landing-step-description {
-  color: var(--landing-muted);
-  font-size: 0.83rem;
-  line-height: 1.65;
-}
-
-.landing-controller {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 1rem;
-  margin-top: 2rem;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 0.75rem;
-  background: var(--landing-card);
-  border: 1px solid var(--landing-border);
-  border-radius: 12px;
-}
-
-.landing-controller > div:first-child {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.landing-controller span {
-  color: var(--landing-muted);
-}
-.landing-controller strong {
-  color: var(--ap-blue);
-}
-
-.landing-controller-actions {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.landing-controller button {
-  padding: 0.5rem 0.75rem;
-  color: var(--ap-navy);
-  font: inherit;
-  cursor: pointer;
-  background: var(--ap-pale);
-  border: 0;
-  border-radius: 6px;
-}
-
-.landing-controller button:last-child {
-  color: var(--ap-navy);
-  font-weight: 850;
-  background: var(--ap-blue);
-}
-
-.landing-controller button:disabled {
-  cursor: not-allowed;
-  opacity: 0.35;
-}
-
-.landing-faq {
-  max-width: 900px;
-}
-
-.landing-faq-list {
-  display: grid;
-  gap: 1rem;
-}
-
-.landing-faq-item {
-  overflow: hidden;
-  background: var(--landing-card);
-  border: 1px solid var(--landing-border);
-  border-radius: 12px;
-}
-
-.landing-faq-item > button {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  width: 100%;
-  padding: 1.5rem;
-  color: var(--ap-navy);
-  font-size: 1.05rem;
-  font-weight: 700;
-  text-align: left;
-  cursor: pointer;
-  background: transparent;
-  border: 0;
-}
-
-.landing-faq-item > button > span:last-child {
-  display: grid;
-  flex: 0 0 auto;
-  color: var(--landing-muted);
-  transition: transform 180ms ease;
-  place-items: center;
-}
-
-.landing-faq-item > button > span.is-open {
-  color: var(--ap-blue);
-  transform: rotate(180deg);
-}
-
-.landing-faq-item > p {
-  padding: 1rem 1.5rem 1.5rem;
-  margin: 0;
-  color: var(--landing-muted);
-  font-size: 0.875rem;
-  line-height: 1.7;
-  border-top: 1px solid var(--ap-border);
-}
-
-.landing-footer {
-  padding: 3rem 1.5rem;
-  background: var(--landing-bg);
-  border-top: 1px solid var(--landing-border);
-}
-
-.landing-footer-grid {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  gap: 2rem;
-  align-items: center;
-  max-width: 1280px;
-  margin: 0 auto;
-  color: var(--landing-muted);
-  font-size: 0.75rem;
-}
-
-.landing-footer-brand {
-  color: var(--ap-navy);
-  font-size: 0.875rem;
-}
-.landing-footer-brand svg {
-  color: var(--ap-blue);
-}
-.landing-footer-grid p {
-  margin: 0;
-  text-align: center;
-  line-height: 1.6;
-}
-.landing-footer-grid p span {
-  color: var(--ap-navy);
-}
-.landing-footer-grid small {
-  white-space: nowrap;
-}
-
-.landing-page a:focus-visible,
-.landing-page button:focus-visible {
-  outline: 2px solid var(--ap-blue);
-  outline-offset: 3px;
-}
-
-@keyframes landing-pulse {
-  50% {
-    opacity: 0.45;
-    transform: scale(0.85);
-  }
-}
-
-@media (max-width: 1020px) {
-  .landing-hero-grid {
-    grid-template-columns: 1fr;
-  }
-  .landing-hero-copy {
-    max-width: 800px;
-    margin: 0 auto;
-    text-align: center;
-  }
-  .landing-hero-copy > p {
-    margin-right: auto;
-    margin-left: auto;
-  }
-  .landing-hero-actions {
-    justify-content: center;
-  }
-  .landing-preview {
-    width: min(620px, 100%);
-    margin: 0 auto;
-  }
-  .landing-steps {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 760px) {
-  .landing-nav,
-  .landing-desktop-cta {
-    display: none;
-  }
-  .landing-menu-button {
-    display: grid;
-    place-items: center;
-  }
-  .landing-mobile-nav {
-    display: grid;
-    gap: 0.25rem;
-    max-width: 1280px;
-    padding: 1rem 0 0.25rem;
-    margin: 1rem auto 0;
-    color: var(--landing-muted);
-    border-top: 1px solid var(--landing-border);
-  }
-  .landing-mobile-nav a:not(.landing-cta) {
-    padding: 0.65rem 0.25rem;
-  }
-  .landing-mobile-nav .landing-cta {
-    margin-top: 0.5rem;
-  }
-  .landing-hero {
-    padding-top: 4rem;
-  }
-  .landing-stats-grid {
-    grid-template-columns: 1fr;
-  }
-  .landing-footer-grid {
-    grid-template-columns: 1fr;
-    text-align: center;
-  }
-  .landing-footer-brand {
-    justify-content: center;
-  }
-  .landing-footer-grid small {
-    white-space: normal;
-  }
-}
-
-@media (max-width: 560px) {
-  .landing-header {
-    padding-right: 1rem;
-    padding-left: 1rem;
-  }
-  .landing-hero,
-  .landing-flow,
-  .landing-faq {
-    padding-right: 1rem;
-    padding-left: 1rem;
-  }
-  .landing-hero h1 {
-    font-size: clamp(2.45rem, 12vw, 3.3rem);
-  }
-  .landing-hero-actions {
-    flex-direction: column;
-  }
-  .landing-hero-actions > * {
-    width: 100%;
-  }
-  .landing-preview-top {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-  .landing-capital {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-  .landing-transaction-details > div {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-  .landing-transaction-details dd {
-    text-align: left;
-  }
-  .landing-steps {
-    grid-template-columns: 1fr;
-  }
-  .landing-controller {
-    align-items: stretch;
-    flex-direction: column;
-  }
-  .landing-controller > div:first-child {
-    flex-direction: column;
-  }
-  .landing-controller-actions {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .landing-pulse {
-    animation: none;
-  }
-  .landing-page *,
-  .landing-page *::before,
-  .landing-page *::after {
-    scroll-behavior: auto !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-
-/* Extended marketing architecture, solutions, access CTA and footer */
-.landing-architecture {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem;
-  width: fit-content;
-  padding: 1rem;
-  margin-top: 2rem;
-  color: var(--ap-navy);
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 0.72rem;
-  background: var(--ap-pale);
-  border: 1px solid var(--ap-border);
-  border-radius: 12px;
-}
-
-.landing-architecture i {
-  color: var(--ap-navy);
-  font-style: normal;
-}
-
-.landing-architecture strong {
-  padding: 0.35rem 0.55rem;
-  color: var(--ap-blue);
-  background: var(--ap-pale);
-  border: 1px solid var(--ap-border);
-  border-radius: 6px;
-}
-
-.landing-boundary {
-  padding: 4rem 1.5rem;
-  background: var(--ap-pale);
-  border-top: 1px solid var(--ap-border);
-  border-bottom: 1px solid var(--ap-border);
-}
-
-.landing-boundary-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(420px, 1fr);
-  gap: 3rem;
-  align-items: center;
-  max-width: 1280px;
-  margin: 0 auto;
-}
-
-.landing-boundary-copy > p {
-  margin: 0 0 0.7rem;
-  color: var(--ap-blue);
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.landing-boundary-copy h2 {
-  max-width: 560px;
-  margin: 0;
-  font-size: clamp(2rem, 4vw, 3rem);
-  line-height: 1.1;
-  letter-spacing: -0.045em;
-}
-
-.landing-boundary-copy > span {
-  display: block;
-  max-width: 590px;
-  margin-top: 1rem;
-  color: var(--ap-navy);
-  line-height: 1.7;
-}
-
-.landing-vault-visual {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  width: fit-content;
-  padding: 1rem 1.15rem;
-  margin-top: 1.5rem;
-  color: var(--ap-blue);
-  background: var(--ap-pale);
-  border: 1px solid var(--ap-border);
-  border-radius: 14px;
-}
-
-.landing-vault-visual span,
-.landing-vault-visual strong {
-  display: block;
-}
-
-.landing-vault-visual span {
-  color: var(--ap-navy);
-  font-size: 0.7rem;
-  text-transform: uppercase;
-}
-
-.landing-vault-visual strong {
-  margin-top: 0.25rem;
-  color: var(--ap-navy);
-}
-
-.landing-metric-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem;
-}
-
-.landing-metric {
-  min-width: 0;
-  padding: 1.5rem;
-  background: var(--ap-pale);
-  border: 1px solid var(--ap-border);
-  border-radius: 12px;
-}
-
-.landing-metric strong,
-.landing-metric span {
-  display: block;
-}
-
-.landing-metric strong {
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 2rem;
-}
-
-.landing-metric span {
-  margin-top: 0.35rem;
-  color: var(--ap-navy);
-  font-size: 0.75rem;
-}
-
-.landing-metric--cyan strong {
-  color: var(--ap-blue);
-}
-.landing-metric--green strong {
-  color: var(--ap-green);
-}
-.landing-metric--blue strong {
-  color: var(--ap-blue);
-}
-.landing-metric--purple strong {
-  color: var(--ap-blue);
-}
-
-.landing-solutions {
-  max-width: 1280px;
-  padding: 5rem 1.5rem;
-  margin: 0 auto;
-  scroll-margin-top: 5rem;
-}
-
-.landing-solution-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 1.5rem;
-}
-
-.landing-solution-card {
-  position: relative;
-  min-height: 245px;
-  padding: 1.5rem;
-  overflow: hidden;
-  background:
-    radial-gradient(circle at 100% 0, var(--ap-pale), transparent 48%),
-    linear-gradient(145deg, var(--ap-pale), var(--ap-pale));
-  border: 1px solid var(--ap-border);
-  border-radius: 16px;
-  transition:
-    transform 180ms ease,
+    box-shadow 180ms ease,
     border-color 180ms ease;
 }
 
-.landing-solution-card:hover {
-  border-color: var(--ap-border);
-  transform: translateY(-3px);
+.button:hover {
+  transform: translateY(-2px);
 }
 
-.landing-solution-card > span {
-  display: grid;
-  width: 50px;
-  height: 50px;
-  color: var(--ap-blue);
-  background: var(--ap-pale);
-  border: 1px solid var(--ap-border);
-  border-radius: 12px;
-  place-items: center;
+.button:active {
+  transform: scale(0.97);
 }
 
-.landing-solution-card h3 {
-  margin: 3.6rem 0 0.65rem;
-  font-size: 1.2rem;
+.button:disabled,
+.button[aria-disabled='true'] {
+  transform: none;
 }
 
-.landing-solution-card p {
-  margin: 0;
-  color: var(--ap-navy);
-  font-size: 0.84rem;
-  line-height: 1.65;
+/* White on the accent in both themes. The fill does not follow the theme
+   because `--ap-accent` is measured against white text and a theme-swapped fill
+   would need a second measurement for every workspace; see the persona block. */
+.button--primary {
+  background: var(--ap-accent);
+  border-color: var(--ap-accent);
+  color: #ffffff;
+  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.09);
 }
 
-.landing-steps {
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 1rem;
+.button--primary:hover {
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.15);
 }
 
-.landing-step {
-  padding: 1.25rem;
-}
-
-.landing-access {
-  position: relative;
-  max-width: 1280px;
-  padding: clamp(2.5rem, 6vw, 4rem);
-  margin: 0 auto 5rem;
-  overflow: hidden;
-  text-align: center;
-  background: linear-gradient(
-    110deg,
-    var(--ap-blue),
-    var(--ap-blue) 52%,
-    var(--ap-blue)
-  );
-  border-radius: 24px;
-  box-shadow: 0 30px 80px rgba(6, 25, 68, 0.12);
-}
-
-.landing-access-glow {
-  position: absolute;
-  width: 18rem;
-  height: 18rem;
-  pointer-events: none;
-  border-radius: 50%;
-  filter: blur(40px);
-}
-
-.landing-access-glow--left {
-  top: -9rem;
-  left: -8rem;
-  background: var(--ap-pale);
-}
-.landing-access-glow--right {
-  right: -8rem;
-  bottom: -9rem;
-  background: var(--ap-pale);
-}
-
-.landing-access-content {
-  position: relative;
-  z-index: 1;
-  max-width: 680px;
-  margin: 0 auto;
-}
-
-.landing-access-content > p {
-  margin: 0;
-  color: var(--ap-blue);
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.landing-access h2 {
-  margin: 0.75rem 0 1.75rem;
-  font-size: clamp(2rem, 5vw, 3.2rem);
-  line-height: 1.08;
-  letter-spacing: -0.045em;
-}
-
-.landing-access form {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 0.75rem;
-  max-width: 470px;
-  margin: 0 auto;
-}
-
-.landing-access input,
-.landing-access button {
-  min-height: 50px;
-  padding: 0.8rem 1rem;
-  font: inherit;
-  border-radius: 11px;
-}
-
-.landing-access input {
-  min-width: 0;
-  color: var(--ap-navy);
-  background: var(--ap-pale);
-  border: 1px solid var(--ap-border);
-}
-
-.landing-access input::placeholder {
-  color: var(--ap-navy);
-}
-
-.landing-access button {
-  color: var(--ap-navy);
-  font-weight: 850;
-  cursor: pointer;
-  background: var(--ap-white);
-  border: 0;
-}
-
-.landing-access-note {
-  display: block;
-  margin-top: 0.8rem;
-  color: var(--ap-navy);
-  font-size: 0.7rem;
-}
-
-.landing-footer {
-  padding: 4rem 1.5rem 3rem;
-  background: var(--ap-pale);
-}
-
-.landing-footer-shell {
-  max-width: 1280px;
-  margin: 0 auto;
-}
-
-.landing-footer-columns {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr)) minmax(190px, 1.25fr);
-  gap: 2rem;
-}
-
-.landing-footer-column h3 {
-  margin: 0 0 1rem;
-  color: var(--ap-navy);
-  font-size: 0.875rem;
-}
-
-.landing-footer-column ul {
-  display: grid;
-  gap: 0.65rem;
-  padding: 0;
-  margin: 0;
-  list-style: none;
-}
-
-.landing-footer-column a,
-.landing-footer-about p,
-.landing-footer-bottom {
-  color: var(--ap-navy);
-  font-size: 0.78rem;
-}
-
-.landing-footer-column a:hover {
-  color: var(--ap-navy);
-}
-.landing-footer-about p {
-  margin: 0.75rem 0 0;
-  line-height: 1.6;
-}
-
-.landing-footer-bottom {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 2rem;
-  padding-top: 2rem;
-  margin-top: 3rem;
-  border-top: 1px solid var(--ap-border);
-}
-
-.landing-footer-bottom p {
-  margin: 0;
-  text-align: right;
-}
-
-@media (max-width: 1100px) {
-  .landing-steps {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-  .landing-solution-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .landing-footer-columns {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 820px) {
-  .landing-boundary-grid {
-    grid-template-columns: 1fr;
-  }
-  .landing-architecture {
-    margin-right: auto;
-    margin-left: auto;
-  }
-}
-
-@media (max-width: 640px) {
-  .landing-metric-grid,
-  .landing-solution-grid,
-  .landing-steps,
-  .landing-footer-columns {
-    grid-template-columns: 1fr;
-  }
-  .landing-access {
-    margin-right: 1rem;
-    margin-left: 1rem;
-    border-radius: 18px;
-  }
-  .landing-access form {
-    grid-template-columns: 1fr;
-  }
-  .landing-footer-bottom {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-  .landing-footer-bottom p {
-    text-align: left;
-  }
-}
-
-/* The document's utility styles and reset apply only to its landing page. */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-#assurapay-landing {
-  color-scheme: light;
-  font-family: Inter, Arial, sans-serif;
-  line-height: 1.5;
-}
-#assurapay-landing main {
-  max-width: none;
-  margin: 0;
-  padding: 0;
-}
-#assurapay-landing *,
-#assurapay-landing *::before,
-#assurapay-landing *::after {
-  box-sizing: border-box;
-  border-width: 0;
-  border-style: solid;
-  border-color: var(--ap-border);
-}
-#assurapay-landing h1,
-#assurapay-landing h2,
-#assurapay-landing h3,
-#assurapay-landing h4,
-#assurapay-landing p {
-  margin: 0;
-}
-#assurapay-landing ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-#assurapay-landing button {
-  font: inherit;
-  color: inherit;
-  cursor: pointer;
-  background-color: transparent;
-  background-image: none;
-}
-#assurapay-landing svg {
-  display: block;
-  vertical-align: middle;
-}
-#assurapay-landing a:focus-visible,
-#assurapay-landing button:focus-visible {
-  outline: 3px solid var(--ap-blue);
-  outline-offset: 4px;
-}
-
-/* Shared application surfaces and controls. */
-body {
-  background: var(--ap-pale);
-  color: var(--ap-navy);
-}
-.card,
-.panel {
-  background: var(--ap-white);
-  border-color: var(--ap-border);
-}
-input,
-select,
-textarea {
-  background: var(--ap-white);
-  color: var(--ap-navy);
-  border-color: var(--ap-border);
-}
-button:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-:focus-visible {
-  outline: 2px solid var(--ap-blue);
-  outline-offset: 3px;
-}
-.button--primary,
-.console-button--primary,
-.landing-cta {
-  background: var(--ap-blue);
-  color: var(--ap-white);
-}
 .button--secondary {
-  background: var(--ap-white);
-  color: var(--ap-blue);
-  border-color: var(--ap-blue);
-}
-.hero-carousel figcaption {
-  color: var(--ap-white);
-}
-.hero-carousel__slide::after {
-  background: linear-gradient(transparent, rgba(6, 25, 68, 0.88));
-}
-.console-header {
-  background: var(--ap-white);
-}
-.ap-page {
-  background: var(--ap-pale);
-}
-.ap-surface {
-  background: var(--ap-white);
-}
-.ap-border {
-  border: 1px solid var(--ap-border);
-}
-.ap-tint {
-  background: var(--ap-pale);
-}
-.ap-text {
-  color: var(--ap-navy);
-}
-.ap-accent {
-  color: var(--ap-blue);
-}
-.console-brand > span,
-.landing-brand-mark {
-  background: var(--ap-blue);
-  color: var(--ap-white);
-}
-.console-card,
-.console-modal,
-.console-workspace-card {
-  background: var(--ap-white);
+  background: var(--ap-surface);
+  border-color: var(--ap-line);
+  color: var(--ap-text);
 }
 
-/* ---------------------------------------------------------------------------
+.button--secondary:hover {
+  background: var(--ap-light-blue);
+  border-color: var(--ap-accent-text);
+}
+
+/* ===========================================================================
    The application chrome.
 
    Sticky and translucent, expressed in the `--ap-*` tokens rather than in
-   Tailwind utilities — this application has no Tailwind, so a class like
-   `backdrop-blur-md bg-white/80` would be an inert string: a header that looks
-   finished in the diff and unchanged in the browser.
+   Tailwind utilities — this application has no Tailwind reaching `app/`, so a
+   class like `backdrop-blur-md bg-white/80` would be an inert string: a header
+   that looks finished in the diff and unchanged in the browser.
 
-   `color-mix` against `--ap-white` rather than a literal rgba, so the surface
-   follows the token if the palette ever moves, and a plain `background` is
-   declared first for engines without it. The blur is additive: where
-   `backdrop-filter` is unsupported the header is simply opaque, which is a
-   worse-looking header and never an unreadable one.
-   --------------------------------------------------------------------------- */
+   `--ap-header` carries its own alpha in both themes, and a plain opaque
+   `background` is declared first for engines without `backdrop-filter`. The
+   blur is additive: where it is unsupported the header is simply opaque, which
+   is a worse-looking header and never an unreadable one.
+   =========================================================================== */
+
 .app-navigation {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 1rem;
-  padding: .5rem 1.5rem;
-  border-bottom: 1px solid var(--ap-border);
-  background: var(--ap-white);
-  background: color-mix(in srgb, var(--ap-white) 82%, transparent);
-  backdrop-filter: blur(12px);
   position: sticky;
   top: 0;
   /* Above page content and below any modal. The chrome must not cover a dialog
      that is asking for a decision. */
-  z-index: 20;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem 1.5rem;
+  min-height: 72px;
+  padding: 0.6rem max(1.5rem, calc((100% - 1240px) / 2));
+  background: var(--ap-surface);
+  background: var(--ap-header);
+  border-bottom: 1px solid var(--ap-line);
+  backdrop-filter: blur(16px);
+}
+
+.app-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  font-size: 1.3rem;
+  font-weight: 750;
+  letter-spacing: -0.035em;
+}
+
+.app-brand img {
+  width: 28px;
+  height: 38px;
+  object-fit: contain;
+}
+
+/* The wordmark's second syllable in the brand colour, as on the landing, which
+   renders it as `.ap-brand > span > span`. Done with a nested span in the
+   markup rather than a `::after` carrying the text: generated content is not
+   reliably in the accessibility tree, and "Assura" is not the product's name. */
+.app-brand span {
+  color: var(--ap-primary);
+}
+
+.app-navigation nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.35rem;
+  margin: 0;
+}
+
+.app-navigation nav a {
+  padding: 0.35rem 0;
+  color: var(--ap-muted);
+  font-size: 0.875rem;
+  font-weight: 550;
+  transition: color 160ms ease;
+}
+
+.app-navigation nav a:hover {
+  color: var(--ap-primary);
 }
 
 /* The current section, marked with the persona accent the workspace already
    carries rather than a second highlight colour. */
 .app-navigation nav a[aria-current='page'] {
-  box-shadow: inset 0 -2px 0 0 var(--ap-accent, var(--ap-blue));
-  font-weight: 600;
+  color: var(--ap-accent-text);
+  box-shadow: inset 0 -2px 0 0 var(--ap-accent-text);
+  font-weight: 650;
+}
+
+.app-navigation a:focus-visible {
+  outline: 2px solid var(--ap-primary);
+  outline-offset: 4px;
 }
 
 /* Pushed to the end of the row, and allowed to wrap underneath on a narrow
@@ -2822,106 +621,172 @@ button:disabled {
 .app-navigation__actions {
   display: flex;
   align-items: center;
-  gap: .75rem;
+  gap: 0.75rem;
   margin-left: auto;
 }
 
 .app-workspace {
   display: inline-flex;
   align-items: center;
-  gap: .4rem;
+  gap: 0.45rem;
   min-width: 0;
 }
 
 .app-workspace__label {
-  font-size: .78rem;
-  letter-spacing: .02em;
-  opacity: .72;
+  color: var(--ap-muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .app-workspace select {
-  background: var(--ap-white);
-  border: 1px solid var(--ap-border);
-  border-radius: 8px;
-  color: inherit;
-  font: inherit;
   max-width: 14rem;
-  padding: .3rem .5rem;
+  padding: 0.4rem 0.6rem;
+  border-radius: var(--ap-radius-sm);
+  color: inherit;
 }
 
 .app-workspace select:focus-visible {
-  outline: 2px solid var(--ap-accent, var(--ap-blue));
+  outline: 2px solid var(--ap-accent-text);
   outline-offset: 2px;
 }
 
 .app-navigation__cta {
+  min-height: 40px;
+  padding: 0.55rem 1rem;
+  font-size: 0.8125rem;
   white-space: nowrap;
 }
 
-@media (max-width: 720px) {
+/* The theme control, borrowed from the landing header so the two agree. A
+   circle the size of a touch target, transparent until hovered. */
+.app-theme-toggle {
+  display: inline-grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  padding: 0;
+  color: var(--ap-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  transition:
+    background 180ms ease,
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+.app-theme-toggle:hover {
+  color: var(--ap-primary);
+  background: var(--ap-light-blue);
+}
+
+.app-theme-toggle:active {
+  transform: scale(0.94);
+}
+
+.app-theme-toggle svg {
+  display: block;
+}
+
+@media (max-width: 860px) {
   /* The actions take their own row before the section links become unreachable. */
   .app-navigation__actions {
     margin-left: 0;
     width: 100%;
   }
 }
-.app-brand { display:inline-flex; align-items:center; gap:.5rem; color:var(--ap-navy); font-size:1.35rem; }
-.app-brand img { object-fit:contain; }
-.app-navigation nav { display:flex; flex-wrap:wrap; gap:1rem; margin:0; }
-.app-navigation a:focus-visible { outline:2px solid var(--ap-blue); outline-offset:4px; }
 
-/* ---------------------------------------------------------------------------
+/* ===========================================================================
+   The persona workspace switcher.
+
+   A row of tabs rather than a select, because it is a navigation between peer
+   workspaces rather than a setting.
+   =========================================================================== */
+
+.workspace-switcher {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+  margin: 0 0 1.75rem;
+  padding: 0 0 0.75rem;
+  border-bottom: 1px solid var(--ap-line);
+  font-size: 0.875rem;
+}
+
+.workspace-switcher a {
+  padding: 0.4rem 0;
+  color: var(--ap-muted);
+  border-bottom: 2px solid transparent;
+  transition: color 160ms ease;
+}
+
+.workspace-switcher a:hover {
+  color: var(--ap-text);
+}
+
+/* The current workspace, marked by `aria-current` rather than a class: the attribute that tells a
+   screen reader where it is is the same one that colours the tab, so the two cannot disagree. */
+.workspace-switcher a[aria-current='page'] {
+  color: var(--ap-accent-text);
+  border-bottom-color: var(--ap-accent-text);
+  font-weight: 650;
+}
+
+/* ===========================================================================
    Record pages — tabs and field lists.
 
-   Built on the same tokens as every other surface (`--ap-border`, `--ap-pale`,
-   `--ap-ink`, and the per-persona `--ap-accent`), so a record opened from the
+   Built on the same tokens as every other surface, so a record opened from the
    finance workspace carries that workspace's accent rather than introducing a
    second visual language for the same chain.
-   --------------------------------------------------------------------------- */
+   =========================================================================== */
 
 .tabs {
   display: flex;
   flex-wrap: wrap;
   gap: 0.25rem;
-  border-bottom: 1px solid var(--ap-border);
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
+  border-bottom: 1px solid var(--ap-line);
 }
 
 .tab {
   appearance: none;
+  padding: 0.55rem 0.95rem;
+  color: var(--ap-muted);
   background: transparent;
   border: 1px solid transparent;
   border-bottom: none;
-  border-radius: 10px 10px 0 0;
-  color: inherit;
-  cursor: pointer;
+  border-radius: var(--ap-radius-sm) var(--ap-radius-sm) 0 0;
   font: inherit;
-  padding: 0.5rem 0.9rem;
+  font-size: 0.875rem;
 }
 
 .tab:hover {
-  background: var(--ap-pale);
+  color: var(--ap-text);
+  background: var(--ap-soft);
 }
 
 .tab--current {
-  background: var(--ap-pale);
-  border-color: var(--ap-border);
+  color: var(--ap-text);
+  background: var(--ap-soft);
+  border-color: var(--ap-line);
   /* The accent is the one thing that distinguishes the active tab beyond
      background, so the state survives a high-contrast or forced-colours mode
      where backgrounds are overridden. */
-  box-shadow: inset 0 3px 0 0 var(--ap-accent, var(--ap-ink));
-  font-weight: 600;
+  box-shadow: inset 0 3px 0 0 var(--ap-accent-text);
+  font-weight: 650;
 }
 
 .tab:focus-visible {
-  outline: 2px solid var(--ap-accent, var(--ap-ink));
+  outline: 2px solid var(--ap-accent-text);
   outline-offset: 2px;
 }
 
 .record-fields {
   display: grid;
-  gap: 0.6rem 1.5rem;
+  gap: 0.7rem 1.5rem;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   margin: 0.75rem 0 0;
 }
@@ -2931,14 +796,43 @@ button:disabled {
 }
 
 .record-fields dt {
-  font-size: 0.82rem;
-  letter-spacing: 0.01em;
-  opacity: 0.72;
+  color: var(--ap-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .record-fields dd {
-  margin: 0.15rem 0 0;
+  margin: 0.2rem 0 0;
   /* Values can be long identifiers or serialized JSON; wrapping beats a
      horizontal scrollbar on a page whose job is to be read. */
   overflow-wrap: anywhere;
+}
+
+/* ===========================================================================
+   Responsive and motion
+   =========================================================================== */
+
+@media (max-width: 560px) {
+  main,
+  .shell,
+  .page-shell {
+    width: calc(100% - 2rem);
+    padding-top: 2rem;
+  }
+
+  .app-navigation {
+    padding-inline: 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
